@@ -1,11 +1,10 @@
 package us.ihmc.multicastLogDataProtocol.modelLoaders;
 
-import us.ihmc.modelFileLoaders.SdfLoader.SDFDescriptionMutator;
 import us.ihmc.robotics.robotDescription.RobotDescription;
 
 public interface LogModelLoader
 {
-   public void load(String modelName, byte[] model, String[] resourceDirectories, byte[] resourceZip, SDFDescriptionMutator descriptionMutator);
+   public void load(String modelName, byte[] model, String[] resourceDirectories, byte[] resourceZip);
    public RobotDescription createRobot();
    
    public String getModelName();

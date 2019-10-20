@@ -18,7 +18,7 @@ import us.ihmc.yoVariables.variable.frameObjects.FrameIndexMap;
 
 public abstract class YoVariableHandshakeParser
 {
-   private final RemoteYoGraphicFactory yoGraphicFactory = new RoboticsRemoteYoGraphicFactory();
+   private final RemoteYoGraphicFactory yoGraphicFactory = new RemoteYoGraphicFactory();
 
    @SuppressWarnings("deprecation")
    public static YoVariableHandshakeParser create(HandshakeFileType type)

@@ -38,7 +38,7 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoVariableHandShakeBuilder
 {
-   private final RemoteYoGraphicFactory yoGraphicFactory = new RoboticsRemoteYoGraphicFactory();
+   private final RemoteYoGraphicFactory yoGraphicFactory = new RemoteYoGraphicFactory();
    private final Handshake handshake = new Handshake();
    private final ArrayList<JointHolder> jointHolders = new ArrayList<JointHolder>();
    private final TObjectIntHashMap<YoVariable<?>> yoVariableIndices = new TObjectIntHashMap<>();
