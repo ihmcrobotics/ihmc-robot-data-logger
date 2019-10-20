@@ -40,7 +40,7 @@ public class YoVariableHandShakeBuilder
 {
    private final RemoteYoGraphicFactory yoGraphicFactory = new RemoteYoGraphicFactory();
    private final Handshake handshake = new Handshake();
-   private final ArrayList<JointHolder> jointHolders = new ArrayList<JointHolder>();
+   private final ArrayList<JointHolder> jointHolders = new ArrayList<>();
    private final TObjectIntHashMap<YoVariable<?>> yoVariableIndices = new TObjectIntHashMap<>();
    private final ArrayList<ImmutablePair<YoVariable<?>, YoVariableRegistry>> variablesAndRootRegistries = new ArrayList<>();
    private final TObjectIntHashMap<String> enumDescriptions = new TObjectIntHashMap<>();
@@ -58,7 +58,7 @@ public class YoVariableHandShakeBuilder
 
    private void addDynamicGraphicObjects(YoGraphicsListRegistry yoGraphicsListRegistry)
    {
-      ArrayList<YoGraphicsList> yoGraphicsLists = new ArrayList<YoGraphicsList>();
+      ArrayList<YoGraphicsList> yoGraphicsLists = new ArrayList<>();
       yoGraphicsListRegistry.getRegisteredYoGraphicsLists(yoGraphicsLists);
       for (YoGraphicsList yoGraphicsList : yoGraphicsLists)
       {
@@ -68,10 +68,11 @@ public class YoVariableHandShakeBuilder
             {
                if (handshake.getGraphicObjects().remaining() == 0)
                {
-                  throw new RuntimeException("The number of YoGraphics exceeds the maximum amount for the logger (" + handshake.getGraphicObjects().capacity() + ")");
+                  throw new RuntimeException("The number of YoGraphics exceeds the maximum amount for the logger (" + handshake.getGraphicObjects().capacity()
+                        + ")");
                }
-               
-               if(verifyDynamicGraphicObject((RemoteYoGraphic) yoGraphic))
+
+               if (verifyDynamicGraphicObject((RemoteYoGraphic) yoGraphic))
                {
                   GraphicObjectMessage msg = handshake.getGraphicObjects().add();
                   msg.setListName(yoGraphicsList.getLabel());
@@ -86,7 +87,7 @@ public class YoVariableHandShakeBuilder
          }
       }
 
-      ArrayList<ArtifactList> artifactLists = new ArrayList<ArtifactList>();
+      ArrayList<ArtifactList> artifactLists = new ArrayList<>();
       yoGraphicsListRegistry.getRegisteredArtifactLists(artifactLists);
 
       for (ArtifactList artifactList : artifactLists)
@@ -100,8 +101,8 @@ public class YoVariableHandShakeBuilder
                {
                   throw new RuntimeException("The number of Artifacts exceeds the maximum amount for the logger (" + handshake.getArtifacts().capacity() + ")");
                }
-               
-               if(verifyDynamicGraphicObject((RemoteYoGraphic) artifact))
+
+               if (verifyDynamicGraphicObject((RemoteYoGraphic) artifact))
                {
                   GraphicObjectMessage msg = handshake.getArtifacts().add();
                   messageFromDynamicGraphicObject((RemoteYoGraphic) artifact, msg);
@@ -152,7 +153,7 @@ public class YoVariableHandShakeBuilder
 
       int registryID = addRegistry(0, registry, builder.getVariables(), registry);
       YoGraphicsListRegistry yoGraphicsListRegistry = builder.getYoGraphicsListRegistry();
-      if(yoGraphicsListRegistry != null)
+      if (yoGraphicsListRegistry != null)
       {
          addDynamicGraphicObjects(yoGraphicsListRegistry);
       }
@@ -161,11 +162,11 @@ public class YoVariableHandShakeBuilder
       List<JointHolder> jointHolders = builder.getJointHolders();
       if (jointHolders != null && !jointHolders.isEmpty())
       {
-         if(!this.jointHolders.isEmpty())
+         if (!this.jointHolders.isEmpty())
          {
             throw new RuntimeException("Cannot register multiple registries with joint holders");
          }
-         
+
          addJointHolders(jointHolders);
       }
    }
@@ -176,7 +177,8 @@ public class YoVariableHandShakeBuilder
       int myID = registryID;
       if (myID > handshake.getRegistries().capacity())
       {
-         throw new RuntimeException("The number of registries exceeds the maximum number of registries for the logger (" + handshake.getRegistries().capacity() + ")");
+         throw new RuntimeException("The number of registries exceeds the maximum number of registries for the logger (" + handshake.getRegistries().capacity()
+               + ")");
       }
       registryID++;
 
@@ -204,7 +206,8 @@ public class YoVariableHandShakeBuilder
       int myID = enumID;
       if (myID > handshake.getEnumTypes().capacity())
       {
-         throw new RuntimeException("The number of enum types exceeds the maximum number of enum types for the logger (" + handshake.getEnumTypes().capacity() + ")");
+         throw new RuntimeException("The number of enum types exceeds the maximum number of enum types for the logger (" + handshake.getEnumTypes().capacity()
+               + ")");
       }
       enumID++;
 
@@ -222,7 +225,8 @@ public class YoVariableHandShakeBuilder
       enumTypeDescription.setName(name);
       if (enumTypes.length > enumTypeDescription.getEnumValues().capacity())
       {
-         throw new RuntimeException("The number of enum values for " + name + " exceeds the maximum number of enum values (" + enumTypeDescription.getEnumValues().capacity() + ")");
+         throw new RuntimeException("The number of enum values for " + name + " exceeds the maximum number of enum values ("
+               + enumTypeDescription.getEnumValues().capacity() + ")");
       }
       for (String enumType : enumTypes)
       {
@@ -248,15 +252,16 @@ public class YoVariableHandShakeBuilder
       ArrayList<YoVariable<?>> variables = registry.getAllVariablesInThisListOnly();
       if (variables.size() > handshake.getVariables().capacity())
       {
-         throw new RuntimeException("The number of variables exceeds the maximum number of variables for the logger (" + handshake.getVariables().capacity() + ")");
+         throw new RuntimeException("The number of variables exceeds the maximum number of variables for the logger (" + handshake.getVariables().capacity()
+               + ")");
       }
       for (YoVariable<?> variable : variables)
       {
          YoVariableDefinition yoVariableDefinition = handshake.getVariables().add();
          yoVariableDefinition.setName(variable.getName());
-         
+
          String description = variable.getDescription();
-         if(description != null && description.length() > 255)
+         if (description != null && description.length() > 255)
          {
             description = description.substring(0, 255);
          }
@@ -270,17 +275,17 @@ public class YoVariableHandShakeBuilder
             ParameterLoadStatus loadStatus = variable.getParameter().getLoadStatus();
             switch (loadStatus)
             {
-            case UNLOADED:
-               yoVariableDefinition.setLoadStatus(LoadStatus.Unloaded);
-               break;
-            case DEFAULT:
-               yoVariableDefinition.setLoadStatus(LoadStatus.Default);
-               break;
-            case LOADED:
-               yoVariableDefinition.setLoadStatus(LoadStatus.Loaded);
-               break;
-            default:
-               throw new RuntimeException("Unknown load status: " + loadStatus);
+               case UNLOADED:
+                  yoVariableDefinition.setLoadStatus(LoadStatus.Unloaded);
+                  break;
+               case DEFAULT:
+                  yoVariableDefinition.setLoadStatus(LoadStatus.Default);
+                  break;
+               case LOADED:
+                  yoVariableDefinition.setLoadStatus(LoadStatus.Loaded);
+                  break;
+               default:
+                  throw new RuntimeException("Unknown load status: " + loadStatus);
             }
          }
          else
@@ -290,56 +295,58 @@ public class YoVariableHandShakeBuilder
 
          switch (variable.getYoVariableType())
          {
-         case DOUBLE:
-            yoVariableDefinition.setType(YoType.DoubleYoVariable);
-            break;
-         case INTEGER:
-            yoVariableDefinition.setType(YoType.IntegerYoVariable);
-            break;
-         case BOOLEAN:
-            yoVariableDefinition.setType(YoType.BooleanYoVariable);
-            break;
-         case LONG:
-            yoVariableDefinition.setType(YoType.LongYoVariable);
-            break;
-         case ENUM:
-            yoVariableDefinition.setType(YoType.EnumYoVariable);
-            if (((YoEnum<?>) variable).isBackedByEnum())
-            {
-               yoVariableDefinition.setEnumType(getOrAddEnumType(((YoEnum<?>) variable).getEnumType().getCanonicalName(), ((YoEnum<?>) variable).getEnumValuesAsString()));
-            }
-            else
-            {
-               yoVariableDefinition.setEnumType(getOrAddEnumType(variable.getFullNameWithNameSpace() + ".EnumType", ((YoEnum<?>) variable).getEnumValuesAsString()));
-            }
-            yoVariableDefinition.setAllowNullValues(((YoEnum<?>) variable).getAllowNullValue());
-            break;
-         default:
-            throw new RuntimeException("Unknown variable type: " + variable.getYoVariableType());
+            case DOUBLE:
+               yoVariableDefinition.setType(YoType.DoubleYoVariable);
+               break;
+            case INTEGER:
+               yoVariableDefinition.setType(YoType.IntegerYoVariable);
+               break;
+            case BOOLEAN:
+               yoVariableDefinition.setType(YoType.BooleanYoVariable);
+               break;
+            case LONG:
+               yoVariableDefinition.setType(YoType.LongYoVariable);
+               break;
+            case ENUM:
+               yoVariableDefinition.setType(YoType.EnumYoVariable);
+               if (((YoEnum<?>) variable).isBackedByEnum())
+               {
+                  yoVariableDefinition.setEnumType(getOrAddEnumType(((YoEnum<?>) variable).getEnumType().getCanonicalName(),
+                                                                    ((YoEnum<?>) variable).getEnumValuesAsString()));
+               }
+               else
+               {
+                  yoVariableDefinition.setEnumType(getOrAddEnumType(variable.getFullNameWithNameSpace() + ".EnumType",
+                                                                    ((YoEnum<?>) variable).getEnumValuesAsString()));
+               }
+               yoVariableDefinition.setAllowNullValues(((YoEnum<?>) variable).getAllowNullValue());
+               break;
+            default:
+               throw new RuntimeException("Unknown variable type: " + variable.getYoVariableType());
          }
 
          variableListToPack.add(variable);
          variablesAndRootRegistries.add(new ImmutablePair<YoVariable<?>, YoVariableRegistry>(variable, rootRegistry));
-         this.yoVariableIndices.put(variable, variablesAndRootRegistries.size() - 1);
+         yoVariableIndices.put(variable, variablesAndRootRegistries.size() - 1);
 
       }
 
    }
-   
+
    private boolean verifyDynamicGraphicObject(RemoteYoGraphic obj)
    {
       for (YoVariable<?> yoVar : obj.getVariables())
       {
-         if (!this.yoVariableIndices.containsKey(yoVar))
+         if (!yoVariableIndices.containsKey(yoVar))
          {
-            System.err.println("Backing YoVariableRegistry not added for " + obj.getName() + ", variable: " + yoVar + ". Disabling visualizer for " + obj.getName());
+            System.err.println("Backing YoVariableRegistry not added for " + obj.getName() + ", variable: " + yoVar + ". Disabling visualizer for "
+                  + obj.getName());
             return false;
          }
       }
-      
+
       return true;
    }
-   
 
    private void messageFromDynamicGraphicObject(RemoteYoGraphic obj, GraphicObjectMessage objectMessage)
    {
@@ -367,11 +374,11 @@ public class YoVariableHandShakeBuilder
 
       for (YoVariable<?> yoVar : obj.getVariables())
       {
-         if (!this.yoVariableIndices.containsKey(yoVar))
+         if (!yoVariableIndices.containsKey(yoVar))
          {
             throw new RuntimeException("Backing YoVariableRegistry not added for " + obj.getName() + ", variable: " + yoVar);
          }
-         int index = this.yoVariableIndices.get(yoVar);
+         int index = yoVariableIndices.get(yoVar);
          objectMessage.getYoVariableIndex().add((short) index);
       }
 
@@ -418,7 +425,8 @@ public class YoVariableHandShakeBuilder
       {
          Collection<ReferenceFrame> frames = ReferenceFrameTools.getAllFramesInTree(rootFrame);
          ReferenceFrameInformation referenceFrameInformation = handshake.getReferenceFrameInformation();
-         frames.forEach(frame -> {
+         frames.forEach(frame ->
+         {
             referenceFrameInformation.getFrameNames().add(frame.getName());
             referenceFrameInformation.getFrameIndices().add(frame.getFrameIndex());
          });

@@ -9,9 +9,8 @@ public class LogProducerDisplay
    @Deprecated
    /**
     * Not neccessary anymore
-    * 
-    * @author Jesper Smith
     *
+    * @author Jesper Smith
     */
    public interface RobotIPToNameRemapHandler
    {
@@ -20,12 +19,9 @@ public class LogProducerDisplay
 
    @Deprecated
    /**
-    * Not used anymore. 
-    * 
-    * Disable autoDiscovery and hardcode hosts.
-    * 
-    * @author Jesper Smith
+    * Not used anymore. Disable autoDiscovery and hardcode hosts.
     *
+    * @author Jesper Smith
     */
    public interface LogSessionFilter
    {

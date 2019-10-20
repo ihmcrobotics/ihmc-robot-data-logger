@@ -17,16 +17,13 @@ import us.ihmc.robotDataLogger.util.DaemonThreadFactory;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection.HTTPDataServerConnectionListener;
 
 /**
- * Client to discover active logging sessions.
- * 
- * This client will take a list of hardcoded hosts and optionally listens for auto discoverable hosts.
- * 
- * For every hosts, it tries to connect and download the announcement. If this is possible, it stays connected to the host and marks the host as connected.
- * 
- * If the host disconnects, or if the connection is refused it will clean up and try again.
- * 
- * @author Jesper Smith
+ * Client to discover active logging sessions. This client will take a list of hardcoded hosts and
+ * optionally listens for auto discoverable hosts. For every hosts, it tries to connect and download
+ * the announcement. If this is possible, it stays connected to the host and marks the host as
+ * connected. If the host disconnects, or if the connection is refused it will clean up and try
+ * again.
  *
+ * @author Jesper Smith
  */
 public class DataServerDiscoveryClient implements DataServerLocationBroadcastReceiver.DataServerLocationFoundListener
 {
@@ -38,19 +35,19 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
    private final ScheduledExecutorService connectionExecutor = Executors.newSingleThreadScheduledExecutor(daemonThreadFactory);
    private final Executor listenerExecutor = Executors.newSingleThreadExecutor(daemonThreadFactory);
 
-   private final HashMap<HTTPDataServerDescription, HTTPDataServerDescription> hosts = new HashMap<HTTPDataServerDescription, HTTPDataServerDescription>();
+   private final HashMap<HTTPDataServerDescription, HTTPDataServerDescription> hosts = new HashMap<>();
 
    private boolean clientClosed = false;
-   private final HashSet<HTTPDataServerConnection> connections = new HashSet<HTTPDataServerConnection>();
+   private final HashSet<HTTPDataServerConnection> connections = new HashSet<>();
 
    private final DataServerLocationBroadcastReceiver broadcastReceiver;
-   
+
    public DataServerDiscoveryClient(DataServerDiscoveryListener listener, boolean enableAutoDiscovery)
    {
       this.listener = listener;
-      
+
       DataServerLocationBroadcastReceiver broadcastReceiver = null;
-      if(enableAutoDiscovery)
+      if (enableAutoDiscovery)
       {
          try
          {
@@ -61,15 +58,15 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
          {
             LogTools.warn("Cannot start broadcast receiver. " + e.getMessage());
             broadcastReceiver = null;
-         }         
+         }
       }
       this.broadcastReceiver = broadcastReceiver;
-      
+
    }
-   
+
    public void addHosts(List<HTTPDataServerDescription> descriptions)
    {
-      for(HTTPDataServerDescription description : descriptions)
+      for (HTTPDataServerDescription description : descriptions)
       {
          addHost(description);
       }
@@ -81,7 +78,7 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
       HTTPDataServerDescription description = new HTTPDataServerDescription(host, port, persistant);
       addHost(description);
    }
-   
+
    public void addHost(HTTPDataServerDescription description)
    {
       synchronized (lock)
@@ -125,7 +122,7 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
          {
             connection.close();
          }
-         
+
          broadcastReceiver.stop();
       }
    }
@@ -205,21 +202,21 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
          }
       }
    }
-   
+
    public List<HTTPDataServerDescription> getPersistantHostList()
    {
       ArrayList<HTTPDataServerDescription> list = new ArrayList<>();
-      
+
       for (HTTPDataServerDescription description : hosts.values())
       {
-         if(description.isPersistant())
+         if (description.isPersistant())
          {
             list.add(description);
          }
       }
-      
+
       return list;
-      
+
    }
 
    public static void main(String[] args)

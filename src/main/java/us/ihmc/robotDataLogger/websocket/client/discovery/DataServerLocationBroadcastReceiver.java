@@ -53,7 +53,7 @@ public class DataServerLocationBroadcastReceiver extends DataServerLocationBroad
    {
       running = false;
    }
-   
+
    public void join()
    {
       for (Thread thread : threads)
@@ -132,11 +132,11 @@ public class DataServerLocationBroadcastReceiver extends DataServerLocationBroad
    {
       new DataServerLocationBroadcastReceiver(new DataServerLocationFoundListener()
       {
-         
+
          @Override
          public void addHost(String host, int port, boolean persistant)
          {
-            System.out.println("Found " + host +  ":" + port);
+            System.out.println("Found " + host + ":" + port);
          }
       }).start();
    }

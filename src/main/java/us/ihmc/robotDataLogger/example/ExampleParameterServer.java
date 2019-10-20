@@ -31,7 +31,7 @@ public class ExampleParameterServer
       yoVariableServer.setMainRegistry(registry, null, null);
       new DefaultParameterReader().readParametersInRegistry(registry);
       ParameterChangedListener changedPrinter = p -> System.out.println(p.getName() + " changed to " + p.getValueAsString());
-      registry.getAllParameters().forEach(p -> p.addParameterChangedListener(changedPrinter ));
+      registry.getAllParameters().forEach(p -> p.addParameterChangedListener(changedPrinter));
    }
 
    public void start()

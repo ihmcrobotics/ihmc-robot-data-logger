@@ -21,19 +21,19 @@ public class YoVariableLogger
    public YoVariableLogger(HTTPDataServerConnection connection, YoVariableLoggerOptions options, Consumer<Announcement> doneListener) throws IOException
    {
       Announcement request = connection.getAnnouncement();
-      
+
       DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
       Calendar calendar = Calendar.getInstance();
       String timestamp = dateFormat.format(calendar.getTime());
-      
+
       File tempDirectory = new File(options.getLogDirectory(), "." + timestamp + "_" + request.getName());
-      
+
       File finalDirectory = new File(options.getLogDirectory(), timestamp + "_" + request.getName());
       if (finalDirectory.exists())
       {
          throw new IOException("Directory " + finalDirectory.getAbsolutePath() + " already exists");
       }
-      
+
       if (tempDirectory.exists())
       {
          throw new IOException("Temp directory " + finalDirectory.getAbsolutePath() + " already exists");

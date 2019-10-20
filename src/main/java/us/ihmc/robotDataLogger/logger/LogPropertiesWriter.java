@@ -11,12 +11,12 @@ public class LogPropertiesWriter extends LogProperties
 {
    private final static String version = "3.0";
    private final File file;
-   
+
    public LogPropertiesWriter(File file)
    {
       super();
       this.file = file;
-      if(file.exists())
+      if (file.exists())
       {
          throw new RuntimeException("Properties file " + file.getAbsolutePath() + " already exists");
       }
@@ -24,7 +24,7 @@ public class LogPropertiesWriter extends LogProperties
       // Backwards comparability options
       getVideo().setHasTimebase(true);
    }
-   
+
    public void store() throws IOException
    {
       PropertiesSerializer<LogProperties> serializer = new PropertiesSerializer<>(new LogPropertiesPubSubType());

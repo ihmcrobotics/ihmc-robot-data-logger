@@ -2,9 +2,8 @@ package us.ihmc.robotDataLogger.logger;
 
 /**
  * General settings for the data server
- * 
- * @author Jesper Smith
  *
+ * @author Jesper Smith
  */
 public class DataServerSettings
 {
@@ -17,12 +16,9 @@ public class DataServerSettings
    private boolean autoDiscoverable;
 
    /**
-    * Settings for the data server
-    * 
-    * Intialized to the default port with autoDiscoverable set to true. 
-    * 
+    * Settings for the data server Intialized to the default port with autoDiscoverable set to true.
+    *
     * @param logSession A running logger on the network will log this session to disk
-    * 
     */
    public DataServerSettings(boolean logSession)
    {
@@ -30,11 +26,9 @@ public class DataServerSettings
    }
 
    /**
-    * Settings for the data server
-    * 
-    * Initialized to the default port with autoDiscoverable set to true.
-    * 
-    * @param logSession A running logger on the network will log this session to disk
+    * Settings for the data server Initialized to the default port with autoDiscoverable set to true.
+    *
+    * @param logSession            A running logger on the network will log this session to disk
     * @param videoStreamIdentifier Identifier for the GUI video stream
     */
    public DataServerSettings(boolean logSession, String videoStreamIdentifier)
@@ -43,13 +37,11 @@ public class DataServerSettings
    }
 
    /**
-    * Settings for the data server
-    * 
-    * Initialized to the default port and without video stream identifier 
-    * 
-    * @param logSession A running logger on the network will log this session to disk
-    * @param autoDiscoverable The existence of the session is broadcast over the network so clients can find it without knowing the IP beforehand 
-    * 
+    * Settings for the data server Initialized to the default port and without video stream identifier
+    *
+    * @param logSession       A running logger on the network will log this session to disk
+    * @param autoDiscoverable The existence of the session is broadcast over the network so clients can
+    *                         find it without knowing the IP beforehand
     */
    public DataServerSettings(boolean logSession, boolean autoDiscoverable)
    {
@@ -58,16 +50,17 @@ public class DataServerSettings
 
    /**
     * Settings for the data server
-    * 
-    * @param logSession A running logger on the network will log this session to disk
-    * @param autoDiscoverable The existence of the session is broadcast over the network so clients can find it without knowing the IP beforehand 
-    * @param port Port to listen on (default: 8080)
+    *
+    * @param logSession            A running logger on the network will log this session to disk
+    * @param autoDiscoverable      The existence of the session is broadcast over the network so
+    *                              clients can find it without knowing the IP beforehand
+    * @param port                  Port to listen on (default: 8080)
     * @param videoStreamIdentifier Optional identifier for the GUI video stream
     */
    public DataServerSettings(boolean logSession, boolean autoDiscoverable, int port, String videoStreamIdentifier)
    {
       this.logSession = logSession;
-      this.videoStream = videoStreamIdentifier;
+      videoStream = videoStreamIdentifier;
       this.port = port;
       this.autoDiscoverable = autoDiscoverable;
    }
@@ -104,7 +97,7 @@ public class DataServerSettings
 
    public void setLogSession(boolean log)
    {
-      this.logSession = log;
+      logSession = log;
    }
 
    public void setVideoStream(String videoStream)

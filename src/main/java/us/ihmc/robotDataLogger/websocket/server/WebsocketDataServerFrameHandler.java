@@ -24,14 +24,10 @@ import us.ihmc.robotDataLogger.logger.LogAliveListener;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 
 /**
- * Handler for websocket connection
- * 
- * - Handles writing data to channel
- * - Passes incoming variableChangeRequests to the variablechangedlistener
- * - Handles the simple command server 
- * 
- * @author Jesper Smith
+ * Handler for websocket connection - Handles writing data to channel - Passes incoming
+ * variableChangeRequests to the variablechangedlistener - Handles the simple command server
  *
+ * @author Jesper Smith
  */
 class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSocketFrame>
 {
@@ -49,30 +45,28 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
    private Channel channel = null;
    private RecyclingByteBufAllocator alloc = null;
 
-
    private final VariableChangeRequestPubSubType variableChangeRequestType = new VariableChangeRequestPubSubType();
    private final SerializedPayload variableChangeRequestPayload = new SerializedPayload(variableChangeRequestType.getTypeSize());
    private final VariableChangeRequest request = new VariableChangeRequest();
 
    private final UDPTimestampServer udpTimestampServer;
-   
-   
+
    private final WebsocketDataServerRegistrySendStatistics[] registryStatistics;
-   
+
    private long requestedUpdateDT = 0;
 
-   public WebsocketDataServerFrameHandler(WebsocketDataBroadcaster broadcaster, int dataSize, int numberOfRegistryBuffers, VariableChangedListener variableChangedListener,
-                                          LogAliveListener logAliveListener)
+   public WebsocketDataServerFrameHandler(WebsocketDataBroadcaster broadcaster, int dataSize, int numberOfRegistryBuffers,
+                                          VariableChangedListener variableChangedListener, LogAliveListener logAliveListener)
          throws IOException
    {
       this.broadcaster = broadcaster;
       this.dataSize = dataSize;
       this.variableChangedListener = variableChangedListener;
       this.logAliveListener = logAliveListener;
-      this.udpTimestampServer = new UDPTimestampServer();
-      
+      udpTimestampServer = new UDPTimestampServer();
+
       registryStatistics = new WebsocketDataServerRegistrySendStatistics[numberOfRegistryBuffers];
-      for(int i = 0; i < numberOfRegistryBuffers; i++)
+      for (int i = 0; i < numberOfRegistryBuffers; i++)
       {
          registryStatistics[i] = new WebsocketDataServerRegistrySendStatistics();
       }
@@ -84,8 +78,8 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
 
       if (evt instanceof HandshakeComplete)
       {
-         this.lock = new Object();
-         this.binaryPool = new WebsocketFramePool(dataSize, BINARY_POOL_SIZE, BinaryWebSocketFrame.class);
+         lock = new Object();
+         binaryPool = new WebsocketFramePool(dataSize, BINARY_POOL_SIZE, BinaryWebSocketFrame.class);
 
          alloc = new RecyclingByteBufAllocator(ctx.alloc());
          ctx.channel().config().setAllocator(alloc);
@@ -101,33 +95,32 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
 
    private void runCommand(DataServerCommand command, int argument)
    {
-      switch(command)
+      switch (command)
       {
-      case SEND_TIMESTAMPS:
-         udpTimestampServer.startSending(remoteAddress().getAddress(), argument);
-         break;
-      case LIMIT_RATE:
-         synchronized(lock)
-         {
-            requestedUpdateDT = Conversions.millisecondsToNanoseconds(argument);
-         }
-         break;
-      case LOG_ACTIVE:
-         if (logAliveListener != null)
-         {
-            logAliveListener.receivedLogAliveCommand(false);
-         }
-         break;
-      case LOG_ACTIVE_WITH_CAMERA:
-         if (logAliveListener != null)
-         {
-            logAliveListener.receivedLogAliveCommand(true);
-         }
-         break;
+         case SEND_TIMESTAMPS:
+            udpTimestampServer.startSending(remoteAddress().getAddress(), argument);
+            break;
+         case LIMIT_RATE:
+            synchronized (lock)
+            {
+               requestedUpdateDT = Conversions.millisecondsToNanoseconds(argument);
+            }
+            break;
+         case LOG_ACTIVE:
+            if (logAliveListener != null)
+            {
+               logAliveListener.receivedLogAliveCommand(false);
+            }
+            break;
+         case LOG_ACTIVE_WITH_CAMERA:
+            if (logAliveListener != null)
+            {
+               logAliveListener.receivedLogAliveCommand(true);
+            }
+            break;
          default:
             // Do nothing
       }
-      
 
       if (command.broadcast())
       {
@@ -168,7 +161,7 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
          }
          else if (frame instanceof PongWebSocketFrame)
          {
-            
+
          }
          else
          {
@@ -201,31 +194,28 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
    {
       return channel;
    }
-      
-   
+
    /**
-    * Updates the registry count and estimated dt for bufferD 
-    * 
+    * Updates the registry count and estimated dt for bufferD
+    *
     * @param bufferID
     */
    private void updateRegistryStatistics(int bufferID, long timestamp)
    {
-      if(bufferID >= registryStatistics.length)
+      if (bufferID >= registryStatistics.length)
       {
-         throw new RuntimeException("Invalid registry ID");  
+         throw new RuntimeException("Invalid registry ID");
       }
-      
+
       registryStatistics[bufferID].update(timestamp);
-      
+
    }
-   
+
    /**
-    * Check if an update should be send
-    * 
-    * An update should be send if enough time passed for the current registry buffer OR another registry buffer should send at this time.
-    * 
-    * Note: If timestamps are not increasing for any thread and no DT can be determined, no data will be send to the client.
-    * 
+    * Check if an update should be send An update should be send if enough time passed for the current
+    * registry buffer OR another registry buffer should send at this time. Note: If timestamps are not
+    * increasing for any thread and no DT can be determined, no data will be send to the client.
+    *
     * @param bufferID
     * @param timestamp
     * @return true if we should send this registry
@@ -233,60 +223,57 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
    private boolean shouldSend(int bufferID, long timestamp)
    {
       // Always send if requestedUpdateDT is set to 0
-      if(requestedUpdateDT == 0)
+      if (requestedUpdateDT == 0)
       {
          return true;
       }
-      
-      
+
       // Figure out what rate the fastest buffer updates at
       long fastestRegistryBufferDT = Long.MAX_VALUE;
-      for(int i = 0; i < registryStatistics.length; i++) 
+      for (int i = 0; i < registryStatistics.length; i++)
       {
-         if(!registryStatistics[i].isNonMonotonic())
+         if (!registryStatistics[i].isNonMonotonic())
          {
             long dt = registryStatistics[i].getRegistryBufferDT();
-            if(dt < fastestRegistryBufferDT)
+            if (dt < fastestRegistryBufferDT)
             {
                fastestRegistryBufferDT = dt;
             }
          }
       }
-            
-      if(registryStatistics[bufferID].shouldSend(timestamp, requestedUpdateDT, fastestRegistryBufferDT, false))
+
+      if (registryStatistics[bufferID].shouldSend(timestamp, requestedUpdateDT, fastestRegistryBufferDT, false))
       {
          return true;
       }
-      else if (fastestRegistryBufferDT != Long.MAX_VALUE)      // Check if we need to send to match any buffer slower than the current buffer, but only if we have at least one monotonic updating buffer
+      else if (fastestRegistryBufferDT != Long.MAX_VALUE) // Check if we need to send to match any buffer slower than the current buffer, but only if we have at least one monotonic updating buffer
       {
-         for(int i = 0; i < registryStatistics.length; i++)
+         for (int i = 0; i < registryStatistics.length; i++)
          {
-            if(registryStatistics[i].getRegistryBufferDT() > registryStatistics[bufferID].getRegistryBufferDT())
+            if (registryStatistics[i].getRegistryBufferDT() > registryStatistics[bufferID].getRegistryBufferDT())
             {
-               if(registryStatistics[i].shouldSend(timestamp, requestedUpdateDT, fastestRegistryBufferDT, true))
+               if (registryStatistics[i].shouldSend(timestamp, requestedUpdateDT, fastestRegistryBufferDT, true))
                {
                   return true;
                }
             }
          }
       }
-      
+
       return false;
-      
+
    }
-   
+
    private void updateRegistrySendTimestamp(int bufferID, long timestamp)
    {
       registryStatistics[bufferID].updateSendTimestamp(timestamp);
    }
-   
 
    /**
-    * Write binary data in "frame"
+    * Write binary data in "frame" If called from the channel outbound event loop, no objects will be
+    * allocated.
     * 
-    * If called from the channel outbound event loop, no objects will be allocated.
-    * @param bufferID 
-    * 
+    * @param bufferID
     * @param frame
     */
    public void write(int bufferID, long timestamp, ByteBuffer frame)
@@ -310,7 +297,7 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
                   channel.writeAndFlush(websocketFrame, voidPromise);
                }
             }
-            
+
             updateRegistrySendTimestamp(bufferID, timestamp);
          }
       }
@@ -336,7 +323,7 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
          {
             binaryPool.release();
          }
-         
+
          if (textPool != null)
          {
             textPool.release();
@@ -347,7 +334,7 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
    public void writeCommand(DataServerCommand command, int argument)
    {
 
-      if(!channel.eventLoop().inEventLoop())
+      if (!channel.eventLoop().inEventLoop())
       {
          throw new RuntimeException("Call this function from the channels event loop");
       }

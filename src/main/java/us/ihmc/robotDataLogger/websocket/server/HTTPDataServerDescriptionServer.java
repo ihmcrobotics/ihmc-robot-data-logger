@@ -22,11 +22,9 @@ import io.netty.util.CharsetUtil;
 import us.ihmc.robotDataLogger.websocket.HTTPDataServerPaths;
 
 /**
- * 
  * Implementation of the HTTP server providing static resources
- * 
- * @author Jesper Smith
  *
+ * @author Jesper Smith
  */
 class HTTPDataServerDescriptionServer extends SimpleChannelInboundHandler<FullHttpRequest>
 {
@@ -75,7 +73,7 @@ class HTTPDataServerDescriptionServer extends SimpleChannelInboundHandler<FullHt
       else if (logServerContent.hasResourceZip() && HTTPDataServerPaths.resources.equals(req.uri()))
       {
          sendContent(ctx, req, logServerContent.getResourceZip(), logServerContent.getResourceZipContentType());
-      }         
+      }
       else
       {
          sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, NOT_FOUND));

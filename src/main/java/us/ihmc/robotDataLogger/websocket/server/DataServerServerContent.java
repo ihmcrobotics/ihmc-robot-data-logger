@@ -18,15 +18,11 @@ import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.HandshakePubSubType;
 
 /**
+ * This class holds all the static content that is available on the HTTP server. This includes the
+ * index page, announcement, handshake, model and resource zip. It is cached and ready to server
+ * with minimal object allocations.
  *
- * This class holds all the static content that is available on the HTTP server.
- * 
- * This includes the index page, announcement, handshake, model and resource zip.
- * 
- * It is cached and ready to server with minimal object allocations.
- * 
  * @author Jesper Smith
- *
  */
 class DataServerServerContent
 {
@@ -44,8 +40,8 @@ class DataServerServerContent
    {
       try
       {
-         this.name = announcement.getNameAsString();
-         this.hostName = announcement.getHostNameAsString();
+         name = announcement.getNameAsString();
+         hostName = announcement.getHostNameAsString();
 
          announcement.setIdentifier(UUID.randomUUID().toString());
          if (logModelProvider != null)
@@ -79,18 +75,18 @@ class DataServerServerContent
          else
          {
             announcement.getModelFileDescription().setHasModel(false);
-            this.model = null;
-            this.resourceZip = null;
+            model = null;
+            resourceZip = null;
          }
 
          AnnouncementPubSubType announcementPubSubType = new AnnouncementPubSubType();
-         JSONSerializer<Announcement> announcementSerializer = new JSONSerializer<Announcement>(announcementPubSubType);
+         JSONSerializer<Announcement> announcementSerializer = new JSONSerializer<>(announcementPubSubType);
          byte[] announcementData = announcementSerializer.serializeToBytes(announcement);
          announcementBuffer = Unpooled.directBuffer(announcementData.length);
          announcementBuffer.writeBytes(announcementData);
 
          HandshakePubSubType handshakeType = new HandshakePubSubType();
-         JSONSerializer<Handshake> handshakeSerializer = new JSONSerializer<Handshake>(handshakeType);
+         JSONSerializer<Handshake> handshakeSerializer = new JSONSerializer<>(handshakeType);
          byte[] handshakeData = handshakeSerializer.serializeToBytes(handshake);
          handshakeBuffer = Unpooled.directBuffer(handshakeData.length);
          handshakeBuffer.writeBytes(handshakeData);

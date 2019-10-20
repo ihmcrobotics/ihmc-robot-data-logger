@@ -29,10 +29,9 @@ public class WebsocketDataConsumer implements DataConsumer
 
    private WebsocketDataServerClient session;
    private boolean closed = false;
-   
+
    private final int timeoutInMs;
-   
-   
+
    private IDLYoVariableHandshakeParser parser;
    private YoVariableClientImplementation yoVariableClient;
    private TimestampListener timestampListener;
@@ -40,7 +39,7 @@ public class WebsocketDataConsumer implements DataConsumer
 
    public WebsocketDataConsumer(HTTPDataServerConnection initialConnection, int timeoutInMs)
    {
-      this.connection = initialConnection;
+      connection = initialConnection;
       this.timeoutInMs = timeoutInMs;
    }
 
@@ -91,10 +90,9 @@ public class WebsocketDataConsumer implements DataConsumer
    {
       ByteBuf handshake = getResource(HTTPDataServerPaths.handshake);
 
-      JSONSerializer<Handshake> serializer = new JSONSerializer<Handshake>(new HandshakePubSubType());
+      JSONSerializer<Handshake> serializer = new JSONSerializer<>(new HandshakePubSubType());
       return serializer.deserialize(handshake.toString(CharsetUtil.UTF_8));
    }
-
 
    @Override
    public void startSession(IDLYoVariableHandshakeParser parser, YoVariableClientImplementation yoVariableClient,
@@ -111,10 +109,10 @@ public class WebsocketDataConsumer implements DataConsumer
 
          connection.take();
          this.parser = parser;
-         this.timestampListener = timeStampListener;
+         timestampListener = timeStampListener;
          this.yoVariableClient = yoVariableClient;
          this.debugRegistry = debugRegistry;
-         
+
          session = new WebsocketDataServerClient(connection, parser, timeStampListener, yoVariableClient, timeoutInMs, debugRegistry);
       }
    }
@@ -185,9 +183,9 @@ public class WebsocketDataConsumer implements DataConsumer
    @Override
    public boolean reconnect() throws IOException
    {
-      synchronized(lock)
+      synchronized (lock)
       {
-         if(session != null && session.isActive())
+         if (session != null && session.isActive())
          {
             throw new RuntimeException("Session is still active");
          }
@@ -197,10 +195,10 @@ public class WebsocketDataConsumer implements DataConsumer
             HTTPDataServerDescription oldDescription = connection.getTarget();
             HTTPDataServerConnection newConnection = HTTPDataServerConnection.connect(oldDescription.getHost(), oldDescription.getPort());
             newConnection.close();
-            
+
             Announcement announcement = newConnection.getAnnouncement();
             Announcement oldAnnouncement = connection.getAnnouncement();
-            if(announcement.getReconnectKeyAsString().equals(oldAnnouncement.getReconnectKeyAsString()))
+            if (announcement.getReconnectKeyAsString().equals(oldAnnouncement.getReconnectKeyAsString()))
             {
                connection = newConnection;
                session = new WebsocketDataServerClient(connection, parser, timestampListener, yoVariableClient, timeoutInMs, debugRegistry);
@@ -211,21 +209,21 @@ public class WebsocketDataConsumer implements DataConsumer
                return false;
             }
          }
-         catch(IOException e)
+         catch (IOException e)
          {
             System.err.println(e.getMessage());
             return false;
-         }   
+         }
       }
-      
+
    }
 
    @Override
    public void writeVariableChangeRequest(int identifier, double valueAsDouble)
    {
-      synchronized(lock)
+      synchronized (lock)
       {
-         if(session != null && session.isActive())
+         if (session != null && session.isActive())
          {
             session.writeVariableChangeRequest(identifier, valueAsDouble);
          }
@@ -235,9 +233,9 @@ public class WebsocketDataConsumer implements DataConsumer
    @Override
    public void sendCommand(DataServerCommand command, int argument) throws IOException
    {
-      synchronized(lock)
+      synchronized (lock)
       {
-         if(session != null && session.isActive())
+         if (session != null && session.isActive())
          {
             session.sendCommand(command, argument);
          }

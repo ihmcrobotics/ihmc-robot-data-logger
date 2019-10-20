@@ -8,7 +8,6 @@ import us.ihmc.robotDataLogger.listeners.TimestampListener;
 public interface YoVariablesUpdatedListener extends TimestampListener, CommandListener
 {
    /**
-    * 
     * @return true if received variables are updated
     */
    boolean updateYoVariables();
@@ -20,17 +19,14 @@ public interface YoVariablesUpdatedListener extends TimestampListener, CommandLi
    void start(YoVariableClientInterface yoVariableClientInterface, LogHandshake handshake, YoVariableHandshakeParser handshakeParser);
 
    /**
-    * Called when a timeout is detected on the logger.
-    * 
-    * A reconnect is possible after being disconnected
-    * 
+    * Called when a timeout is detected on the logger. A reconnect is possible after being disconnected
     */
    void disconnected();
 
    /**
     * Data and timestamp is received over the TCP channel. Significant delay can occur depending on the
     * network conditions. Use receivedTimestampOnly for synchronization purposes.
-    * 
+    *
     * @param timestamp timestamp
     */
    void receivedTimestampAndData(long timestamp);

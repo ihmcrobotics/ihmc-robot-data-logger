@@ -28,7 +28,6 @@ public class YoVariableSummarizer
       }
       this.triggerVariable = yoVariables.get(trigger);
       LogTools.info("Creating summary of variables.\nTrigger Variable = " + this.triggerVariable.getName());
-      
 
       ArrayList<YoVariableSummarizerData> summaryVariables = new ArrayList<>();
       for (String variable : variables)
@@ -140,7 +139,7 @@ public class YoVariableSummarizer
          }
 
          samples++;
-         average += (variable.getValueAsDouble() - average) / (samples);
+         average += (variable.getValueAsDouble() - average) / samples;
       }
 
       public void writeCSV(PrintWriter writer)

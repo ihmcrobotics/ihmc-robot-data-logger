@@ -14,7 +14,6 @@ import gnu.trove.map.TObjectLongMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TLongObjectHashMap;
 import gnu.trove.map.hash.TObjectLongHashMap;
-import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -28,6 +27,7 @@ import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
 import us.ihmc.graphicsDescription.yoGraphics.plotting.ArtifactList;
 import us.ihmc.idl.serializers.extra.AbstractSerializer;
 import us.ihmc.idl.serializers.extra.YAMLSerializer;
+import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.EnumType;
 import us.ihmc.robotDataLogger.GraphicObjectMessage;
 import us.ihmc.robotDataLogger.Handshake;
@@ -58,9 +58,8 @@ import us.ihmc.yoVariables.variable.frameObjects.FrameIndexMap;
 
 /**
  * Class to decode variable data from handshakes
- * 
- * @author jesper
  *
+ * @author jesper
  */
 public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
 {
@@ -73,12 +72,12 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
       super();
       switch (type)
       {
-      case IDL_YAML:
-         serializer = new YAMLSerializer<>(new HandshakePubSubType());
-         break;
-      default:
-         serializer = null;
-         break;
+         case IDL_YAML:
+            serializer = new YAMLSerializer<>(new HandshakePubSubType());
+            break;
+         default:
+            serializer = null;
+            break;
       }
    }
 
@@ -107,7 +106,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
    @Override
    public void parseFrom(Handshake handshake)
    {
-      this.dt = handshake.getDt();
+      dt = handshake.getDt();
       List<YoVariableRegistry> regs = parseRegistries(handshake);
 
       // don't replace those list objects (it's a big code mess), just populate them with received data
@@ -124,9 +123,9 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
       addGraphicObjects(handshake);
       frameIndexMap = parseReferenceFrames(handshake);
 
-      this.numberOfVariables = handshake.getVariables().size();
-      this.numberOfJointStateVariables = getNumberOfJointStateVariables(handshake);
-      this.stateVariables = 1 + numberOfVariables + numberOfJointStateVariables;
+      numberOfVariables = handshake.getVariables().size();
+      numberOfJointStateVariables = getNumberOfJointStateVariables(handshake);
+      stateVariables = 1 + numberOfVariables + numberOfJointStateVariables;
    }
 
    private static List<YoVariableRegistry> parseRegistries(Handshake handshake)
@@ -180,31 +179,31 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
             YoParameter<?> newParameter;
             switch (type)
             {
-            case DoubleYoVariable:
-               newParameter = new DoubleParameter(name, description, parent, min, max);
-               break;
+               case DoubleYoVariable:
+                  newParameter = new DoubleParameter(name, description, parent, min, max);
+                  break;
 
-            case IntegerYoVariable:
-               newParameter = new IntegerParameter(name, description, parent, (int) min, (int) max);
-               break;
+               case IntegerYoVariable:
+                  newParameter = new IntegerParameter(name, description, parent, (int) min, (int) max);
+                  break;
 
-            case BooleanYoVariable:
-               newParameter = new BooleanParameter(name, description, parent);
-               break;
+               case BooleanYoVariable:
+                  newParameter = new BooleanParameter(name, description, parent);
+                  break;
 
-            case LongYoVariable:
-               newParameter = new LongParameter(name, description, parent, (long) min, (long) max);
-               break;
+               case LongYoVariable:
+                  newParameter = new LongParameter(name, description, parent, (long) min, (long) max);
+                  break;
 
-            case EnumYoVariable:
-               EnumType enumType = handshake.getEnumTypes().get(yoVariableDefinition.getEnumType());
-               String[] names = enumType.getEnumValues().toStringArray();
-               boolean allowNullValues = yoVariableDefinition.getAllowNullValues();
-               newParameter = new EnumParameter<>(name, description, parent, allowNullValues, names);
-               break;
+               case EnumYoVariable:
+                  EnumType enumType = handshake.getEnumTypes().get(yoVariableDefinition.getEnumType());
+                  String[] names = enumType.getEnumValues().toStringArray();
+                  boolean allowNullValues = yoVariableDefinition.getAllowNullValues();
+                  newParameter = new EnumParameter<>(name, description, parent, allowNullValues, names);
+                  break;
 
-            default:
-               throw new RuntimeException("Unknown YoVariable type: " + type.name());
+               default:
+                  throw new RuntimeException("Unknown YoVariable type: " + type.name());
             }
 
             //This is the case for some logs. A special enum may need to be used here. I'm not sure these matter at all for a log?
@@ -216,17 +215,17 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
             {
                switch (yoVariableDefinition.getLoadStatus())
                {
-               case Unloaded:
-                  SingleParameterReader.readParameter(newParameter, 0.0, ParameterLoadStatus.UNLOADED);
-                  break;
-               case Default:
-                  SingleParameterReader.readParameter(newParameter, 0.0, ParameterLoadStatus.DEFAULT);
-                  break;
-               case Loaded:
-                  SingleParameterReader.readParameter(newParameter, 0.0, ParameterLoadStatus.LOADED);
-                  break;
-               default:
-                  throw new RuntimeException("Unknown load status: " + yoVariableDefinition.getLoadStatus());
+                  case Unloaded:
+                     SingleParameterReader.readParameter(newParameter, 0.0, ParameterLoadStatus.UNLOADED);
+                     break;
+                  case Default:
+                     SingleParameterReader.readParameter(newParameter, 0.0, ParameterLoadStatus.DEFAULT);
+                     break;
+                  case Loaded:
+                     SingleParameterReader.readParameter(newParameter, 0.0, ParameterLoadStatus.LOADED);
+                     break;
+                  default:
+                     throw new RuntimeException("Unknown load status: " + yoVariableDefinition.getLoadStatus());
                }
 
             }
@@ -245,31 +244,31 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
             YoVariable<?> newVariable;
             switch (type)
             {
-            case DoubleYoVariable:
-               newVariable = new YoDouble(name, description, parent);
-               break;
+               case DoubleYoVariable:
+                  newVariable = new YoDouble(name, description, parent);
+                  break;
 
-            case IntegerYoVariable:
-               newVariable = new YoInteger(name, description, parent);
-               break;
+               case IntegerYoVariable:
+                  newVariable = new YoInteger(name, description, parent);
+                  break;
 
-            case BooleanYoVariable:
-               newVariable = new YoBoolean(name, description, parent);
-               break;
+               case BooleanYoVariable:
+                  newVariable = new YoBoolean(name, description, parent);
+                  break;
 
-            case LongYoVariable:
-               newVariable = new YoLong(name, description, parent);
-               break;
+               case LongYoVariable:
+                  newVariable = new YoLong(name, description, parent);
+                  break;
 
-            case EnumYoVariable:
-               EnumType enumType = handshake.getEnumTypes().get(yoVariableDefinition.getEnumType());
-               String[] names = enumType.getEnumValues().toStringArray();
-               boolean allowNullValues = yoVariableDefinition.getAllowNullValues();
-               newVariable = new YoEnum(name, description, parent, allowNullValues, names);
-               break;
+               case EnumYoVariable:
+                  EnumType enumType = handshake.getEnumTypes().get(yoVariableDefinition.getEnumType());
+                  String[] names = enumType.getEnumValues().toStringArray();
+                  boolean allowNullValues = yoVariableDefinition.getAllowNullValues();
+                  newVariable = new YoEnum(name, description, parent, allowNullValues, names);
+                  break;
 
-            default:
-               throw new RuntimeException("Unknown YoVariable type: " + type.name());
+               default:
+                  throw new RuntimeException("Unknown YoVariable type: " + type.name());
             }
             newVariable.setManualScalingMinMax(min, max);
             variableList.add(newVariable);
@@ -301,7 +300,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
 
    private void addGraphicObjects(Handshake yoProtoHandshake)
    {
-      HashMap<String, YoGraphicsList> dgoListMap = new HashMap<String, YoGraphicsList>();
+      HashMap<String, YoGraphicsList> dgoListMap = new HashMap<>();
       String listName;
       YoGraphicsList dgoList;
       for (int i = 0; i < yoProtoHandshake.getGraphicObjects().size(); i++)
@@ -328,7 +327,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
          }
          catch (Exception e)
          {
-            PrintTools.error(this, "Got exception: " + e.getClass().getSimpleName() + " when loading a YoGraphic.");
+            LogTools.error("Got exception: " + e.getClass().getSimpleName() + " when loading a YoGraphic.");
             e.printStackTrace();
          }
       }
@@ -347,7 +346,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
          }
          catch (Exception e)
          {
-            PrintTools.error(this, "Got exception: " + e.getClass().getSimpleName() + " when loading a Artifact.");
+            LogTools.error("Got exception: " + e.getClass().getSimpleName() + " when loading a Artifact.");
          }
       }
       yoGraphicsListRegistry.registerArtifactList(artifactList);
@@ -375,8 +374,8 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
    private static FrameIndexMap parseReferenceFrames(Handshake handshake)
    {
       ReferenceFrameInformation referenceFrameInformation = handshake.getReferenceFrameInformation();
-      TObjectLongMap<ReferenceFrame> frameToIndex = new TObjectLongHashMap<ReferenceFrame>(DEFAULT_CAPACITY, DEFAULT_LOAD_FACTOR, NO_ENTRY_KEY);
-      TLongObjectMap<ReferenceFrame> indexToframe = new TLongObjectHashMap<ReferenceFrame>(DEFAULT_CAPACITY, DEFAULT_LOAD_FACTOR, NO_ENTRY_KEY);
+      TObjectLongMap<ReferenceFrame> frameToIndex = new TObjectLongHashMap<>(DEFAULT_CAPACITY, DEFAULT_LOAD_FACTOR, NO_ENTRY_KEY);
+      TLongObjectMap<ReferenceFrame> indexToframe = new TLongObjectHashMap<>(DEFAULT_CAPACITY, DEFAULT_LOAD_FACTOR, NO_ENTRY_KEY);
       for (int i = 0; i < referenceFrameInformation.getFrameNames().size(); i++)
       {
          // TODO: one day we can actually fix this frame tree to match the controller, back the transforms by yo variables and have rviz kinda.

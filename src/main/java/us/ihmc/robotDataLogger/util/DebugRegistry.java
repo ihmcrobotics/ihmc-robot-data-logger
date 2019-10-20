@@ -13,33 +13,32 @@ public class DebugRegistry
    private final YoInteger skippedPacketDueToFullBuffer;
 
    private final YoVariableRegistry loggerDebugRegistry = new YoVariableRegistry("loggerStatus");
-   
+
    public DebugRegistry()
    {
-      
-      this.skippedPackets = new YoInteger("skippedPackets", loggerDebugRegistry);
-      this.nonIncreasingTimestamps = new YoInteger("nonIncreasingTimestamps", loggerDebugRegistry);
-      this.packetsOutOfOrder = new YoInteger("packetsOutOfOrder", loggerDebugRegistry);
-      this.mergedPackets = new YoInteger("mergedPackets", loggerDebugRegistry);
-      this.totalPackets = new YoInteger("totalPackets", loggerDebugRegistry);
-      this.skippedPacketDueToFullBuffer = new YoInteger("skippedPacketDueToFullBuffer", loggerDebugRegistry);
+
+      skippedPackets = new YoInteger("skippedPackets", loggerDebugRegistry);
+      nonIncreasingTimestamps = new YoInteger("nonIncreasingTimestamps", loggerDebugRegistry);
+      packetsOutOfOrder = new YoInteger("packetsOutOfOrder", loggerDebugRegistry);
+      mergedPackets = new YoInteger("mergedPackets", loggerDebugRegistry);
+      totalPackets = new YoInteger("totalPackets", loggerDebugRegistry);
+      skippedPacketDueToFullBuffer = new YoInteger("skippedPacketDueToFullBuffer", loggerDebugRegistry);
    }
-   
+
    public void reset()
    {
-      skippedPackets.set(0);                                
-      nonIncreasingTimestamps.set(0);                       
-      packetsOutOfOrder.set(0);                             
-      mergedPackets.set(0);                                 
-      totalPackets.set(0);                                  
-      skippedPacketDueToFullBuffer.set(0);                  
+      skippedPackets.set(0);
+      nonIncreasingTimestamps.set(0);
+      packetsOutOfOrder.set(0);
+      mergedPackets.set(0);
+      totalPackets.set(0);
+      skippedPacketDueToFullBuffer.set(0);
    }
 
    public YoInteger getSkippedPackets()
    {
       return skippedPackets;
    }
-
 
    public YoInteger getNonIncreasingTimestamps()
    {
@@ -65,7 +64,7 @@ public class DebugRegistry
    {
       return skippedPacketDueToFullBuffer;
    }
-   
+
    public YoVariableRegistry getYoVariableRegistry()
    {
       return loggerDebugRegistry;

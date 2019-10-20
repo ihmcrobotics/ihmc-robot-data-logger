@@ -55,7 +55,7 @@ public class WebsocketDataServerClient
                                     YoVariableClientImplementation yoVariableClient, int timeoutInMs, DebugRegistry debugRegistry)
          throws IOException
    {
-      this.disconnectPromise = connection.take();
+      disconnectPromise = connection.take();
       HTTPDataServerDescription target = connection.getTarget();
 
       URI uri;
@@ -68,17 +68,20 @@ public class WebsocketDataServerClient
          throw new IOException(e);
       }
 
-      this.consumer = new RegistryConsumer(parser, yoVariableClient, debugRegistry);
-      this.udpTimestampClient = new UDPTimestampClient(timestampListener);
-      this.udpTimestampClient.start();
-
+      consumer = new RegistryConsumer(parser, yoVariableClient, debugRegistry);
+      udpTimestampClient = new UDPTimestampClient(timestampListener);
+      udpTimestampClient.start();
 
       CustomLogDataSubscriberType type = new CustomLogDataSubscriberType(parser.getNumberOfVariables(), parser.getNumberOfStates());
       final WebSocketDataServerClientHandler handler = new WebSocketDataServerClientHandler(WebSocketClientHandshakerFactory.newHandshaker(uri,
                                                                                                                                            WebSocketVersion.V13,
-                                                                                                                                           null, true,
+                                                                                                                                           null,
+                                                                                                                                           true,
                                                                                                                                            new DefaultHttpHeaders()),
-                                                                                            yoVariableClient, udpTimestampClient.getPort(), consumer, type);
+                                                                                            yoVariableClient,
+                                                                                            udpTimestampClient.getPort(),
+                                                                                            consumer,
+                                                                                            type);
 
       Bootstrap b = new Bootstrap();
       b.group(group).channel(NioSocketChannel.class).handler(new ChannelInitializer<SocketChannel>()
@@ -87,7 +90,11 @@ public class WebsocketDataServerClient
          protected void initChannel(SocketChannel ch)
          {
             ChannelPipeline p = ch.pipeline();
-            p.addLast(new HttpClientCodec(), new HttpObjectAggregator(65536), WebSocketClientCompressionHandler.INSTANCE, new IdleStateHandler(timeoutInMs, 0, 0, TimeUnit.MILLISECONDS), handler);
+            p.addLast(new HttpClientCodec(),
+                      new HttpObjectAggregator(65536),
+                      WebSocketClientCompressionHandler.INSTANCE,
+                      new IdleStateHandler(timeoutInMs, 0, 0, TimeUnit.MILLISECONDS),
+                      handler);
          }
       });
 
@@ -108,8 +115,8 @@ public class WebsocketDataServerClient
 
    private void disconnected()
    {
-      this.udpTimestampClient.stop();
-      this.udpTimestampClient.join();
+      udpTimestampClient.stop();
+      udpTimestampClient.join();
       consumer.stopImmediatly();
       try
       {
@@ -139,7 +146,7 @@ public class WebsocketDataServerClient
          VariableChangeRequest msg = new VariableChangeRequest();
          msg.setVariableID(identifier);
          msg.setRequestedValue(valueAsDouble);
-         
+
          variableChangeRequestPayload.getData().clear();
          variableChangeRequestType.serialize(msg, variableChangeRequestPayload);
 

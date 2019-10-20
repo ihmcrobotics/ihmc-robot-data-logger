@@ -17,12 +17,12 @@ public class ConverterUtil
       {
          throw new RuntimeException("Cannot find " + handshake);
       }
-   
+
       DataInputStream handshakeStream = new DataInputStream(new FileInputStream(handshake));
       byte[] handshakeData = new byte[(int) handshake.length()];
       handshakeStream.readFully(handshakeData);
       handshakeStream.close();
-   
+
       YoVariableHandshakeParser parser = YoVariableHandshakeParser.create(type);
       parser.parseFrom(handshakeData);
       return parser;

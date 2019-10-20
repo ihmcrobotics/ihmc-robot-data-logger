@@ -23,31 +23,31 @@ public abstract class YoVariableHandshakeParser
    @SuppressWarnings("deprecation")
    public static YoVariableHandshakeParser create(HandshakeFileType type)
    {
-      if(type == null)
+      if (type == null)
       {
          System.err.println("Handshake file type is null. Defaulting to PROTOBUFFER");
          type = HandshakeFileType.PROTOBUFFER;
       }
-      
-      switch(type)
+
+      switch (type)
       {
-      case IDL_CDR:
-      case IDL_YAML:
-         return new IDLYoVariableHandshakeParser(type);
-      case PROTOBUFFER:
-         return new ProtoBufferYoVariableHandshakeParser();
-      default:
-         throw new RuntimeException("Not implemented");
+         case IDL_CDR:
+         case IDL_YAML:
+            return new IDLYoVariableHandshakeParser(type);
+         case PROTOBUFFER:
+            return new ProtoBufferYoVariableHandshakeParser();
+         default:
+            throw new RuntimeException("Not implemented");
       }
    }
-   
+
    public static int getNumberOfStateVariables(HandshakeFileType type, byte[] data) throws IOException
    {
       YoVariableHandshakeParser parser = create(type);
       parser.parseFrom(data);
       return parser.getNumberOfStates();
    }
-   
+
    protected final YoGraphicsListRegistry yoGraphicsListRegistry = new YoGraphicsListRegistry();
    protected final ArrayList<JointState> jointStates = new ArrayList<>();
    protected double dt;
@@ -59,8 +59,9 @@ public abstract class YoVariableHandshakeParser
    protected FrameIndexMap frameIndexMap;
 
    public abstract void parseFrom(Handshake handshake) throws IOException;
+
    public abstract void parseFrom(byte[] handShake) throws IOException;
-   
+
    public YoVariableHandshakeParser()
    {
    }
@@ -110,7 +111,7 @@ public abstract class YoVariableHandshakeParser
       return stateVariables;
 
    }
-   
+
    public int getNumberOfVariables()
    {
       return numberOfVariables;
@@ -125,5 +126,5 @@ public abstract class YoVariableHandshakeParser
    {
       return yoGraphicFactory.yoGraphicFromMessage(registrationID, name, vars, consts, appearance);
    }
-   
+
 }

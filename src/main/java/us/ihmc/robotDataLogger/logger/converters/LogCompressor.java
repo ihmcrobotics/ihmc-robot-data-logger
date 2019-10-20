@@ -87,7 +87,8 @@ public class LogCompressor extends SimpleFileVisitor<Path>
       {
          System.out.println("Compressing " + directory);
 
-         YoVariableHandshakeParser handshake = ConverterUtil.getHandshake(properties.getVariables().getHandshakeFileType(), new File(directory, properties.getVariables().getHandshakeAsString()));
+         YoVariableHandshakeParser handshake = ConverterUtil.getHandshake(properties.getVariables().getHandshakeFileType(),
+                                                                          new File(directory, properties.getVariables().getHandshakeAsString()));
          int bufferSize = handshake.getBufferSize();
 
          File logdata = new File(directory, properties.getVariables().getDataAsString());
@@ -118,7 +119,7 @@ public class LogCompressor extends SimpleFileVisitor<Path>
          {
             if (count % (elements / 10) == 0)
             {
-               System.out.print((count / (elements / 100)) + "%");
+               System.out.print(count / (elements / 100) + "%");
             }
             else if (count % (elements / 100) == 0)
             {
@@ -156,7 +157,7 @@ public class LogCompressor extends SimpleFileVisitor<Path>
          File log = new File(directory, "robotData.log");
          PropertiesSerializer<LogProperties> writer = new PropertiesSerializer<>(new LogPropertiesPubSubType());
          writer.serialize(log, properties);
-         
+
          logdata.delete();
          System.out.println("Compressed " + directory);
       }

@@ -2,9 +2,8 @@ package us.ihmc.robotDataLogger.websocket;
 
 /**
  * Paths for resources on the HTTP server
- * 
- * @author Jesper Smith
  *
+ * @author Jesper Smith
  */
 public class HTTPDataServerPaths
 {

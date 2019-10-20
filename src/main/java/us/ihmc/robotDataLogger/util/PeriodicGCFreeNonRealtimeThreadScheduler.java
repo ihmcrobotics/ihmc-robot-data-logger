@@ -54,15 +54,15 @@ public class PeriodicGCFreeNonRealtimeThreadScheduler implements PeriodicThreadS
    @Override
    public synchronized void schedule(Runnable runnable, long period, TimeUnit timeunit)
    {
-      if (this.running)
+      if (running)
       {
          throw new RuntimeException("Thread has already been scheduled");
       }
 
       this.runnable = runnable;
-      this.running = true;
-      this.thread = new FixedRateThread(timeunit.toNanos(period));
-      this.thread.start();
+      running = true;
+      thread = new FixedRateThread(timeunit.toNanos(period));
+      thread.start();
    }
 
    @Override

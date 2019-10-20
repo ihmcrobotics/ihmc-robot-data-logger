@@ -9,10 +9,9 @@ import net.jpountz.lz4.LZ4FastDecompressor;
 import net.jpountz.util.Native;
 
 /**
- * Helper class to easily switch compression algorithms . 
- * 
- * @author Jesper Smith
+ * Helper class to easily switch compression algorithms .
  *
+ * @author Jesper Smith
  */
 public class LZ4CompressionImplementation implements CompressionImplementation
 {
@@ -89,9 +88,8 @@ public class LZ4CompressionImplementation implements CompressionImplementation
    @Override
    public int minimumDecompressedLength(int compressedLength)
    {
-      double y = ((long) (compressedLength - 16)) * 255;
+      double y = (long) (compressedLength - 16) * 255;
       return (int) Math.round(y / 256);
    }
-   
 
 }

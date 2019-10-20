@@ -5,8 +5,9 @@ import java.io.IOException;
 import org.xerial.snappy.Snappy;
 
 /**
- * This class is an abstraction of the actual Snappy implementation.
- * You can extend this class and override its methods on other platforms (e.g. Android), in order to make it work with other libraries.
+ * This class is an abstraction of the actual Snappy implementation. You can extend this class and
+ * override its methods on other platforms (e.g. Android), in order to make it work with other
+ * libraries.
  */
 public class SnappyLibrary
 {

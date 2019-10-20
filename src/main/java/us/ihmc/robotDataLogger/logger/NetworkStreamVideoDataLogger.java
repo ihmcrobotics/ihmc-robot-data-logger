@@ -17,22 +17,19 @@ import us.ihmc.robotDataLogger.guiRecorder.GUICaptureReceiver;
 public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface implements GUICaptureHandler
 {
    private final GUICaptureReceiver client;
-   
+
    private MP4MJPEGMovieBuilder builder;
    private PrintStream timestampStream;
    private int dts = 0;
-   
+
    private volatile long timestamp = 0;
 
    private volatile long lastFrameTimestamp = 0;
 
-   
    public NetworkStreamVideoDataLogger(File logPath, LogProperties logProperties, int domainId, String topicName) throws IOException
    {
       super(logPath, logProperties, topicName);
-      
-    
-      
+
       client = new GUICaptureReceiver(domainId, topicName, this);
       client.start();
    }
@@ -40,7 +37,7 @@ public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface imple
    @Override
    public void timestampChanged(long newTimestamp)
    {
-      this.timestamp = newTimestamp;
+      timestamp = newTimestamp;
    }
 
    @Override
@@ -48,11 +45,11 @@ public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface imple
    {
       try
       {
-         if(builder != null)
+         if (builder != null)
          {
             builder.close();
          }
-         if(timestampStream != null)
+         if (timestampStream != null)
          {
             timestampStream.close();
          }
@@ -72,11 +69,11 @@ public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface imple
       client.close();
       try
       {
-         if(builder != null)
+         if (builder != null)
          {
             builder.close();
          }
-         if(timestampStream != null)
+         if (timestampStream != null)
          {
             timestampStream.close();
          }
@@ -88,7 +85,7 @@ public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface imple
       builder = null;
       timestampStream = null;
    }
-   
+
    @Override
    public void receivedFrame(ByteBuffer buffer)
    {

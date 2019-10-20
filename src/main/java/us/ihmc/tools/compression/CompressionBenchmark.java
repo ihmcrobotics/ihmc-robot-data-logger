@@ -13,9 +13,8 @@ import us.ihmc.robotDataLogger.logger.YoVariableLogReader;
 
 /**
  * Test class to compare the speed and compression factor of various algorithms
- * 
- * @author Jesper Smith
  *
+ * @author Jesper Smith
  */
 public class CompressionBenchmark extends YoVariableLogReader
 {
@@ -32,13 +31,13 @@ public class CompressionBenchmark extends YoVariableLogReader
       initialize();
 
       System.out.println("Loading " + getNumberOfEntries() + " data lines with " + getNumberOfVariables() + " variables.");
-      System.out.println("Total memory required " + (((long) getNumberOfEntries() * (long) getNumberOfVariables() * 8) / (1024 * 1024)) + "Mb");
+      System.out.println("Total memory required " + (long) getNumberOfEntries() * (long) getNumberOfVariables() * 8 / (1024 * 1024) + "Mb");
 
       int trainingSetSize = getNumberOfEntries() / 10;
       int testSetSize = getNumberOfEntries() - trainingSetSize;
 
-      this.trainingSet = new ByteBuffer[trainingSetSize];
-      this.testSet = new ByteBuffer[testSetSize];
+      trainingSet = new ByteBuffer[trainingSetSize];
+      testSet = new ByteBuffer[testSetSize];
 
       for (int i = 0; i < trainingSetSize; i++)
       {
@@ -73,25 +72,30 @@ public class CompressionBenchmark extends YoVariableLogReader
 
    private void benchmark(ByteBuffer[] set) throws IOException
    {
-      benchmarkFunction("Copy", set.length, () -> {
+      benchmarkFunction("Copy", set.length, () ->
+      {
          return benchMarkCopy(set);
       });
-      benchmarkFunction("Snappy (Xerial)", set.length, () -> {
+      benchmarkFunction("Snappy (Xerial)", set.length, () ->
+      {
          return benchMarkSnappy(set);
       });
 
       LZ4Compressor safeCompressor = LZ4Factory.safeInstance().fastCompressor();
-      benchmarkFunction("LZ4 (Safe)", set.length, () -> {
+      benchmarkFunction("LZ4 (Safe)", set.length, () ->
+      {
          return benchMarkLZ4(safeCompressor, set);
       });
 
       LZ4Compressor unsafeCompressor = LZ4Factory.unsafeInstance().fastCompressor();
-      benchmarkFunction("LZ4 (Unsafe)", set.length, () -> {
+      benchmarkFunction("LZ4 (Unsafe)", set.length, () ->
+      {
          return benchMarkLZ4(unsafeCompressor, set);
       });
-      
+
       LZ4Compressor jniCompressor = LZ4Factory.nativeInstance().fastCompressor();
-      benchmarkFunction("LZ4 (JNI - java buffer)", set.length, () -> {
+      benchmarkFunction("LZ4 (JNI - java buffer)", set.length, () ->
+      {
          return benchMarkLZ4(jniCompressor, set);
       });
 
@@ -103,16 +107,18 @@ public class CompressionBenchmark extends YoVariableLogReader
          directSet[i].put(set[i]);
       }
 
-      benchmarkFunction("LZ4 (Unsafe - direct buffer)", set.length, () -> {
+      benchmarkFunction("LZ4 (Unsafe - direct buffer)", set.length, () ->
+      {
          return benchMarkLZ4(unsafeCompressor, directSet);
       });
-      
-      benchmarkFunction("LZ4 (JNI - direct buffer)", directSet.length, () -> {
+
+      benchmarkFunction("LZ4 (JNI - direct buffer)", directSet.length, () ->
+      {
          return benchMarkLZ4(jniCompressor, directSet);
       });
-      
-      
-      benchmarkFunction("Copy (Direct)", directSet.length, () -> {
+
+      benchmarkFunction("Copy (Direct)", directSet.length, () ->
+      {
          return benchMarkCopy(directSet);
       });
 
@@ -139,7 +145,7 @@ public class CompressionBenchmark extends YoVariableLogReader
          target.put(set[i]);
          compressedSize += target.position();
       }
-      return ((double) compressedSize) / ((double) totalSize);
+      return (double) compressedSize / (double) totalSize;
    }
 
    private double benchMarkSnappy(ByteBuffer[] set)
@@ -163,20 +169,20 @@ public class CompressionBenchmark extends YoVariableLogReader
       {
          throw new RuntimeException(e);
       }
-      return ((double) compressedSize) / ((double) totalSize);
+      return (double) compressedSize / (double) totalSize;
    }
 
    private double benchMarkLZ4(LZ4Compressor compressor, ByteBuffer[] set)
    {
       ByteBuffer target;
-//      if (set[0].isDirect())
+      //      if (set[0].isDirect())
       {
          target = ByteBuffer.allocateDirect(compressor.maxCompressedLength(getNumberOfVariables() * 8));
       }
-//      else
-//      {
-//         target = ByteBuffer.allocate(compressor.maxCompressedLength(getNumberOfVariables() * 8));
-//      }
+      //      else
+      //      {
+      //         target = ByteBuffer.allocate(compressor.maxCompressedLength(getNumberOfVariables() * 8));
+      //      }
 
       long totalSize = (long) set.length * (long) (getNumberOfVariables() * 8);
       long compressedSize = 0;
@@ -189,7 +195,7 @@ public class CompressionBenchmark extends YoVariableLogReader
          compressedSize += target.position();
       }
 
-      return ((double) compressedSize) / ((double) totalSize);
+      return (double) compressedSize / (double) totalSize;
    }
 
    private ByteBuffer copyData(int i) throws IOException

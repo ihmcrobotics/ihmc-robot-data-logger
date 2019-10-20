@@ -20,19 +20,17 @@ public class YoVariableLogReader
    private boolean initialized = false;
    protected final File logDirectory;
    protected final LogProperties logProperties;
-   
-   
+
    private int logLineLength;
    private int numberOfEntries;
-   
-   
+
    protected final File handshake;
    private FileChannel logChannel;
    private LogIndex logIndex;
    private ByteBuffer compressedData;
    private ByteBuffer uncompressedData;
    private FileInputStream logInputStream;
-   
+
    protected final File properties;
    private final File model;
    private final File resourceBundle;
@@ -44,7 +42,6 @@ public class YoVariableLogReader
       this.logDirectory = logDirectory;
       this.logProperties = logProperties;
 
-      
       properties = new File(logDirectory, YoVariableLoggerListener.propertyFile);
 
       if (!logProperties.getModel().getPathAsString().isEmpty())
@@ -64,8 +61,8 @@ public class YoVariableLogReader
       {
          resourceBundle = null;
       }
-      
-      if(!logProperties.getVariables().getSummaryAsString().isEmpty())
+
+      if (!logProperties.getVariables().getSummaryAsString().isEmpty())
       {
          summary = new File(logDirectory, logProperties.getVariables().getSummaryAsString());
       }
@@ -113,14 +110,14 @@ public class YoVariableLogReader
             int bufferSize = logLineLength * 8;
             compressedData = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize));
             uncompressedData = ByteBuffer.allocate(bufferSize);
-            
+
             numberOfEntries = logIndex.getNumberOfEntries();
             initialized = true;
          }
          catch (IOException e)
          {
             e.printStackTrace();
-         }  
+         }
       }
       return initialized;
    }
@@ -129,12 +126,12 @@ public class YoVariableLogReader
    {
       return logLineLength;
    }
-   
+
    public int getNumberOfEntries()
    {
       return numberOfEntries;
    }
-   
+
    public void close()
    {
       try
@@ -152,22 +149,22 @@ public class YoVariableLogReader
    {
       return logIndex.seek(timestamp);
    }
-   
+
    protected long getDataOffset(int position)
    {
       return logIndex.dataOffsets[position];
    }
-   
+
    protected int getCompressedSize(int position)
    {
       return logIndex.compressedSizes[position];
    }
-   
+
    protected long getTimestamp(int position)
    {
       return logIndex.timestamps[position];
    }
-   
+
    protected ByteBuffer readCompressedData(int position) throws IOException
    {
       int size = getCompressedSize(position);
@@ -177,11 +174,11 @@ public class YoVariableLogReader
       compressedData.limit(size);
       logChannel.read(compressedData);
       compressedData.flip();
-      
+
       return compressedData;
-      
+
    }
-   
+
    protected ByteBuffer readData(int position) throws IOException
    {
       ByteBuffer compressedData = readCompressedData(position);
@@ -195,10 +192,10 @@ public class YoVariableLogReader
    {
       File propertiesDestination = new File(destination, YoVariableLoggerListener.propertyFile);
       Files.copy(properties, propertiesDestination);
-   
+
       File handShakeDestination = new File(destination, logProperties.getVariables().getHandshakeAsString());
       Files.copy(handshake, handShakeDestination);
-   
+
       if (model != null)
       {
          File modelDesitination = new File(destination, logProperties.getModel().getPathAsString());
@@ -209,8 +206,8 @@ public class YoVariableLogReader
          File resourceDestination = new File(destination, logProperties.getModel().getResourceBundleAsString());
          Files.copy(resourceBundle, resourceDestination);
       }
-      
-      if(summary != null)
+
+      if (summary != null)
       {
          File summaryDestination = new File(destination, logProperties.getVariables().getSummaryAsString());
          Files.copy(summary, summaryDestination);

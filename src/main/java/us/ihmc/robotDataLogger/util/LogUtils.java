@@ -38,8 +38,9 @@ public class LogUtils
    }
 
    /**
-    * Finds the IP address of this computer that can resolve ipOnNetwork within the current subnet. Returns the network with the most specific subnet.
-    * 
+    * Finds the IP address of this computer that can resolve ipOnNetwork within the current subnet.
+    * Returns the network with the most specific subnet.
+    *
     * @param ipOnNetwork
     * @return my IP address
     */
@@ -62,7 +63,7 @@ public class LogUtils
                   myIp = address.getAddress();
                }
 
-               int netmask = ~(address.getNetworkPrefixLength() != 0 ? (0xFFFFFFFF >>> address.getNetworkPrefixLength()) : 0);
+               int netmask = ~(address.getNetworkPrefixLength() != 0 ? 0xFFFFFFFF >>> address.getNetworkPrefixLength() : 0);
                if ((addressToInt(address.getAddress()) & netmask) == (addressToInt(ipOnNetwork) & netmask))
                {
                   if (address.getNetworkPrefixLength() > networkPrefixLength)

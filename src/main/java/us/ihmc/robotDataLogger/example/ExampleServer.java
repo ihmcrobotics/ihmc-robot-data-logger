@@ -18,12 +18,10 @@ import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 /**
- * This class shows a simple example to create a YoVariableServer with two registries that update at different rates.
- * 
- * Note that only a main registry is necessary for the YoVariableServer to work.
- * 
- * @author Jesper Smith
+ * This class shows a simple example to create a YoVariableServer with two registries that update at
+ * different rates. Note that only a main registry is necessary for the YoVariableServer to work.
  *
+ * @author Jesper Smith
  */
 public class ExampleServer
 {
@@ -31,7 +29,6 @@ public class ExampleServer
    {
       A, B, C, D, E, F;
    }
-   
 
    private static final int variablesPerType = 200;
    private static final double dt = 0.001;
@@ -42,7 +39,7 @@ public class ExampleServer
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
    private final YoVariableRegistry secondRegistry = new YoVariableRegistry(getClass().getSimpleName() + "Second");
    private final YoVariableServer yoVariableServer;
-   
+
    private final List<YoVariable<?>> mainChangingVariables = new ArrayList<>();
    private final List<YoVariable<?>> secondChangingVariables = new ArrayList<>();
 
@@ -58,10 +55,10 @@ public class ExampleServer
       // Create server
       yoVariableServer = new YoVariableServer(getClass(), null, logSettings, dt);
       // Add main registry to server
-      yoVariableServer.setMainRegistry(registry , null, null);
+      yoVariableServer.setMainRegistry(registry, null, null);
       // Add second registry to server
       yoVariableServer.addRegistry(secondRegistry, null);
-      
+
    }
 
    public void start()
@@ -70,43 +67,40 @@ public class ExampleServer
       yoVariableServer.start();
 
       LogTools.info("Starting to loop.");
-      
+
       // Testing only. Sending main registry a few times before sending the second registry. This is helpfull to test merging packets
-      for(int i = 0; i < 3; i++)
+      for (int i = 0; i < 3; i++)
       {
          timestamp += Conversions.secondsToNanoseconds(dt);
          yoVariableServer.update(timestamp);
       }
-      
-      
+
       while (true)
       {
          // Increase timestamp and update variables
          timestamp += Conversions.secondsToNanoseconds(dt);
-         
-         // Adjust timestamp by +- 0.25 * dt to simulate jitter
-         long dtFactor = Conversions.secondsToNanoseconds(dt)/2;
-         long jitteryTimestamp = timestamp + ((long)((random.nextDouble() - 0.5) * dtFactor));
 
-         
+         // Adjust timestamp by +- 0.25 * dt to simulate jitter
+         long dtFactor = Conversions.secondsToNanoseconds(dt) / 2;
+         long jitteryTimestamp = timestamp + (long) ((random.nextDouble() - 0.5) * dtFactor);
+
          updateVariables(mainChangingVariables);
-         
+
          // Send main registry
          yoVariableServer.update(jitteryTimestamp);
-         
-         
-         if(counter % mainRegistryUpdatesPerSecondRegistryUpdates == 0)
+
+         if (counter % mainRegistryUpdatesPerSecondRegistryUpdates == 0)
          {
             // Update second registry variables
             updateVariables(secondChangingVariables);
-            
+
             // Send second registry.
             // If the timestamps match between the main and secondary registry, they get merged by the receiver.
             yoVariableServer.update(jitteryTimestamp, secondRegistry);
          }
-         
+
          counter++;
-         
+
          // Wait to not crash the network
          ThreadTools.sleepSeconds(dt);
       }
@@ -122,16 +116,13 @@ public class ExampleServer
          new YoLong(prefix + "Long" + i, registry);
          new YoEnum<>(prefix + "Enum" + i, registry, SomeEnum.class, random.nextBoolean());
       }
-      
-      
+
       allChangingVariables.addAll(registry.getAllVariablesIncludingDescendants());
-      
-      
+
       YoDouble input = new YoDouble(prefix + "Input", registry);
       YoDouble output = new YoDouble(prefix + "Output", registry);
       input.addVariableChangedListener((v) -> output.set(input.getValue()));
-      
-      
+
    }
 
    private void updateVariables(List<YoVariable<?>> allChangingVariables)

@@ -1,6 +1,5 @@
 package us.ihmc.robotDataLogger.websocket.server;
 
-
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -12,9 +11,8 @@ import us.ihmc.robotDataLogger.logger.LogAliveListener;
 
 /**
  * Initializes a connection
- * 
- * @author Jesper Smith
  *
+ * @author Jesper Smith
  */
 class WebsocketDataServerInitializer extends ChannelInitializer<SocketChannel>
 {
@@ -38,7 +36,6 @@ class WebsocketDataServerInitializer extends ChannelInitializer<SocketChannel>
       this.logAliveListener = logAliveListener;
       this.numberOfRegistryBuffers = numberOfRegistryBuffers;
    }
-
 
    @Override
    protected void initChannel(SocketChannel ch) throws Exception

@@ -26,9 +26,8 @@ public class GUICaptureRecorder extends JFrame
    public final JButton stop = new JButton("stop");
    private final JComboBox<DataServerSettings> gui = new JComboBox<>();
    public NetworkStreamVideoDataLogger currentLogger = null;
-   
+
    private File target;
-   
 
    public GUICaptureRecorder()
    {
@@ -43,10 +42,10 @@ public class GUICaptureRecorder extends JFrame
             gui.addItem(logSetting);
          }
       }
-      
+
       start.addActionListener(new ActionListener()
       {
-         
+
          @Override
          public void actionPerformed(ActionEvent e)
          {
@@ -60,21 +59,21 @@ public class GUICaptureRecorder extends JFrame
             }
          }
       });
-      
+
       stop.addActionListener(new ActionListener()
       {
-         
+
          @Override
          public void actionPerformed(ActionEvent e)
          {
             stopLog(false);
          }
       });
-      
+
       getContentPane().add(gui);
       getContentPane().add(start);
       getContentPane().add(stop);
-      
+
       setLocationByPlatform(true);
       setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -86,38 +85,38 @@ public class GUICaptureRecorder extends JFrame
             stopLog(true);
          }
       });
-      
+
       pack();
       setVisible(true);
    }
 
    public void startLog() throws UnknownHostException, SocketException
    {
-      if(currentLogger == null)
+      if (currentLogger == null)
       {
          DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
          Calendar calendar = Calendar.getInstance();
          String timestamp = dateFormat.format(calendar.getTime());
-         
+
          DataServerSettings settings = (DataServerSettings) gui.getSelectedItem();
          target = new File(System.getProperty("user.home") + "/robotLogs/", timestamp + "_" + settings.toString() + "_UILog");
          target.mkdirs();
 
-//         LogProperties logProperties = new LogProperties();
-         
-//         currentLogger = new NetworkStreamVideoDataLogger(listen.getAddress(), target, logProperties, address);
+         //         LogProperties logProperties = new LogProperties();
+
+         //         currentLogger = new NetworkStreamVideoDataLogger(listen.getAddress(), target, logProperties, address);
          start.setEnabled(false);
          stop.setEnabled(true);
       }
-      
+
    }
 
    public void stopLog(boolean exiting)
    {
-      if(currentLogger != null)
+      if (currentLogger != null)
       {
          currentLogger.close();
-         if(!exiting)
+         if (!exiting)
          {
             JOptionPane.showMessageDialog(this, "Video saved to " + target.getAbsolutePath());
          }
@@ -134,6 +133,6 @@ public class GUICaptureRecorder extends JFrame
    public static void main(String args[])
    {
       throw new RuntimeException("TODO: FIX ME");
-//      new GUICaptureRecorder();
+      //      new GUICaptureRecorder();
    }
 }

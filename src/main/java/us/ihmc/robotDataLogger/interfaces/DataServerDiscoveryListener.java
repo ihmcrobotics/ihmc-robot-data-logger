@@ -5,6 +5,7 @@ import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnecti
 public interface DataServerDiscoveryListener
 {
    public void connected(HTTPDataServerConnection connection);
+
    public void disconnected(HTTPDataServerConnection connection);
 
 }

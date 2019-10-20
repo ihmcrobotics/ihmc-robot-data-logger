@@ -6,14 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Replaced by DataServerSettings
+ * Replaced by DataServerSettings Do not add static LogSettings in this file anymore. You should
+ * instead pass in a "new DataServerSettings()" to the YoVariableServer with the desired variables
  * 
- * Do not add static LogSettings in this file anymore.
- * 
- * You should instead pass in a "new DataServerSettings()" to the YoVariableServer with the desired variables
- *  
  * @author Jesper Smith
- *
  */
 @Deprecated
 public class LogSettings extends DataServerSettings
@@ -70,7 +66,7 @@ public class LogSettings extends DataServerSettings
    {
       super(log, videoStreamIdentifier);
    }
-   
+
    @Deprecated
    public static List<LogSettings> values()
    {
@@ -93,8 +89,6 @@ public class LogSettings extends DataServerSettings
       }
       return values;
    }
-   
-
 
    public static void main(String args[])
    {

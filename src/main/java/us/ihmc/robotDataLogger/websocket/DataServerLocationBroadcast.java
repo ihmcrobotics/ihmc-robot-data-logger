@@ -20,57 +20,53 @@ import us.ihmc.robotDataLogger.StaticHostList;
 
 /**
  * Common functions for the DataServerLocationBroadcast client and sender
- * 
- * @author Jesper Smith
  *
+ * @author Jesper Smith
  */
 public abstract class DataServerLocationBroadcast
 {
    private static final String PORT_MESSAGE_HEADER = "DataServerPort";
-   
+
    public static class PortPOJO
    {
       public String header;
       public int port;
-      
+
       public PortPOJO()
       {
-         
+
       }
-      
+
       public PortPOJO(int port)
       {
-         this.header = PORT_MESSAGE_HEADER;
+         header = PORT_MESSAGE_HEADER;
          this.port = port;
       }
    }
-   
-   
+
    public static final String announceGroupAddress = "239.255.24.1";
    public static final int announcePort = 55241;
    public static final int MAXIMUM_MESSAGE_SIZE = 1472;
 
-
    /**
     * Get a list of all external IP addresses.
-    * 
-    * 
+    *
     * @return List of IP addresses
-    * @throws IOException 
+    * @throws IOException
     */
    protected static StaticHostList getMyNetworkAddresses(int dataServerPort) throws IOException
    {
       StaticHostList addresses = new StaticHostList();
-   
+
       for (NetworkInterface iface : Collections.list(NetworkInterface.getNetworkInterfaces()))
       {
          if (iface.isUp())
          {
             for (InetAddress addr : Collections.list(iface.getInetAddresses()))
             {
-               if(addr instanceof Inet4Address)
+               if (addr instanceof Inet4Address)
                {
-                  if(!addr.isLoopbackAddress())
+                  if (!addr.isLoopbackAddress())
                   {
                      Host host = addresses.getHosts().add();
                      host.setHostname(addr.getHostAddress());
@@ -78,21 +74,21 @@ public abstract class DataServerLocationBroadcast
                   }
                }
             }
-   
+
          }
       }
-   
+
       return addresses;
    }
 
    protected static List<MulticastSocket> getSocketChannelList(int bindPort) throws IOException
    {
-      List<MulticastSocket> sockets = new ArrayList<MulticastSocket>();
+      List<MulticastSocket> sockets = new ArrayList<>();
       for (NetworkInterface iface : Collections.list(NetworkInterface.getNetworkInterfaces()))
       {
          try
          {
-            if(iface.isUp() && !iface.isLoopback() && iface.supportsMulticast() && !iface.isVirtual())
+            if (iface.isUp() && !iface.isLoopback() && iface.supportsMulticast() && !iface.isVirtual())
             {
                MulticastSocket socket = new MulticastSocket(bindPort);
                socket.setNetworkInterface(iface);
@@ -104,7 +100,7 @@ public abstract class DataServerLocationBroadcast
             LogTools.warn("Cannot add " + iface.getDisplayName() + " to list of broadcast sockets. " + e.getMessage());
          }
       }
-      
+
       return sockets;
    }
 
@@ -114,18 +110,18 @@ public abstract class DataServerLocationBroadcast
       PortPOJO portPOJO = new PortPOJO(port);
       return mapper.writeValueAsString(portPOJO);
    }
-   
+
    protected static int parseMessage(String message, ObjectMapper mapper) throws IOException
    {
       PortPOJO portPOJO = mapper.readValue(message, PortPOJO.class);
-      if(PORT_MESSAGE_HEADER.equals(portPOJO.header))
+      if (PORT_MESSAGE_HEADER.equals(portPOJO.header))
       {
-         return portPOJO.port;         
+         return portPOJO.port;
       }
       else
       {
          throw new JsonParseException(null, "Invalid header.");
       }
-      
+
    }
 }

@@ -1,6 +1,5 @@
 package us.ihmc.robotDataLogger.websocket.server;
 
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -32,20 +31,15 @@ import us.ihmc.robotDataLogger.util.HandshakeHashCalculator;
 import us.ihmc.robotDataLogger.websocket.server.discovery.DataServerLocationBroadcastSender;
 
 /**
- * Implementation of the DataProducer using Websockets
- * 
- * An HTTP server runs on port 8008, and the announcement, handshake, model and resources are 
- * downloadable from that server.
- * 
- * Registry data is send as binary websocket frames, variable changes are received as binary websocket frames. 
- * The underlying encoding format uses DDS IDL/CDR format.
- * 
- * A simple command and echo server using text websocket frames is implemented to send control messages to the server and logger.
- * 
- * Timestamps are send as raw UDP packets after requested over the command server. See {@link us.ihmc.robotDataLogger.websocket.command.DataServerCommand}
- * 
- * @author Jesper Smith
+ * Implementation of the DataProducer using Websockets An HTTP server runs on port 8008, and the
+ * announcement, handshake, model and resources are downloadable from that server. Registry data is
+ * send as binary websocket frames, variable changes are received as binary websocket frames. The
+ * underlying encoding format uses DDS IDL/CDR format. A simple command and echo server using text
+ * websocket frames is implemented to send control messages to the server and logger. Timestamps are
+ * send as raw UDP packets after requested over the command server. See
+ * {@link us.ihmc.robotDataLogger.websocket.command.DataServerCommand}
  *
+ * @author Jesper Smith
  */
 public class WebsocketDataProducer implements DataProducer
 {
@@ -56,26 +50,25 @@ public class WebsocketDataProducer implements DataProducer
    private final LogAliveListener logAliveListener;
 
    private final int port;
-   
+
    private final Object lock = new Object();
    private Channel channel = null;
-   
+
    private final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-   
+
    /**
-    * Create a single worker. 
-    * 
-    * If "writeAndFlush" is called in the eventloop of the outbound channel, no extra objects will be created. 
-    * The registryPublisher is scheduled on the main eventloop to avoid having extra threads and delay.
+    * Create a single worker. If "writeAndFlush" is called in the eventloop of the outbound channel, no
+    * extra objects will be created. The registryPublisher is scheduled on the main eventloop to avoid
+    * having extra threads and delay.
     */
    private final EventLoopGroup workerGroup = new NioEventLoopGroup(1);
-   
+
    private DataServerLocationBroadcastSender broadcastSender;
-   
+
    private Handshake handshake = null;
-   
+
    private int maximumBufferSize = 0;
-   
+
    private final ArrayList<CameraAnnouncement> cameras = new ArrayList<>();
    private final boolean log;
    private final boolean autoDiscoverable;
@@ -89,15 +82,15 @@ public class WebsocketDataProducer implements DataProducer
       this.logModelProvider = logModelProvider;
       this.variableChangedListener = variableChangedListener;
       this.logAliveListener = logAliveListener;
-      this.port = dataServerSettings.getPort();
-      this.log = dataServerSettings.isLogSession();
-      this.autoDiscoverable = dataServerSettings.isAutoDiscoverable();
+      port = dataServerSettings.getPort();
+      log = dataServerSettings.isLogSession();
+      autoDiscoverable = dataServerSettings.isAutoDiscoverable();
    }
 
    @Override
    public void remove()
    {
-      synchronized(lock)
+      synchronized (lock)
       {
          try
          {
@@ -105,7 +98,7 @@ public class WebsocketDataProducer implements DataProducer
                broadcastSender.stop();
             if (broadcaster != null)
                broadcaster.stop();
-            
+
             if (channel != null)
             {
                ChannelFuture closeFuture = channel.close();
@@ -141,7 +134,7 @@ public class WebsocketDataProducer implements DataProducer
       cameraAnnouncement.setIdentifier(cameraId);
       cameras.add(cameraAnnouncement);
    }
-   
+
    private Announcement createAnnouncement() throws UnknownHostException
    {
       Announcement announcement = new Announcement();
@@ -165,28 +158,32 @@ public class WebsocketDataProducer implements DataProducer
    @Override
    public void announce() throws IOException
    {
-      if(handshake == null)
+      if (handshake == null)
       {
          throw new RuntimeException("No handshake provided");
       }
-      
+
       Announcement announcement = createAnnouncement();
       DataServerServerContent logServerContent = new DataServerServerContent(announcement, handshake, logModelProvider);
-      
-      synchronized(lock)
+
+      synchronized (lock)
       {
          ResourceLeakDetector.setLevel(Level.DISABLED);
          try
          {
-            int numberOfRegistryBuffers = nextBufferID;  // Next buffer ID is incremented the last time a registry was added
+            int numberOfRegistryBuffers = nextBufferID; // Next buffer ID is incremented the last time a registry was added
             ServerBootstrap serverBootstrap = new ServerBootstrap();
             serverBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class).handler(new LoggingHandler(LogLevel.INFO))
-                           .childHandler(new WebsocketDataServerInitializer(logServerContent, broadcaster, variableChangedListener, logAliveListener,
-                                                                            maximumBufferSize, numberOfRegistryBuffers));
+                           .childHandler(new WebsocketDataServerInitializer(logServerContent,
+                                                                            broadcaster,
+                                                                            variableChangedListener,
+                                                                            logAliveListener,
+                                                                            maximumBufferSize,
+                                                                            numberOfRegistryBuffers));
 
             channel = serverBootstrap.bind(port).sync().channel();
-   
-            if(autoDiscoverable)
+
+            if (autoDiscoverable)
             {
                broadcastSender = new DataServerLocationBroadcastSender(port);
                broadcastSender.start();
@@ -195,12 +192,12 @@ public class WebsocketDataProducer implements DataProducer
             {
                broadcastSender = null;
             }
-   
+
          }
          catch (InterruptedException e)
          {
             throw new RuntimeException(e);
-         } 
+         }
       }
    }
 
@@ -211,11 +208,10 @@ public class WebsocketDataProducer implements DataProducer
    }
 
    @Override
-   public RegistryPublisher createRegistryPublisher(CustomLogDataPublisherType type, RegistrySendBufferBuilder builder)
-         throws IOException
+   public RegistryPublisher createRegistryPublisher(CustomLogDataPublisherType type, RegistrySendBufferBuilder builder) throws IOException
    {
       WebsocketRegistryPublisher websocketRegistryPublisher = new WebsocketRegistryPublisher(workerGroup, builder, broadcaster, nextBufferID);
-      if(websocketRegistryPublisher.getMaximumBufferSize() > maximumBufferSize)
+      if (websocketRegistryPublisher.getMaximumBufferSize() > maximumBufferSize)
       {
          maximumBufferSize = websocketRegistryPublisher.getMaximumBufferSize();
       }

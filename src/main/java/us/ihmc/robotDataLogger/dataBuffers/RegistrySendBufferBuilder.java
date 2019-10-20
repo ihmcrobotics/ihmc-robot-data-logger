@@ -31,7 +31,7 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
       this.rootBody = rootBody;
       this.graphics = graphics;
 
-      this.loggerDebugRegistry = new LoggerDebugRegistry(registry);
+      loggerDebugRegistry = new LoggerDebugRegistry(registry);
    }
 
    public YoVariableRegistry getYoVariableRegistry()

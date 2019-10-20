@@ -34,7 +34,7 @@ public class RegistrySendBufferTest
 
    /**
     * Calculate the number of variables in each segment
-    * 
+    *
     * @param variables   total number of variables
     * @param jointStates total number of joint states
     * @return array of variables in each segment
@@ -63,7 +63,7 @@ public class RegistrySendBufferTest
          int averageVariablesPerPacket = (totalVariables - 1) / packets + 1;
 
          int[] variableCounts = new int[packets];
-         // If there are more joint states than variables per packet put all variables in subsequent packets 
+         // If there are more joint states than variables per packet put all variables in subsequent packets
          if (averageVariablesPerPacket <= jointStates)
          {
             variableCounts[0] = 0;

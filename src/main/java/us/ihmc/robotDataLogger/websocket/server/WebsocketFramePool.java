@@ -9,15 +9,12 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 
 /**
- * 
- * Pooled buffer of BinaryWebsocketFrames and ByteBuf to avoid object allocation on transmit.
- * 
- * When a ByteBuf is requested, the refcnt is increased using retain(). When the refcnt is reset to 1, it is re-usable
- * 
- * If the buffer is full, no element is returned and the transmission should be skipped.
- * 
- * @author Jesper Smith
+ * Pooled buffer of BinaryWebsocketFrames and ByteBuf to avoid object allocation on transmit. When a
+ * ByteBuf is requested, the refcnt is increased using retain(). When the refcnt is reset to 1, it
+ * is re-usable If the buffer is full, no element is returned and the transmission should be
+ * skipped.
  *
+ * @author Jesper Smith
  */
 class WebsocketFramePool
 {
@@ -30,11 +27,11 @@ class WebsocketFramePool
       private WebsocketFrameAndBuffer(int bufferSize, Class<? extends WebSocketFrame> type)
       {
          buffer = Unpooled.directBuffer(bufferSize, bufferSize);
-         if(type == BinaryWebSocketFrame.class)
+         if (type == BinaryWebSocketFrame.class)
          {
-            frame = new BinaryWebSocketFrame(buffer);            
+            frame = new BinaryWebSocketFrame(buffer);
          }
-         else if(type == TextWebSocketFrame.class)
+         else if (type == TextWebSocketFrame.class)
          {
             frame = new TextWebSocketFrame(buffer);
          }
@@ -56,29 +53,28 @@ class WebsocketFramePool
          pool[i] = new WebsocketFrameAndBuffer(bufferSize, type);
       }
    }
-   
+
    private WebsocketFrameAndBuffer getNext()
    {
-      
-      for(int i = index; i < index + pool.length; i++)
+
+      for (int i = index; i < index + pool.length; i++)
       {
          int item = i < pool.length ? i : i - pool.length;
-         if(pool[item].buffer.refCnt() == 1)
+         if (pool[item].buffer.refCnt() == 1)
          {
             pool[item].buffer.retain();
             index = item + 1;
             return pool[item];
          }
       }
-      
+
       return null;
    }
-   
-   
+
    public WebSocketFrame createFrame()
    {
       WebsocketFrameAndBuffer next = getNext();
-      if(next != null)
+      if (next != null)
       {
          next.buffer.clear();
          return next.frame;
@@ -88,11 +84,11 @@ class WebsocketFramePool
          return null;
       }
    }
-   
+
    public WebSocketFrame createFrame(ByteBuffer data)
    {
       WebsocketFrameAndBuffer next = getNext();
-      if(next != null)
+      if (next != null)
       {
          next.buffer.clear();
          next.buffer.writeBytes(data);
@@ -104,10 +100,10 @@ class WebsocketFramePool
          return null;
       }
    }
-   
+
    public void release()
    {
-      for(int i = 0; i < pool.length; i++)
+      for (int i = 0; i < pool.length; i++)
       {
          pool[i].buffer.release();
       }

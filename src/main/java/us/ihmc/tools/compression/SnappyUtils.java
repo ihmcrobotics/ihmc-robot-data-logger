@@ -14,10 +14,10 @@ public class SnappyUtils
 
    /**
     * Compress input ByteBuffer to output ByteBuffer using Snappy
-    * 
-    * @param input More efficient if HeapByteBuffer
+    *
+    * @param input  More efficient if HeapByteBuffer
     * @param output More efficient if HeapByteBuffer
-    * @throws IOException 
+    * @throws IOException
     */
    public static void compress(ByteBuffer input, ByteBuffer output) throws IOException
    {
@@ -70,12 +70,12 @@ public class SnappyUtils
    }
 
    /**
-    * Uncompress Snappy compressed data packet. 
-    * 
-    * @param input Snappy compressed data, faster if HeapByteBuffer
+    * Uncompress Snappy compressed data packet.
+    *
+    * @param input  Snappy compressed data, faster if HeapByteBuffer
     * @param output Decompressed data, faster if HeapByteBuffer
     * @throws IllegalArgumentException
-    * @throws IOException 
+    * @throws IOException
     */
    public static void uncompress(ByteBuffer input, ByteBuffer output) throws IllegalArgumentException, IOException
    {
@@ -124,7 +124,7 @@ public class SnappyUtils
 
    /**
     * Get the maximum size of the compressed data
-    * 
+    *
     * @param sourceLength Length of uncompressed data
     * @return Maximum size of compressed data
     */

@@ -5,32 +5,31 @@ import java.util.Arrays;
 
 public class RegistryReceiveBuffer extends RegistryBuffer
 {
-   
+
    private final long receivedTimestamp;
    private ByteBuffer compressedVariableDataBuffer;
    private double[] jointStates;
 
-   
    public RegistryReceiveBuffer(long receivedTimestamp)
    {
-      this.receivedTimestamp = receivedTimestamp;  
+      this.receivedTimestamp = receivedTimestamp;
    }
-   
+
    public long getReceivedTimestamp()
    {
       return receivedTimestamp;
    }
-   
+
    public ByteBuffer allocateBuffer(int size)
    {
-      this.compressedVariableDataBuffer = ByteBuffer.allocate(size);
+      compressedVariableDataBuffer = ByteBuffer.allocate(size);
       return compressedVariableDataBuffer;
    }
 
    public double[] allocateStates(int stateLength)
    {
-      this.jointStates = new double[stateLength];
-      return this.jointStates;
+      jointStates = new double[stateLength];
+      return jointStates;
    }
 
    public double[] getJointStates()
@@ -46,9 +45,8 @@ public class RegistryReceiveBuffer extends RegistryBuffer
    @Override
    public String toString()
    {
-      return "RegistryReceiveBuffer [receivedTimestamp=" + receivedTimestamp + ", compressedVariableDataBuffer=" + compressedVariableDataBuffer + ", registryID=" + registryID + ", jointStates=" + Arrays.toString(jointStates) + ", timestamp="
-            + timestamp + ", uid=" + uid + "]";
+      return "RegistryReceiveBuffer [receivedTimestamp=" + receivedTimestamp + ", compressedVariableDataBuffer=" + compressedVariableDataBuffer
+            + ", registryID=" + registryID + ", jointStates=" + Arrays.toString(jointStates) + ", timestamp=" + timestamp + ", uid=" + uid + "]";
    }
-   
-   
+
 }

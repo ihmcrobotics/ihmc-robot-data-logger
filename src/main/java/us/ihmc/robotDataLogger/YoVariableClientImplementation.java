@@ -18,10 +18,9 @@ import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 /**
- * Client for the logger 
- * 
- * This is a general client for a logging sessions. A listener can be attached to provide desired functionality.
- * 
+ * Client for the logger This is a general client for a logging sessions. A listener can be attached
+ * to provide desired functionality.
+ *
  * @author jesper
  */
 public class YoVariableClientImplementation implements YoVariableClientInterface
@@ -32,14 +31,14 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
 
    // Command executor
    private final Executor commandExecutor = Executors.newSingleThreadExecutor(DaemonThreadFactory.getNamedDaemonThreadFactory(getClass().getSimpleName()));
-   
+
    // Callback
    private final YoVariablesUpdatedListener yoVariablesUpdatedListener;
 
    // Internal values
    private final IDLYoVariableHandshakeParser handshakeParser;
    private final DebugRegistry debugRegistry = new DebugRegistry();
-   
+
    private DataConsumer dataConsumer;
 
    YoVariableClientImplementation(final YoVariablesUpdatedListener yoVariablesUpdatedListener)
@@ -47,14 +46,14 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
       this.yoVariablesUpdatedListener = yoVariablesUpdatedListener;
       if (yoVariablesUpdatedListener.changesVariables())
       {
-         this.variableChangedProducer = new VariableChangedProducer();
+         variableChangedProducer = new VariableChangedProducer();
       }
       else
       {
-         this.variableChangedProducer = null;
+         variableChangedProducer = null;
       }
 
-      this.handshakeParser = new IDLYoVariableHandshakeParser(HandshakeFileType.IDL_CDR);
+      handshakeParser = new IDLYoVariableHandshakeParser(HandshakeFileType.IDL_CDR);
    }
 
    @Override
@@ -64,22 +63,19 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
    }
 
    /**
-    * Callback function from the RegistryConsumer. 
-    * 
-    * Gets called when the connection is closed, either by timeout or by user request.
-    * 
+    * Callback function from the RegistryConsumer. Gets called when the connection is closed, either by
+    * timeout or by user request.
     */
    public void connectionClosed()
    {
       LogTools.info("Disconnected, closing client.");
       yoVariablesUpdatedListener.disconnected();
    }
-   
+
    /**
-    * Start a new session and request the handshake and robot model.
-    * 
-    * This can only be called once for a client. To restart, use reconnect()
-    * 
+    * Start a new session and request the handshake and robot model. This can only be called once for a
+    * client. To restart, use reconnect()
+    *
     * @param timeout
     * @param connection
     * @throws IOException
@@ -90,12 +86,12 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
       {
          throw new RuntimeException("Client already started");
       }
-      
+
       Announcement announcement = connection.getAnnouncement();
-      
-      this.dataConsumer = new WebsocketDataConsumer(connection, timeout);      
-      this.serverName = connection.getAnnouncement().getNameAsString();
-      
+
+      dataConsumer = new WebsocketDataConsumer(connection, timeout);
+      serverName = connection.getAnnouncement().getNameAsString();
+
       LogTools.info("Requesting handshake");
       Handshake handshake = dataConsumer.getHandshake();
 
@@ -119,31 +115,29 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
 
       }
 
-      if(variableChangedProducer != null)
+      if (variableChangedProducer != null)
       {
          variableChangedProducer.startVariableChangedProducers(handshakeParser.getYoVariablesList(), dataConsumer);
       }
       yoVariablesUpdatedListener.start(this, logHandshake, handshakeParser);
 
-      
       connectToSession();
    }
-   
+
    /**
-    * Internal function to connect to a session
-    * 
-    * Throws a runtimeexception if you are already connected or when the client has closed to connection
-    * 
+    * Internal function to connect to a session Throws a runtimeexception if you are already connected
+    * or when the client has closed to connection
+    *
     * @param announcement
     * @throws IOException
     */
    void connectToSession() throws IOException
    {
-      if(dataConsumer.isSessionActive())
+      if (dataConsumer.isSessionActive())
       {
          throw new RuntimeException("Client already connected");
       }
-      if(dataConsumer.isClosed())
+      if (dataConsumer.isClosed())
       {
          throw new RuntimeException("Client has closed completely");
       }
@@ -151,14 +145,12 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
    }
 
    /**
-    * Stops the client completely. 
-    * 
-    * The participant leaves the domain and a reconnect is not possible.
+    * Stops the client completely. The participant leaves the domain and a reconnect is not possible.
     */
    @Override
    public synchronized void stop()
    {
-      if(dataConsumer == null)
+      if (dataConsumer == null)
       {
          throw new RuntimeException("Session not started");
       }
@@ -166,9 +158,8 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
    }
 
    /**
-    * Broadcast a clear log request for the current session
-    * 
-    * If no session is available, this request gets silently ignored.
+    * Broadcast a clear log request for the current session If no session is available, this request
+    * gets silently ignored.
     */
    @Override
    public void sendClearLogRequest()
@@ -184,7 +175,6 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
    }
 
    /**
-    * 
     * @return YoVariableRegistry with debug variables for this instance of the YoVariableClient
     */
    @Override
@@ -194,8 +184,9 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
    }
 
    /**
-    * Callback from the timestamp topic. Gets called immediately when a new timestamp has arrived from the logger.
-    * 
+    * Callback from the timestamp topic. Gets called immediately when a new timestamp has arrived from
+    * the logger.
+    *
     * @param timestamp
     */
    public void receivedTimestampAndData(long timestamp)
@@ -212,32 +203,31 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
    @Override
    public synchronized boolean reconnect() throws IOException
    {
-      if(dataConsumer == null)
+      if (dataConsumer == null)
       {
          throw new RuntimeException("Session not started");
       }
-      
+
       debugRegistry.reset();
       return dataConsumer.reconnect();
-      
-      
-//      Announcement newAnnouncement = dataConsumerParticipant.getReconnectableSession(handshakeAnnouncement);
-//      if(newAnnouncement == null)
-//      {
-//         return false;
-//      }
-//      else
-//      {
-//         connectToSession(newAnnouncement);
-//         return true;
-//      }
+
+      //      Announcement newAnnouncement = dataConsumerParticipant.getReconnectableSession(handshakeAnnouncement);
+      //      if(newAnnouncement == null)
+      //      {
+      //         return false;
+      //      }
+      //      else
+      //      {
+      //         connectToSession(newAnnouncement);
+      //         return true;
+      //      }
    }
 
    public void receivedCommand(DataServerCommand command, int argument)
    {
       commandExecutor.execute(() -> yoVariablesUpdatedListener.receivedCommand(command, argument));
    }
-   
+
    public void connected()
    {
       yoVariablesUpdatedListener.connected();
@@ -247,7 +237,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
    public void setVariableUpdateRate(int updateRate)
    {
       updateRate = MathTools.clamp(updateRate, 0, 99999);
-      
+
       try
       {
          dataConsumer.sendCommand(DataServerCommand.LIMIT_RATE, updateRate);

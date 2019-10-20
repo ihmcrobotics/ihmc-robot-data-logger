@@ -41,7 +41,7 @@ import us.ihmc.robotDataLogger.websocket.HTTPDataServerPaths;
 public class HTTPDataServerConnection
 {
    private static final int TIMEOUT_MS = 1000;
-   
+
    private final EventLoopGroup group = new NioEventLoopGroup();
    private final HTTPDataServerDescription target;
    private final HTTPDataServerConnectionListener listener;
@@ -51,23 +51,22 @@ public class HTTPDataServerConnection
 
    private CompletableFuture<ByteBuf> requestFuture;
    private ByteBuf requestedBuffer;
-   
+
    private boolean taken = false;
 
    public interface HTTPDataServerConnectionListener
    {
       /**
-       * Channel has successfully connected and received a announcement 
-       * 
+       * Channel has successfully connected and received a announcement
+       *
        * @param connection
        */
       public void connected(HTTPDataServerConnection connection);
 
       /**
-       * Channel has been disconnected.
-       * 
-       * The channel is still cleaning up. closed() will be called when cleanup is finished 
-       * 
+       * Channel has been disconnected. The channel is still cleaning up. closed() will be called when
+       * cleanup is finished
+       *
        * @param connection
        */
       default void disconnected(HTTPDataServerConnection connection)
@@ -77,14 +76,14 @@ public class HTTPDataServerConnection
 
       /**
        * Connection has been refused
-       * 
+       *
        * @param target
        */
       public void connectionRefused(HTTPDataServerDescription target);
 
       /**
        * The channel is closed and all threads have shut down.
-       * 
+       *
        * @param httpDataServerConnection
        */
       default void closed(HTTPDataServerConnection httpDataServerConnection)
@@ -92,26 +91,23 @@ public class HTTPDataServerConnection
 
       }
    }
-   
+
    /**
-    * A promise to disconnect later.
-    * 
-    * Used in the logger to avoid a reconnect. 
-    * 
-    * @author Jesper Smith
+    * A promise to disconnect later. Used in the logger to avoid a reconnect.
     *
+    * @author Jesper Smith
     */
    public static class DisconnectPromise
    {
       private final HTTPDataServerConnectionListener listener;
       private final HTTPDataServerConnection connection;
-      
+
       private DisconnectPromise(HTTPDataServerConnectionListener listener, HTTPDataServerConnection connection)
       {
          this.listener = listener;
          this.connection = connection;
       }
-      
+
       public void complete()
       {
          listener.disconnected(connection);
@@ -120,20 +116,18 @@ public class HTTPDataServerConnection
    }
 
    /**
-    * 
     * Connect to a given host
-    * 
+    *
     * @param host IP or hostname
     * @param port port
     * @throws IOException if connection failed
-    * 
     * @return A connection if successful
     */
    public static HTTPDataServerConnection connect(String host, int port) throws IOException
    {
       HTTPDataServerDescription target = new HTTPDataServerDescription(host, port, false);
 
-      CompletableFuture<HTTPDataServerConnection> connectionFuture = new CompletableFuture<HTTPDataServerConnection>();
+      CompletableFuture<HTTPDataServerConnection> connectionFuture = new CompletableFuture<>();
 
       new HTTPDataServerConnection(target, new HTTPDataServerConnection.HTTPDataServerConnectionListener()
       {
@@ -161,10 +155,9 @@ public class HTTPDataServerConnection
    }
 
    /**
-    * Setup a new connection
-    * 
-    * If you want a blocking connect call, use the static {@link connect()} function
-    * 
+    * Setup a new connection If you want a blocking connect call, use the static {@link connect()}
+    * function
+    *
     * @param target
     * @param listener
     */
@@ -178,14 +171,16 @@ public class HTTPDataServerConnection
       b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, TIMEOUT_MS);
 
       ChannelFuture connectFuture = b.connect(target.getHost(), target.getPort());
-      connectFuture.addListener((f) -> {
+      connectFuture.addListener((f) ->
+      {
          if (f.isSuccess())
          {
             connected(((ChannelFuture) f.sync()).channel());
          }
          else
          {
-            group.shutdownGracefully().addListener(e -> {
+            group.shutdownGracefully().addListener(e ->
+            {
                listener.connectionRefused(target);
             });
 
@@ -213,7 +208,7 @@ public class HTTPDataServerConnection
 
    private void receivedAnnouncement(ByteBuf buf)
    {
-      JSONSerializer<Announcement> serializer = new JSONSerializer<Announcement>(new AnnouncementPubSubType());
+      JSONSerializer<Announcement> serializer = new JSONSerializer<>(new AnnouncementPubSubType());
       try
       {
          announcement.set(serializer.deserialize(buf.toString(CharsetUtil.UTF_8)));
@@ -238,7 +233,7 @@ public class HTTPDataServerConnection
          throw new RuntimeException("Previous request still pending");
       }
 
-      requestFuture = new CompletableFuture<ByteBuf>();
+      requestFuture = new CompletableFuture<>();
 
       if (action != null)
       {
@@ -272,10 +267,7 @@ public class HTTPDataServerConnection
    }
 
    /**
-    * Close the channel. 
-    * 
-    * The DataDiscoveryClient will re-try to connect.
-    * 
+    * Close the channel. The DataDiscoveryClient will re-try to connect.
     */
    public void close()
    {
@@ -284,18 +276,16 @@ public class HTTPDataServerConnection
          channel.close();
       }
    }
-   
+
    /**
-    * Take over the connection to start a session.
-    * 
-    * This closes the channel and stops the discovery client from re-trying.
-    * 
+    * Take over the connection to start a session. This closes the channel and stops the discovery
+    * client from re-trying.
     */
    public DisconnectPromise take()
    {
       taken = true;
       channel.close();
-      
+
       return new DisconnectPromise(listener, this);
    }
 
@@ -388,7 +378,7 @@ public class HTTPDataServerConnection
       @Override
       public void channelInactive(ChannelHandlerContext ctx) throws Exception
       {
-         if(!taken)
+         if (!taken)
          {
             listener.disconnected(HTTPDataServerConnection.this);
             group.shutdownGracefully().addListener((e) -> listener.closed(HTTPDataServerConnection.this));

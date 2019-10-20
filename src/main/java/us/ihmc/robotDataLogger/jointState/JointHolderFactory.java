@@ -8,11 +8,11 @@ public class JointHolderFactory
 {
    public static JointHolder getJointHolder(JointBasics joint)
    {
-      if(joint instanceof SixDoFJoint)
+      if (joint instanceof SixDoFJoint)
       {
          return new SiXDoFJointHolder((SixDoFJoint) joint);
       }
-      else if(joint instanceof OneDoFJointBasics)
+      else if (joint instanceof OneDoFJointBasics)
       {
          return new OneDoFJointHolder((OneDoFJointBasics) joint);
       }

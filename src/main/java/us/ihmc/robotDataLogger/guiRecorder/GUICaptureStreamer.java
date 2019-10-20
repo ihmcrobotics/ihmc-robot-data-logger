@@ -35,7 +35,7 @@ public class GUICaptureStreamer
 {
    public static final String topicType = "us::ihmc::robotDataLogger::gui::screenshot";
    public static final String partition = LogParticipantSettings.partition + LogParticipantSettings.namespaceSeperator + "GuiStreamer";
-   public static final int MAXIMUM_IMAGE_DATA_SIZE= 1024*1024;
+   public static final int MAXIMUM_IMAGE_DATA_SIZE = 1024 * 1024;
    private final Supplier<Rectangle> windowBoundsProvider;
    private final int fps;
 
@@ -49,14 +49,14 @@ public class GUICaptureStreamer
    private Participant participant;
    private Publisher publisher;
    private final String topicName;
-   
+
    private JPEGEncoder encoder = new JPEGEncoder();
-   
+
    private ScheduledFuture<?> future = null;
 
    public GUICaptureStreamer(JFrame window, int fps, float quality, int domainID, String topicName)
    {
-	   this(() -> window.getBounds(), fps, quality, domainID, topicName);
+      this(() -> window.getBounds(), fps, quality, domainID, topicName);
    }
 
    public GUICaptureStreamer(Supplier<Rectangle> windowBoundsProvider, int fps, float quality, int domainID, String topicName)
@@ -68,7 +68,7 @@ public class GUICaptureStreamer
       {
          ParticipantAttributes attributes = domain.createParticipantAttributes(domainID, getClass().getSimpleName());
          participant = domain.createParticipant(attributes);
-                  
+
       }
       catch (IOException e)
       {
@@ -78,7 +78,7 @@ public class GUICaptureStreamer
 
    public synchronized void start()
    {
-      if(future != null)
+      if (future != null)
       {
          future.cancel(false);
       }
@@ -97,7 +97,7 @@ public class GUICaptureStreamer
 
    public synchronized void stop()
    {
-      if(future != null)
+      if (future != null)
       {
          future.cancel(false);
       }
@@ -113,7 +113,7 @@ public class GUICaptureStreamer
          Rectangle screen = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
          Rectangle captureRectangle = windowBounds.intersection(screen);
          Dimension windowSize = captureRectangle.getSize();
-         
+
          if (!windowSize.equals(size))
          {
             size.setSize(windowSize);
@@ -127,7 +127,7 @@ public class GUICaptureStreamer
             {
                YUVPicture yuv = img.toYUV(YUVSubsamplingType.YUV420);
                ByteBuffer buffer = encoder.encode(yuv, 90);
-               if(buffer.remaining() <= MAXIMUM_IMAGE_DATA_SIZE)
+               if (buffer.remaining() <= MAXIMUM_IMAGE_DATA_SIZE)
                {
                   publisher.write(buffer);
                }

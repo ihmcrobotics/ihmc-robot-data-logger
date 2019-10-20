@@ -52,7 +52,7 @@ public class VariableChangeRequestTest
          @Override
          public void onSubscriptionMatched(Subscriber subscriber, MatchingInfo info)
          {
-            if(info.getStatus() == MatchingStatus.MATCHED_MATCHING)
+            if (info.getStatus() == MatchingStatus.MATCHED_MATCHING)
             {
                System.out.println("Connected " + info.getGuid());
             }

@@ -39,5 +39,5 @@ public class CopyCompressionImplementation implements CompressionImplementation
    {
       return compressedLength;
    }
-   
+
 }
