@@ -33,6 +33,7 @@ import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.robotDataLogger.rtps.LogParticipantSettings;
+import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 import us.ihmc.tools.compression.SnappyUtils;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -430,7 +431,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
    @SuppressWarnings("resource")
    @Override
-   public void start(YoVariableClientInterface yoVariableClientInterface, LogHandshake handshake, YoVariableHandshakeParser handshakeParser)
+   public void start(YoVariableClientInterface yoVariableClientInterface, LogHandshake handshake, YoVariableHandshakeParser handshakeParser, DebugRegistry debugRegistry)
    {
       logHandshake(handshake, handshakeParser);
 

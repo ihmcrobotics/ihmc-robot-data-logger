@@ -4,6 +4,7 @@ import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.interfaces.CommandListener;
 import us.ihmc.robotDataLogger.listeners.TimestampListener;
+import us.ihmc.robotDataLogger.util.DebugRegistry;
 
 public interface YoVariablesUpdatedListener extends TimestampListener, CommandListener
 {
@@ -16,7 +17,7 @@ public interface YoVariablesUpdatedListener extends TimestampListener, CommandLi
 
    void setShowOverheadView(boolean showOverheadView);
 
-   void start(YoVariableClientInterface yoVariableClientInterface, LogHandshake handshake, YoVariableHandshakeParser handshakeParser);
+   void start(YoVariableClientInterface yoVariableClientInterface, LogHandshake handshake, YoVariableHandshakeParser handshakeParser, DebugRegistry debugRegistry);
 
    /**
     * Called when a timeout is detected on the logger. A reconnect is possible after being disconnected
