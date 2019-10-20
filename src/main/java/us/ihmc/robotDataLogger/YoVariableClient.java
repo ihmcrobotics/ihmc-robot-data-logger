@@ -117,6 +117,14 @@ public class YoVariableClient
    }
 
    /**
+    * Stops the client completely. The participant leaves the domain and a reconnect is not possible.
+    */
+   public void stop()
+   {
+      yoVariableClientImplementation.stop();
+   }
+
+   /**
     * Reconnect to the same session. This will work as long as the IP, port, controller name and
     * complete variable registry match.
     *
