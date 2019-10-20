@@ -1,8 +1,8 @@
 package us.ihmc.multicastLogDataProtocol.modelLoaders;
 
-public interface LogModelProvider
+public interface LogModelProvider<T>
 {
-   public Class<? extends LogModelLoader> getLoader();
+   public Class<? extends LogModelLoader<T>> getLoader();
 
    public String getModelName();
 
