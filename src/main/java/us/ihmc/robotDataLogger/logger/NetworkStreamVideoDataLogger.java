@@ -1,14 +1,13 @@
 package us.ihmc.robotDataLogger.logger;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
 import javax.imageio.ImageIO;
-
-import com.esotericsoftware.kryo.io.ByteBufferInputStream;
 
 import us.ihmc.codecs.builder.MP4MJPEGMovieBuilder;
 import us.ihmc.robotDataLogger.LogProperties;
@@ -93,15 +92,14 @@ public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface imple
    @Override
    public void receivedFrame(ByteBuffer buffer)
    {
-      if(builder == null)
+      if (builder == null)
       {
          try
          {
             // Decode the first image using ImageIO, to get the dimensions
-            ByteBufferInputStream is = new ByteBufferInputStream();
-            is.setByteBuffer(buffer);
-            BufferedImage img = ImageIO.read(is);
-            if(img == null)
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer.array());
+            BufferedImage img = ImageIO.read(inputStream);
+            if (img == null)
             {
                System.err.println("Cannot decode image");
                return;
@@ -113,9 +111,9 @@ public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface imple
             timestampStream.println("1");
             timestampStream.println("10");
             buffer.clear();
-            
+
             dts = 0;
-            
+
             lastFrameTimestamp = System.nanoTime();
          }
          catch (IOException e)
@@ -123,13 +121,12 @@ public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface imple
             e.printStackTrace();
             return;
          }
-         
-         
+
       }
       try
       {
          builder.encodeFrame(buffer);
-         timestampStream.println(timestamp + " " +  dts);
+         timestampStream.println(timestamp + " " + dts);
          dts++;
       }
       catch (IOException e)
