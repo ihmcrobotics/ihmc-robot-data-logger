@@ -6,6 +6,7 @@ import java.nio.LongBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.interfaces.VariableChangedProducer;
 import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.tools.compression.CompressionImplementation;
@@ -25,9 +26,9 @@ public class RegistryDecompressor
    {
       this.variables = variables;
       this.jointStates = jointStates;
-      decompressBuffer = ByteBuffer.allocate(variables.size() * 8);
+      this.decompressBuffer = ByteBuffer.allocate(variables.size() * 8);
 
-      compressionImplementation = CompressionImplementationFactory.instance();
+      this.compressionImplementation = CompressionImplementationFactory.instance();
 
    }
 
@@ -55,7 +56,16 @@ public class RegistryDecompressor
    public void decompressSegment(RegistryReceiveBuffer buffer, int registryOffset)
    {
       decompressBuffer.clear();
-      compressionImplementation.decompress(buffer.getData(), decompressBuffer, buffer.getNumberOfVariables() * 8);
+      try
+      {
+         compressionImplementation.decompress(buffer.getData(), decompressBuffer, buffer.getNumberOfVariables() * 8);
+      }
+      catch (Throwable e)
+      {
+         // Malformed packet. Just skip.
+         LogTools.error("Cannot decompress incoming packet. Skipping packet. " + e.getMessage());
+         return;
+      }
       decompressBuffer.flip();
       LongBuffer longData = decompressBuffer.asLongBuffer();
 
@@ -82,6 +92,5 @@ public class RegistryDecompressor
             jointStates.get(i).update(jointStateBuffer);
          }
       }
-
    }
 }
