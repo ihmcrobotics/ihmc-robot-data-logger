@@ -3,9 +3,12 @@ package us.ihmc.robotDataLogger.jointState;
 import java.nio.DoubleBuffer;
 import java.nio.LongBuffer;
 
-import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.orientation.interfaces.Orientation3DBasics;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.robotDataLogger.JointType;
 
@@ -109,23 +112,43 @@ public class SixDoFState extends JointState
       return numberOfStateVariables;
    }
 
-   public void getRotation(RotationMatrix rotationMatrix)
+   public QuaternionReadOnly getRotation()
    {
-      rotationMatrix.set(rotation);
+      return rotation;
    }
 
-   public void getTranslation(Vector3D tempVector)
+   public void getRotation(Orientation3DBasics orientationToPack)
    {
-      tempVector.set(translation);
+      orientationToPack.set(rotation);
    }
 
-   public void getTwistAngularPart(Vector3D tempVector)
+   public Vector3DReadOnly getTranslation()
    {
-      tempVector.set(twist.getAngularPart());
+      return translation;
    }
 
-   public void getTwistLinearPart(Vector3D tempVector)
+   public void getTranslation(Tuple3DBasics translationToPack)
    {
-      tempVector.set(twist.getLinearPart());
+      translationToPack.set(translation);
+   }
+   
+   public Vector3DReadOnly getTwistAngularPart()
+   {
+      return twist.getAngularPart();
+   }
+
+   public Vector3DReadOnly getTwistLinearPart()
+   {
+      return twist.getLinearPart();
+   }
+
+   public void getTwistAngularPart(Tuple3DBasics twistAngularPartToPack)
+   {
+      twistAngularPartToPack.set(twist.getAngularPart());
+   }
+
+   public void getTwistLinearPart(Tuple3DBasics twistLinearPartToPack)
+   {
+      twistLinearPartToPack.set(twist.getLinearPart());
    }
 }
