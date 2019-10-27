@@ -327,8 +327,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
          }
          catch (Exception e)
          {
-            LogTools.error("Got exception: " + e.getClass().getSimpleName() + " when loading a YoGraphic.");
-            e.printStackTrace();
+            LogTools.error("Got exception: " + e.getClass().getSimpleName() + " when loading a YoGraphic: " + e.getMessage());
          }
       }
 
@@ -346,7 +345,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
          }
          catch (Exception e)
          {
-            LogTools.error("Got exception: " + e.getClass().getSimpleName() + " when loading a Artifact.");
+            LogTools.error("Got exception: " + e.getClass().getSimpleName() + " when loading a Artifact: " + e.getMessage());
          }
       }
       yoGraphicsListRegistry.registerArtifactList(artifactList);
