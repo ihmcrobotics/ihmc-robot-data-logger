@@ -42,7 +42,7 @@ public class LogIndex
 
    }
 
-   public int seek(long inStamp) throws IOException
+   public int seek(long inStamp)
    {
       int head = 0;
       int tail = numberOfEntries;
