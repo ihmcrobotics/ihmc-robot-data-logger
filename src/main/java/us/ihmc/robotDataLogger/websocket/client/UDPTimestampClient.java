@@ -12,9 +12,8 @@ import us.ihmc.robotDataLogger.websocket.server.UDPTimestampServer;
 
 /**
  * Simple client for the UDP timestamps
- * 
- * @author Jesper Smith
  *
+ * @author Jesper Smith
  */
 public class UDPTimestampClient
 {
@@ -23,13 +22,13 @@ public class UDPTimestampClient
 
    private final Thread thread;
    private volatile boolean running = true;
-   
-   private final TimestampListener listener; 
+
+   private final TimestampListener listener;
 
    public UDPTimestampClient(TimestampListener listener) throws SocketException
    {
       this.listener = listener;
-      
+
       clientSocket = new DatagramSocket();
       clientSocket.setSoTimeout(100);
       port = clientSocket.getLocalPort();
@@ -85,7 +84,7 @@ public class UDPTimestampClient
             try
             {
                clientSocket.receive(incoming);
-               if(wrappedData.getInt(0) == UDPTimestampServer.TIMESTAMP_HEADER)
+               if (wrappedData.getInt(0) == UDPTimestampServer.TIMESTAMP_HEADER)
                {
                   listener.receivedTimestampOnly(wrappedData.getLong(4));
                }

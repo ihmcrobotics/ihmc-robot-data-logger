@@ -13,7 +13,7 @@ public class SummaryProvider
 
    public void addSummarizedVariable(YoVariable<?> summarizedYoVariable)
    {
-      this.summarizedYoVariables.add(summarizedYoVariable);
+      summarizedYoVariables.add(summarizedYoVariable);
    }
 
    public boolean isSummarize()
@@ -40,17 +40,17 @@ public class SummaryProvider
    {
       ArrayList<String> allVariables = new ArrayList<>();
       allVariables.addAll(summarizedVariables);
-      for(YoVariable<?> var : summarizedYoVariables)
+      for (YoVariable<?> var : summarizedYoVariables)
       {
          allVariables.add(var.getFullNameWithNameSpace());
       }
-      
+
       return allVariables.toArray(new String[allVariables.size()]);
    }
 
    public void addSummarizedVariable(String summarizedVariable)
    {
-      this.summarizedVariables.add(summarizedVariable);
+      summarizedVariables.add(summarizedVariable);
    }
 
 }

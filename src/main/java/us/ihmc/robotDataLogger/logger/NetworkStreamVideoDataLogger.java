@@ -1,14 +1,13 @@
 package us.ihmc.robotDataLogger.logger;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
 import javax.imageio.ImageIO;
-
-import com.esotericsoftware.kryo.io.ByteBufferInputStream;
 
 import us.ihmc.codecs.builder.MP4MJPEGMovieBuilder;
 import us.ihmc.robotDataLogger.LogProperties;
@@ -18,22 +17,19 @@ import us.ihmc.robotDataLogger.guiRecorder.GUICaptureReceiver;
 public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface implements GUICaptureHandler
 {
    private final GUICaptureReceiver client;
-   
+
    private MP4MJPEGMovieBuilder builder;
    private PrintStream timestampStream;
    private int dts = 0;
-   
+
    private volatile long timestamp = 0;
 
    private volatile long lastFrameTimestamp = 0;
 
-   
    public NetworkStreamVideoDataLogger(File logPath, LogProperties logProperties, int domainId, String topicName) throws IOException
    {
       super(logPath, logProperties, topicName);
-      
-    
-      
+
       client = new GUICaptureReceiver(domainId, topicName, this);
       client.start();
    }
@@ -41,7 +37,7 @@ public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface imple
    @Override
    public void timestampChanged(long newTimestamp)
    {
-      this.timestamp = newTimestamp;
+      timestamp = newTimestamp;
    }
 
    @Override
@@ -49,11 +45,11 @@ public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface imple
    {
       try
       {
-         if(builder != null)
+         if (builder != null)
          {
             builder.close();
          }
-         if(timestampStream != null)
+         if (timestampStream != null)
          {
             timestampStream.close();
          }
@@ -73,11 +69,11 @@ public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface imple
       client.close();
       try
       {
-         if(builder != null)
+         if (builder != null)
          {
             builder.close();
          }
-         if(timestampStream != null)
+         if (timestampStream != null)
          {
             timestampStream.close();
          }
@@ -89,19 +85,18 @@ public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface imple
       builder = null;
       timestampStream = null;
    }
-   
+
    @Override
    public void receivedFrame(ByteBuffer buffer)
    {
-      if(builder == null)
+      if (builder == null)
       {
          try
          {
             // Decode the first image using ImageIO, to get the dimensions
-            ByteBufferInputStream is = new ByteBufferInputStream();
-            is.setByteBuffer(buffer);
-            BufferedImage img = ImageIO.read(is);
-            if(img == null)
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer.array());
+            BufferedImage img = ImageIO.read(inputStream);
+            if (img == null)
             {
                System.err.println("Cannot decode image");
                return;
@@ -113,9 +108,9 @@ public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface imple
             timestampStream.println("1");
             timestampStream.println("10");
             buffer.clear();
-            
+
             dts = 0;
-            
+
             lastFrameTimestamp = System.nanoTime();
          }
          catch (IOException e)
@@ -123,13 +118,12 @@ public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface imple
             e.printStackTrace();
             return;
          }
-         
-         
+
       }
       try
       {
          builder.encodeFrame(buffer);
-         timestampStream.println(timestamp + " " +  dts);
+         timestampStream.println(timestamp + " " + dts);
          dts++;
       }
       catch (IOException e)

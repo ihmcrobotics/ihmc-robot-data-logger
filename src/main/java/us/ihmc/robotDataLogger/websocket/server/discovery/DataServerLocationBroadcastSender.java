@@ -10,7 +10,8 @@ import io.netty.util.CharsetUtil;
 import us.ihmc.robotDataLogger.websocket.DataServerLocationBroadcast;
 
 /**
- * Simple tool to broadcast all local IP addresses on multicast address "announceGroupAddress" every second.
+ * Simple tool to broadcast all local IP addresses on multicast address "announceGroupAddress" every
+ * second.
  */
 public class DataServerLocationBroadcastSender extends DataServerLocationBroadcast
 {
@@ -30,7 +31,7 @@ public class DataServerLocationBroadcastSender extends DataServerLocationBroadca
          throw new IOException("Message to big.");
       }
 
-      this.internalThread = new Thread(() -> run());
+      internalThread = new Thread(() -> run());
    }
 
    public void start()

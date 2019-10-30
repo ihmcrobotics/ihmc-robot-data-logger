@@ -19,19 +19,16 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
    private final Object lock = new Object();
 
    /**
-    * List of sessions for which we started a logger.
-    *
-    * This is to avoid double logging should there be multiple known IPs for a single host.
+    * List of sessions for which we started a logger. This is to avoid double logging should there be
+    * multiple known IPs for a single host.
     */
-   private final HashSet<HashAnnouncement> activeLogSessions = new HashSet<HashAnnouncement>();
+   private final HashSet<HashAnnouncement> activeLogSessions = new HashSet<>();
 
    private final YoVariableLoggerOptions options;
 
    /**
-    * Create a new YovariableLoggerDispatcher.
-    *
-    * For every log that comes online, a YoVariableLogger is created.
-    *
+    * Create a new YovariableLoggerDispatcher. For every log that comes online, a YoVariableLogger is
+    * created.
     *
     * @param options
     * @throws IOException
@@ -95,10 +92,9 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
    }
 
    /**
-    * When a log is finished succesfully, this function removes the active session from the list of sessions
-    *
-    * This is useful in the case the network connection to the robot gets interrupted. When the robot regains network
-    * connectivity, a new log will start.
+    * When a log is finished succesfully, this function removes the active session from the list of
+    * sessions This is useful in the case the network connection to the robot gets interrupted. When
+    * the robot regains network connectivity, a new log will start.
     *
     * @param request
     */
@@ -119,7 +115,6 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
     * Simple hashcode calculator for announcements to allow it in a HashSet
     *
     * @author Jesper Smith
-    *
     */
    private static class HashAnnouncement
    {

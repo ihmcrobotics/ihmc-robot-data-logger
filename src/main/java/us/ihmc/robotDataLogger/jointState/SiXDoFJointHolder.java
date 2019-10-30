@@ -8,23 +8,25 @@ import us.ihmc.robotDataLogger.JointType;
 public class SiXDoFJointHolder implements JointHolder
 {
    private final SixDoFJoint inverseDynamicsJoint;
-   
 
    public SiXDoFJointHolder(SixDoFJoint joint)
    {
-      this.inverseDynamicsJoint = joint;
+      inverseDynamicsJoint = joint;
    }
 
+   @Override
    public JointType getJointType()
    {
       return JointType.SiXDoFJoint;
    }
 
+   @Override
    public int getNumberOfStateVariables()
    {
-      return 13;  // quaternion + position + angular velocity + linear velocity
+      return 13; // quaternion + position + angular velocity + linear velocity
    }
 
+   @Override
    public void get(double[] buffer, int offset)
    {
       QuaternionReadOnly rotation = inverseDynamicsJoint.getJointPose().getOrientation();
@@ -49,7 +51,6 @@ public class SiXDoFJointHolder implements JointHolder
       buffer[offset++] = linearVelocity.getY();
       buffer[offset] = linearVelocity.getZ();
    }
-
 
    @Override
    public String getName()

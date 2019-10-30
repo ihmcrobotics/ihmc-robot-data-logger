@@ -11,10 +11,10 @@ import us.ihmc.robotDataLogger.HandshakePubSubType;
 
 public class HandshakeHashCalculator extends CDR
 {
-   
+
    private final MessageDigest md;
    private final ByteBuffer bytes = ByteBuffer.allocate(8);
-   
+
    public static String calculateHash(Handshake handshake)
    {
       HandshakeHashCalculator calculator = new HandshakeHashCalculator();
@@ -40,50 +40,57 @@ public class HandshakeHashCalculator extends CDR
    {
       return Base64.getEncoder().encodeToString(md.digest());
    }
-   
+
    private void flipClearAndUpdate()
    {
       bytes.flip();
       md.update(bytes);
       bytes.clear();
    }
-   
+
+   @Override
    public void write_type_1(short val)
    {
       bytes.putShort(val);
       flipClearAndUpdate();
    }
-   
+
+   @Override
    public void write_type_2(int val)
    {
       bytes.putInt(val);
       flipClearAndUpdate();
    }
-   
+
+   @Override
    public void write_type_5(float val)
    {
       bytes.putFloat(val);
       flipClearAndUpdate();
    }
-   
+
+   @Override
    public void write_type_6(double val)
    {
       bytes.putDouble(val);
       flipClearAndUpdate();
    }
-   
+
+   @Override
    public void write_type_8(char val)
    {
       bytes.putChar(val);
       flipClearAndUpdate();
    }
-   
+
+   @Override
    public void write_type_9(byte val)
    {
       bytes.put(val);
       flipClearAndUpdate();
    }
-   
+
+   @Override
    public void write_type_d(StringBuilder str)
    {
       write_type_2(str.length() + 1);
@@ -93,13 +100,15 @@ public class HandshakeHashCalculator extends CDR
          flipClearAndUpdate();
       }
    }
-   
+
+   @Override
    public void write_type_11(long val)
    {
       bytes.putLong(val);
       flipClearAndUpdate();
    }
-   
+
+   @Override
    public void write_type_15(StringBuilder str)
    {
       write_type_2(str.length());

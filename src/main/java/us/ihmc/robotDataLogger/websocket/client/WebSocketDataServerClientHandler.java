@@ -36,25 +36,26 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
 
    private final CustomLogDataSubscriberType type;
    private final SerializedPayload payload;
-   
-   
+
    private final int timestampPort;
-      
+
    private ChannelPromise handshakeFuture;
 
    private boolean sendConfiguration = false;
-   
+
    private volatile boolean waitingForPong = false;
-   
-   public WebSocketDataServerClientHandler(WebSocketClientHandshaker handshaker, YoVariableClientImplementation yoVariableClient, int timestampPort, RegistryConsumer consumer, CustomLogDataSubscriberType type) throws SocketException
+
+   public WebSocketDataServerClientHandler(WebSocketClientHandshaker handshaker, YoVariableClientImplementation yoVariableClient, int timestampPort,
+                                           RegistryConsumer consumer, CustomLogDataSubscriberType type)
+         throws SocketException
    {
       this.handshaker = handshaker;
       this.yoVariableClient = yoVariableClient;
       this.consumer = consumer;
       this.type = type;
       this.timestampPort = timestampPort;
-      
-      this.payload = new SerializedPayload(type.getTypeSize());
+
+      payload = new SerializedPayload(type.getTypeSize());
    }
 
    public ChannelFuture handshakeFuture()
@@ -83,7 +84,7 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
          handshaker.finishHandshake(ch, (FullHttpResponse) msg);
          yoVariableClient.connected();
          handshakeFuture.setSuccess();
-         
+
          return;
       }
 
@@ -98,10 +99,10 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
       if (frame instanceof TextWebSocketFrame)
       {
          DataServerCommand command = DataServerCommand.getCommand(frame.content());
-         if(command != null)
+         if (command != null)
          {
             int argument = command.getArgument(frame.content());
-            if(argument != -1)
+            if (argument != -1)
             {
                yoVariableClient.receivedCommand(command, argument);
             }
@@ -116,8 +117,8 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
          payload.getData().flip();
          type.deserialize(payload, buffer);
          consumer.onNewDataMessage(buffer);
-         
-         if(!sendConfiguration)
+
+         if (!sendConfiguration)
          {
             ByteBuf sendTimestampCmd = ctx.alloc().buffer(DataServerCommand.MaxCommandSize());
             DataServerCommand.SEND_TIMESTAMPS.getBytes(sendTimestampCmd, timestampPort);
@@ -138,15 +139,14 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
    }
 
    @Override
-   public void userEventTriggered(ChannelHandlerContext ctx,
-                                  Object evt)
+   public void userEventTriggered(ChannelHandlerContext ctx, Object evt)
    {
-      if(evt instanceof IdleStateEvent)
+      if (evt instanceof IdleStateEvent)
       {
          IdleState idleState = ((IdleStateEvent) evt).state();
-         if(idleState == IdleState.READER_IDLE)
+         if (idleState == IdleState.READER_IDLE)
          {
-            if(waitingForPong)
+            if (waitingForPong)
             {
                LogTools.warn("Timeout receiving pong. Closing connection.");
                ctx.close();
@@ -159,7 +159,7 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
          }
       }
    }
-   
+
    @Override
    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
    {

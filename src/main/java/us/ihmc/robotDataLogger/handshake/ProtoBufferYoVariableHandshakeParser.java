@@ -38,9 +38,8 @@ import us.ihmc.yoVariables.variable.YoVariable;
 /**
  * Depracated class to support legacy log files that still contain a description based on a
  * protobuffer handshake
- * 
- * @author jesper
  *
+ * @author jesper
  */
 @Deprecated
 public class ProtoBufferYoVariableHandshakeParser extends YoVariableHandshakeParser
@@ -54,12 +53,12 @@ public class ProtoBufferYoVariableHandshakeParser extends YoVariableHandshakePar
    {
       switch (type)
       {
-      case OneDoFJoint:
-         return JointType.OneDoFJoint;
-      case SiXDoFJoint:
-         return JointType.SiXDoFJoint;
-      default:
-         throw new RuntimeException();
+         case OneDoFJoint:
+            return JointType.OneDoFJoint;
+         case SiXDoFJoint:
+            return JointType.SiXDoFJoint;
+         default:
+            throw new RuntimeException();
       }
    }
 
@@ -75,11 +74,12 @@ public class ProtoBufferYoVariableHandshakeParser extends YoVariableHandshakePar
       }
    }
 
+   @Override
    public void parseFrom(byte[] handShake)
    {
       YoProtoHandshake yoProtoHandshake = parseYoProtoHandshake(handShake);
 
-      this.dt = yoProtoHandshake.getDt();
+      dt = yoProtoHandshake.getDt();
       List<YoVariableRegistry> regs = parseRegistries(yoProtoHandshake);
 
       // don't replace those list objects (it's a big code mess), just populate them with received data
@@ -97,7 +97,7 @@ public class ProtoBufferYoVariableHandshakeParser extends YoVariableHandshakePar
 
       int numberOfVariables = yoProtoHandshake.getVariableCount();
       int numberOfJointStateVariables = getNumberOfJointStateVariables(yoProtoHandshake);
-      this.stateVariables = 1 + numberOfVariables + numberOfJointStateVariables;
+      stateVariables = 1 + numberOfVariables + numberOfJointStateVariables;
    }
 
    private static List<YoVariableRegistry> parseRegistries(YoProtoHandshake yoProtoHandshake)
@@ -132,36 +132,36 @@ public class ProtoBufferYoVariableHandshakeParser extends YoVariableHandshakePar
          YoVariableDefinition.YoProtoType type = yoVariableDefinition.getType();
          switch (type)
          {
-         case DoubleYoVariable:
-            YoDouble doubleVar = new YoDouble(name, parent);
-            variableList.add(doubleVar);
-            break;
+            case DoubleYoVariable:
+               YoDouble doubleVar = new YoDouble(name, parent);
+               variableList.add(doubleVar);
+               break;
 
-         case IntegerYoVariable:
-            YoInteger intVar = new YoInteger(name, parent);
-            variableList.add(intVar);
-            break;
+            case IntegerYoVariable:
+               YoInteger intVar = new YoInteger(name, parent);
+               variableList.add(intVar);
+               break;
 
-         case BooleanYoVariable:
-            YoBoolean boolVar = new YoBoolean(name, parent);
-            variableList.add(boolVar);
-            break;
+            case BooleanYoVariable:
+               YoBoolean boolVar = new YoBoolean(name, parent);
+               variableList.add(boolVar);
+               break;
 
-         case LongYoVariable:
-            YoLong longVar = new YoLong(name, parent);
-            variableList.add(longVar);
-            break;
+            case LongYoVariable:
+               YoLong longVar = new YoLong(name, parent);
+               variableList.add(longVar);
+               break;
 
-         case EnumYoVariable:
-            List<String> values = yoVariableDefinition.getEnumValuesList();
-            String[] names = values.toArray(new String[values.size()]);
-            boolean allowNullValues = (!yoVariableDefinition.hasAllowNullValues() || yoVariableDefinition.getAllowNullValues());
-            YoEnum enumVar = new YoEnum(name, "", parent, allowNullValues, names);
-            variableList.add(enumVar);
-            break;
+            case EnumYoVariable:
+               List<String> values = yoVariableDefinition.getEnumValuesList();
+               String[] names = values.toArray(new String[values.size()]);
+               boolean allowNullValues = !yoVariableDefinition.hasAllowNullValues() || yoVariableDefinition.getAllowNullValues();
+               YoEnum enumVar = new YoEnum(name, "", parent, allowNullValues, names);
+               variableList.add(enumVar);
+               break;
 
-         default:
-            throw new RuntimeException("Unknown YoVariable type: " + type.name());
+            default:
+               throw new RuntimeException("Unknown YoVariable type: " + type.name());
          }
       }
 
@@ -190,7 +190,7 @@ public class ProtoBufferYoVariableHandshakeParser extends YoVariableHandshakePar
 
    private void addGraphicObjects(YoProtoHandshake yoProtoHandshake)
    {
-      HashMap<String, YoGraphicsList> dgoListMap = new HashMap<String, YoGraphicsList>();
+      HashMap<String, YoGraphicsList> dgoListMap = new HashMap<>();
       String listName;
       YoGraphicsList dgoList;
       for (int i = 0; i < yoProtoHandshake.getGraphicObjectCount(); i++)
@@ -256,7 +256,8 @@ public class ProtoBufferYoVariableHandshakeParser extends YoVariableHandshakePar
       AppearanceDefinition appearance = new YoAppearanceRGBColor(Color.red, 0.0);
       if (msg.hasAppearance())
       {
-         appearance = new YoAppearanceRGBColor(new MutableColor((float) msg.getAppearance().getX(), (float) msg.getAppearance().getY(),
+         appearance = new YoAppearanceRGBColor(new MutableColor((float) msg.getAppearance().getX(),
+                                                                (float) msg.getAppearance().getY(),
                                                                 (float) msg.getAppearance().getZ()),
                                                msg.getAppearance().getTransparency());
       }

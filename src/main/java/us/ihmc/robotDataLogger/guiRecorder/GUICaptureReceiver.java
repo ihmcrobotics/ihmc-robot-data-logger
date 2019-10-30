@@ -22,8 +22,7 @@ public class GUICaptureReceiver implements SubscriberListener
    private final Participant participant;
    private final GUICaptureHandler handler;
    private final ByteBuffer receiveBuffer = ByteBuffer.allocateDirect(GUICaptureStreamer.MAXIMUM_IMAGE_DATA_SIZE);
-   
-   
+
    public GUICaptureReceiver(int domainID, String topicName, GUICaptureHandler handler) throws IOException
    {
       this.topicName = topicName;
@@ -37,12 +36,15 @@ public class GUICaptureReceiver implements SubscriberListener
    public void start() throws IllegalArgumentException, IOException
    {
       ByteBufferPubSubType pubSubType = new ByteBufferPubSubType(GUICaptureStreamer.topicType, GUICaptureStreamer.MAXIMUM_IMAGE_DATA_SIZE);
-      SubscriberAttributes attributes = domain.createSubscriberAttributes(participant, pubSubType, topicName, ReliabilityKind.BEST_EFFORT, GUICaptureStreamer.partition);
+      SubscriberAttributes attributes = domain.createSubscriberAttributes(participant,
+                                                                          pubSubType,
+                                                                          topicName,
+                                                                          ReliabilityKind.BEST_EFFORT,
+                                                                          GUICaptureStreamer.partition);
       domain.createSubscriber(participant, attributes, this);
 
    }
-  
-   
+
    public void close()
    {
       domain.removeParticipant(participant);
@@ -62,6 +64,6 @@ public class GUICaptureReceiver implements SubscriberListener
    @Override
    public void onSubscriptionMatched(Subscriber subscriber, MatchingInfo info)
    {
-      
+
    }
 }

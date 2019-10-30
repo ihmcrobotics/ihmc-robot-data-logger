@@ -14,26 +14,25 @@ import us.ihmc.robotDataLogger.util.PaddedVolatileReference;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 
 /**
- * Helper class that keep track of active connections and writes data to all connections.
- * 
- * It also has an internal thread for the timestamp publisher to avoid the overhead of having a thread per connection for timestamp publishing
- * 
- * @author Jesper Smith
+ * Helper class that keep track of active connections and writes data to all connections. It also
+ * has an internal thread for the timestamp publisher to avoid the overhead of having a thread per
+ * connection for timestamp publishing
  *
+ * @author Jesper Smith
  */
 class WebsocketDataBroadcaster implements ChannelFutureListener
 {
    /**
-    * How much time the timestamp publishing thread should wait between successive polling for a new timestamp.
+    * How much time the timestamp publishing thread should wait between successive polling for a new
+    * timestamp.
     */
-   public static final int TIMESTAMP_PUBLISHING_SLEEP_NS = 500000;  
-   
-   
+   public static final int TIMESTAMP_PUBLISHING_SLEEP_NS = 500000;
+
    private final Object channelLock = new Object();
    private final TimestampPublishingThread timestampPublishingThread = new TimestampPublishingThread();
 
    // Implement channels as copy on write array to avoid blocking in the timestamp update thread
-   
+
    private final PaddedVolatileReference<WebsocketDataServerFrameHandler[]> channels = new PaddedVolatileReference<>(new WebsocketDataServerFrameHandler[0]);
 
    private final PaddedVolatileBoolean active = new PaddedVolatileBoolean(true);
@@ -49,7 +48,7 @@ class WebsocketDataBroadcaster implements ChannelFutureListener
 
       synchronized (channelLock)
       {
-         
+
          WebsocketDataServerFrameHandler[] newChannels = Arrays.copyOf(channels.get(), channels.get().length + 1);
          newChannels[newChannels.length - 1] = websocketLogFrameHandler;
          channels.set(newChannels);
@@ -100,7 +99,7 @@ class WebsocketDataBroadcaster implements ChannelFutureListener
                ++newI;
             }
          }
-         
+
          channels.set(newChannels);
       }
    }
@@ -125,16 +124,14 @@ class WebsocketDataBroadcaster implements ChannelFutureListener
 
    public void stop()
    {
-      active.set(false);;
+      active.set(false);
    }
 
    /**
-    * Internal thread that sends timestamps over a UDP connection.
-    * 
-    * Polls for new timestamps at approximately 10kHz
-    * 
-    * @author Jesper Smith
+    * Internal thread that sends timestamps over a UDP connection. Polls for new timestamps at
+    * approximately 10kHz
     *
+    * @author Jesper Smith
     */
    private class TimestampPublishingThread extends Thread
    {
@@ -164,7 +161,7 @@ class WebsocketDataBroadcaster implements ChannelFutureListener
                {
                   localChannels[i].publishTimestamp(newTimestampLocal);
                }
-               
+
                lastSendTimestamp = newTimestampLocal;
             }
 

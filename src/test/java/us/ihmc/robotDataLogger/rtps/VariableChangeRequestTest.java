@@ -1,6 +1,6 @@
 package us.ihmc.robotDataLogger.rtps;
 
-import static us.ihmc.robotics.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -8,8 +8,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.commons.thread.ThreadTools;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Disabled;
 import us.ihmc.pubsub.Domain;
 import us.ihmc.pubsub.DomainFactory;
 import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
@@ -54,7 +52,7 @@ public class VariableChangeRequestTest
          @Override
          public void onSubscriptionMatched(Subscriber subscriber, MatchingInfo info)
          {
-            if(info.getStatus() == MatchingStatus.MATCHED_MATCHING)
+            if (info.getStatus() == MatchingStatus.MATCHED_MATCHING)
             {
                System.out.println("Connected " + info.getGuid());
             }

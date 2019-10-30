@@ -1,14 +1,13 @@
 package us.ihmc.robotDataLogger.handshake;
 
-import static us.ihmc.robotics.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Disabled;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.HandshakeFileType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
@@ -50,7 +49,6 @@ public class YoVariableHandShakeBuilderTest
       YoVariableRegistry root = new YoVariableRegistry("root");
       YoVariableHandShakeBuilder handShakeBuilder = new YoVariableHandShakeBuilder(root.getName(), 0.001);
 
-      
       YoVariableRegistry registries[] = new YoVariableRegistry[5];
       for (int r = 0; r < registries.length; r++)
       {
@@ -73,7 +71,7 @@ public class YoVariableHandShakeBuilderTest
       {
          YoVariableRegistry original = registries[i];
          YoVariableRegistry parsed = parsedRegistries.get(i);
-         assertTrue("Registries are not equal", original.areEqual(parsed));
+         assertTrue(original.areEqual(parsed), "Registries are not equal");
       }
 
    }

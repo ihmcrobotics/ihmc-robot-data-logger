@@ -5,61 +5,43 @@ import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
 /**
- *
  * Commands available on the simple command server
  *
  * @author Jesper Smith
- *
  */
 public enum DataServerCommand
 {
    /**
-    * Start sending timestamps to the client
-    * 
-    * Argument: Client port. Valid range [1025 - 65535]
+    * Start sending timestamps to the client Argument: Client port. Valid range [1025 - 65535]
     */
    SEND_TIMESTAMPS(false),
-   
+
    /**
-    * Limit the amount of packets to the rate argument
-    * 
-    * Set the rate argument
-    * 
-    * Argument: Rate in milliseconds. Valid range: [1 - 99999]ms
+    * Limit the amount of packets to the rate argument Set the rate argument Argument: Rate in
+    * milliseconds. Valid range: [1 - 99999]ms
     */
    LIMIT_RATE(false),
-   
+
    /**
     * Broadcast a clear log message. All loggers will restart their log session
     */
    CLEAR_LOG(true),
-   /**   
-    * Broadcast logger status
-    * 
-    * Argument: Length of log session in seconds  
-    * 
+   /**
+    * Broadcast logger status Argument: Length of log session in seconds
     */
    LOG_ACTIVE(true),
-   /**   
-    * Broadcast logger status
-    * 
-    * Argument: Length of log session in seconds 
-    * 
+   /**
+    * Broadcast logger status Argument: Length of log session in seconds
     */
    LOG_ACTIVE_WITH_CAMERA(true),
    /**
-    * Broadcast a start log message. 
-    * 
-    * Not implemented
+    * Broadcast a start log message. Not implemented
     */
-   START_LOG(true), 
+   START_LOG(true),
    /**
-    * Broadcast a stop log message
-    * 
-    * Not implemented
+    * Broadcast a stop log message Not implemented
     */
    STOP_LOG(true);
-   
 
    private static final int MAX_ARGUMENT_SIZE = 5;
 
@@ -97,8 +79,8 @@ public enum DataServerCommand
 
    DataServerCommand(boolean broadcast)
    {
-      this.content = Unpooled.copiedBuffer(toString(), CharsetUtil.UTF_8);
-      this.length = content.readableBytes();
+      content = Unpooled.copiedBuffer(toString(), CharsetUtil.UTF_8);
+      length = content.readableBytes();
       this.broadcast = broadcast;
    }
 
@@ -112,14 +94,14 @@ public enum DataServerCommand
 
    /**
     * Check if this buffer matches this command
-    * 
+    *
     * @param test Test buffer, not changed
     * @return true if starts with this command
     */
    public boolean isThisCommand(ByteBuf test)
    {
-      
-      if(test.readableBytes() != content.readableBytes() && test.readableBytes() != content.readableBytes() + MAX_ARGUMENT_SIZE)
+
+      if (test.readableBytes() != content.readableBytes() && test.readableBytes() != content.readableBytes() + MAX_ARGUMENT_SIZE)
       {
          return false;
       }
@@ -134,13 +116,13 @@ public enum DataServerCommand
             return false;
          }
       }
-      
-      if(test.readableBytes() == content.readableBytes() + MAX_ARGUMENT_SIZE)
+
+      if (test.readableBytes() == content.readableBytes() + MAX_ARGUMENT_SIZE)
       {
-         for(int i = content.readableBytes(); i < test.readableBytes(); i++)
+         for (int i = content.readableBytes(); i < test.readableBytes(); i++)
          {
             byte in = test.getByte(test.readerIndex() + i);
-            if(in < 48 || in > 57)
+            if (in < 48 || in > 57)
             {
                return false;
             }
@@ -152,9 +134,10 @@ public enum DataServerCommand
 
    /**
     * Get the argument for this call
-    * 
+    *
     * @param in Input buffer. Not changed
-    * @return -1 if buffer is not long enough, 0 if buffer length equals length of command, argument otherwise
+    * @return -1 if buffer is not long enough, 0 if buffer length equals length of command, argument
+    *         otherwise
     */
    public int getArgument(ByteBuf in)
    {
@@ -198,14 +181,14 @@ public enum DataServerCommand
       for (int i = 0; i < MAX_ARGUMENT_SIZE; i++)
       {
          multiplier /= 10;
-         int val = (argument / multiplier) % 10;
+         int val = argument / multiplier % 10;
 
          out.writeByte(val + 48);
 
       }
 
    }
-   
+
    public static int getMaximumArgumentValue()
    {
       return (int) Math.pow(10, MAX_ARGUMENT_SIZE) - 1;

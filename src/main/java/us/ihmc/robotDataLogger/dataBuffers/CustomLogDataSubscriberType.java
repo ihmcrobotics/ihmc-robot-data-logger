@@ -12,12 +12,10 @@ import us.ihmc.tools.compression.CompressionImplementation;
 import us.ihmc.tools.compression.CompressionImplementationFactory;
 
 /**
-* 
-* Topic data type of the struct "LogData" defined in "LogData.idl". Use this class to provide the TopicDataType to a Participant. 
-*
-* This file has been modified from the generated version to provide higher performance.
-*
-*/
+ * Topic data type of the struct "LogData" defined in "LogData.idl". Use this class to provide the
+ * TopicDataType to a Participant. This file has been modified from the generated version to provide
+ * higher performance.
+ */
 public class CustomLogDataSubscriberType implements TopicDataType<RegistryReceiveBuffer>
 {
    public static final String name = "us::ihmc::robotDataLogger::LogData";
@@ -29,8 +27,8 @@ public class CustomLogDataSubscriberType implements TopicDataType<RegistryReceiv
 
    public CustomLogDataSubscriberType(int maxNumberOfVariables, int maxNumberOfStates)
    {
-      this.numberOfVariables = maxNumberOfVariables;
-      this.numberOfStates = maxNumberOfStates;
+      numberOfVariables = maxNumberOfVariables;
+      numberOfStates = maxNumberOfStates;
 
       compressor = CompressionImplementationFactory.instance();
    }
@@ -51,23 +49,22 @@ public class CustomLogDataSubscriberType implements TopicDataType<RegistryReceiv
       data.setUid(deserializeCDR.read_type_11());
 
       data.setTimestamp(deserializeCDR.read_type_11());
-      
+
       data.setTransmitTime(deserializeCDR.read_type_11());
 
-
       data.setType(us.ihmc.robotDataLogger.LogDataType.values[deserializeCDR.read_type_c()]);
-      
+
       data.setRegistryID(deserializeCDR.read_type_2());
-      
+
       data.setNumberOfVariables(deserializeCDR.read_type_2());
-      
-      if(data.getType() == LogDataType.DATA_PACKET)
+
+      if (data.getType() == LogDataType.DATA_PACKET)
       {
          int dataLength = deserializeCDR.read_type_2();
          ByteBuffer buffer = data.allocateBuffer(dataLength);
          serializedPayload.getData().get(buffer.array(), 0, dataLength);
          buffer.limit(dataLength);
-      
+
          int stateLength = deserializeCDR.read_type_2();
          double[] states = data.allocateStates(stateLength);
          for (int i = 0; i < stateLength; i++)
@@ -103,9 +100,8 @@ public class CustomLogDataSubscriberType implements TopicDataType<RegistryReceiv
    public int getTypeSize()
    {
       return CustomLogDataPublisherType.getTypeSize(compressor.maxCompressedLength(numberOfVariables * 8), numberOfStates);
-     
-   }
 
+   }
 
    @Override
    public String getName()

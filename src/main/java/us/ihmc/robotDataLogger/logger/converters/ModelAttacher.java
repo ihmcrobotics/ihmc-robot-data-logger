@@ -26,9 +26,7 @@ public class ModelAttacher extends SimpleFileVisitor<Path>
 {
    public enum LogModels
    {
-      ATLAS("RobotModels/Atlas"),
-      STEPPR("RobotModels/Steppr"),
-      VALKYRIE("RobotModels/Valkyrie");
+      ATLAS("RobotModels/Atlas"), STEPPR("RobotModels/Steppr"), VALKYRIE("RobotModels/Valkyrie");
 
       private final boolean valid;
       private final String loader;
@@ -163,14 +161,17 @@ public class ModelAttacher extends SimpleFileVisitor<Path>
 
    public static LogModels chooseModel(File mainDirectory)
    {
-      return (LogModels) JOptionPane.showInputDialog(null, "Please choose a model to attach to " + mainDirectory, "Model chooser",
-            JOptionPane.QUESTION_MESSAGE, null, LogModels.values(), null);
+      return (LogModels) JOptionPane.showInputDialog(null,
+                                                     "Please choose a model to attach to " + mainDirectory,
+                                                     "Model chooser",
+                                                     JOptionPane.QUESTION_MESSAGE,
+                                                     null,
+                                                     LogModels.values(),
+                                                     null);
    }
 
    public static void addModel(File modelDirectory, LogProperties properties, LogModels model) throws IOException
    {
-
-
 
       if (properties.getModel().getLoaderAsString().isEmpty())
       {
@@ -182,12 +183,12 @@ public class ModelAttacher extends SimpleFileVisitor<Path>
          System.out.println("Adding model to " + modelDirectory);
          properties.getModel().setLoader(model.getLoader());
          properties.getModel().setName(model.getModelName());
-         
-         for(String directory : model.getResourceDirectories())
+
+         for (String directory : model.getResourceDirectories())
          {
             properties.getModel().getResourceDirectoriesList().add(directory);
          }
-         
+
          properties.getModel().setPath(modelFilename);
          properties.getModel().setResourceBundle(modelResourceBundle);
 
@@ -195,11 +196,11 @@ public class ModelAttacher extends SimpleFileVisitor<Path>
          Files.copy(model.getModel().toPath(), modelFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
          File resourceFile = new File(modelDirectory, modelResourceBundle);
          Files.copy(model.getResources().toPath(), resourceFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-         
+
          File log = new File(modelDirectory, YoVariableLoggerListener.propertyFile);
          PropertiesSerializer<LogProperties> writer = new PropertiesSerializer<>(new LogPropertiesPubSubType());
          writer.serialize(log, properties);
-         
+
          System.out.println("Attached model to " + modelDirectory);
       }
       else

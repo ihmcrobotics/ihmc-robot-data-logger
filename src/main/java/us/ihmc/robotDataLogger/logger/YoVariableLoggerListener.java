@@ -98,7 +98,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                                    Consumer<Announcement> doneListener)
    {
       LogTools.info(toString(request));
-      this.flushAggressivelyToDisk = options.isFlushAggressivelyToDisk();
+      flushAggressivelyToDisk = options.isFlushAggressivelyToDisk();
       this.tempDirectory = tempDirectory;
       this.finalDirectory = finalDirectory;
       this.options = options;
@@ -118,7 +118,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       if (!options.getDisableVideo())
       {
          IDLSequence.Object<CameraAnnouncement> cameras = request.getCameras();
-         
+
          StringBuilder builder = new StringBuilder();
          builder.append("Cameras:");
          for (int i = 0; i < cameras.size(); i++)
@@ -261,13 +261,13 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          {
             long now = System.nanoTime();
 
-            if (now > (lastStatusUpdateTimestamp + STATUS_PACKET_RATE))
+            if (now > lastStatusUpdateTimestamp + STATUS_PACKET_RATE)
             {
 
                boolean recordingVideo = false;
                for (int i = 0; i < videoDataLoggers.size(); i++)
                {
-                  if ((videoDataLoggers.get(i).getLastFrameReceivedTimestamp() + VIDEO_RECORDING_TIMEOUT) > now)
+                  if (videoDataLoggers.get(i).getLastFrameReceivedTimestamp() + VIDEO_RECORDING_TIMEOUT > now)
                   {
                      recordingVideo = true;
                   }
@@ -399,6 +399,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    }
 
    private final ExecutorService executor = Executors.newCachedThreadPool();
+
    private void closeVideo(VideoDataLoggerInterface videoDataLogger)
    {
       Future<?> future = executor.submit(() -> videoDataLogger.close());
@@ -434,13 +435,13 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       logHandshake(handshake, handshakeParser);
 
       int bufferSize = handshakeParser.getBufferSize();
-      this.compressedBuffer = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize));
+      compressedBuffer = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize));
 
       // Initialize disk format variables
-      this.dataBuffer = ByteBuffer.allocate(bufferSize);
-      this.dataBufferAsLong = dataBuffer.asLongBuffer();
-      this.variables = handshakeParser.getYoVariablesList();
-      this.jointStates = handshakeParser.getJointStates();
+      dataBuffer = ByteBuffer.allocate(bufferSize);
+      dataBufferAsLong = dataBuffer.asLongBuffer();
+      variables = handshakeParser.getYoVariablesList();
+      jointStates = handshakeParser.getJointStates();
 
       File dataFile = new File(tempDirectory, dataFilename);
       File indexFile = new File(tempDirectory, indexFilename);
@@ -466,14 +467,19 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                {
                   switch (camera.getType())
                   {
-                  case CAPTURE_CARD:
-                     videoDataLoggers.add(new BlackmagicVideoDataLogger(camera.getNameAsString(), tempDirectory, logProperties,
-                                                                        Byte.parseByte(camera.getIdentifierAsString()), options));
-                     break;
-                  case NETWORK_STREAM:
-                     videoDataLoggers.add(new NetworkStreamVideoDataLogger(tempDirectory, logProperties, LogParticipantSettings.videoDomain,
-                                                                           camera.getIdentifierAsString()));
-                     break;
+                     case CAPTURE_CARD:
+                        videoDataLoggers.add(new BlackmagicVideoDataLogger(camera.getNameAsString(),
+                                                                           tempDirectory,
+                                                                           logProperties,
+                                                                           Byte.parseByte(camera.getIdentifierAsString()),
+                                                                           options));
+                        break;
+                     case NETWORK_STREAM:
+                        videoDataLoggers.add(new NetworkStreamVideoDataLogger(tempDirectory,
+                                                                              logProperties,
+                                                                              LogParticipantSettings.videoDomain,
+                                                                              camera.getIdentifierAsString()));
+                        break;
                   }
                }
                catch (IOException e)

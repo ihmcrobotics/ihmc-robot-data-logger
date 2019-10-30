@@ -33,7 +33,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    private final double dt;
 
    private String rootRegistryName = "main";
-   
+
    private YoVariableRegistry mainRegistry = null;
    private final ArrayList<RegistrySendBufferBuilder> registeredBuffers = new ArrayList<>();
    private final HashMap<YoVariableRegistry, RegistryPublisher> publishers = new HashMap<>();
@@ -50,42 +50,45 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    private YoVariableHandShakeBuilder handshakeBuilder;
 
    private volatile long latestTimestamp;
-   
+
    private final SummaryProvider summaryProvider = new SummaryProvider();
 
    private final LogWatcher logWatcher = new LogWatcher();
 
    @Deprecated
    /**
-    * A thread scheduler is not necessary anymore. This function is left in for backwards compatibility.
-    * 
+    * A thread scheduler is not necessary anymore. This function is left in for backwards
+    * compatibility.
+    *
     * @param mainClazz
     * @param schedulerFactory
     * @param logModelProvider
     * @param dataServerSettings
     * @param dt
     */
-   public YoVariableServer(Class<?> mainClazz, PeriodicThreadSchedulerFactory schedulerFactory, LogModelProvider logModelProvider, DataServerSettings dataServerSettings, double dt)
+   public YoVariableServer(Class<?> mainClazz, PeriodicThreadSchedulerFactory schedulerFactory, LogModelProvider logModelProvider,
+                           DataServerSettings dataServerSettings, double dt)
    {
       this(mainClazz, logModelProvider, dataServerSettings, dt);
    }
-   
-   
+
    @Deprecated
    /**
-    * A thread scheduler is not necessary anymore. This function is left in for backwards compatibility.
-    * 
+    * A thread scheduler is not necessary anymore. This function is left in for backwards
+    * compatibility.
+    *
     * @param mainClazz
     * @param schedulerFactory
     * @param logModelProvider
     * @param dataServerSettings
     * @param dt
     */
-   public YoVariableServer(String mainClazz, PeriodicThreadSchedulerFactory schedulerFactory, LogModelProvider logModelProvider, DataServerSettings dataServerSettings, double dt)
+   public YoVariableServer(String mainClazz, PeriodicThreadSchedulerFactory schedulerFactory, LogModelProvider logModelProvider,
+                           DataServerSettings dataServerSettings, double dt)
    {
       this(mainClazz, logModelProvider, dataServerSettings, dt);
    }
-   
+
    /**
     * Create a YoVariable server with mainClazz.getSimpleName(). For example, see other constructor.
     *
@@ -102,7 +105,6 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
    /**
     * To create a YoVariableServer:
-    *
     * <ol>
     * <li>Create a YoVariableRegistry</li>
     * <li>Add YoVariables</li>
@@ -111,26 +113,26 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
     * <li>Call YoVariableServer.start()</li>
     * <li>Schedule a thread that calls YoVariableServer.update() periodically</li>
     * </ol>
-    *
     * Pseuo-code for starting a YoVariableServer:
     *
     * <pre>
-    * {@code
-    * YoVariableRegistry registry = new YoVariableRegistry("hello"); // cannot be "root", reserved word
-    * YoDouble doubleYo = new YoDouble("x", registry);
+    * {
+    *    &#64;code
+    *    YoVariableRegistry registry = new YoVariableRegistry("hello"); // cannot be "root", reserved word
+    *    YoDouble doubleYo = new YoDouble("x", registry);
     *
-    * PeriodicNonRealtimeThreadSchedulerFactory schedulerFactory = new PeriodicNonRealtimeThreadSchedulerFactory();
-    * YoVariableServer yoVariableServer = new YoVariableServer("HelloYoServer", schedulerFactory,
-    *                                                          null, new LogSettings(false), 0.01);
-    * yoVariableServer.setMainRegistry(registry, null, null);
-    * yoVariableServer.start();
+    *    PeriodicNonRealtimeThreadSchedulerFactory schedulerFactory = new PeriodicNonRealtimeThreadSchedulerFactory();
+    *    YoVariableServer yoVariableServer = new YoVariableServer("HelloYoServer", schedulerFactory, null, new LogSettings(false), 0.01);
+    *    yoVariableServer.setMainRegistry(registry, null, null);
+    *    yoVariableServer.start();
     *
-    * PeriodicThreadScheduler updateScheduler = schedulerFactory.createPeriodicThreadScheduler("update");
+    *    PeriodicThreadScheduler updateScheduler = schedulerFactory.createPeriodicThreadScheduler("update");
     *
-    * AtomicLong timestamp = new AtomicLong();   // must schedule updates yourself or the server will timeout
-    * updateScheduler.schedule(() -> {
-    *    yoVariableServer.update(timestamp.getAndAdd(10000));
-    * }, 10, TimeUnit.MILLISECONDS);
+    *    AtomicLong timestamp = new AtomicLong(); // must schedule updates yourself or the server will timeout
+    *    updateScheduler.schedule(() ->
+    *    {
+    *       yoVariableServer.update(timestamp.getAndAdd(10000));
+    *    }, 10, TimeUnit.MILLISECONDS);
     * }
     * </pre>
     *
@@ -154,14 +156,14 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
       this.dt = dt;
 
-      this.dataProducer = new WebsocketDataProducer(mainClazz, logModelProvider, this, logWatcher, dataServerSettings);
+      dataProducer = new WebsocketDataProducer(mainClazz, logModelProvider, this, logWatcher, dataServerSettings);
       addCameras(config, dataServerSettings);
-      
+
    }
-   
+
    public void setRootRegistryName(String name)
    {
-      this.rootRegistryName = name;
+      rootRegistryName = name;
    }
 
    private void addCameras(LoggerConfigurationLoader config, DataServerSettings logSettings)
@@ -196,26 +198,25 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
          handshakeBuilder.addRegistryBuffer(builder);
 
          variableChangeData.put(registry, new ConcurrentRingBuffer<>(new VariableChangedMessage.Builder(), CHANGED_BUFFER_CAPACITY));
-            
-         if(builder.getNumberOfVariables() > maxVariables)
+
+         if (builder.getNumberOfVariables() > maxVariables)
          {
             maxVariables = builder.getNumberOfVariables();
          }
-         if(builder.getNumberOfJointStates() > maxStates)
+         if (builder.getNumberOfJointStates() > maxStates)
          {
             maxStates = builder.getNumberOfJointStates();
          }
-         
+
       }
-      
-      
+
       CustomLogDataPublisherType type = new CustomLogDataPublisherType(maxVariables, maxStates);
 
       for (int i = 0; i < registeredBuffers.size(); i++)
       {
          RegistrySendBufferBuilder builder = registeredBuffers.get(i);
          YoVariableRegistry registry = builder.getYoVariableRegistry();
-         
+
          try
          {
             publishers.put(registry, dataProducer.createRegistryPublisher(type, builder));
@@ -239,7 +240,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
          dataProducer.setHandshake(handshakeBuilder.getHandShake());
          dataProducer.announce();
-         
+
       }
       catch (IOException e)
       {
@@ -261,16 +262,14 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
             publishers.get(registry).stop();
          }
          dataProducer.remove();
-         
+
       }
    }
 
-
    /**
-    * Update main buffer data.
-    * 
-    * Note: If the timestamp is not increasing between updates(), no data might be send to clients.
-    * 
+    * Update main buffer data. Note: If the timestamp is not increasing between updates(), no data
+    * might be send to clients.
+    *
     * @param timestamp timestamp to send to logger
     */
    @Override
@@ -280,12 +279,11 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    }
 
    /**
-    * Update registry data
-    * 
-    * Note: If the timestamp is not increasing between updates(), no data might be send to clients.
-    * 
+    * Update registry data Note: If the timestamp is not increasing between updates(), no data might be
+    * send to clients.
+    *
     * @param timestamp timestamp to send to the logger
-    * @param registry Top level registry to update
+    * @param registry  Top level registry to update
     */
    @Override
    public void update(long timestamp, YoVariableRegistry registry)
@@ -322,23 +320,23 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    @Override
    public void addRegistry(YoVariableRegistry registry, YoGraphicsListRegistry yoGraphicsListRegistry)
    {
-      if(mainRegistry == null)
+      if (mainRegistry == null)
       {
          throw new RuntimeException("Main registry is not set. Set main registry first");
       }
-      
+
       registeredBuffers.add(new RegistrySendBufferBuilder(registry, null, yoGraphicsListRegistry));
    }
 
    @Override
    public void setMainRegistry(YoVariableRegistry registry, RigidBodyBasics rootBody, YoGraphicsListRegistry yoGraphicsListRegistry)
    {
-      if (this.mainRegistry != null)
+      if (mainRegistry != null)
       {
          throw new RuntimeException("Main registry is already set");
       }
       registeredBuffers.add(new RegistrySendBufferBuilder(registry, rootBody, yoGraphicsListRegistry));
-      this.mainRegistry = registry;
+      mainRegistry = registry;
    }
 
    private YoVariable<?> findVariableInRegistries(String variableName)
@@ -367,8 +365,8 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
       {
          throw new RuntimeException("Variable " + summaryTriggerVariable + " is not registered with the logger");
       }
-      this.summaryProvider.setSummarize(true);
-      this.summaryProvider.setSummaryTriggerVariable(summaryTriggerVariable);
+      summaryProvider.setSummarize(true);
+      summaryProvider.setSummaryTriggerVariable(summaryTriggerVariable);
    }
 
    public void addSummarizedVariable(String variable)
@@ -377,12 +375,12 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
       {
          throw new RuntimeException("Variable " + variable + " is not registered with the logger");
       }
-      this.summaryProvider.addSummarizedVariable(variable);
+      summaryProvider.addSummarizedVariable(variable);
    }
 
    public void addSummarizedVariable(YoVariable<?> variable)
    {
-      this.summaryProvider.addSummarizedVariable(variable);
+      summaryProvider.addSummarizedVariable(variable);
    }
 
    @Override

@@ -27,7 +27,7 @@ public class HTTPDataServerDescription
    {
       return persistant;
    }
-   
+
    @Override
    public String toString()
    {
@@ -39,7 +39,7 @@ public class HTTPDataServerDescription
    {
       final int prime = 31;
       int result = 1;
-      result = prime * result + ((host == null) ? 0 : host.hashCode());
+      result = prime * result + (host == null ? 0 : host.hashCode());
       result = prime * result + port;
       return result;
    }

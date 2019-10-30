@@ -7,41 +7,37 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 
-import us.ihmc.modelFileLoaders.SdfLoader.SDFParameters;
 import us.ihmc.tools.ClassLoaderTools;
 
-public class SDFLogModelProvider implements LogModelProvider
+public class DefaultLogModelProvider<T> implements LogModelProvider
 {
    private final String sdfModelName;
    private final byte[] model;
    private final String[] resourceDirectories;
-   
-   public SDFLogModelProvider(SDFParameters sdfParameters)
-   {
-      this(sdfParameters.getSdfModelName(), sdfParameters.getSdfAsInputStream(), sdfParameters.getResourceDirectories());
-   }
+   private final Class<T> modelLoader;
 
-   public SDFLogModelProvider(String modelName, InputStream sdfFileAsStream, String[] resourceDirectories)
+   public DefaultLogModelProvider(Class<T> modelLoader, String modelName, InputStream modelFileAsStream, String[] resourceDirectories)
    {
+      this.modelLoader = modelLoader;
       this.sdfModelName = modelName;
-      
+
       try
       {
-         this.model = IOUtils.toByteArray(sdfFileAsStream);
+         this.model = IOUtils.toByteArray(modelFileAsStream);
       }
-      catch(IOException e)
+      catch (IOException e)
       {
          throw new RuntimeException(e);
       }
-      
+
       this.resourceDirectories = new String[resourceDirectories.length];
       System.arraycopy(resourceDirectories, 0, this.resourceDirectories, 0, resourceDirectories.length);
    }
 
    @Override
-   public Class<? extends LogModelLoader> getLoader()
+   public Class<T> getLoader()
    {
-      return SDFModelLoader.class;
+      return modelLoader;
    }
 
    @Override

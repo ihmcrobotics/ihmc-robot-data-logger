@@ -13,52 +13,49 @@ import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.robotDataLogger.interfaces.RegistryPublisher;
 
 /**
- * Publishing thread for registry data
- * 
- * This thread reads all variables on a realtime thread, puts them in a ConcurrentRingBuffer and periodically sends them out on the websocket connection.
- * 
- * @author Jesper Smith
+ * Publishing thread for registry data This thread reads all variables on a realtime thread, puts
+ * them in a ConcurrentRingBuffer and periodically sends them out on the websocket connection.
  *
+ * @author Jesper Smith
  */
 class WebsocketRegistryPublisher implements RegistryPublisher
 {
-   
+
    private static final int BUFFER_CAPACITY = 128;
 
    private long uid = 0;
    private final ConcurrentRingBuffer<RegistrySendBuffer> ringBuffer;
-   
+
    private final WebsocketDataBroadcaster broadcaster;
    private final LoggerDebugRegistry loggerDebugRegistry;
 
    private final EventLoopGroup eventLoopGroup;
 
    private final VariableUpdateThread variableUpdateThread = new VariableUpdateThread();
-   
+
    private final CustomLogDataPublisherType publisherType;
    private final SerializedPayload serializedPayload;
-   
+
    private ScheduledFuture<?> scheduledFuture;
 
    private final int numberOfVariables;
-   
+
    private final int bufferID;
-   
+
    public WebsocketRegistryPublisher(EventLoopGroup workerGroup, RegistrySendBufferBuilder builder, WebsocketDataBroadcaster broadcaster, int bufferID)
    {
       this.broadcaster = broadcaster;
-      
-      this.ringBuffer = new ConcurrentRingBuffer<>(builder, BUFFER_CAPACITY);
-      this.eventLoopGroup = workerGroup;
-      
-      this.loggerDebugRegistry = builder.getLoggerDebugRegistry();
-      this.numberOfVariables = builder.getNumberOfVariables();
-      
+
+      ringBuffer = new ConcurrentRingBuffer<>(builder, BUFFER_CAPACITY);
+      eventLoopGroup = workerGroup;
+
+      loggerDebugRegistry = builder.getLoggerDebugRegistry();
+      numberOfVariables = builder.getNumberOfVariables();
+
       this.bufferID = bufferID;
-      
+
       publisherType = new CustomLogDataPublisherType(builder.getNumberOfVariables(), builder.getNumberOfJointStates());
-      
-      
+
       serializedPayload = new SerializedPayload(publisherType.getMaximumTypeSize());
 
    }
@@ -67,7 +64,7 @@ class WebsocketRegistryPublisher implements RegistryPublisher
    {
       return publisherType.getMaximumTypeSize();
    }
-   
+
    /**
     * Starts the registry publisher and schedules it on the main eventLoopGroup
     */
@@ -81,8 +78,7 @@ class WebsocketRegistryPublisher implements RegistryPublisher
    public void stop()
    {
       scheduledFuture.cancel(false);
-      
-      
+
       try
       {
          scheduledFuture.await(5, TimeUnit.SECONDS);
@@ -91,7 +87,7 @@ class WebsocketRegistryPublisher implements RegistryPublisher
       {
          e.printStackTrace();
       }
-      
+
    }
 
    @Override
@@ -105,18 +101,16 @@ class WebsocketRegistryPublisher implements RegistryPublisher
       }
       else
       {
-         this.loggerDebugRegistry.circularBufferFull();
+         loggerDebugRegistry.circularBufferFull();
       }
-      
+
       uid++;
    }
-
-   
 
    private class VariableUpdateThread implements Runnable
    {
       private long previousUid = -1;
-      
+
       private VariableUpdateThread()
       {
 
@@ -134,14 +128,13 @@ class WebsocketRegistryPublisher implements RegistryPublisher
                if ((buffer = ringBuffer.read()) != null)
                {
 
-
                   serializedPayload.getData().clear();
                   publisherType.serialize(buffer, serializedPayload);
                   broadcaster.write(bufferID, buffer.getTimestamp(), serializedPayload.getData());
 
-                  if(previousUid != -1)
+                  if (previousUid != -1)
                   {
-                     if(buffer.getUid() != previousUid + 1)
+                     if (buffer.getUid() != previousUid + 1)
                      {
                         loggerDebugRegistry.lostTickInCircularBuffer();
                      }

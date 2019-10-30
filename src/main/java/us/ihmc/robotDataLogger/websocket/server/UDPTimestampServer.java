@@ -11,20 +11,18 @@ import java.nio.channels.DatagramChannel;
 import us.ihmc.log.LogTools;
 
 /**
- * Thread that sends UDP messages with the timestamp to the clients to synchronize video data.
- * 
- * Sends in a seperate thread that polls for new timestamps every 0.1 ms.
- * Even if the NIO channel is non-blocking, it can result in a small and non-deterministic pause in the realtime thread, hence the need to run as a seperate thread. 
- * 
- * @author Jesper Smith
+ * Thread that sends UDP messages with the timestamp to the clients to synchronize video data. Sends
+ * in a seperate thread that polls for new timestamps every 0.1 ms. Even if the NIO channel is
+ * non-blocking, it can result in a small and non-deterministic pause in the realtime thread, hence
+ * the need to run as a seperate thread.
  *
+ * @author Jesper Smith
  */
 public class UDPTimestampServer
 {
    public static final int TIMESTAMP_HEADER = 0x5d35bc23;
-   
-   private final Object closeLock = new Object();
 
+   private final Object closeLock = new Object();
 
    private final ByteBuffer sendDataBuffer = ByteBuffer.allocateDirect(12);
    private SocketAddress address;
@@ -33,21 +31,20 @@ public class UDPTimestampServer
 
    private volatile boolean active = false;
 
-
    public UDPTimestampServer() throws IOException
    {
-      
+
       channel = DatagramChannel.open();
       channel.configureBlocking(false);
    }
 
    public void startSending(InetAddress target, int port)
    {
-      this.address = new InetSocketAddress(target, port);
+      address = new InetSocketAddress(target, port);
       try
       {
-         this.channel.connect(address);
-         this.active = true;
+         channel.connect(address);
+         active = true;
       }
       catch (IOException e)
       {
@@ -57,7 +54,7 @@ public class UDPTimestampServer
 
    public void sendTimestamp(long timestamp)
    {
-      if(active)
+      if (active)
       {
          sendDataBuffer.clear();
          sendDataBuffer.putInt(TIMESTAMP_HEADER);
@@ -65,9 +62,9 @@ public class UDPTimestampServer
          sendDataBuffer.flip();
          try
          {
-            synchronized(closeLock)
+            synchronized (closeLock)
             {
-               if(active)
+               if (active)
                {
                   channel.write(sendDataBuffer);
                }
@@ -89,7 +86,7 @@ public class UDPTimestampServer
 
    public void close()
    {
-      synchronized(closeLock)
+      synchronized (closeLock)
       {
          active = false;
          try

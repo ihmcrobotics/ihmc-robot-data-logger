@@ -12,57 +12,55 @@ import us.ihmc.robotDataLogger.util.DebugRegistry;
 public class RegistryConsumer extends Thread
 {
    private final static int MAXIMUM_ELEMENTS = 4096;
-   
-  
-//   private final ConcurrentSkipListSet<RegistryReceiveBuffer> orderedBuffers = new ConcurrentSkipListSet<>();
+
+   //   private final ConcurrentSkipListSet<RegistryReceiveBuffer> orderedBuffers = new ConcurrentSkipListSet<>();
    private final PriorityBlockingQueue<RegistryReceiveBuffer> orderedBuffers = new PriorityBlockingQueue<>();
    private volatile boolean running = true;
-   
+
    private boolean firstSample = true;
 
    private final IDLYoVariableHandshakeParser parser;
    private final RegistryDecompressor registryDecompressor;
    private final YoVariableClientImplementation listener;
-   
+
    private final TIntLongHashMap lastRegistryUid = new TIntLongHashMap();
-   
+
    // Standard deviation calculation
-   private long previousTransmitTime = - 1;
-   private long previousReceiveTime = - 1;
+   private long previousTransmitTime = -1;
+   private long previousReceiveTime = -1;
    private double jitterEstimate = 0;
    private double samples = 0;
    private double averageTimeBetweenPackets = 0;
-   
+
    private volatile int jitterBufferSamples = 1;
-   
+
    private long previousTimestamp = -1;
 
-   
    private long lastPacketReceived;
-   
+
    private final DebugRegistry debugRegistry;
-   
+
    public RegistryConsumer(IDLYoVariableHandshakeParser parser, YoVariableClientImplementation yoVariableClient, DebugRegistry debugRegistry)
    {
       this.parser = parser;
-      this.registryDecompressor = new RegistryDecompressor(parser.getYoVariablesList(), parser.getJointStates());
-      this.listener = yoVariableClient;
+      registryDecompressor = new RegistryDecompressor(parser.getYoVariablesList(), parser.getJointStates());
+      listener = yoVariableClient;
 
       this.debugRegistry = debugRegistry;
 
-      
       start();
    }
-   
+
+   @Override
    public void run()
    {
-      
+
       lastPacketReceived = System.nanoTime();
-      while(running)
+      while (running)
       {
          ThreadTools.sleep(1);
-         
-         while(orderedBuffers.size() > (jitterBufferSamples + lastRegistryUid.size() + 1))
+
+         while (orderedBuffers.size() > jitterBufferSamples + lastRegistryUid.size() + 1)
          {
             try
             {
@@ -75,9 +73,9 @@ public class RegistryConsumer extends Thread
             }
          }
       }
-      
+
       // Empty buffer
-      while(!orderedBuffers.isEmpty())
+      while (!orderedBuffers.isEmpty())
       {
          try
          {
@@ -87,34 +85,31 @@ public class RegistryConsumer extends Thread
          {
          }
       }
-      
+
       listener.connectionClosed();
-      
+
    }
-   
+
    public void stopImmediatly()
    {
       running = false;
    }
-   
 
-   
    private void decompressBuffer(RegistryReceiveBuffer buffer)
    {
       long previousUid = lastRegistryUid.put(buffer.getRegistryID(), buffer.getUid());
-      
+
       updateDebugVariables(buffer, previousUid);
-      
+
       registryDecompressor.decompressSegment(buffer, parser.getVariableOffset(buffer.getRegistryID()));
-      
-      
+
    }
 
    void updateDebugVariables(RegistryReceiveBuffer buffer, long previousUid)
    {
-      if(previousUid != lastRegistryUid.getNoEntryValue() && buffer.getUid() != previousUid + 1)
+      if (previousUid != lastRegistryUid.getNoEntryValue() && buffer.getUid() != previousUid + 1)
       {
-         if(buffer.getUid() < previousUid)
+         if (buffer.getUid() < previousUid)
          {
             debugRegistry.getPacketsOutOfOrder().increment();
          }
@@ -123,36 +118,34 @@ public class RegistryConsumer extends Thread
             debugRegistry.getSkippedPackets().add((int) (buffer.getUid() - previousUid - 1));
          }
       }
-      
-     
+
       debugRegistry.getTotalPackets().increment();
    }
-   
 
    private void handlePackets() throws InterruptedException
    {
       RegistryReceiveBuffer buffer = orderedBuffers.take();
-      if(buffer.getType() == LogDataType.DATA_PACKET)
+      if (buffer.getType() == LogDataType.DATA_PACKET)
       {
-      
+
          long timestamp = buffer.getTimestamp();
-         
+
          decompressBuffer(buffer);
-         
-         while(!orderedBuffers.isEmpty() && orderedBuffers.peek().getTimestamp() == timestamp)
+
+         while (!orderedBuffers.isEmpty() && orderedBuffers.peek().getTimestamp() == timestamp)
          {
             RegistryReceiveBuffer next = orderedBuffers.take();
             decompressBuffer(next);
             debugRegistry.getMergedPackets().increment();
          }
-         
-         if(previousTimestamp != -1 && previousTimestamp >= buffer.getTimestamp())
+
+         if (previousTimestamp != -1 && previousTimestamp >= buffer.getTimestamp())
          {
-            debugRegistry.getNonIncreasingTimestamps().increment();         
+            debugRegistry.getNonIncreasingTimestamps().increment();
          }
          previousTimestamp = buffer.getTimestamp();
-         
-         if(firstSample)
+
+         if (firstSample)
          {
             listener.connected();
             firstSample = false;
@@ -167,20 +160,20 @@ public class RegistryConsumer extends Thread
          //Received keep alive, ignore
       }
    }
-   
+
    public void onNewDataMessage(RegistryReceiveBuffer buffer)
    {
       // RFC 1889 jitter estimate
       if (previousTransmitTime != -1)
       {
-         long D = (buffer.getReceivedTimestamp() - previousReceiveTime) - (buffer.getTransmitTime() - previousTransmitTime);
+         long D = buffer.getReceivedTimestamp() - previousReceiveTime - (buffer.getTransmitTime() - previousTransmitTime);
          if (D < 0)
             D = -D;
 
          jitterEstimate += (D - jitterEstimate) / 16;
 
          ++samples;
-         averageTimeBetweenPackets += ((buffer.getTransmitTime() - previousTransmitTime) - averageTimeBetweenPackets) / samples;
+         averageTimeBetweenPackets += (buffer.getTransmitTime() - previousTransmitTime - averageTimeBetweenPackets) / samples;
 
          jitterBufferSamples = (int) (Math.ceil(jitterEstimate / averageTimeBetweenPackets) + 1);
 
@@ -191,8 +184,6 @@ public class RegistryConsumer extends Thread
       }
       previousTransmitTime = buffer.getTransmitTime();
       previousReceiveTime = buffer.getReceivedTimestamp();
-
-      
 
       if (orderedBuffers.size() < MAXIMUM_ELEMENTS)
       {

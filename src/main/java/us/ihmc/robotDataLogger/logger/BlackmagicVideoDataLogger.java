@@ -34,7 +34,7 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
    public BlackmagicVideoDataLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
    {
       super(logPath, logProperties, name);
-      this.decklink = decklinkID;
+      decklink = decklinkID;
       this.options = options;
 
       createCaptureInterface();
@@ -46,19 +46,19 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
 
       switch (options.getVideoCodec())
       {
-      case AV_CODEC_ID_H264:
-         capture = new Capture(this, CodecID.AV_CODEC_ID_H264);
-         capture.setOption("g", "1");
-         capture.setOption("crf", String.valueOf(options.getCrf()));
-         capture.setOption("profile", "high");
-         capture.setOption("coder", "vlc");
-         break;
-      case AV_CODEC_ID_MJPEG:
-         capture = new Capture(this, CodecID.AV_CODEC_ID_MJPEG);
-         capture.setMJPEGQuality(options.getVideoQuality());
-         break;
-      default:
-         throw new RuntimeException();
+         case AV_CODEC_ID_H264:
+            capture = new Capture(this, CodecID.AV_CODEC_ID_H264);
+            capture.setOption("g", "1");
+            capture.setOption("crf", String.valueOf(options.getCrf()));
+            capture.setOption("profile", "high");
+            capture.setOption("coder", "vlc");
+            break;
+         case AV_CODEC_ID_MJPEG:
+            capture = new Capture(this, CodecID.AV_CODEC_ID_MJPEG);
+            capture.setMJPEGQuality(options.getVideoQuality());
+            break;
+         default:
+            throw new RuntimeException();
       }
 
       try

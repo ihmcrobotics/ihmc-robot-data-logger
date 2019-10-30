@@ -51,7 +51,7 @@ public class JVMStatisticsGenerator
    private final ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
    private final CompilationMXBean compilationMXBean = ManagementFactory.getCompilationMXBean();
    private final OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
-   
+
    public JVMStatisticsGenerator(RobotVisualizer visualizer)
    {
       this(visualizer, new PeriodicNonRealtimeThreadSchedulerFactory());
@@ -72,7 +72,7 @@ public class JVMStatisticsGenerator
 
    public JVMStatisticsGenerator(YoVariableRegistry parentRegistry)
    {
-      this.visualizer = null;
+      visualizer = null;
       createGCBeanHolders();
 
       availableProcessors.set(operatingSystemMXBean.getAvailableProcessors());
@@ -87,7 +87,7 @@ public class JVMStatisticsGenerator
    {
       scheduler.schedule(jvmStatisticsGeneratorThread, 1, TimeUnit.SECONDS);
    }
-   
+
    public void runManual()
    {
       jvmStatisticsGeneratorThread.run();
@@ -114,14 +114,14 @@ public class JVMStatisticsGenerator
       GCBeanHolder(String name, GarbageCollectorMXBean gcBean)
       {
          this.gcBean = gcBean;
-         this.gcInvocations = new YoLong(name + "GCInvocations", registry);
-         this.gcTotalCollectionTimeMs = new YoLong(name + "GCTotalTimeMs", registry);
+         gcInvocations = new YoLong(name + "GCInvocations", registry);
+         gcTotalCollectionTimeMs = new YoLong(name + "GCTotalTimeMs", registry);
       }
 
       void update()
       {
-         this.gcInvocations.set(gcBean.getCollectionCount());
-         this.gcTotalCollectionTimeMs.set(gcBean.getCollectionTime());
+         gcInvocations.set(gcBean.getCollectionCount());
+         gcTotalCollectionTimeMs.set(gcBean.getCollectionTime());
       }
    }
 
@@ -141,7 +141,7 @@ public class JVMStatisticsGenerator
 
          systemLoadAverage.set(operatingSystemMXBean.getSystemLoadAverage());
 
-         if(visualizer != null)
+         if (visualizer != null)
          {
             visualizer.update(visualizer.getLatestTimestamp(), registry);
          }
@@ -184,8 +184,8 @@ public class JVMStatisticsGenerator
       ArrayList<Object> objects = new ArrayList<>();
       objects.add(this);
       objects.addAll(gcBeanHolders);
-      
-      for(Object object : objects)
+
+      for (Object object : objects)
       {
          Field[] allFields = object.getClass().getDeclaredFields();
          for (Field field : allFields)

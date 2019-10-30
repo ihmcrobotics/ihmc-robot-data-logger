@@ -7,22 +7,19 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
 /**
- * Custom allocator that has a pool of ByteBuf available.
- * 
- * When a ByteBuf is requested, the refcnt is increased by 1 using retain(). If the refcnt is 1 the buffer is available to be re-used.
- * 
- * If the pool runs out, an exception is thrown which results in a closed connection. 
- * It should be possible to reconnect with a new connection after this event.
- * 
- * @author Jesper Smith
+ * Custom allocator that has a pool of ByteBuf available. When a ByteBuf is requested, the refcnt is
+ * increased by 1 using retain(). If the refcnt is 1 the buffer is available to be re-used. If the
+ * pool runs out, an exception is thrown which results in a closed connection. It should be possible
+ * to reconnect with a new connection after this event.
  *
+ * @author Jesper Smith
  */
 class RecyclingByteBufAllocator extends AbstractByteBufAllocator
 {
    private final static int INITIAL_MAX_CAPACITY = 2048;
    private final static int POOL_SIZE = 128;
 
-   private final ArrayList<ByteBuf> pool = new ArrayList<ByteBuf>(POOL_SIZE);
+   private final ArrayList<ByteBuf> pool = new ArrayList<>(POOL_SIZE);
 
    private int capacity = INITIAL_MAX_CAPACITY;
 
@@ -72,7 +69,7 @@ class RecyclingByteBufAllocator extends AbstractByteBufAllocator
    {
       if (initialCapacity > capacity)
       {
-         ByteBuf newBuf = backupAllocator.directBuffer(initialCapacity, maxCapacity); 
+         ByteBuf newBuf = backupAllocator.directBuffer(initialCapacity, maxCapacity);
          return newBuf;
       }
 
@@ -90,11 +87,10 @@ class RecyclingByteBufAllocator extends AbstractByteBufAllocator
             return byteBuf.retain();
          }
       }
-    
-      
+
       throw new RuntimeException("Pool ran out of capacity. Crashing connection.");
    }
-   
+
    public void release()
    {
       for (int i = 0; i < pool.size(); i++)
