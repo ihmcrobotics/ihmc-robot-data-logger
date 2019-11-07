@@ -3,7 +3,6 @@ package us.ihmc.robotDataLogger;
 import java.io.IOException;
 
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 /**
  * Interface to control the YoVariableClient.
@@ -17,11 +16,6 @@ public interface YoVariableClientInterface
     * @return true if the client interface is connected
     */
    boolean isConnected();
-
-   /**
-    * @return YoVariableRegistry with debug variables for this instance of the YoVariableClient
-    */
-   YoVariableRegistry getDebugRegistry();
 
    /**
     * Broadcast a clear log request for the current session If no session is available, this request
