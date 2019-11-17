@@ -15,7 +15,6 @@ import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.client.WebsocketDataConsumer;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 /**
  * Client for the logger This is a general client for a logging sessions. A listener can be attached
@@ -35,10 +34,6 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
    // Callback
    private final YoVariablesUpdatedListener yoVariablesUpdatedListener;
 
-   // Internal values
-   private final IDLYoVariableHandshakeParser handshakeParser;
-   private final DebugRegistry debugRegistry = new DebugRegistry();
-
    private DataConsumer dataConsumer;
 
    YoVariableClientImplementation(final YoVariablesUpdatedListener yoVariablesUpdatedListener)
@@ -52,8 +47,6 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
       {
          variableChangedProducer = null;
       }
-
-      handshakeParser = new IDLYoVariableHandshakeParser(HandshakeFileType.IDL_CDR);
    }
 
    @Override
@@ -95,6 +88,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
       LogTools.info("Requesting handshake");
       Handshake handshake = dataConsumer.getHandshake();
 
+      IDLYoVariableHandshakeParser handshakeParser = new IDLYoVariableHandshakeParser(HandshakeFileType.IDL_CDR);
       handshakeParser.parseFrom(handshake);
 
       LogHandshake logHandshake = new LogHandshake();
@@ -119,19 +113,21 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
       {
          variableChangedProducer.startVariableChangedProducers(handshakeParser.getYoVariablesList(), dataConsumer);
       }
-      yoVariablesUpdatedListener.start(this, logHandshake, handshakeParser);
 
-      connectToSession();
+      DebugRegistry debugRegistry = new DebugRegistry();
+      yoVariablesUpdatedListener.start(this, logHandshake, handshakeParser, debugRegistry);
+      connectToSession(handshakeParser, debugRegistry);
    }
 
    /**
     * Internal function to connect to a session Throws a runtimeexception if you are already connected
     * or when the client has closed to connection
+    * @param handshakeParser 
     *
     * @param announcement
     * @throws IOException
     */
-   void connectToSession() throws IOException
+   void connectToSession(IDLYoVariableHandshakeParser handshakeParser, DebugRegistry debugRegistry) throws IOException
    {
       if (dataConsumer.isSessionActive())
       {
@@ -155,6 +151,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
          throw new RuntimeException("Session not started");
       }
       dataConsumer.close();
+      dataConsumer = null;
    }
 
    /**
@@ -172,15 +169,6 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
       {
          e.printStackTrace();
       }
-   }
-
-   /**
-    * @return YoVariableRegistry with debug variables for this instance of the YoVariableClient
-    */
-   @Override
-   public YoVariableRegistry getDebugRegistry()
-   {
-      return debugRegistry.getYoVariableRegistry();
    }
 
    /**
@@ -208,19 +196,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
          throw new RuntimeException("Session not started");
       }
 
-      debugRegistry.reset();
       return dataConsumer.reconnect();
-
-      //      Announcement newAnnouncement = dataConsumerParticipant.getReconnectableSession(handshakeAnnouncement);
-      //      if(newAnnouncement == null)
-      //      {
-      //         return false;
-      //      }
-      //      else
-      //      {
-      //         connectToSession(newAnnouncement);
-      //         return true;
-      //      }
    }
 
    public void receivedCommand(DataServerCommand command, int argument)
@@ -251,7 +227,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
    @Override
    public boolean isConnected()
    {
-      return dataConsumer.isSessionActive();
+      return dataConsumer != null && dataConsumer.isSessionActive();
    }
 
    @Override
