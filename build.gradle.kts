@@ -1,5 +1,4 @@
 import us.ihmc.idl.generator.IDLGenerator
-import us.ihmc.idl.generator.IDLGeneratorTask
 
 buildscript {
    repositories {
@@ -66,15 +65,9 @@ testDependencies {
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")
 
-// depend on generateMessages
-//val generateMessages by tasks.create("generateIDLGeneratorTask::class) {
-//   idlFiles = fileTree(dir: "src/main/idl")
-//   includeDirs = files(".")
-//   targetDirectory = file("src/main/java-generated")
-//   packagePrefix = ""
-//}
-
 tasks.create("deploy") {
+   dependsOn("installDist")
+
    doLast {
       generateMessages()
       deployLogger()
@@ -93,7 +86,7 @@ fun generateMessages()
    }
 }
 
-val loggerDirectory = "/home/shadylady/IHMCLogger2"
+val loggerDirectory = "/home/shadylady/IHMCLogger"
 
 fun deployLogger()
 {
