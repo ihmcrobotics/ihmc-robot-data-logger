@@ -478,6 +478,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                      case NETWORK_STREAM:
                         videoDataLoggers.add(new NetworkStreamVideoDataLogger(tempDirectory,
                                                                               logProperties,
+                                                                              handshake,
                                                                               LogParticipantSettings.videoDomain,
                                                                               camera.getIdentifierAsString()));
                         break;

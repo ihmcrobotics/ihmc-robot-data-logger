@@ -23,7 +23,7 @@ public class GUICaptureReceiver implements SubscriberListener
    private final GUICaptureHandler handler;
    private final ByteBuffer receiveBuffer = ByteBuffer.allocateDirect(GUICaptureStreamer.MAXIMUM_IMAGE_DATA_SIZE);
 
-   public GUICaptureReceiver(int domainID, String topicName, GUICaptureHandler handler) throws IOException
+   public GUICaptureReceiver(int domainID, String modelName, String topicName, GUICaptureHandler handler) throws IOException
    {
       this.topicName = topicName;
       this.handler = handler;

@@ -26,11 +26,11 @@ public class NetworkStreamVideoDataLogger extends VideoDataLoggerInterface imple
 
    private volatile long lastFrameTimestamp = 0;
 
-   public NetworkStreamVideoDataLogger(File logPath, LogProperties logProperties, int domainId, String topicName) throws IOException
+   public NetworkStreamVideoDataLogger(File logPath, LogProperties logProperties, String modelName, int domainId, String topicName) throws IOException
    {
       super(logPath, logProperties, topicName);
 
-      client = new GUICaptureReceiver(domainId, topicName, this);
+      client = new GUICaptureReceiver(domainId, modelName, topicName, this);
       client.start();
    }
 
