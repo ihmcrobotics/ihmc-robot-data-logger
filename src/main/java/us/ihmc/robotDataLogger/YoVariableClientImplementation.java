@@ -95,8 +95,9 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
       logHandshake.setHandshake(handshake);
       if (announcement.getModelFileDescription().getHasModel())
       {
-         logHandshake.setModelName(announcement.getModelFileDescription().getNameAsString());
-         LogTools.info("Requesting model file");
+         String modelName = announcement.getModelFileDescription().getNameAsString();
+         logHandshake.setModelName(modelName);
+         LogTools.info("Requesting model file from " + modelName);
          logHandshake.setModel(dataConsumer.getModelFile());
          logHandshake.setModelLoaderClass(announcement.getModelFileDescription().getModelLoaderClassAsString());
          logHandshake.setResourceDirectories(announcement.getModelFileDescription().getResourceDirectories().toStringArray());
