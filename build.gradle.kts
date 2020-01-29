@@ -10,7 +10,7 @@ buildscript {
       jcenter()
    }
    dependencies {
-      classpath("us.ihmc:ihmc-pub-sub-generator:0.10.3")
+      classpath("us.ihmc:ihmc-pub-sub-generator:0.11.0")
    }
 }
 
@@ -44,19 +44,18 @@ mainDependencies {
    api("org.xerial.snappy:snappy-java:1.1.1-M1")
    api("net.jpountz.lz4:lz4:1.3.0")
    api("io.netty:netty-all:4.1.32.Final")
-
-   api("us.ihmc:euclid:0.12.1")
-   api("us.ihmc:ihmc-yovariables:0.3.11")
-   api("us.ihmc:ihmc-video-codecs:2.1.5")
-   api("us.ihmc:ihmc-realtime:1.2.6")
-   api("us.ihmc:ihmc-java-decklink-capture:0.3.1")
-   api("us.ihmc:ihmc-pub-sub:0.10.2")
-   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.10.2")
-   api("us.ihmc:ihmc-commons:0.26.6")
-   api("us.ihmc:ihmc-graphics-description:0.12.13")
-   api("us.ihmc:mecano:0.0.21")
-   
    api("org.openjdk.jol:jol-core:0.9")
+
+   api("us.ihmc:euclid:0.12.2")
+   api("us.ihmc:ihmc-yovariables:0.4.0")
+   api("us.ihmc:ihmc-video-codecs:2.1.5")
+   api("us.ihmc:ihmc-realtime:1.3.0")
+   api("us.ihmc:ihmc-java-decklink-capture:0.3.3")
+   api("us.ihmc:ihmc-pub-sub:0.11.0")
+   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.11.0")
+   api("us.ihmc:ihmc-commons:0.26.6")
+   api("us.ihmc:ihmc-graphics-description:0.13.0")
+   api("us.ihmc:mecano:0.0.22")
 }
 
 testDependencies {
