@@ -39,10 +39,6 @@ public class LogSettings extends DataServerSettings
    @Deprecated
    public static final LogSettings HAND = new LogSettings(false);
    @Deprecated
-   public static final LogSettings MINI_BEAST = new LogSettings(false);
-   @Deprecated
-   public static final LogSettings BABY_BEAST = new LogSettings(true);
-   @Deprecated
    public static final LogSettings V2EXO = new LogSettings(true);
    @Deprecated
    public static final LogSettings MEGABOTS = new LogSettings(true, "MegaBOTSGUI");
