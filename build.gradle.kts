@@ -23,7 +23,7 @@ plugins {
 
 ihmc {
    group = "us.ihmc"
-   version = "0.14.0"
+   version = "0.15.0"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
@@ -54,7 +54,7 @@ mainDependencies {
    api("us.ihmc:ihmc-pub-sub:0.11.0")
    api("us.ihmc:ihmc-pub-sub-serializers-extra:0.11.0")
    api("us.ihmc:ihmc-commons:0.26.6")
-   api("us.ihmc:ihmc-graphics-description:0.13.0")
+   api("us.ihmc:ihmc-graphics-description:0.14.1")
    api("us.ihmc:mecano:0.0.22")
 }
 
