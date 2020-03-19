@@ -53,13 +53,13 @@ mainDependencies {
    api("us.ihmc:ihmc-java-decklink-capture:0.3.3")
    api("us.ihmc:ihmc-pub-sub:0.11.0")
    api("us.ihmc:ihmc-pub-sub-serializers-extra:0.11.0")
-   api("us.ihmc:ihmc-commons:0.26.6")
+   api("us.ihmc:ihmc-commons:0.28.1")
    api("us.ihmc:ihmc-graphics-description:0.14.1")
    api("us.ihmc:mecano:0.0.22")
 }
 
 testDependencies {
-   api("us.ihmc:ihmc-commons-testing:0.26.6")
+   api("us.ihmc:ihmc-commons-testing:0.28.1")
 }
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")
