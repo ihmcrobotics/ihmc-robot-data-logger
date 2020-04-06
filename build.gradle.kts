@@ -10,7 +10,7 @@ buildscript {
       jcenter()
    }
    dependencies {
-      classpath("us.ihmc:ihmc-pub-sub-generator:0.11.0")
+      classpath("us.ihmc:ihmc-pub-sub-generator:0.12.0")
    }
 }
 
@@ -51,8 +51,8 @@ mainDependencies {
    api("us.ihmc:ihmc-video-codecs:2.1.5")
    api("us.ihmc:ihmc-realtime:1.3.0")
    api("us.ihmc:ihmc-java-decklink-capture:0.3.3")
-   api("us.ihmc:ihmc-pub-sub:0.11.0")
-   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.11.0")
+   api("us.ihmc:ihmc-pub-sub:0.12.0")
+   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.12.0")
    api("us.ihmc:ihmc-commons:0.28.2")
    api("us.ihmc:ihmc-graphics-description:0.15.0")
    api("us.ihmc:mecano:0.0.22")
