@@ -10,7 +10,7 @@ buildscript {
       jcenter()
    }
    dependencies {
-      classpath("us.ihmc:ihmc-pub-sub-generator:0.11.0")
+      classpath("us.ihmc:ihmc-pub-sub-generator:0.12.0")
    }
 }
 
@@ -46,16 +46,16 @@ mainDependencies {
    api("io.netty:netty-all:4.1.32.Final")
    api("org.openjdk.jol:jol-core:0.9")
 
-   api("us.ihmc:euclid:0.12.2")
-   api("us.ihmc:ihmc-yovariables:0.4.0")
+   api("us.ihmc:euclid:0.13.0")
+   api("us.ihmc:ihmc-yovariables:0.5.0")
    api("us.ihmc:ihmc-video-codecs:2.1.5")
    api("us.ihmc:ihmc-realtime:1.3.0")
    api("us.ihmc:ihmc-java-decklink-capture:0.3.3")
-   api("us.ihmc:ihmc-pub-sub:0.11.0")
-   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.11.0")
+   api("us.ihmc:ihmc-pub-sub:0.12.0")
+   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.12.0")
    api("us.ihmc:ihmc-commons:0.28.2")
-   api("us.ihmc:ihmc-graphics-description:0.14.1")
-   api("us.ihmc:mecano:0.0.22")
+   api("us.ihmc:ihmc-graphics-description:0.15.0")
+   api("us.ihmc:mecano:0.3.0")
 }
 
 testDependencies {
