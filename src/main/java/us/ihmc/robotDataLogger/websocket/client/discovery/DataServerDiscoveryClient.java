@@ -123,7 +123,8 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
             connection.close();
          }
 
-         broadcastReceiver.stop();
+         if (broadcastReceiver != null)
+            broadcastReceiver.stop();
       }
    }
 
