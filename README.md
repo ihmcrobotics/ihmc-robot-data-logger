@@ -1,5 +1,7 @@
 IHMC Robot Data Logger
 ======================
+[ ![Download](https://api.bintray.com/packages/ihmcrobotics/maven-release/ihmc-robot-data-logger/images/download.svg) ](https://bintray.com/ihmcrobotics/maven-release/ihmc-robot-data-logger/_latestVersion)
+[ ![buildstatus](https://bamboo.ihmc.us/plugins/servlet/wittified/build-status/LIBS-IHMCROBOTDATALOGGER)](https://bamboo.ihmc.us/plugins/servlet/wittified/build-status/LIBS-IHMCROBOTDATALOGGER)
 
 ## Logger computer system requirements
 
