@@ -1,14 +1,6 @@
 import us.ihmc.idl.generator.IDLGenerator
 
 buildscript {
-   repositories {
-      mavenCentral()
-      maven { url = uri("https://plugins.gradle.org/m2/") }
-      maven { url = uri("http://dl.bintray.com/ihmcrobotics/maven-release") }
-      maven { url = uri("http://dl.bintray.com/ihmcrobotics/maven-vendor") }
-      mavenLocal()
-      jcenter()
-   }
    dependencies {
       classpath("us.ihmc:ihmc-pub-sub-generator:0.12.0")
    }
@@ -18,7 +10,7 @@ plugins {
    id("us.ihmc.ihmc-build") version "0.20.1"
    id("us.ihmc.ihmc-ci") version "5.3"
    id("us.ihmc.ihmc-cd") version "1.14"
-   id("us.ihmc.log-tools") version "0.4.1"
+   id("us.ihmc.log-tools") version "0.4.2"
 }
 
 ihmc {
