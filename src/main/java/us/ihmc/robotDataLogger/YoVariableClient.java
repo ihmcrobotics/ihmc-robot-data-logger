@@ -62,7 +62,7 @@ public class YoVariableClient
     */
    public void startWithHostSelector(boolean enableAutoDiscovery)
    {
-      DataServerSelectorGUI selector = new DataServerSelectorGUI(true);
+      DataServerSelectorGUI selector = new DataServerSelectorGUI(enableAutoDiscovery);
       HTTPDataServerConnection connection = selector.select();
       if (connection != null)
       {

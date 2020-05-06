@@ -27,7 +27,7 @@ public class DataServerSelectorGUI implements HostAddedListener
 
    public DataServerSelectorGUI(boolean enableAutoDiscovery)
    {
-      client = new DataServerDiscoveryClient(new Listener(), true);
+      client = new DataServerDiscoveryClient(new Listener(), enableAutoDiscovery);
 
       List<HTTPDataServerDescription> hosts = StaticHostListLoader.load();
 
