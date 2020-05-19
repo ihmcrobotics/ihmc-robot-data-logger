@@ -249,7 +249,7 @@ public class YoVariableHandShakeBuilder
 
    private void addVariables(int registryID, YoVariableRegistry registry, List<YoVariable<?>> variableListToPack, YoVariableRegistry rootRegistry)
    {
-      ArrayList<YoVariable<?>> variables = registry.getAllVariablesInThisListOnly();
+      List<YoVariable<?>> variables = registry.getAllVariablesInThisListOnly();
       if (variables.size() > handshake.getVariables().capacity())
       {
          throw new RuntimeException("The number of variables exceeds the maximum number of variables for the logger (" + handshake.getVariables().capacity()
