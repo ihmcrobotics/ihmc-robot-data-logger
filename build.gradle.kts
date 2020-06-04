@@ -38,16 +38,22 @@ mainDependencies {
    api("io.netty:netty-all:4.1.32.Final")
    api("org.openjdk.jol:jol-core:0.9")
 
-   api("us.ihmc:euclid:0.14.2")
-   api("us.ihmc:ihmc-yovariables:0.7.0")
+   api("us.ihmc:euclid:0.14.2-ejml-0.39-beta-1")
+   api("us.ihmc:ihmc-yovariables:0.7.0-ejml-0.39-beta-1")
    api("us.ihmc:ihmc-video-codecs:2.1.5")
    api("us.ihmc:ihmc-realtime:1.3.0")
    api("us.ihmc:ihmc-java-decklink-capture:0.3.3")
    api("us.ihmc:ihmc-pub-sub:0.12.0")
+   {
+      exclude(group = "us.ihmc", module = "euclid")
+   }
    api("us.ihmc:ihmc-pub-sub-serializers-extra:0.12.0")
+   {
+      exclude(group = "us.ihmc", module = "euclid")
+   }
    api("us.ihmc:ihmc-commons:0.29.0")
-   api("us.ihmc:ihmc-graphics-description:0.17.0")
-   api("us.ihmc:mecano:0.4.1")
+   api("us.ihmc:ihmc-graphics-description:0.17.0-ejml-0.39-beta-1")
+   api("us.ihmc:mecano:0.4.1-ejml-0.39-beta-1")
 }
 
 testDependencies {
