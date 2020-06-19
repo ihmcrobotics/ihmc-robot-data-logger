@@ -10,7 +10,7 @@ plugins {
    id("us.ihmc.ihmc-build") version "0.20.1"
    id("us.ihmc.ihmc-ci") version "5.3"
    id("us.ihmc.ihmc-cd") version "1.14"
-   id("us.ihmc.log-tools") version "0.4.2"
+   id("us.ihmc.log-tools-plugin") version "0.5.0"
 }
 
 ihmc {
@@ -45,13 +45,13 @@ mainDependencies {
    api("us.ihmc:ihmc-java-decklink-capture:0.3.3")
    api("us.ihmc:ihmc-pub-sub:0.12.0-ejml-0.39-beta-1")
    api("us.ihmc:ihmc-pub-sub-serializers-extra:0.12.0-ejml-0.39-beta-1")
-   api("us.ihmc:ihmc-commons:0.29.0")
+   api("us.ihmc:ihmc-commons:0.30.0")
    api("us.ihmc:ihmc-graphics-description:0.18.0")
    api("us.ihmc:mecano:0.6.0")
 }
 
 testDependencies {
-   api("us.ihmc:ihmc-commons-testing:0.29.0")
+   api("us.ihmc:ihmc-commons-testing:0.30.0")
 }
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")
