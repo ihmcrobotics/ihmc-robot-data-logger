@@ -6,7 +6,7 @@ import java.nio.LongBuffer;
 import java.util.ArrayList;
 import java.util.Random;
 
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 public class TestLongBitsVsNativeDoubleSpeed
@@ -18,7 +18,7 @@ public class TestLongBitsVsNativeDoubleSpeed
       Random random = new Random();
       ArrayList<YoDouble> variables = new ArrayList<>(numberOfVariables);
 
-      YoVariableRegistry registry = new YoVariableRegistry("test");
+      YoRegistry registry = new YoRegistry("test");
 
       for (int i = 0; i < numberOfVariables; i++)
       {

@@ -12,7 +12,7 @@ import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.HandshakeFileType;
 import us.ihmc.robotDataLogger.jointState.JointState;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.yoVariables.variable.frameObjects.FrameIndexMap;
 
@@ -54,8 +54,8 @@ public abstract class YoVariableHandshakeParser
    protected int stateVariables;
    protected int numberOfVariables;
    protected int numberOfJointStateVariables;
-   protected List<YoVariableRegistry> registries = new ArrayList<>();
-   protected List<YoVariable<?>> variables = new ArrayList<>();
+   protected List<YoRegistry> registries = new ArrayList<>();
+   protected List<YoVariable> variables = new ArrayList<>();
    protected FrameIndexMap frameIndexMap;
 
    public abstract void parseFrom(Handshake handshake) throws IOException;
@@ -66,7 +66,7 @@ public abstract class YoVariableHandshakeParser
    {
    }
 
-   public YoVariableRegistry getRootRegistry()
+   public YoRegistry getRootRegistry()
    {
       return registries.get(0);
    }
@@ -76,7 +76,7 @@ public abstract class YoVariableHandshakeParser
       return frameIndexMap;
    }
 
-   public List<YoVariableRegistry> getRegistries()
+   public List<YoRegistry> getRegistries()
    {
       return Collections.unmodifiableList(registries);
    }
@@ -86,7 +86,7 @@ public abstract class YoVariableHandshakeParser
       return Collections.unmodifiableList(jointStates);
    }
 
-   public List<YoVariable<?>> getYoVariablesList()
+   public List<YoVariable> getYoVariablesList()
    {
       return Collections.unmodifiableList(variables);
    }
@@ -122,7 +122,7 @@ public abstract class YoVariableHandshakeParser
       return numberOfJointStateVariables;
    }
 
-   protected RemoteYoGraphic yoGraphicFromMessage(int registrationID, String name, YoVariable<?>[] vars, double[] consts, AppearanceDefinition appearance)
+   protected RemoteYoGraphic yoGraphicFromMessage(int registrationID, String name, YoVariable[] vars, double[] consts, AppearanceDefinition appearance)
    {
       return yoGraphicFactory.yoGraphicFromMessage(registrationID, name, vars, consts, appearance);
    }

@@ -3,7 +3,6 @@ package us.ihmc.robotDataLogger.dataBuffers;
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.LongBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
 import us.ihmc.log.LogTools;
@@ -16,13 +15,13 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class RegistryDecompressor
 {
-   private final List<YoVariable<?>> variables;
+   private final List<YoVariable> variables;
    private final List<JointState> jointStates;
 
    private final ByteBuffer decompressBuffer;
    private final CompressionImplementation compressionImplementation;
 
-   public RegistryDecompressor(List<YoVariable<?>> variables, List<JointState> jointStates)
+   public RegistryDecompressor(List<YoVariable> variables, List<JointState> jointStates)
    {
       this.variables = variables;
       this.jointStates = jointStates;
@@ -32,13 +31,13 @@ public class RegistryDecompressor
 
    }
 
-   private void setAndNotify(YoVariable<?> variable, long newValue)
+   private void setAndNotify(YoVariable variable, long newValue)
    {
       long previousValue = variable.getValueAsLongBits();
       variable.setValueFromLongBits(newValue, false);
       if (previousValue != newValue)
       {
-         ArrayList<VariableChangedListener> changedListeners = variable.getVariableChangedListeners();
+         List<VariableChangedListener> changedListeners = variable.getVariableChangedListeners();
          if (changedListeners != null)
          {
             for (int listener = 0; listener < changedListeners.size(); listener++)

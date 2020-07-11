@@ -47,7 +47,7 @@ import us.ihmc.yoVariables.parameters.LongParameter;
 import us.ihmc.yoVariables.parameters.ParameterLoadStatus;
 import us.ihmc.yoVariables.parameters.SingleParameterReader;
 import us.ihmc.yoVariables.parameters.YoParameter;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoEnum;
@@ -107,13 +107,13 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
    public void parseFrom(Handshake handshake)
    {
       dt = handshake.getDt();
-      List<YoVariableRegistry> regs = parseRegistries(handshake);
+      List<YoRegistry> regs = parseRegistries(handshake);
 
       // don't replace those list objects (it's a big code mess), just populate them with received data
       registries.clear();
       registries.addAll(regs);
 
-      List<YoVariable<?>> vars = parseVariables(handshake, regs);
+      List<YoVariable> vars = parseVariables(handshake, regs);
 
       // don't replace those list objects (it's a big code mess), just populate them with received data
       variables.clear();
@@ -128,18 +128,18 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
       stateVariables = 1 + numberOfVariables + numberOfJointStateVariables;
    }
 
-   private static List<YoVariableRegistry> parseRegistries(Handshake handshake)
+   private static List<YoRegistry> parseRegistries(Handshake handshake)
    {
       YoRegistryDefinition rootDefinition = handshake.getRegistries().get(0);
-      YoVariableRegistry rootRegistry = new YoVariableRegistry(rootDefinition.getNameAsString());
+      YoRegistry rootRegistry = new YoRegistry(rootDefinition.getNameAsString());
 
-      List<YoVariableRegistry> registryList = new ArrayList<>();
+      List<YoRegistry> registryList = new ArrayList<>();
       registryList.add(rootRegistry);
 
       for (int i = 1; i < handshake.getRegistries().size(); i++)
       {
          YoRegistryDefinition registryDefinition = handshake.getRegistries().get(i);
-         YoVariableRegistry registry = new YoVariableRegistry(registryDefinition.getNameAsString());
+         YoRegistry registry = new YoRegistry(registryDefinition.getNameAsString());
          registryList.add(registry);
          registryList.get(registryDefinition.getParent()).addChild(registry);
       }
@@ -153,9 +153,9 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
    }
 
    @SuppressWarnings("rawtypes")
-   private List<YoVariable<?>> parseVariables(Handshake handshake, List<YoVariableRegistry> registryList)
+   private List<YoVariable> parseVariables(Handshake handshake, List<YoRegistry> registryList)
    {
-      List<YoVariable<?>> variableList = new ArrayList<>();
+      List<YoVariable> variableList = new ArrayList<>();
       for (int i = 0; i < handshake.getVariables().size(); i++)
       {
          YoVariableDefinition yoVariableDefinition = handshake.getVariables().get(i);
@@ -163,7 +163,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
          String name = yoVariableDefinition.getNameAsString();
          String description = yoVariableDefinition.getDescriptionAsString();
          int registryIndex = yoVariableDefinition.getRegistry();
-         YoVariableRegistry parent = registryList.get(registryIndex);
+         YoRegistry parent = registryList.get(registryIndex);
 
          double min = yoVariableDefinition.getMin();
          double max = yoVariableDefinition.getMax();
@@ -229,7 +229,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
                }
 
             }
-            YoVariable<?> newVariable = parent.getYoVariable(parent.getNumberOfYoVariables() - 1);
+            YoVariable newVariable = parent.getVariable(parent.getNumberOfVariables() - 1);
 
             // Test if this is the correct variable
             if (newParameter != newVariable.getParameter())
@@ -241,7 +241,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
          }
          else
          {
-            YoVariable<?> newVariable;
+            YoVariable newVariable;
             switch (type)
             {
                case DoubleYoVariable:
@@ -356,7 +356,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
       int registrationID = graphicObjectMessage.getRegistrationID();
 
       String name = graphicObjectMessage.getNameAsString();
-      YoVariable<?>[] vars = new YoVariable[graphicObjectMessage.getYoVariableIndex().size()];
+      YoVariable[] vars = new YoVariable[graphicObjectMessage.getYoVariableIndex().size()];
       for (int v = 0; v < vars.length; v++)
          vars[v] = variables.get(graphicObjectMessage.getYoVariableIndex().get(v));
 

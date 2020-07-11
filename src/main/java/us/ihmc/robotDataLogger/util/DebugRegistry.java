@@ -1,6 +1,6 @@
 package us.ihmc.robotDataLogger.util;
 
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoInteger;
 
 public class DebugRegistry
@@ -12,7 +12,7 @@ public class DebugRegistry
    private final YoInteger totalPackets;
    private final YoInteger skippedPacketDueToFullBuffer;
 
-   private final YoVariableRegistry loggerDebugRegistry = new YoVariableRegistry("loggerStatus");
+   private final YoRegistry loggerDebugRegistry = new YoRegistry("loggerStatus");
 
    public DebugRegistry()
    {
@@ -65,7 +65,7 @@ public class DebugRegistry
       return skippedPacketDueToFullBuffer;
    }
 
-   public YoVariableRegistry getYoVariableRegistry()
+   public YoRegistry getYoRegistry()
    {
       return loggerDebugRegistry;
    }

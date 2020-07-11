@@ -9,7 +9,7 @@ import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.YoVariableServer;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoEnum;
@@ -36,12 +36,12 @@ public class ExampleServer
    private static final DataServerSettings logSettings = new DataServerSettings(true);
 
    private final Random random = new Random(127L);
-   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
-   private final YoVariableRegistry secondRegistry = new YoVariableRegistry(getClass().getSimpleName() + "Second");
+   private final YoRegistry registry = new YoRegistry(getClass().getSimpleName());
+   private final YoRegistry secondRegistry = new YoRegistry(getClass().getSimpleName() + "Second");
    private final YoVariableServer yoVariableServer;
 
-   private final List<YoVariable<?>> mainChangingVariables = new ArrayList<>();
-   private final List<YoVariable<?>> secondChangingVariables = new ArrayList<>();
+   private final List<YoVariable> mainChangingVariables = new ArrayList<>();
+   private final List<YoVariable> secondChangingVariables = new ArrayList<>();
 
    private long timestamp = 0;
    private long counter = 0;
@@ -106,7 +106,7 @@ public class ExampleServer
       }
    }
 
-   private void createVariables(String prefix, int variablesPerType, YoVariableRegistry registry, List<YoVariable<?>> allChangingVariables)
+   private void createVariables(String prefix, int variablesPerType, YoRegistry registry, List<YoVariable> allChangingVariables)
    {
       for (int i = 0; i < variablesPerType; i++)
       {
@@ -117,7 +117,7 @@ public class ExampleServer
          new YoEnum<>(prefix + "Enum" + i, registry, SomeEnum.class, random.nextBoolean());
       }
 
-      allChangingVariables.addAll(registry.getAllVariablesIncludingDescendants());
+      allChangingVariables.addAll(registry.subtreeVariables());
 
       YoDouble input = new YoDouble(prefix + "Input", registry);
       YoDouble output = new YoDouble(prefix + "Output", registry);
@@ -125,7 +125,7 @@ public class ExampleServer
 
    }
 
-   private void updateVariables(List<YoVariable<?>> allChangingVariables)
+   private void updateVariables(List<YoVariable> allChangingVariables)
    {
       for (int varIdx = 0; varIdx < allChangingVariables.size(); varIdx++)
       {
@@ -133,7 +133,7 @@ public class ExampleServer
       }
    }
 
-   private void updateVariable(YoVariable<?> variable)
+   private void updateVariable(YoVariable variable)
    {
       if (variable instanceof YoBoolean)
       {

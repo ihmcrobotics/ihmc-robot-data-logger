@@ -11,14 +11,14 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.HandshakeFileType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 public class YoVariableHandShakeBuilderTest
 {
    private static final int MAX_DEPTH = 5;
 
-   private void generateRegistries(int depth, Random random, YoVariableRegistry parent)
+   private void generateRegistries(int depth, Random random, YoRegistry parent)
    {
 
       int numberOfChilderen = random.nextInt(10);
@@ -27,7 +27,7 @@ public class YoVariableHandShakeBuilderTest
       {
          int numberOfVariables = random.nextInt(50);
 
-         YoVariableRegistry registry = new YoVariableRegistry(parent.getName() + "_" + c);
+         YoRegistry registry = new YoRegistry(parent.getName() + "_" + c);
          for (int i = 0; i < numberOfVariables; i++)
          {
             new YoDouble(registry.getName() + "_" + i, registry);
@@ -46,13 +46,13 @@ public class YoVariableHandShakeBuilderTest
    public void testHandshake()
    {
       Random random = new Random(12451528l);
-      YoVariableRegistry root = new YoVariableRegistry("root");
+      YoRegistry root = new YoRegistry("root");
       YoVariableHandShakeBuilder handShakeBuilder = new YoVariableHandShakeBuilder(root.getName(), 0.001);
 
-      YoVariableRegistry registries[] = new YoVariableRegistry[5];
+      YoRegistry registries[] = new YoRegistry[5];
       for (int r = 0; r < registries.length; r++)
       {
-         registries[r] = new YoVariableRegistry("main_" + r);
+         registries[r] = new YoRegistry("main_" + r);
          root.addChild(registries[r]);
          generateRegistries(1, random, registries[r]);
 
@@ -65,13 +65,13 @@ public class YoVariableHandShakeBuilderTest
       IDLYoVariableHandshakeParser parser = new IDLYoVariableHandshakeParser(HandshakeFileType.IDL_YAML);
       parser.parseFrom(handshake);
 
-      List<YoVariableRegistry> parsedRegistries = parser.getRootRegistry().getChildren();
+      List<YoRegistry> parsedRegistries = parser.getRootRegistry().getChildren();
       assertEquals(registries.length, parsedRegistries.size());
       for (int i = 0; i < parsedRegistries.size(); i++)
       {
-         YoVariableRegistry original = registries[i];
-         YoVariableRegistry parsed = parsedRegistries.get(i);
-         assertTrue(original.areEqual(parsed), "Registries are not equal");
+         YoRegistry original = registries[i];
+         YoRegistry parsed = parsedRegistries.get(i);
+         assertTrue(original.equals(parsed), "Registries are not equal");
       }
 
    }

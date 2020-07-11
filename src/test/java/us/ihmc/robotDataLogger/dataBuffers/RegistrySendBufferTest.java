@@ -24,7 +24,7 @@ import us.ihmc.robotDataLogger.jointState.OneDoFJointHolder;
 import us.ihmc.robotDataLogger.jointState.OneDoFState;
 import us.ihmc.tools.compression.CompressionImplementation;
 import us.ihmc.tools.compression.CompressionImplementationFactory;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -154,7 +154,7 @@ public class RegistrySendBufferTest
          long timestamp = random.nextLong();
          long uid = random.nextLong();
 
-         YoVariableRegistry sendRegistry = new YoVariableRegistry("sendRegistry");
+         YoRegistry sendRegistry = new YoRegistry("sendRegistry");
          for (int v = 0; v < numberOfVariables; v++)
          {
             YoLong newLong = new YoLong("var" + v, sendRegistry);
@@ -164,15 +164,15 @@ public class RegistrySendBufferTest
          // Receive data
          CustomLogDataSubscriberType subscriberType = new CustomLogDataSubscriberType(calculateMaximumNumberOfVariables(numberOfVariables, numberOfJointStates),
                                                                                       numberOfJointStates);
-         YoVariableRegistry receiveRegistry = new YoVariableRegistry("receiveRegistry");
+         YoRegistry receiveRegistry = new YoRegistry("receiveRegistry");
          for (int v = 0; v < numberOfVariables; v++)
          {
             new YoLong("var" + v, receiveRegistry);
          }
-         RegistryDecompressor registryDecompressor = new RegistryDecompressor(receiveRegistry.getAllVariables(), receiveJointStates);
+         RegistryDecompressor registryDecompressor = new RegistryDecompressor(receiveRegistry.subtreeVariables(), receiveJointStates);
 
          // Test
-         RegistrySendBuffer sendBuffer = new RegistrySendBuffer(1, sendRegistry.getAllVariables(), sendJointHolders);
+         RegistrySendBuffer sendBuffer = new RegistrySendBuffer(1, sendRegistry.subtreeVariables(), sendJointHolders);
          long start = System.nanoTime();
          sendBuffer.updateBufferFromVariables(timestamp, uid, numberOfVariables);
          System.out.println("Time taken for update if " + (numberOfVariables + numberOfJointStates) + " "
@@ -184,8 +184,8 @@ public class RegistrySendBufferTest
          subscriberType.deserialize(payload, receiveBuffer);
          registryDecompressor.decompressSegment(receiveBuffer, 0);
 
-         List<YoVariable<?>> sendVariables = sendRegistry.getAllVariables();
-         List<YoVariable<?>> receiveVariables = receiveRegistry.getAllVariables();
+         List<YoVariable> sendVariables = sendRegistry.subtreeVariables();
+         List<YoVariable> receiveVariables = receiveRegistry.subtreeVariables();
 
          assertEquals(sendVariables.size(), receiveVariables.size());
          for (int t = 0; t < sendVariables.size(); t++)

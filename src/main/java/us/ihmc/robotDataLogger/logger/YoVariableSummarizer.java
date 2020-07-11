@@ -14,12 +14,12 @@ import us.ihmc.yoVariables.variable.YoVariable;
 public class YoVariableSummarizer
 {
    private final int trigger;
-   private final YoVariable<?> triggerVariable;
+   private final YoVariable triggerVariable;
    private final YoVariableSummarizerData[] variables;
 
    private LongBuffer buffer;
 
-   public YoVariableSummarizer(List<YoVariable<?>> yoVariables, String triggerVariable, String[] variables)
+   public YoVariableSummarizer(List<YoVariable> yoVariables, String triggerVariable, String[] variables)
    {
       trigger = getYoVariable(yoVariables, triggerVariable);
       if (trigger == -1)
@@ -46,12 +46,12 @@ public class YoVariableSummarizer
       this.variables = summaryVariables.toArray(new YoVariableSummarizerData[summaryVariables.size()]);
    }
 
-   private void updateVariable(int offset, YoVariable<?> variable)
+   private void updateVariable(int offset, YoVariable variable)
    {
       variable.setValueFromLongBits(buffer.get(offset), false);
    }
 
-   public int getYoVariable(List<YoVariable<?>> yoVariables, String name)
+   public int getYoVariable(List<YoVariable> yoVariables, String name)
    {
       for (int i = 0; i < yoVariables.size(); i++)
       {
@@ -112,14 +112,14 @@ public class YoVariableSummarizer
    private class YoVariableSummarizerData
    {
       private final int variableOffset;
-      private final YoVariable<?> variable;
+      private final YoVariable variable;
       private double minimum;
       private double maximum;
 
       private double average;
       private long samples;
 
-      public YoVariableSummarizerData(int variableOffset, YoVariable<?> variable)
+      public YoVariableSummarizerData(int variableOffset, YoVariable variable)
       {
          this.variableOffset = variableOffset;
          this.variable = variable;

@@ -11,7 +11,7 @@ public class VariableChangedProducer
 {
    private DataConsumer dataConsumer = null;
 
-   private final TObjectIntHashMap<YoVariable<?>> variableIdentifiers = new TObjectIntHashMap<>();
+   private final TObjectIntHashMap<YoVariable> variableIdentifiers = new TObjectIntHashMap<>();
    private final VariableListener variableListener = new VariableListener();
 
    public VariableChangedProducer()
@@ -24,7 +24,7 @@ public class VariableChangedProducer
     * @param variables List of variables.
     * @throws IOException if the producer cannot be created
     */
-   public void startVariableChangedProducers(List<YoVariable<?>> variables, DataConsumer dataConsumer) throws IOException
+   public void startVariableChangedProducers(List<YoVariable> variables, DataConsumer dataConsumer) throws IOException
    {
       this.dataConsumer = dataConsumer;
 
@@ -40,7 +40,7 @@ public class VariableChangedProducer
    {
 
       @Override
-      public void notifyOfVariableChange(YoVariable<?> v)
+      public void notifyOfVariableChange(YoVariable v)
       {
          dataConsumer.writeVariableChangeRequest(variableIdentifiers.get(v), v.getValueAsDouble());
       }
