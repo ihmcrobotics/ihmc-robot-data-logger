@@ -176,7 +176,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
          YoType type = yoVariableDefinition.getType();
          if (yoVariableDefinition.getIsParameter())
          {
-            YoParameter<?> newParameter;
+            YoParameter newParameter;
             switch (type)
             {
                case DoubleYoVariable:
