@@ -55,7 +55,7 @@ public class YoVariableSummarizer
    {
       for (int i = 0; i < yoVariables.size(); i++)
       {
-         if (yoVariables.get(i).getFullNameWithNameSpace().endsWith(name))
+         if (yoVariables.get(i).getFullNameString().endsWith(name))
          {
             return i;
          }

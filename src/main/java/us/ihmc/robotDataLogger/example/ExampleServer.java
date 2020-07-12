@@ -121,7 +121,7 @@ public class ExampleServer
 
       YoDouble input = new YoDouble(prefix + "Input", registry);
       YoDouble output = new YoDouble(prefix + "Output", registry);
-      input.addVariableChangedListener((v) -> output.set(input.getValue()));
+      input.addListener((v) -> output.set(input.getValue()));
 
    }
 

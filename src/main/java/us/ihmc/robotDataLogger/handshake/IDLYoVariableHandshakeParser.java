@@ -270,7 +270,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
                default:
                   throw new RuntimeException("Unknown YoVariable type: " + type.name());
             }
-            newVariable.setManualScalingMinMax(min, max);
+            newVariable.setVariableBounds(min, max);
             variableList.add(newVariable);
          }
       }

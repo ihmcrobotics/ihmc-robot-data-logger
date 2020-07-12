@@ -268,8 +268,8 @@ public class YoVariableHandShakeBuilder
          yoVariableDefinition.setDescription(description);
          yoVariableDefinition.setRegistry((short) registryID);
          yoVariableDefinition.setIsParameter(variable.isParameter());
-         yoVariableDefinition.setMin(variable.getManualScalingMin());
-         yoVariableDefinition.setMax(variable.getManualScalingMax());
+         yoVariableDefinition.setMin(variable.getLowerBound());
+         yoVariableDefinition.setMax(variable.getUpperBound());
          if (variable.isParameter())
          {
             ParameterLoadStatus loadStatus = variable.getParameter().getLoadStatus();
@@ -293,7 +293,7 @@ public class YoVariableHandShakeBuilder
             yoVariableDefinition.setLoadStatus(LoadStatus.NoParameter);
          }
 
-         switch (variable.getYoVariableType())
+         switch (variable.getType())
          {
             case DOUBLE:
                yoVariableDefinition.setType(YoType.DoubleYoVariable);
@@ -316,13 +316,13 @@ public class YoVariableHandShakeBuilder
                }
                else
                {
-                  yoVariableDefinition.setEnumType(getOrAddEnumType(variable.getFullNameWithNameSpace() + ".EnumType",
+                  yoVariableDefinition.setEnumType(getOrAddEnumType(variable.getFullNameString() + ".EnumType",
                                                                     ((YoEnum<?>) variable).getEnumValuesAsString()));
                }
                yoVariableDefinition.setAllowNullValues(((YoEnum<?>) variable).getAllowNullValue());
                break;
             default:
-               throw new RuntimeException("Unknown variable type: " + variable.getYoVariableType());
+               throw new RuntimeException("Unknown variable type: " + variable.getType());
          }
 
          variableListToPack.add(variable);

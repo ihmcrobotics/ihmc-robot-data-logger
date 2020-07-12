@@ -42,7 +42,7 @@ public class SummaryProvider
       allVariables.addAll(summarizedVariables);
       for (YoVariable var : summarizedYoVariables)
       {
-         allVariables.add(var.getFullNameWithNameSpace());
+         allVariables.add(var.getFullNameString());
       }
 
       return allVariables.toArray(new String[allVariables.size()]);

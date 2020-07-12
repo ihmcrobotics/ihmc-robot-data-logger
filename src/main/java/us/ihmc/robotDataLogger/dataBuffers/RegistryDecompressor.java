@@ -10,7 +10,7 @@ import us.ihmc.robotDataLogger.interfaces.VariableChangedProducer;
 import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.tools.compression.CompressionImplementation;
 import us.ihmc.tools.compression.CompressionImplementationFactory;
-import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class RegistryDecompressor
@@ -37,15 +37,15 @@ public class RegistryDecompressor
       variable.setValueFromLongBits(newValue, false);
       if (previousValue != newValue)
       {
-         List<VariableChangedListener> changedListeners = variable.getVariableChangedListeners();
+         List<YoVariableChangedListener> changedListeners = variable.getListeners();
          if (changedListeners != null)
          {
             for (int listener = 0; listener < changedListeners.size(); listener++)
             {
-               VariableChangedListener changedListener = changedListeners.get(listener);
+               YoVariableChangedListener changedListener = changedListeners.get(listener);
                if (!(changedListener instanceof VariableChangedProducer.VariableListener))
                {
-                  changedListener.notifyOfVariableChange(variable);
+                  changedListener.changed(variable);
                }
             }
          }

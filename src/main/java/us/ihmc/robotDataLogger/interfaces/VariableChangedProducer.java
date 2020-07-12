@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import gnu.trove.map.hash.TObjectIntHashMap;
-import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class VariableChangedProducer
@@ -31,19 +31,17 @@ public class VariableChangedProducer
       for (int i = 0; i < variables.size(); i++)
       {
          variableIdentifiers.put(variables.get(i), i);
-         variables.get(i).addVariableChangedListener(variableListener);
+         variables.get(i).addListener(variableListener);
       }
 
    }
 
-   public class VariableListener implements VariableChangedListener
+   public class VariableListener implements YoVariableChangedListener
    {
-
       @Override
-      public void notifyOfVariableChange(YoVariable v)
+      public void changed(YoVariable v)
       {
          dataConsumer.writeVariableChangeRequest(variableIdentifiers.get(v), v.getValueAsDouble());
       }
    }
-
 }

@@ -345,7 +345,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
       for (RegistrySendBufferBuilder buffer : registeredBuffers)
       {
          YoRegistry registry = buffer.getYoRegistry();
-         YoVariable ret = registry.getVariable(variableName);
+         YoVariable ret = registry.findVariable(variableName);
          if (ret != null)
          {
             return ret;
@@ -356,7 +356,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
    public void createSummary(YoVariable isWalkingVariable)
    {
-      createSummary(isWalkingVariable.getFullNameWithNameSpace());
+      createSummary(isWalkingVariable.getFullNameString());
    }
 
    public void createSummary(String summaryTriggerVariable)
