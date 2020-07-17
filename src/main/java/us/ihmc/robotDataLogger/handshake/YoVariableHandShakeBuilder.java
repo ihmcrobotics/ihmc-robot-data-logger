@@ -319,7 +319,7 @@ public class YoVariableHandShakeBuilder
                   yoVariableDefinition.setEnumType(getOrAddEnumType(variable.getFullNameString() + ".EnumType",
                                                                     ((YoEnum<?>) variable).getEnumValuesAsString()));
                }
-               yoVariableDefinition.setAllowNullValues(((YoEnum<?>) variable).getAllowNullValue());
+               yoVariableDefinition.setAllowNullValues(((YoEnum<?>) variable).isNullAllowed());
                break;
             default:
                throw new RuntimeException("Unknown variable type: " + variable.getType());

@@ -6,7 +6,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.YoVariableServer;
 import us.ihmc.robotDataLogger.example.ExampleServer.SomeEnum;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
-import us.ihmc.yoVariables.listener.ParameterChangedListener;
+import us.ihmc.yoVariables.listener.YoParameterChangedListener;
 import us.ihmc.yoVariables.parameters.BooleanParameter;
 import us.ihmc.yoVariables.parameters.DefaultParameterReader;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
@@ -30,7 +30,7 @@ public class ExampleParameterServer
       yoVariableServer = new YoVariableServer(getClass(), null, logSettings, dt);
       yoVariableServer.setMainRegistry(registry, null, null);
       new DefaultParameterReader().readParametersInRegistry(registry);
-      ParameterChangedListener changedPrinter = p -> System.out.println(p.getName() + " changed to " + p.getValueAsString());
+      YoParameterChangedListener changedPrinter = p -> System.out.println(p.getName() + " changed to " + p.getValueAsString());
       registry.subtreeParameters().forEach(p -> p.addParameterChangedListener(changedPrinter));
    }
 

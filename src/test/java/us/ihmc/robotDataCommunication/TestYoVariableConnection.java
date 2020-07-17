@@ -87,7 +87,7 @@ public class TestYoVariableConnection
       {
          var1.add(1.0);
          var2.sub(1.0);
-         var4.subtract(1);
+         var4.sub(1);
 
          if (++i >= values.length)
          {

@@ -2,7 +2,7 @@ package us.ihmc.robotDataLogger.handshake;
 
 import static gnu.trove.impl.Constants.DEFAULT_CAPACITY;
 import static gnu.trove.impl.Constants.DEFAULT_LOAD_FACTOR;
-import static us.ihmc.yoVariables.variable.frameObjects.FrameIndexMap.NO_ENTRY_KEY;
+import static us.ihmc.yoVariables.euclid.referenceFrame.interfaces.FrameIndexMap.NO_ENTRY_KEY;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,6 +39,7 @@ import us.ihmc.robotDataLogger.YoRegistryDefinition;
 import us.ihmc.robotDataLogger.YoType;
 import us.ihmc.robotDataLogger.YoVariableDefinition;
 import us.ihmc.robotDataLogger.jointState.JointState;
+import us.ihmc.yoVariables.euclid.referenceFrame.interfaces.FrameIndexMap;
 import us.ihmc.yoVariables.parameters.BooleanParameter;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.parameters.EnumParameter;
@@ -54,7 +55,6 @@ import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.yoVariables.variable.YoVariable;
-import us.ihmc.yoVariables.variable.frameObjects.FrameIndexMap;
 
 /**
  * Class to decode variable data from handshakes
