@@ -144,7 +144,7 @@ public class YoVariableSummarizer
 
       public void writeCSV(PrintWriter writer)
       {
-         writer.print(variable.getNameSpace());
+         writer.print(variable.getNamespace());
          writer.print(',');
          writer.print(variable.getName());
          writer.print(',');
