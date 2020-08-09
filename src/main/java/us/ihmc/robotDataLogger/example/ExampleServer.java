@@ -117,7 +117,7 @@ public class ExampleServer
          new YoEnum<>(prefix + "Enum" + i, registry, SomeEnum.class, random.nextBoolean());
       }
 
-      allChangingVariables.addAll(registry.subtreeVariables());
+      allChangingVariables.addAll(registry.collectSubtreeVariables());
 
       YoDouble input = new YoDouble(prefix + "Input", registry);
       YoDouble output = new YoDouble(prefix + "Output", registry);

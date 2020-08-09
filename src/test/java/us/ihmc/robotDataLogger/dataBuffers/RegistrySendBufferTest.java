@@ -169,10 +169,10 @@ public class RegistrySendBufferTest
          {
             new YoLong("var" + v, receiveRegistry);
          }
-         RegistryDecompressor registryDecompressor = new RegistryDecompressor(receiveRegistry.subtreeVariables(), receiveJointStates);
+         RegistryDecompressor registryDecompressor = new RegistryDecompressor(receiveRegistry.collectSubtreeVariables(), receiveJointStates);
 
          // Test
-         RegistrySendBuffer sendBuffer = new RegistrySendBuffer(1, sendRegistry.subtreeVariables(), sendJointHolders);
+         RegistrySendBuffer sendBuffer = new RegistrySendBuffer(1, sendRegistry.collectSubtreeVariables(), sendJointHolders);
          long start = System.nanoTime();
          sendBuffer.updateBufferFromVariables(timestamp, uid, numberOfVariables);
          System.out.println("Time taken for update if " + (numberOfVariables + numberOfJointStates) + " "
@@ -184,8 +184,8 @@ public class RegistrySendBufferTest
          subscriberType.deserialize(payload, receiveBuffer);
          registryDecompressor.decompressSegment(receiveBuffer, 0);
 
-         List<YoVariable> sendVariables = sendRegistry.subtreeVariables();
-         List<YoVariable> receiveVariables = receiveRegistry.subtreeVariables();
+         List<YoVariable> sendVariables = sendRegistry.collectSubtreeVariables();
+         List<YoVariable> receiveVariables = receiveRegistry.collectSubtreeVariables();
 
          assertEquals(sendVariables.size(), receiveVariables.size());
          for (int t = 0; t < sendVariables.size(); t++)
