@@ -33,7 +33,7 @@ public class UDPTimestampClient
       clientSocket.setSoTimeout(100);
       port = clientSocket.getLocalPort();
 
-      thread = new Thread(new ReceiveThread());
+      thread = new Thread(new ReceiveThread(), getClass().getSimpleName() + "Recieve");
    }
 
    public void start()
