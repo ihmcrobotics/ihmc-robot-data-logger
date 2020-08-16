@@ -333,14 +333,15 @@ public class YoVariableHandShakeBuilder
 
    }
 
-   private boolean verifyDynamicGraphicObject(RemoteYoGraphic obj)
+   private boolean verifyDynamicGraphicObject(RemoteYoGraphic remoteYoGraphic)
    {
-      for (YoVariable yoVar : obj.getVariables())
+      for (YoVariable yoVariable : remoteYoGraphic.getVariables())
       {
-         if (!yoVariableIndices.containsKey(yoVar))
+         if (!yoVariableIndices.containsKey(yoVariable))
          {
-            System.err.println("Backing YoRegistry not added for " + obj.getName() + ", variable: " + yoVar + ". Disabling visualizer for "
-                  + obj.getName());
+            LogTools.error("Backing YoRegistry not added for " + remoteYoGraphic.getName()
+                           + ", variable: " + yoVariable
+                           + ". Disabling visualizer for " + remoteYoGraphic.getName());
             return false;
          }
       }

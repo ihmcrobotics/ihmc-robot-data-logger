@@ -34,7 +34,7 @@ public class DataServerLocationBroadcastReceiver extends DataServerLocationBroad
       List<MulticastSocket> sockets = getSocketChannelList(announcePort);
       for (MulticastSocket socket : sockets)
       {
-         threads.add(new Thread(new DiscoveryEndpoint(socket)));
+         threads.add(new Thread(new DiscoveryEndpoint(socket), getClass().getSimpleName() + "DiscoveryEndpoint"));
       }
 
       this.listener = listener;
