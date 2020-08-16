@@ -9,9 +9,9 @@ public class SummaryProvider
    private boolean summarize = false;
    private String summaryTriggerVariable;
    private ArrayList<String> summarizedVariables = new ArrayList<>();
-   private ArrayList<YoVariable<?>> summarizedYoVariables = new ArrayList<>();
+   private ArrayList<YoVariable> summarizedYoVariables = new ArrayList<>();
 
-   public void addSummarizedVariable(YoVariable<?> summarizedYoVariable)
+   public void addSummarizedVariable(YoVariable summarizedYoVariable)
    {
       summarizedYoVariables.add(summarizedYoVariable);
    }
@@ -40,9 +40,9 @@ public class SummaryProvider
    {
       ArrayList<String> allVariables = new ArrayList<>();
       allVariables.addAll(summarizedVariables);
-      for (YoVariable<?> var : summarizedYoVariables)
+      for (YoVariable var : summarizedYoVariables)
       {
-         allVariables.add(var.getFullNameWithNameSpace());
+         allVariables.add(var.getFullNameString());
       }
 
       return allVariables.toArray(new String[allVariables.size()]);

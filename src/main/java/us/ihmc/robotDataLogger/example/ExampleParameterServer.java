@@ -6,13 +6,13 @@ import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.YoVariableServer;
 import us.ihmc.robotDataLogger.example.ExampleServer.SomeEnum;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
-import us.ihmc.yoVariables.listener.ParameterChangedListener;
+import us.ihmc.yoVariables.listener.YoParameterChangedListener;
 import us.ihmc.yoVariables.parameters.BooleanParameter;
 import us.ihmc.yoVariables.parameters.DefaultParameterReader;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.parameters.EnumParameter;
 import us.ihmc.yoVariables.parameters.IntegerParameter;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class ExampleParameterServer
 {
@@ -20,7 +20,7 @@ public class ExampleParameterServer
    private static final DataServerSettings logSettings = new DataServerSettings(false, false);
 
    private final YoVariableServer yoVariableServer;
-   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
+   private final YoRegistry registry = new YoRegistry(getClass().getSimpleName());
 
    private long timestamp = 0;
 
@@ -30,8 +30,8 @@ public class ExampleParameterServer
       yoVariableServer = new YoVariableServer(getClass(), null, logSettings, dt);
       yoVariableServer.setMainRegistry(registry, null, null);
       new DefaultParameterReader().readParametersInRegistry(registry);
-      ParameterChangedListener changedPrinter = p -> System.out.println(p.getName() + " changed to " + p.getValueAsString());
-      registry.getAllParameters().forEach(p -> p.addParameterChangedListener(changedPrinter));
+      YoParameterChangedListener changedPrinter = p -> System.out.println(p.getName() + " changed to " + p.getValueAsString());
+      registry.collectSubtreeParameters().forEach(p -> p.addListener(changedPrinter));
    }
 
    public void start()
@@ -45,11 +45,11 @@ public class ExampleParameterServer
       }
    }
 
-   private void createVariables(int variablesPerType, YoVariableRegistry parent)
+   private void createVariables(int variablesPerType, YoRegistry parent)
    {
       for (int i = 0; i < variablesPerType; i++)
       {
-         YoVariableRegistry registry = new YoVariableRegistry("Registry" + i);
+         YoRegistry registry = new YoRegistry("Registry" + i);
          new BooleanParameter("BooleanParameter" + i, registry);
          new DoubleParameter("DoubleParameter" + i, registry);
          new IntegerParameter("IntegerParameter" + i, registry);

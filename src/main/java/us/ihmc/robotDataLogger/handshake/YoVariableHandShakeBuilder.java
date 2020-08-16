@@ -32,7 +32,7 @@ import us.ihmc.robotDataLogger.YoVariableDefinition;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.robotDataLogger.jointState.JointHolder;
 import us.ihmc.yoVariables.parameters.ParameterLoadStatus;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -41,8 +41,8 @@ public class YoVariableHandShakeBuilder
    private final RemoteYoGraphicFactory yoGraphicFactory = new RemoteYoGraphicFactory();
    private final Handshake handshake = new Handshake();
    private final ArrayList<JointHolder> jointHolders = new ArrayList<>();
-   private final TObjectIntHashMap<YoVariable<?>> yoVariableIndices = new TObjectIntHashMap<>();
-   private final ArrayList<ImmutablePair<YoVariable<?>, YoVariableRegistry>> variablesAndRootRegistries = new ArrayList<>();
+   private final TObjectIntHashMap<YoVariable> yoVariableIndices = new TObjectIntHashMap<>();
+   private final ArrayList<ImmutablePair<YoVariable, YoRegistry>> variablesAndRootRegistries = new ArrayList<>();
    private final TObjectIntHashMap<String> enumDescriptions = new TObjectIntHashMap<>();
 
    private int registryID = 1;
@@ -149,7 +149,7 @@ public class YoVariableHandShakeBuilder
 
    public void addRegistryBuffer(RegistrySendBufferBuilder builder)
    {
-      YoVariableRegistry registry = builder.getYoVariableRegistry();
+      YoRegistry registry = builder.getYoRegistry();
 
       int registryID = addRegistry(0, registry, builder.getVariables(), registry);
       YoGraphicsListRegistry yoGraphicsListRegistry = builder.getYoGraphicsListRegistry();
@@ -171,7 +171,7 @@ public class YoVariableHandShakeBuilder
       }
    }
 
-   private int addRegistry(int parentID, YoVariableRegistry registry, List<YoVariable<?>> variableListToPack, YoVariableRegistry rootRegistry)
+   private int addRegistry(int parentID, YoRegistry registry, List<YoVariable> variableListToPack, YoRegistry rootRegistry)
    {
 
       int myID = registryID;
@@ -188,7 +188,7 @@ public class YoVariableHandShakeBuilder
 
       addVariables(myID, registry, variableListToPack, rootRegistry);
 
-      for (YoVariableRegistry child : registry.getChildren())
+      for (YoRegistry child : registry.getChildren())
       {
          addRegistry(myID, child, variableListToPack, rootRegistry);
       }
@@ -247,15 +247,15 @@ public class YoVariableHandShakeBuilder
       return (short) myID;
    }
 
-   private void addVariables(int registryID, YoVariableRegistry registry, List<YoVariable<?>> variableListToPack, YoVariableRegistry rootRegistry)
+   private void addVariables(int registryID, YoRegistry registry, List<YoVariable> variableListToPack, YoRegistry rootRegistry)
    {
-      List<YoVariable<?>> variables = registry.getAllVariablesInThisListOnly();
+      List<YoVariable> variables = registry.getVariables();
       if (variables.size() > handshake.getVariables().capacity())
       {
          throw new RuntimeException("The number of variables exceeds the maximum number of variables for the logger (" + handshake.getVariables().capacity()
                + ")");
       }
-      for (YoVariable<?> variable : variables)
+      for (YoVariable variable : variables)
       {
          YoVariableDefinition yoVariableDefinition = handshake.getVariables().add();
          yoVariableDefinition.setName(variable.getName());
@@ -268,8 +268,8 @@ public class YoVariableHandShakeBuilder
          yoVariableDefinition.setDescription(description);
          yoVariableDefinition.setRegistry((short) registryID);
          yoVariableDefinition.setIsParameter(variable.isParameter());
-         yoVariableDefinition.setMin(variable.getManualScalingMin());
-         yoVariableDefinition.setMax(variable.getManualScalingMax());
+         yoVariableDefinition.setMin(variable.getLowerBound());
+         yoVariableDefinition.setMax(variable.getUpperBound());
          if (variable.isParameter())
          {
             ParameterLoadStatus loadStatus = variable.getParameter().getLoadStatus();
@@ -293,7 +293,7 @@ public class YoVariableHandShakeBuilder
             yoVariableDefinition.setLoadStatus(LoadStatus.NoParameter);
          }
 
-         switch (variable.getYoVariableType())
+         switch (variable.getType())
          {
             case DOUBLE:
                yoVariableDefinition.setType(YoType.DoubleYoVariable);
@@ -316,17 +316,17 @@ public class YoVariableHandShakeBuilder
                }
                else
                {
-                  yoVariableDefinition.setEnumType(getOrAddEnumType(variable.getFullNameWithNameSpace() + ".EnumType",
+                  yoVariableDefinition.setEnumType(getOrAddEnumType(variable.getFullNameString() + ".EnumType",
                                                                     ((YoEnum<?>) variable).getEnumValuesAsString()));
                }
-               yoVariableDefinition.setAllowNullValues(((YoEnum<?>) variable).getAllowNullValue());
+               yoVariableDefinition.setAllowNullValues(((YoEnum<?>) variable).isNullAllowed());
                break;
             default:
-               throw new RuntimeException("Unknown variable type: " + variable.getYoVariableType());
+               throw new RuntimeException("Unknown variable type: " + variable.getType());
          }
 
          variableListToPack.add(variable);
-         variablesAndRootRegistries.add(new ImmutablePair<YoVariable<?>, YoVariableRegistry>(variable, rootRegistry));
+         variablesAndRootRegistries.add(new ImmutablePair<YoVariable, YoRegistry>(variable, rootRegistry));
          yoVariableIndices.put(variable, variablesAndRootRegistries.size() - 1);
 
       }
@@ -335,11 +335,11 @@ public class YoVariableHandShakeBuilder
 
    private boolean verifyDynamicGraphicObject(RemoteYoGraphic remoteYoGraphic)
    {
-      for (YoVariable<?> yoVariable : remoteYoGraphic.getVariables())
+      for (YoVariable yoVariable : remoteYoGraphic.getVariables())
       {
          if (!yoVariableIndices.containsKey(yoVariable))
          {
-            LogTools.error("Backing YoVariableRegistry not added for " + remoteYoGraphic.getName()
+            LogTools.error("Backing YoRegistry not added for " + remoteYoGraphic.getName()
                            + ", variable: " + yoVariable
                            + ". Disabling visualizer for " + remoteYoGraphic.getName());
             return false;
@@ -373,11 +373,11 @@ public class YoVariableHandShakeBuilder
          throw new RuntimeException(obj.getName() + " has too many variables. It has " + obj.getVariables().length + " variables");
       }
 
-      for (YoVariable<?> yoVar : obj.getVariables())
+      for (YoVariable yoVar : obj.getVariables())
       {
          if (!yoVariableIndices.containsKey(yoVar))
          {
-            throw new RuntimeException("Backing YoVariableRegistry not added for " + obj.getName() + ", variable: " + yoVar);
+            throw new RuntimeException("Backing YoRegistry not added for " + obj.getName() + ", variable: " + yoVar);
          }
          int index = yoVariableIndices.get(yoVar);
          objectMessage.getYoVariableIndex().add((short) index);
@@ -395,7 +395,7 @@ public class YoVariableHandShakeBuilder
       return variablesAndRootRegistries.size();
    }
 
-   public ArrayList<ImmutablePair<YoVariable<?>, YoVariableRegistry>> getVariablesAndRootRegistries()
+   public ArrayList<ImmutablePair<YoVariable, YoRegistry>> getVariablesAndRootRegistries()
    {
       return variablesAndRootRegistries;
    }

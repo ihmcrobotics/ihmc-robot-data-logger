@@ -16,7 +16,8 @@ import us.ihmc.util.PeriodicNonRealtimeThreadScheduler;
 import us.ihmc.util.PeriodicNonRealtimeThreadSchedulerFactory;
 import us.ihmc.util.PeriodicThreadScheduler;
 import us.ihmc.util.PeriodicThreadSchedulerFactory;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
+import us.ihmc.yoVariables.tools.YoTools;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.yoVariables.variable.YoLong;
@@ -27,7 +28,7 @@ public class JVMStatisticsGenerator
    private final PeriodicThreadScheduler scheduler;
    private final JVMStatisticsGeneratorThread jvmStatisticsGeneratorThread = new JVMStatisticsGeneratorThread();
 
-   private final YoVariableRegistry registry = new YoVariableRegistry("JVMStatistics");
+   private final YoRegistry registry = new YoRegistry("JVMStatistics");
    private final RobotVisualizer visualizer;
 
    private final YoLong freeMemory = new YoLong("freeMemoryInBytes", registry);
@@ -70,7 +71,7 @@ public class JVMStatisticsGenerator
       scheduler = schedulerFactory.createPeriodicThreadScheduler(getClass().getSimpleName());
    }
 
-   public JVMStatisticsGenerator(YoVariableRegistry parentRegistry)
+   public JVMStatisticsGenerator(YoRegistry parentRegistry)
    {
       visualizer = null;
       createGCBeanHolders();
@@ -100,7 +101,7 @@ public class JVMStatisticsGenerator
       for (int i = 0; i < gcbeans.size(); i++)
       {
          GarbageCollectorMXBean gcbean = gcbeans.get(i);
-         String name = YoVariable.ILLEGAL_CHARACTERS.matcher(gcbean.getName()).replaceAll("");
+         String name = YoTools.ILLEGAL_CHARACTERS_PATTERN.matcher(gcbean.getName()).replaceAll("");
          gcBeanHolders.add(new GCBeanHolder(name, gcbean));
       }
    }
@@ -194,7 +195,7 @@ public class JVMStatisticsGenerator
             {
                try
                {
-                  YoVariable<?> variable = (YoVariable<?>) field.get(object);
+                  YoVariable variable = (YoVariable) field.get(object);
                   server.addSummarizedVariable(variable);
                }
                catch (IllegalArgumentException | IllegalAccessException e)
