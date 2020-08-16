@@ -8,15 +8,15 @@ import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.robotDataLogger.jointState.JointHolder;
 import us.ihmc.robotDataLogger.jointState.JointHolderFactory;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<RegistrySendBuffer>
 {
-   private final YoVariableRegistry registry;
+   private final YoRegistry registry;
    private final RigidBodyBasics rootBody;
 
-   private final List<YoVariable<?>> variables = new ArrayList<>();
+   private final List<YoVariable> variables = new ArrayList<>();
    private final List<JointHolder> jointHolders = new ArrayList<>();
 
    private final LoggerDebugRegistry loggerDebugRegistry;
@@ -25,7 +25,7 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
 
    private int registryID = -1;
 
-   public RegistrySendBufferBuilder(YoVariableRegistry registry, RigidBodyBasics rootBody, YoGraphicsListRegistry graphics)
+   public RegistrySendBufferBuilder(YoRegistry registry, RigidBodyBasics rootBody, YoGraphicsListRegistry graphics)
    {
       this.registry = registry;
       this.rootBody = rootBody;
@@ -34,12 +34,12 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
       loggerDebugRegistry = new LoggerDebugRegistry(registry);
    }
 
-   public YoVariableRegistry getYoVariableRegistry()
+   public YoRegistry getYoRegistry()
    {
       return registry;
    }
 
-   public List<YoVariable<?>> getVariables()
+   public List<YoVariable> getVariables()
    {
       return variables;
    }

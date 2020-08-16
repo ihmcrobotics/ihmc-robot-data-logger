@@ -7,7 +7,7 @@ buildscript {
 }
 
 plugins {
-   id("us.ihmc.ihmc-build") version "0.20.1"
+   id("us.ihmc.ihmc-build") version "0.21.0"
    id("us.ihmc.ihmc-ci") version "5.3"
    id("us.ihmc.ihmc-cd") version "1.14"
    id("us.ihmc.log-tools-plugin") version "0.5.0"
@@ -15,7 +15,7 @@ plugins {
 
 ihmc {
    group = "us.ihmc"
-   version = "0.19.0"
+   version = "0.20.0"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
@@ -39,19 +39,19 @@ mainDependencies {
    api("org.openjdk.jol:jol-core:0.9")
 
    api("us.ihmc:euclid:0.15.0")
-   api("us.ihmc:ihmc-yovariables:0.8.0")
+   api("us.ihmc:ihmc-yovariables:0.9.0")
    api("us.ihmc:ihmc-video-codecs:2.1.5")
    api("us.ihmc:ihmc-realtime:1.3.0")
    api("us.ihmc:ihmc-java-decklink-capture:0.3.3")
    api("us.ihmc:ihmc-pub-sub:0.12.0")
    api("us.ihmc:ihmc-pub-sub-serializers-extra:0.12.0")
-   api("us.ihmc:ihmc-commons:0.30.0")
-   api("us.ihmc:ihmc-graphics-description:0.18.0")
-   api("us.ihmc:mecano:0.6.0")
+   api("us.ihmc:ihmc-commons:0.30.2")
+   api("us.ihmc:ihmc-graphics-description:0.19.0")
+   api("us.ihmc:mecano:0.7.0")
 }
 
 testDependencies {
-   api("us.ihmc:ihmc-commons-testing:0.30.0")
+   api("us.ihmc:ihmc-commons-testing:0.30.2")
 }
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")

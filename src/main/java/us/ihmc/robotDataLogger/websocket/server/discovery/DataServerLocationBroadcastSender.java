@@ -31,7 +31,7 @@ public class DataServerLocationBroadcastSender extends DataServerLocationBroadca
          throw new IOException("Message to big.");
       }
 
-      internalThread = new Thread(() -> run());
+      internalThread = new Thread(this::run, getClass().getSimpleName());
    }
 
    public void start()

@@ -10,7 +10,7 @@ import us.ihmc.robotDataLogger.util.JVMStatisticsGenerator;
 import us.ihmc.util.PeriodicNonRealtimeThreadSchedulerFactory;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.parameters.XmlParameterReader;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoEnum;
@@ -25,7 +25,7 @@ public class TestYoVariableConnection
 
    private final XmlParameterReader parameterReader;
 
-   private final YoVariableRegistry registry = new YoVariableRegistry("tester");
+   private final YoRegistry registry = new YoRegistry("tester");
    private final YoDouble var1 = new YoDouble("var1", registry);
    private final YoDouble var2 = new YoDouble("var2", registry);
    private final YoInteger var4 = new YoInteger("var4", registry);
@@ -87,7 +87,7 @@ public class TestYoVariableConnection
       {
          var1.add(1.0);
          var2.sub(1.0);
-         var4.subtract(1);
+         var4.sub(1);
 
          if (++i >= values.length)
          {
@@ -116,7 +116,7 @@ public class TestYoVariableConnection
 
    private class ThreadTester extends Thread
    {
-      private final YoVariableRegistry registry = new YoVariableRegistry("Thread");
+      private final YoRegistry registry = new YoRegistry("Thread");
       private final YoDouble A = new YoDouble("A", registry);
       private final YoDouble B = new YoDouble("B", registry);
       private final YoDouble C = new YoDouble("C", registry);

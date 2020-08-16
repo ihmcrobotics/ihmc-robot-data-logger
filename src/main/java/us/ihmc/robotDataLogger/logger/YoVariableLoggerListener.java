@@ -85,7 +85,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private YoVariableSummarizer yoVariableSummarizer = null;
 
    // Reconstruction variables for disk data format
-   private List<YoVariable<?>> variables;
+   private List<YoVariable> variables;
    private List<JointState> jointStates;
    private ByteBuffer dataBuffer;
    private LongBuffer dataBufferAsLong;
