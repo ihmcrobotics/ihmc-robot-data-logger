@@ -39,15 +39,15 @@ mainDependencies {
    api("org.openjdk.jol:jol-core:0.9")
 
    api("us.ihmc:euclid:0.15.0")
-   api("us.ihmc:ihmc-yovariables:0.9.0")
+   api("us.ihmc:ihmc-yovariables:0.9.1")
    api("us.ihmc:ihmc-video-codecs:2.1.5")
    api("us.ihmc:ihmc-realtime:1.3.0")
    api("us.ihmc:ihmc-java-decklink-capture:0.3.3")
    api("us.ihmc:ihmc-pub-sub:0.12.0")
    api("us.ihmc:ihmc-pub-sub-serializers-extra:0.12.0")
    api("us.ihmc:ihmc-commons:0.30.2")
-   api("us.ihmc:ihmc-graphics-description:0.19.0")
-   api("us.ihmc:mecano:0.7.0")
+   api("us.ihmc:ihmc-graphics-description:0.19.1")
+   api("us.ihmc:mecano:0.7.1")
 }
 
 testDependencies {
