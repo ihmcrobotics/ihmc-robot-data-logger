@@ -10,6 +10,8 @@ import java.util.Comparator;
 
 import org.apache.commons.io.FileUtils;
 
+import us.ihmc.log.LogTools;
+
 /**
  * Class to rotate logs to avoid infinite accumulation
  * 
@@ -41,21 +43,10 @@ public class YoVariableLogRotator
 
       public void delete()
       {
-         System.out.println("Deleting " + this);
+         LogTools.info("Deleting " + this);
          try
          {
-            Files.walk(directory).sorted(Comparator.reverseOrder()).forEach(t ->
-            {
-               try
-               {
-                  Files.deleteIfExists(t);
-               }
-               catch (IOException e)
-               {
-                  System.err.println("Cannot delete " + t);
-                  
-               }
-            });
+            FileUtils.deleteDirectory(directory.toFile());
          }
          catch (IOException e)
          {
