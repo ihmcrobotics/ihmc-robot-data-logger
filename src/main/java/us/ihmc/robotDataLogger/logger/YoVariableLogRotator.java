@@ -23,6 +23,7 @@ public class YoVariableLogRotator
 
    public static void rotate(Path root, int logsToKeep) throws IOException
    {
+      LogTools.info("Rotating logs in " + root + ". Keeping " + logsToKeep + " logs");
       Files.walk(root).filter((p) -> Files.exists(p.resolve(YoVariableLoggerListener.propertyFile))).map((p) -> new LogAndTimestamp(p))
            .sorted(Comparator.reverseOrder()).skip(logsToKeep).forEach((t) -> t.delete());
 
