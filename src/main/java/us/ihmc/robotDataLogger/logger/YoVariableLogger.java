@@ -2,11 +2,15 @@ package us.ihmc.robotDataLogger.logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.function.Consumer;
 
+import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.YoVariableClient;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
@@ -20,15 +24,33 @@ public class YoVariableLogger
 
    public YoVariableLogger(HTTPDataServerConnection connection, YoVariableLoggerOptions options, Consumer<Announcement> doneListener) throws IOException
    {
+      Path logDirectory = Paths.get(options.getLogDirectory());
+      
+      if(!Files.exists(logDirectory))
+      {
+         // Log directory does not exist. Try making it
+         LogTools.info("Creating directory for logs in " + logDirectory);
+         Files.createDirectories(logDirectory);
+      }
+      else if (!Files.isDirectory(logDirectory))
+      {
+         throw new IOException("Desired path for storing logs is not a directory: " + logDirectory);
+      }
+      
+      if(options.isRotateLogs())
+      {
+         YoVariableLogRotator.rotate(logDirectory, options.getNumberOfLogsToKeep());
+      }
+      
       Announcement request = connection.getAnnouncement();
 
       DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
       Calendar calendar = Calendar.getInstance();
       String timestamp = dateFormat.format(calendar.getTime());
 
-      File tempDirectory = new File(options.getLogDirectory(), "." + timestamp + "_" + request.getName());
+      File tempDirectory = new File(logDirectory.toFile(), "." + timestamp + "_" + request.getName());
 
-      File finalDirectory = new File(options.getLogDirectory(), timestamp + "_" + request.getName());
+      File finalDirectory = new File(logDirectory.toFile(), timestamp + "_" + request.getName());
       if (finalDirectory.exists())
       {
          throw new IOException("Directory " + finalDirectory.getAbsolutePath() + " already exists");

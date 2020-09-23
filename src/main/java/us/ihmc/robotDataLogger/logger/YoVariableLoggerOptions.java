@@ -30,6 +30,10 @@ public class YoVariableLoggerOptions
 
    private boolean disableAutoDiscovery = false;
 
+   private boolean rotateLogs = false;
+
+   private int numberOfLogsToKeep = Integer.MAX_VALUE;
+
    public static YoVariableLoggerOptions parse(String[] args) throws JSAPException
    {
       SimpleJSAP jsap = new SimpleJSAP("YoVariabeLogger",
@@ -63,6 +67,13 @@ public class YoVariableLoggerOptions
                                                                'r',
                                                                "crf",
                                                                "CRF (Constant rate factor) for H264. 0-51, 0 is lossless. Sane values are 18 to 28."),
+                                             new FlaggedOption("rotate",
+                                                               JSAP.INTEGER_PARSER,
+                                                               "0",
+                                                               JSAP.NOT_REQUIRED,
+                                                               'o',
+                                                               "rotate",
+                                                               "Rotate logs in incoming folder, keep n logs. Set to zero to keep all logs."),
                                              new Switch("flushAggressivelyToDisk",
                                                         's',
                                                         "sync",
@@ -81,12 +92,27 @@ public class YoVariableLoggerOptions
       options.setVideoQuality(config.getDouble("videoQuality"));
       options.setDisableVideo(config.getBoolean("disableVideo"));
       options.setVideoCodec(CodecID.valueOf(config.getString("videoCodec")));
+      options.setRotateLogs(config.getInt("rotate"));
       options.setCrf(config.getInt("crf"));
 
       options.setFlushAggressivelyToDisk(config.getBoolean("flushAggressivelyToDisk"));
       options.setDisableAutoDiscovery(config.getBoolean("disableAutoDiscovery"));
 
       return options;
+   }
+
+   public void setRotateLogs(int logsToKeep)
+   {
+      if (logsToKeep > 0)
+      {
+         rotateLogs = true;
+         numberOfLogsToKeep = logsToKeep;
+      }
+      else
+      {
+         rotateLogs = false;
+         numberOfLogsToKeep = Integer.MAX_VALUE;
+      }
    }
 
    public String getLogDirectory()
@@ -147,6 +173,16 @@ public class YoVariableLoggerOptions
    public void setCrf(int crf)
    {
       this.crf = crf;
+   }
+
+   public boolean isRotateLogs()
+   {
+      return rotateLogs;
+   }
+
+   public int getNumberOfLogsToKeep()
+   {
+      return numberOfLogsToKeep;
    }
 
    public boolean isDisableAutoDiscovery()
