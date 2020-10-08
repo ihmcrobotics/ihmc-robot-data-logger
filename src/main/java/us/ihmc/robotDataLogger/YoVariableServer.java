@@ -254,7 +254,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    {
       if (started && !stopped)
       {
-         stopped = false;
+         stopped = true;
          for (int i = 0; i < registeredBuffers.size(); i++)
          {
             RegistrySendBufferBuilder builder = registeredBuffers.get(i);
