@@ -13,6 +13,8 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoVariableSummarizer
 {
+   private static final int VariableOffset = 1; // Variables start with a timestamp
+   
    private final int trigger;
    private final YoVariable triggerVariable;
    private final YoVariableSummarizerData[] variables;
@@ -48,7 +50,7 @@ public class YoVariableSummarizer
 
    private void updateVariable(int offset, YoVariable variable)
    {
-      variable.setValueFromLongBits(buffer.get(offset), false);
+      variable.setValueFromLongBits(buffer.get(offset + VariableOffset), false);
    }
 
    public int getYoVariable(List<YoVariable> yoVariables, String name)
