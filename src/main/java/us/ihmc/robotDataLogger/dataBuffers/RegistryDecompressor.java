@@ -71,7 +71,7 @@ public class RegistryDecompressor
       // Sanity check
       if (longData.remaining() != buffer.getNumberOfVariables())
       {
-         System.err.println("Number of variables in incoming message does not match stated number of variables. Skipping packet.");
+         LogTools.error("Number of variables in incoming message does not match stated number of variables. Skipping packet.");
          return;
       }
       int numberOfVariables = buffer.getNumberOfVariables();
