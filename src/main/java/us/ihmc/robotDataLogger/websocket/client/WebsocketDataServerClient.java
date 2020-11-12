@@ -38,6 +38,8 @@ import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnecti
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 
+import static io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory.newHandshaker;
+
 public class WebsocketDataServerClient
 {
    private final EventLoopGroup group = new NioEventLoopGroup();
@@ -73,11 +75,11 @@ public class WebsocketDataServerClient
       udpTimestampClient.start();
 
       CustomLogDataSubscriberType type = new CustomLogDataSubscriberType(parser.getNumberOfVariables(), parser.getNumberOfStates());
-      final WebSocketDataServerClientHandler handler = new WebSocketDataServerClientHandler(WebSocketClientHandshakerFactory.newHandshaker(uri,
-                                                                                                                                           WebSocketVersion.V13,
-                                                                                                                                           null,
-                                                                                                                                           true,
-                                                                                                                                           new DefaultHttpHeaders()),
+      final WebSocketDataServerClientHandler handler = new WebSocketDataServerClientHandler(newHandshaker(uri,
+                                                                                                          WebSocketVersion.V13,
+                                                                                                          null,
+                                                                                                          true,
+                                                                                                          new DefaultHttpHeaders()),
                                                                                             yoVariableClient,
                                                                                             udpTimestampClient.getPort(),
                                                                                             consumer,
