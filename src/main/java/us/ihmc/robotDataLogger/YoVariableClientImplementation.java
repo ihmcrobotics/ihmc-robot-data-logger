@@ -125,7 +125,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
     * or when the client has closed to connection
     * @param handshakeParser 
     *
-    * @param announcement
+    * @param debugRegistry
     * @throws IOException
     */
    void connectToSession(IDLYoVariableHandshakeParser handshakeParser, DebugRegistry debugRegistry) throws IOException

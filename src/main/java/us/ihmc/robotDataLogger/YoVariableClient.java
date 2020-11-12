@@ -39,7 +39,7 @@ public class YoVariableClient
    }
 
    /**
-    * Use {@link startWithHostSelector}
+    * Use {@link #startWithHostSelector}
     */
    @Deprecated
    public void start()
