@@ -90,7 +90,7 @@ public class RegistryConsumer extends Thread
 
    }
 
-   public void stopImmediatly()
+   public void stopImmediately()
    {
       running = false;
    }

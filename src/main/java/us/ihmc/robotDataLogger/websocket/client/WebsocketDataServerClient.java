@@ -20,7 +20,6 @@ import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -119,7 +118,7 @@ public class WebsocketDataServerClient
    {
       udpTimestampClient.stop();
       udpTimestampClient.join();
-      consumer.stopImmediatly();
+      consumer.stopImmediately();
       try
       {
          consumer.join();
