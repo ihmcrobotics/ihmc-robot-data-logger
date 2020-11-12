@@ -29,7 +29,6 @@ import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 
 public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandler<Object>
 {
-
    private final WebSocketClientHandshaker handshaker;
    private final RegistryConsumer consumer;
    private final YoVariableClientImplementation yoVariableClient;
@@ -66,38 +65,38 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
    }
 
    @Override
-   public void handlerAdded(ChannelHandlerContext ctx)
+   public void handlerAdded(ChannelHandlerContext context)
    {
-      handshakeFuture = ctx.newPromise();
+      handshakeFuture = context.newPromise();
    }
 
    @Override
-   public void channelActive(ChannelHandlerContext ctx)
+   public void channelActive(ChannelHandlerContext context)
    {
-      handshaker.handshake(ctx.channel());
+      handshaker.handshake(context.channel());
    }
 
    @Override
-   public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception
+   public void channelRead0(ChannelHandlerContext context, Object message) throws Exception
    {
-      Channel ch = ctx.channel();
+      Channel channel = context.channel();
       if (!handshaker.isHandshakeComplete())
       {
-         handshaker.finishHandshake(ch, (FullHttpResponse) msg);
+         handshaker.finishHandshake(channel, (FullHttpResponse) message);
          yoVariableClient.connected();
          handshakeFuture.setSuccess();
 
          return;
       }
 
-      if (msg instanceof FullHttpResponse)
+      if (message instanceof FullHttpResponse)
       {
-         FullHttpResponse response = (FullHttpResponse) msg;
+         FullHttpResponse response = (FullHttpResponse) message;
          throw new IllegalStateException("Unexpected FullHttpResponse (getStatus=" + response.status() + ", content="
                + response.content().toString(CharsetUtil.UTF_8) + ')');
       }
 
-      WebSocketFrame frame = (WebSocketFrame) msg;
+      WebSocketFrame frame = (WebSocketFrame) message;
       if (frame instanceof TextWebSocketFrame)
       {
          DataServerCommand command = DataServerCommand.getCommand(frame.content());
@@ -122,10 +121,10 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
 
          if (!sendConfiguration)
          {
-            ByteBuf sendTimestampCmd = ctx.alloc().buffer(DataServerCommand.MaxCommandSize());
+            ByteBuf sendTimestampCmd = context.alloc().buffer(DataServerCommand.MaxCommandSize());
             DataServerCommand.SEND_TIMESTAMPS.getBytes(sendTimestampCmd, timestampPort);
             TextWebSocketFrame sendTimestampFrame = new TextWebSocketFrame(sendTimestampCmd);
-            ch.writeAndFlush(sendTimestampFrame);
+            channel.writeAndFlush(sendTimestampFrame);
             sendConfiguration = true;
          }
       }
@@ -136,40 +135,40 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
       else if (frame instanceof CloseWebSocketFrame)
       {
          LogTools.info("Connection closed by server");
-         ch.close();
+         channel.close();
       }
    }
 
    @Override
-   public void userEventTriggered(ChannelHandlerContext ctx, Object evt)
+   public void userEventTriggered(ChannelHandlerContext context, Object event)
    {
-      if (evt instanceof IdleStateEvent)
+      if (event instanceof IdleStateEvent)
       {
-         IdleState idleState = ((IdleStateEvent) evt).state();
+         IdleState idleState = ((IdleStateEvent) event).state();
          if (idleState == IdleState.READER_IDLE)
          {
             if (waitingForPong)
             {
                LogTools.warn("Timeout receiving pong. Closing connection.");
-               ctx.close();
+               context.close();
             }
             else
             {
                waitingForPong = true;
-               ctx.channel().writeAndFlush(new PingWebSocketFrame());
+               context.channel().writeAndFlush(new PingWebSocketFrame());
             }
          }
       }
    }
 
    @Override
-   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
+   public void exceptionCaught(ChannelHandlerContext context, Throwable cause)
    {
       LogTools.warn("Connection closed: " + cause.getMessage());
       if (!handshakeFuture.isDone())
       {
          handshakeFuture.setFailure(cause);
       }
-      ctx.close();
+      context.close();
    }
 }
