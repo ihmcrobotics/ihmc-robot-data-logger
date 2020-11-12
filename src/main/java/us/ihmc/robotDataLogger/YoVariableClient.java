@@ -143,4 +143,8 @@ public class YoVariableClient
       yoVariableClientImplementation.disconnect();
    }
 
+   public void setVariableSynchronizer(Object variableSynchronizer)
+   {
+      yoVariableClientImplementation.setVariableSynchronizer(variableSynchronizer);
+   }
 }

@@ -21,6 +21,8 @@ public class RegistryDecompressor
    private final ByteBuffer decompressBuffer;
    private final CompressionImplementation compressionImplementation;
 
+   private Object variableSynchronizer = null;
+
    public RegistryDecompressor(List<YoVariable> variables, List<JointState> jointStates)
    {
       this.variables = variables;
@@ -76,6 +78,21 @@ public class RegistryDecompressor
       }
       int numberOfVariables = buffer.getNumberOfVariables();
 
+      if (variableSynchronizer != null)
+      {
+         synchronized (variableSynchronizer)
+         {
+            updateVariables(buffer, registryOffset, longData, numberOfVariables);
+         }
+      }
+      else
+      {
+         updateVariables(buffer, registryOffset, longData, numberOfVariables);
+      }
+   }
+
+   private void updateVariables(RegistryReceiveBuffer buffer, int registryOffset, LongBuffer longData, int numberOfVariables)
+   {
       int offset = registryOffset;
       for (int i = 0; i < numberOfVariables; i++)
       {
@@ -91,5 +108,10 @@ public class RegistryDecompressor
             jointStates.get(i).update(jointStateBuffer);
          }
       }
+   }
+
+   public void setVariableSynchronizer(Object variableSynchronizer)
+   {
+      this.variableSynchronizer = variableSynchronizer;
    }
 }
