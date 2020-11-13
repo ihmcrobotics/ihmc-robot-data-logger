@@ -84,7 +84,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
       dataConsumer = new WebsocketDataConsumer(connection, timeout);
       serverName = connection.getAnnouncement().getNameAsString();
 
-      LogTools.info("Requesting handshake");
+      LogTools.info("Requesting handshake from {}", connection.getAnnouncement().getHostNameAsString());
       Handshake handshake = dataConsumer.getHandshake();
 
       IDLYoVariableHandshakeParser handshakeParser = new IDLYoVariableHandshakeParser(HandshakeFileType.IDL_CDR);
