@@ -242,4 +242,8 @@ public class WebsocketDataConsumer implements DataConsumer
       }
    }
 
+   public void setVariableSynchronizer(Object variableSynchronizer)
+   {
+      session.setVariableSynchronizer(variableSynchronizer);
+   }
 }

@@ -8,7 +8,6 @@ import us.ihmc.commons.MathTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.handshake.LogHandshake;
-import us.ihmc.robotDataLogger.interfaces.DataConsumer;
 import us.ihmc.robotDataLogger.interfaces.VariableChangedProducer;
 import us.ihmc.robotDataLogger.util.DaemonThreadFactory;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
@@ -34,7 +33,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
    // Callback
    private final YoVariablesUpdatedListener yoVariablesUpdatedListener;
 
-   private DataConsumer dataConsumer;
+   private WebsocketDataConsumer dataConsumer;
 
    YoVariableClientImplementation(final YoVariablesUpdatedListener yoVariablesUpdatedListener)
    {
@@ -85,7 +84,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
       dataConsumer = new WebsocketDataConsumer(connection, timeout);
       serverName = connection.getAnnouncement().getNameAsString();
 
-      LogTools.info("Requesting handshake");
+      LogTools.info("Requesting handshake from {}", connection.getAnnouncement().getHostNameAsString());
       Handshake handshake = dataConsumer.getHandshake();
 
       IDLYoVariableHandshakeParser handshakeParser = new IDLYoVariableHandshakeParser(HandshakeFileType.IDL_CDR);
@@ -242,5 +241,10 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
       {
          e.printStackTrace();
       }
+   }
+
+   public void setVariableSynchronizer(Object variableSynchronizer)
+   {
+      dataConsumer.setVariableSynchronizer(variableSynchronizer);
    }
 }

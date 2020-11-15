@@ -178,4 +178,8 @@ public class WebsocketDataServerClient
       }
    }
 
+   public void setVariableSynchronizer(Object variableSynchronizer)
+   {
+      consumer.setVariableSynchronizer(variableSynchronizer);
+   }
 }

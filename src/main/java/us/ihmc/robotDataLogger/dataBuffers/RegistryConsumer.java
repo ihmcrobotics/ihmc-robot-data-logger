@@ -194,4 +194,9 @@ public class RegistryConsumer extends Thread
          debugRegistry.getSkippedPacketDueToFullBuffer().increment();
       }
    }
+
+   public void setVariableSynchronizer(Object variableSynchronizer)
+   {
+      registryDecompressor.setVariableSynchronizer(variableSynchronizer);
+   }
 }
