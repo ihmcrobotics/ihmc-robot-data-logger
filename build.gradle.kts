@@ -80,20 +80,36 @@ fun generateMessages()
 val loggerDirectory = "IHMCLogger"
 val loggerHostname: String by project
 val loggerUsername: String by project
+val loggerPassword: String by project
 val distFolder by lazy { tasks.named<Sync>("installDist").get().destinationDir.toString() }
 
 fun deployLogger()
 {
-   remote.session(loggerHostname, loggerUsername)
+   if (project.hasProperty("loggerPassword"))
    {
-      exec("mkdir -p ~/$loggerDirectory")
-
-      exec("rm -rf ~/$loggerDirectory/bin")
-      exec("rm -rf ~/$loggerDirectory/lib")
-
-      put(file("$distFolder/bin").toString(), "$loggerDirectory/bin")
-      put(file("$distFolder/lib").toString(), "$loggerDirectory/lib")
-
-      exec("chmod +x ~/$loggerDirectory/bin/IHMCLogger")
+      remote.session(loggerHostname, loggerUsername, loggerPassword)
+      {
+         deployFunction()
+      }
    }
+   else
+   {
+      remote.session(loggerHostname, loggerUsername)
+      {
+         deployFunction()
+      }
+   }
+}
+
+fun us.ihmc.cd.RemoteExtension.RemoteConnection.deployFunction()
+{
+   exec("mkdir -p ~/$loggerDirectory")
+
+   exec("rm -rf ~/$loggerDirectory/bin")
+   exec("rm -rf ~/$loggerDirectory/lib")
+
+   put(file("$distFolder/bin").toString(), "$loggerDirectory/bin")
+   put(file("$distFolder/lib").toString(), "$loggerDirectory/lib")
+
+   exec("chmod +x ~/$loggerDirectory/bin/IHMCLogger")
 }
