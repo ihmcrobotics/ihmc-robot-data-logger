@@ -77,124 +77,39 @@ fun generateMessages()
    }
 }
 
-val loggerDirectory = "/home/shadylady/IHMCLogger"
+val loggerDirectory = "IHMCLogger"
+val loggerHostname: String by project
+val loggerUsername: String by project
+val loggerPassword: String by project
+val distFolder by lazy { tasks.named<Sync>("installDist").get().destinationDir.toString() }
 
 fun deployLogger()
 {
-   remote.session("logger", "shadylady")
+   if (project.hasProperty("loggerPassword"))
    {
-      exec("mkdir -p $loggerDirectory")
-
-      exec("rm -rf $loggerDirectory/bin")
-      exec("rm -rf $loggerDirectory/lib")
-
-      put(file("build/install/ihmc-robot-data-logger/bin").toString(), "$loggerDirectory/bin")
-      put(file("build/install/ihmc-robot-data-logger/lib").toString(), "$loggerDirectory/lib")
-
-      exec("chmod +x $loggerDirectory/bin/IHMCLogger")
+      remote.session(loggerHostname, loggerUsername, loggerPassword)
+      {
+         deployFunction()
+      }
+   }
+   else
+   {
+      remote.session(loggerHostname, loggerUsername)
+      {
+         deployFunction()
+      }
    }
 }
 
+fun us.ihmc.cd.RemoteExtension.RemoteConnection.deployFunction()
+{
+   exec("mkdir -p ~/$loggerDirectory")
 
-//if (ihmc.isBuildRoot())
-//{
-//   task loggerStartScripts(type: org.gradle.jvm.application.tasks.CreateStartScripts) {
-//      outputDir = file("build/scripts")
-//      mainClassName = "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher"
-//      applicationName = "IHMCLogger"
-//      classpath = project.configurations.runtime + jar.outputs.files
-//   }
-//
-//   task generateMessages(type: us.ihmc.idl.generator.IDLGeneratorTask) {
-//      idlFiles = fileTree(dir: "src/main/idl")
-//      includeDirs = files(".")
-//      targetDirectory = file("src/main/java-generated")
-//      packagePrefix = ""
-//   }
+   exec("rm -rf ~/$loggerDirectory/bin")
+   exec("rm -rf ~/$loggerDirectory/lib")
 
-//   compileJava.dependsOn generateMessages
+   put(file("$distFolder/bin").toString(), "$loggerDirectory/bin")
+   put(file("$distFolder/lib").toString(), "$loggerDirectory/lib")
 
-//   distributions {
-//      logger {
-//         baseName = "IHMCLogger"
-//         contents {
-//            into("lib") {
-//               from project.configurations.runtime + jar.outputs.files
-//            }
-//
-//            into("bin") {
-//               from loggerStartScripts
-//               include "IHMCLogger*"
-//            }
-//         }
-//      }
-//   }
-//
-//   task setupDeployLoggerRemote {
-//      doLast {
-//         remotes.create("deployLoggerTarget") {
-//            host = deployLoggerHost
-//            user = deployLoggerUser
-//            password = deployLoggerPassword
-//            knownHosts = allowAnyHosts
-//         }
-//      }
-//   }
-//
-//   task deployLogger(dependsOn: [loggerDistTar, setupDeployLoggerRemote]) {
-//      doLast {
-//         ssh.run {
-//            session(remotes.deployLoggerTarget) {
-//               project.logger.lifecycle("Copying Logger distribution tarball to remote host")
-//               def distTarFile = loggerDistTar.outputs.files.singleFile
-//               put from: distTarFile, into: "."
-//
-//               project.logger.lifecycle("Untarring distribution on remote host")
-//               execute "tar xf ./${distTarFile.name}"
-//               project.logger.lifecycle("Removing tarball from remote host")
-//               execute "rm -f ./${distTarFile.name}"
-//               project.logger.lifecycle("Removing old version")
-//               execute "rm -rf IHMCLogger"
-//               project.logger.lifecycle("Moving Logger distribution in to place")
-//               execute "mv ./${distTarFile.name.replace(".tar", "")} IHMCLogger"
-//               project.logger.lifecycle("Logger deployment to remote host complete!")
-//            }
-//         }
-//      }
-//   }
-//
-//   task checkThatDistributionDoesntAlreadyExist(type: Exec) {
-//      def distTarFile = loggerDistTar.outputs.files.singleFile
-//      workingDir project.projectDir
-//      executable "curl"
-//      args = ["--write-out", "%{http_code}", "--silent", "--output", "/dev/null", "--head", "https://dl.bintray.com/ihmcrobotics/distributions/${distTarFile.name}"]
-//      standardOutput = new ByteArrayOutputStream();
-//
-//      doLast {
-//         execResult.assertNormalExitValue()
-//         def output = standardOutput.toString()
-//         if (output.equals("200"))
-//         {
-//            throw new GradleException("Distribution ${distTarFile.name} already exists on Bintray. Distributions versions should not be overwritten. Did you mean to release a new version or hotfix?")
-//         }
-//      }
-//   }
-//
-//   task publishLoggerDistributionToBintray(type: Exec, dependsOn: [checkThatDistributionDoesntAlreadyExist, loggerDistTar]) {
-//      def distTarFile = loggerDistTar.outputs.files.singleFile
-//
-//      workingDir project.projectDir
-//      executable "curl"
-//      args = ["--write-out", "%{http_code}", "--silent", "--output", "/dev/null", "-T", distTarFile.canonicalPath, "-u${bintray_user}:${bintray_key}", "https://api.bintray.com/content/ihmcrobotics/distributions/IHMCLogger/${project.version}/${distTarFile.name}?publish=1"]
-//      standardOutput = new ByteArrayOutputStream();
-//
-//      doLast {
-//         execResult.assertNormalExitValue()
-//         def output = standardOutput.toString()
-//         if (!output.equals("201"))
-//         {
-//            throw new GradleException("Upload failed! HTTP Response code: ${output}.")
-//         }
-//      }
-//   }
-//}
+   exec("chmod +x ~/$loggerDirectory/bin/IHMCLogger")
+}
