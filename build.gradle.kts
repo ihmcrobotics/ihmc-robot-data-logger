@@ -38,7 +38,7 @@ mainDependencies {
    api("io.netty:netty-all:4.1.32.Final")
    api("org.openjdk.jol:jol-core:0.9")
 
-   api("us.ihmc:euclid:0.15.1")
+   api("us.ihmc:euclid:0.15.2")
    api("us.ihmc:ihmc-yovariables:0.9.6")
    api("us.ihmc:ihmc-video-codecs:2.1.5")
    api("us.ihmc:ihmc-realtime:1.3.0")
