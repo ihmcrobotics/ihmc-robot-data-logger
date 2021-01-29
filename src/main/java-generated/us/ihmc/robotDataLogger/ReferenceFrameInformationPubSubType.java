@@ -40,9 +40,9 @@ public class ReferenceFrameInformationPubSubType implements us.ihmc.pubsub.Topic
    {
       int initial_alignment = current_alignment;
 
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);current_alignment += (5000 * 4) + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);current_alignment += (8192 * 4) + us.ihmc.idl.CDR.alignment(current_alignment, 4);
 
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 5000; ++i0)
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 8192; ++i0)
       {
         current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
       }
@@ -74,11 +74,11 @@ public class ReferenceFrameInformationPubSubType implements us.ihmc.pubsub.Topic
 
    public static void write(us.ihmc.robotDataLogger.ReferenceFrameInformation data, us.ihmc.idl.CDR cdr)
    {
-      if(data.getFrameIndices().size() <= 5000)
+      if(data.getFrameIndices().size() <= 8192)
       cdr.write_type_e(data.getFrameIndices());else
           throw new RuntimeException("frameIndices field exceeds the maximum length");
 
-      if(data.getFrameNames().size() <= 5000)
+      if(data.getFrameNames().size() <= 8192)
       cdr.write_type_e(data.getFrameNames());else
           throw new RuntimeException("frameNames field exceeds the maximum length");
 
