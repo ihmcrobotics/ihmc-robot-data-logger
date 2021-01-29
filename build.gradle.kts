@@ -65,6 +65,12 @@ tasks.create("deploy") {
    }
 }
 
+tasks.create("generateMessages") {
+   doLast {
+      generateMessages()
+   }
+}
+
 fun generateMessages()
 {
    val idlFiles = fileTree("src/main/idl")
