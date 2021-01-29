@@ -1,9 +1,6 @@
 package us.ihmc.robotDataLogger.handshake;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -426,11 +423,19 @@ public class YoVariableHandShakeBuilder
       {
          Collection<ReferenceFrame> frames = ReferenceFrameTools.getAllFramesInTree(rootFrame);
          ReferenceFrameInformation referenceFrameInformation = handshake.getReferenceFrameInformation();
-         frames.forEach(frame ->
+         int i = 0;
+         int packetSizeLimit = 8192;
+         for (Iterator<ReferenceFrame> iterator = frames.iterator(); iterator.hasNext() && i++ < packetSizeLimit; )
          {
+            ReferenceFrame frame = iterator.next();
             referenceFrameInformation.getFrameNames().add(frame.getName());
             referenceFrameInformation.getFrameIndices().add(frame.getFrameIndex());
-         });
+         }
+
+         if (frames.size() > packetSizeLimit)
+         {
+            LogTools.warn("There are too many frames to pack! ({}) We chopped off the end.", frames.size());
+         }
       }
       catch (NullPointerException nullPointerException)
       {
