@@ -7,7 +7,6 @@ import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.robotDataLogger.YoVariableServer;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.util.JVMStatisticsGenerator;
-import us.ihmc.util.PeriodicNonRealtimeThreadSchedulerFactory;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.parameters.XmlParameterReader;
 import us.ihmc.yoVariables.registry.YoRegistry;
@@ -46,7 +45,6 @@ public class TestYoVariableConnection
    private final YoDouble param2Echo = new YoDouble("param2Echo", registry);
 
    private final YoVariableServer server = new YoVariableServer(getClass(),
-                                                                new PeriodicNonRealtimeThreadSchedulerFactory(),
                                                                 null,
                                                                 new DataServerSettings(false),
                                                                 0.001);
@@ -60,7 +58,7 @@ public class TestYoVariableConnection
       new YoEnum<>("var6", "", registry, TestEnum.class, true);
       parameterReader = new XmlParameterReader(getClass().getResourceAsStream("TestParameters.xml"));
 
-      server.setMainRegistry(registry, null, null);
+      server.setMainRegistry(registry, null);
 
       server.createSummary("tester.startVariableSummary");
       server.addSummarizedVariable("tester.var1");
