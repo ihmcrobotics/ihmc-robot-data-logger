@@ -3,6 +3,7 @@ package us.ihmc.robotDataLogger;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
@@ -11,7 +12,7 @@ import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.concurrent.ConcurrentRingBuffer;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.multicastLogDataProtocol.modelLoaders.LogModelProvider;
 import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataPublisherType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
@@ -329,17 +330,18 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
          throw new RuntimeException("Main registry is not set. Set main registry first");
       }
 
-      registeredBuffers.add(new RegistrySendBufferBuilder(registry, null, yoGraphicsListRegistry));
+      registeredBuffers.add(new RegistrySendBufferBuilder(registry, yoGraphicsListRegistry));
    }
 
+   
    @Override
-   public void setMainRegistry(YoRegistry registry, RigidBodyBasics rootBody, YoGraphicsListRegistry yoGraphicsListRegistry)
+   public void setMainRegistry(YoRegistry registry, List<? extends JointBasics> jointsToPublish, YoGraphicsListRegistry yoGraphicsListRegistry)
    {
       if (mainRegistry != null)
       {
          throw new RuntimeException("Main registry is already set");
       }
-      registeredBuffers.add(new RegistrySendBufferBuilder(registry, rootBody, yoGraphicsListRegistry));
+      registeredBuffers.add(new RegistrySendBufferBuilder(registry, jointsToPublish, yoGraphicsListRegistry));
       mainRegistry = registry;
    }
 
