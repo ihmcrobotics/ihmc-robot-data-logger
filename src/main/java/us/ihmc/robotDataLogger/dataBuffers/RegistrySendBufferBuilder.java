@@ -1,11 +1,14 @@
 package us.ihmc.robotDataLogger.dataBuffers;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.robotDataLogger.jointState.JointHolder;
 import us.ihmc.robotDataLogger.jointState.JointHolderFactory;
 import us.ihmc.yoVariables.registry.YoRegistry;
@@ -14,7 +17,7 @@ import us.ihmc.yoVariables.variable.YoVariable;
 public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<RegistrySendBuffer>
 {
    private final YoRegistry registry;
-   private final RigidBodyBasics rootBody;
+   private final List<? extends JointBasics> jointsToPublish;
 
    private final List<YoVariable> variables = new ArrayList<>();
    private final List<JointHolder> jointHolders = new ArrayList<>();
@@ -25,10 +28,21 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
 
    private int registryID = -1;
 
+   public RegistrySendBufferBuilder(YoRegistry registry, YoGraphicsListRegistry graphics)
+   {
+      this(registry, Collections.emptyList(), graphics);
+   }
+
    public RegistrySendBufferBuilder(YoRegistry registry, RigidBodyBasics rootBody, YoGraphicsListRegistry graphics)
    {
+      this(registry, rootBody == null ? Collections.emptyList() : SubtreeStreams.fromChildren(JointBasics.class, rootBody).collect(Collectors.toList()),
+           graphics);
+   }
+
+   public RegistrySendBufferBuilder(YoRegistry registry, List<? extends JointBasics> jointsToPublish, YoGraphicsListRegistry graphics)
+   {
       this.registry = registry;
-      this.rootBody = rootBody;
+      this.jointsToPublish = jointsToPublish;
       this.graphics = graphics;
 
       loggerDebugRegistry = new LoggerDebugRegistry(registry);
@@ -48,9 +62,9 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
    {
       this.registryID = registryID;
 
-      if (rootBody != null)
+      if (jointsToPublish != null)
       {
-         for (JointBasics joint : rootBody.childrenSubtreeIterable())
+         for (JointBasics joint : jointsToPublish)
          {
             JointHolder jointHolder = JointHolderFactory.getJointHolder(joint);
             jointHolders.add(jointHolder);

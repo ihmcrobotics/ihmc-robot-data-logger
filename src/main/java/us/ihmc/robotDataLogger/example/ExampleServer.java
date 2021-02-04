@@ -55,7 +55,7 @@ public class ExampleServer
       // Create server
       yoVariableServer = new YoVariableServer(getClass(), null, logSettings, dt);
       // Add main registry to server
-      yoVariableServer.setMainRegistry(registry, null, null);
+      yoVariableServer.setMainRegistry(registry, null);
       // Add second registry to server
       yoVariableServer.addRegistry(secondRegistry, null);
 

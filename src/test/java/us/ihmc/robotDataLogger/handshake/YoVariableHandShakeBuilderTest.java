@@ -56,7 +56,7 @@ public class YoVariableHandShakeBuilderTest
          root.addChild(registries[r]);
          generateRegistries(1, random, registries[r]);
 
-         RegistrySendBufferBuilder builder = new RegistrySendBufferBuilder(registries[r], null, null);
+         RegistrySendBufferBuilder builder = new RegistrySendBufferBuilder(registries[r], null);
          handShakeBuilder.addRegistryBuffer(builder);
 
       }
