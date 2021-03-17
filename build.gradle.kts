@@ -47,7 +47,7 @@ mainDependencies {
    api("us.ihmc:ihmc-pub-sub-serializers-extra:0.15.0")
    api("us.ihmc:ihmc-commons:0.30.4")
    api("us.ihmc:ihmc-graphics-description:0.19.3")
-   api("us.ihmc:mecano:0.8.1")
+   api("us.ihmc:mecano:0.8.2")
 }
 
 testDependencies {
