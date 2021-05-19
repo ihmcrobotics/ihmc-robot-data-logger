@@ -28,6 +28,11 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
 
    private int registryID = -1;
 
+   public RegistrySendBufferBuilder(YoRegistry registry)
+   {
+      this(registry, Collections.emptyList(), null);
+   }
+
    public RegistrySendBufferBuilder(YoRegistry registry, YoGraphicsListRegistry graphics)
    {
       this(registry, Collections.emptyList(), graphics);
