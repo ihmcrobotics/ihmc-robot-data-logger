@@ -147,4 +147,14 @@ public class YoVariableClient
    {
       yoVariableClientImplementation.setVariableSynchronizer(variableSynchronizer);
    }
+
+   public boolean isConnected()
+   {
+      return yoVariableClientImplementation.isConnected();
+   }
+
+   public String getServerName()
+   {
+      return yoVariableClientImplementation.getServerName();
+   }
 }
