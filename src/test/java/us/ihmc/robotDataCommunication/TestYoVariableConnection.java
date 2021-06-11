@@ -48,7 +48,7 @@ public class TestYoVariableConnection
                                                                 null,
                                                                 new DataServerSettings(false),
                                                                 0.001);
-   private final JVMStatisticsGenerator jvmStatisticsGenerator = new JVMStatisticsGenerator(server);
+   private final JVMStatisticsGenerator jvmStatisticsGenerator;
 
    private volatile long timestamp = 0;
 
@@ -59,6 +59,7 @@ public class TestYoVariableConnection
       parameterReader = new XmlParameterReader(getClass().getResourceAsStream("TestParameters.xml"));
 
       server.setMainRegistry(registry, null);
+      jvmStatisticsGenerator = new JVMStatisticsGenerator(server);
 
       server.createSummary("tester.startVariableSummary");
       server.addSummarizedVariable("tester.var1");
