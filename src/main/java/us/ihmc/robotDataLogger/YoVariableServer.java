@@ -2,7 +2,6 @@ package us.ihmc.robotDataLogger;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -37,11 +36,9 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
    private YoRegistry mainRegistry = null;
    private final ArrayList<RegistrySendBufferBuilder> registeredBuffers = new ArrayList<>();
-   private final HashMap<YoRegistry, RegistryPublisher> publishers = new HashMap<>();
-
-   // Change data
-   private final HashMap<YoRegistry, ConcurrentRingBuffer<VariableChangedMessage>> variableChangeData = new HashMap<>();
-
+   
+   private final ArrayList<RegistryHolder> registryHolders = new ArrayList<>();
+   
    // State
    private boolean started = false;
    private boolean stopped = false;
@@ -199,10 +196,8 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
       for (int i = 0; i < registeredBuffers.size(); i++)
       {
          RegistrySendBufferBuilder builder = registeredBuffers.get(i);
-         YoRegistry registry = builder.getYoRegistry();
          handshakeBuilder.addRegistryBuffer(builder);
 
-         variableChangeData.put(registry, new ConcurrentRingBuffer<>(new VariableChangedMessage.Builder(), CHANGED_BUFFER_CAPACITY));
 
          if (builder.getNumberOfVariables() > maxVariables)
          {
@@ -216,22 +211,6 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
       }
 
       CustomLogDataPublisherType type = new CustomLogDataPublisherType(maxVariables, maxStates);
-
-      for (int i = 0; i < registeredBuffers.size(); i++)
-      {
-         RegistrySendBufferBuilder builder = registeredBuffers.get(i);
-         YoRegistry registry = builder.getYoRegistry();
-
-         try
-         {
-            publishers.put(registry, dataProducer.createRegistryPublisher(type, builder));
-         }
-         catch (IOException e)
-         {
-            throw new RuntimeException(e);
-         }
-      }
-
       handshakeBuilder.setSummaryProvider(summaryProvider);
 
       try
@@ -240,7 +219,20 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
          {
             RegistrySendBufferBuilder builder = registeredBuffers.get(i);
             YoRegistry registry = builder.getYoRegistry();
-            publishers.get(registry).start();
+            
+            try
+            {
+               ConcurrentRingBuffer<VariableChangedMessage> variableChangeData = new ConcurrentRingBuffer<>(new VariableChangedMessage.Builder(), CHANGED_BUFFER_CAPACITY);
+               RegistryPublisher publisher = dataProducer.createRegistryPublisher(type, builder);
+               registryHolders.add(new RegistryHolder(registry, publisher, variableChangeData));
+               
+               publisher.start();
+            }
+            catch (IOException e)
+            {
+               throw new RuntimeException(e);
+            }
+            
          }
 
          dataProducer.setHandshake(handshakeBuilder.getHandShake());
@@ -254,17 +246,28 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
       started = true;
    }
 
+   public RegistryHolder getRegistryHolder(YoRegistry registry)
+   {
+      for(int i = 0; i < registryHolders.size(); i++)
+      {
+         RegistryHolder registryHolder = registryHolders.get(i);
+         if(registryHolder.registry == registry)
+         {
+            return registryHolder;
+         }
+      }
+      throw new RuntimeException("Registry " + registry.getName() + " not registed with addRegistry() or setMainRegistry()");
+   }
+   
    @Override
    public synchronized void close()
    {
       if (started && !stopped)
       {
          stopped = true;
-         for (int i = 0; i < registeredBuffers.size(); i++)
+         for (int i = 0; i < registryHolders.size(); i++)
          {
-            RegistrySendBufferBuilder builder = registeredBuffers.get(i);
-            YoRegistry registry = builder.getYoRegistry();
-            publishers.get(registry).stop();
+            registryHolders.get(i).publisher.stop();
          }
          dataProducer.remove();
 
@@ -303,16 +306,17 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
          latestTimestamp = timestamp;
       }
 
-      RegistryPublisher publisher = publishers.get(registry);
-      publisher.update(timestamp);
-      updateChangedVariables(registry);
+      RegistryHolder registryHolder = getRegistryHolder(registry);
+
+      registryHolder.publisher.update(timestamp);
+      updateChangedVariables(registryHolder);
 
       logWatcher.update(timestamp);
    }
 
-   private void updateChangedVariables(YoRegistry rootRegistry)
+   private void updateChangedVariables(RegistryHolder rootRegistry)
    {
-      ConcurrentRingBuffer<VariableChangedMessage> buffer = variableChangeData.get(rootRegistry);
+      ConcurrentRingBuffer<VariableChangedMessage> buffer = rootRegistry.variableChangeData;
       buffer.poll();
       VariableChangedMessage msg;
       while ((msg = buffer.read()) != null)
@@ -333,7 +337,6 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
       registeredBuffers.add(new RegistrySendBufferBuilder(registry, yoGraphicsListRegistry));
    }
 
-   
    @Override
    public void setMainRegistry(YoRegistry registry, List<? extends JointBasics> jointsToPublish, YoGraphicsListRegistry yoGraphicsListRegistry)
    {
@@ -395,7 +398,8 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
       VariableChangedMessage message;
       ImmutablePair<YoVariable, YoRegistry> variableAndRootRegistry = handshakeBuilder.getVariablesAndRootRegistries().get(id);
 
-      ConcurrentRingBuffer<VariableChangedMessage> buffer = variableChangeData.get(variableAndRootRegistry.getRight());
+      RegistryHolder holder = getRegistryHolder(variableAndRootRegistry.getRight());
+      ConcurrentRingBuffer<VariableChangedMessage> buffer = holder.variableChangeData;
       while ((message = buffer.next()) == null)
       {
          ThreadTools.sleep(1);
@@ -419,5 +423,20 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    public boolean isLogging()
    {
       return logWatcher.isLogging();
+   }
+
+   private class RegistryHolder
+   {
+      private final YoRegistry registry;
+      private final RegistryPublisher publisher;
+      private final ConcurrentRingBuffer<VariableChangedMessage> variableChangeData;
+
+      public RegistryHolder(YoRegistry registry, RegistryPublisher publisher, ConcurrentRingBuffer<VariableChangedMessage> variableChangeData)
+      {
+         this.registry = registry;
+         this.publisher = publisher;
+         this.variableChangeData = variableChangeData;
+      }
+      
    }
 }
