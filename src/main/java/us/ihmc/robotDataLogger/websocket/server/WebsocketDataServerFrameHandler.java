@@ -9,6 +9,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.VoidChannelPromise;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
@@ -43,6 +44,7 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
    private WebsocketFramePool binaryPool;
    private WebsocketFramePool textPool = new WebsocketFramePool(DataServerCommand.MaxCommandSize(), TEXT_POOL_SIZE, TextWebSocketFrame.class);
    private Channel channel = null;
+   private VoidChannelPromise channelPromise = null;
    private RecyclingByteBufAllocator alloc = null;
 
    private final VariableChangeRequestPubSubType variableChangeRequestType = new VariableChangeRequestPubSubType();
@@ -85,6 +87,7 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
          ctx.channel().config().setAllocator(alloc);
 
          channel = ctx.channel();
+         channelPromise = new VoidChannelPromise(channel, false);
          broadcaster.addClient(this);
       }
       else
@@ -346,7 +349,7 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
             if (channel.isActive()) // Do not check if the channel is writable. We want the commands to go out.
             {
                command.getBytes(websocketFrame.content(), argument);
-               channel.writeAndFlush(websocketFrame);
+               channel.writeAndFlush(websocketFrame, channelPromise);
             }
 
          }
