@@ -55,6 +55,7 @@ testDependencies {
 }
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")
+app.entrypoint("TestCapture", "us.ihmc.javadecklink.Capture")
 
 tasks.create("deploy") {
    dependsOn("installDist")
@@ -118,4 +119,5 @@ fun us.ihmc.cd.RemoteExtension.RemoteConnection.deployFunction()
    put(file("$distFolder/lib").toString(), "$loggerDirectory/lib")
 
    exec("chmod +x ~/$loggerDirectory/bin/IHMCLogger")
+   exec("chmod +x ~/$loggerDirectory/bin/TestCapture")
 }
