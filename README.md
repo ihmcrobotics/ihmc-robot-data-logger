@@ -18,6 +18,21 @@ IHMC Robot Data Logger
 
 - Disable secure boot (Or follow instructions during the Ubuntu installation to enable third party drivers)
 
+### Ubuntu 20.04
+- Install Ubuntu 20.04 64 bit (Server is recommended, no need for a GUI)
+	- Make sure to install OpenSSH server
+- Install IHMC Java Decklink dependencies and Java 8.
+    - `sudo apt-get install libavformat58 libavcodec58 libswscale5 libboost-thread1.67.1 openjdk-8-jre`
+- (If logging video streams with capture card) Install BlackMagic software
+    - Get "Desktop Video 12.1" for Linux from [https://www.blackmagicdesign.com/support/family/capture-and-playback](https://www.blackmagicdesign.com/support/family/capture-and-playback).
+        - You do not need the SDK, just the plain Desktop Video product. The registration has a "Download only" link in the bottom left to bypass.
+    - Untar Desktop video: `tar xzvf Blackmagic_Desktop_Video_Linux_12.1.tar.gz`
+    - Install debian packages: `sudo dpkg -i Blackmagic_Desktop_Video_Linux_12.1/deb/x86_64/desktopvideo_12.1a9_amd64.deb`
+    - Possible run `sudo apt --fix-broken install` to install missing dependencies.
+- (If logging video streams with capture card) Update Blackmagic firmware for each Decklink card (first card is 0, second 1, etc).
+    - `BlackmagicFirmwareUpdater update [Decklink card]`
+- Reboot the computer
+
 ### Ubuntu 18.04 (recommended)
 
 - Install Ubuntu 18.04 64 bit (Server is recommended, no need for a GUI)
