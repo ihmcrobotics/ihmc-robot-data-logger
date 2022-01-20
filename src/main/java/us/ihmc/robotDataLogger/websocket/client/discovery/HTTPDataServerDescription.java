@@ -1,16 +1,20 @@
 package us.ihmc.robotDataLogger.websocket.client.discovery;
 
+import us.ihmc.idl.IDLSequence;
+
 public class HTTPDataServerDescription
 {
    private final String host;
    private final int port;
    private final boolean persistant;
+   private final IDLSequence.Byte cameraList;
 
-   public HTTPDataServerDescription(String host, int port, boolean persistant)
+   public HTTPDataServerDescription(String host, int port, IDLSequence.Byte cameraList, boolean persistant)
    {
       this.host = host;
       this.port = port;
       this.persistant = persistant;
+      this.cameraList = cameraList;
    }
 
    public String getHost()
@@ -26,6 +30,11 @@ public class HTTPDataServerDescription
    public boolean isPersistant()
    {
       return persistant;
+   }
+   
+   public IDLSequence.Byte getCameraList()
+   {
+      return cameraList;
    }
 
    @Override

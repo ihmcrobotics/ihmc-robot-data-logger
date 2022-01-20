@@ -12,7 +12,6 @@ public class Announcement extends Packet<Announcement> implements Settable<Annou
    public java.lang.StringBuilder name_;
    public java.lang.StringBuilder hostName_;
    public java.lang.StringBuilder reconnectKey_;
-   public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.CameraAnnouncement>  cameras_;
    public us.ihmc.robotDataLogger.ModelFileDescription modelFileDescription_;
    public boolean log_;
 
@@ -22,9 +21,7 @@ public class Announcement extends Packet<Announcement> implements Settable<Annou
       name_ = new java.lang.StringBuilder(255);
       hostName_ = new java.lang.StringBuilder(255);
       reconnectKey_ = new java.lang.StringBuilder(255);
-      cameras_ = new us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.CameraAnnouncement> (127, new us.ihmc.robotDataLogger.CameraAnnouncementPubSubType());
       modelFileDescription_ = new us.ihmc.robotDataLogger.ModelFileDescription();
-
    }
 
    public Announcement(Announcement other)
@@ -47,7 +44,6 @@ public class Announcement extends Packet<Announcement> implements Settable<Annou
       reconnectKey_.setLength(0);
       reconnectKey_.append(other.reconnectKey_);
 
-      cameras_.set(other.cameras_);
       us.ihmc.robotDataLogger.ModelFileDescriptionPubSubType.staticCopy(other.modelFileDescription_, modelFileDescription_);
       log_ = other.log_;
 
@@ -114,12 +110,6 @@ public class Announcement extends Packet<Announcement> implements Settable<Annou
    }
 
 
-   public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.CameraAnnouncement>  getCameras()
-   {
-      return cameras_;
-   }
-
-
    public us.ihmc.robotDataLogger.ModelFileDescription getModelFileDescription()
    {
       return modelFileDescription_;
@@ -160,13 +150,6 @@ public class Announcement extends Packet<Announcement> implements Settable<Annou
 
       if (!us.ihmc.idl.IDLTools.epsilonEqualsStringBuilder(this.reconnectKey_, other.reconnectKey_, epsilon)) return false;
 
-      if (this.cameras_.size() != other.cameras_.size()) { return false; }
-      else
-      {
-         for (int i = 0; i < this.cameras_.size(); i++)
-         {  if (!this.cameras_.get(i).epsilonEquals(other.cameras_.get(i), epsilon)) return false; }
-      }
-
       if (!this.modelFileDescription_.epsilonEquals(other.modelFileDescription_, epsilon)) return false;
       if (!us.ihmc.idl.IDLTools.epsilonEqualsBoolean(this.log_, other.log_, epsilon)) return false;
 
@@ -191,7 +174,6 @@ public class Announcement extends Packet<Announcement> implements Settable<Annou
 
       if (!us.ihmc.idl.IDLTools.equals(this.reconnectKey_, otherMyClass.reconnectKey_)) return false;
 
-      if (!this.cameras_.equals(otherMyClass.cameras_)) return false;
       if (!this.modelFileDescription_.equals(otherMyClass.modelFileDescription_)) return false;
       if(this.log_ != otherMyClass.log_) return false;
 
@@ -213,8 +195,6 @@ public class Announcement extends Packet<Announcement> implements Settable<Annou
       builder.append(this.hostName_);      builder.append(", ");
       builder.append("reconnectKey=");
       builder.append(this.reconnectKey_);      builder.append(", ");
-      builder.append("cameras=");
-      builder.append(this.cameras_);      builder.append(", ");
       builder.append("modelFileDescription=");
       builder.append(this.modelFileDescription_);      builder.append(", ");
       builder.append("log=");

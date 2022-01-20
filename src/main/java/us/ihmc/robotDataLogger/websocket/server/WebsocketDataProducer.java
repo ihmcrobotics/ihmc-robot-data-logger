@@ -3,7 +3,6 @@ package us.ihmc.robotDataLogger.websocket.server;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -17,8 +16,6 @@ import io.netty.util.ResourceLeakDetector;
 import io.netty.util.ResourceLeakDetector.Level;
 import us.ihmc.multicastLogDataProtocol.modelLoaders.LogModelProvider;
 import us.ihmc.robotDataLogger.Announcement;
-import us.ihmc.robotDataLogger.CameraAnnouncement;
-import us.ihmc.robotDataLogger.CameraType;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataPublisherType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
@@ -69,7 +66,6 @@ public class WebsocketDataProducer implements DataProducer
 
    private int maximumBufferSize = 0;
 
-   private final ArrayList<CameraAnnouncement> cameras = new ArrayList<>();
    private final boolean log;
    private final boolean autoDiscoverable;
 
@@ -125,15 +121,6 @@ public class WebsocketDataProducer implements DataProducer
       this.handshake = handshake;
    }
 
-   @Override
-   public void addCamera(CameraType type, String name, String cameraId)
-   {
-      CameraAnnouncement cameraAnnouncement = new CameraAnnouncement();
-      cameraAnnouncement.setType(type);
-      cameraAnnouncement.setName(name);
-      cameraAnnouncement.setIdentifier(cameraId);
-      cameras.add(cameraAnnouncement);
-   }
 
    private Announcement createAnnouncement() throws UnknownHostException
    {
@@ -143,11 +130,6 @@ public class WebsocketDataProducer implements DataProducer
       announcement.setIdentifier("");
 
       announcement.setLog(log);
-
-      for (CameraAnnouncement camera : cameras)
-      {
-         announcement.getCameras().add().set(camera);
-      }
 
       String handshakeHash = HandshakeHashCalculator.calculateHash(handshake);
       announcement.setReconnectKey(handshakeHash);

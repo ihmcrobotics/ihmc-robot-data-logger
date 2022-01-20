@@ -2,10 +2,10 @@ package us.ihmc.robotDataLogger;
 
 /**
 * 
-* Definition of the enum "CameraType" defined in Announcement.idl. 
+* Definition of the enum "CameraType" defined in CameraSettings.idl. 
 *
-* This file was automatically generated from Announcement.idl by us.ihmc.idl.generator.IDLGenerator. 
-* Do not update this file directly, edit Announcement.idl instead.
+* This file was automatically generated from CameraSettings.idl by us.ihmc.idl.generator.IDLGenerator. 
+* Do not update this file directly, edit CameraSettings.idl instead.
 *
 */
 import us.ihmc.idl.IDLTools;

@@ -1,6 +1,6 @@
 IHMC Robot Data Logger
 ======================
-[ ![Download](https://api.bintray.com/packages/ihmcrobotics/maven-release/ihmc-robot-data-logger/images/download.svg) ](https://bintray.com/ihmcrobotics/maven-release/ihmc-robot-data-logger/_latestVersion)
+[ Download ](https://search.maven.org/artifact/us.ihmc/ihmc-robot-data-logger)
 [ ![buildstatus](https://bamboo.ihmc.us/plugins/servlet/wittified/build-status/LIBS-IHMCROBOTDATALOGGER)](https://bamboo.ihmc.us/plugins/servlet/wittified/build-status/LIBS-IHMCROBOTDATALOGGER)
 
 ## Logger computer system requirements
@@ -18,7 +18,7 @@ IHMC Robot Data Logger
 
 - Disable secure boot (Or follow instructions during the Ubuntu installation to enable third party drivers)
 
-### Ubuntu 20.04
+### Ubuntu 20.04 (recommended)
 - Install Ubuntu 20.04 64 bit (Server is recommended, no need for a GUI)
 	- Make sure to install OpenSSH server
 - Install IHMC Java Decklink dependencies and Java 8.
@@ -33,36 +33,6 @@ IHMC Robot Data Logger
     - `BlackmagicFirmwareUpdater update [Decklink card]`
 - Reboot the computer
 
-### Ubuntu 18.04 (recommended)
-
-- Install Ubuntu 18.04 64 bit (Server is recommended, no need for a GUI)
-	- Make sure to install OpenSSH server
-- Install IHMC Java Decklink dependencies and Java 8.
-    - `sudo apt-get install libavformat57 libavcodec57 libswscale4 libboost-thread1.65.1 openjdk-8-jre`
-- (If logging video streams with capture card) Install BlackMagic software
-    - Get "Desktop Video 11.2" for Linux from [https://www.blackmagicdesign.com/support/family/capture-and-playback](https://www.blackmagicdesign.com/support/family/capture-and-playback).
-        - You do not need the SDK, just the plain Desktop Video product. The registration has a "Download only" link in the bottom left to bypass.
-    - Untar Desktop video: `tar xzvf Blackmagic_Desktop_Video_Linux_11.2.tar.gz`
-    - Install debian packages: `sudo dpkg -i Blackmagic_Desktop_Video_Linux_11.2/deb/x86_64/desktopvideo_11.2a8_amd64.deb`
-    - Possible run `sudo apt --fix-broken install` to install missing dependencies.
-- (If logging video streams with capture card) Update Blackmagic firmware for each Decklink card (first card is 0, second 1, etc).
-    - `BlackmagicFirmwareUpdater update [Decklink card]`
-- Reboot the computer
-
-### Ubuntu 16.04 (supported)
-
-- Install Ubuntu 16.04 64 bit (Server is recommended, no need for a GUI)
-	- Make sure to install OpenSSH server
-- Install IHMC Java Decklink dependencies and Java 8.
-    - `sudo apt-get install libavformat-ffmpeg56 libavcodec-ffmpeg56 libswscale-ffmpeg3 libboost-thread1.58.0 openjdk-8-jre`
-- (If logging video streams with capture card) Install BlackMagic software
-    - Get "Desktop Video 10.8.5" for Linux from [https://www.blackmagicdesign.com/support/family/capture-and-playback](https://www.blackmagicdesign.com/support/family/capture-and-playback).
-        - You do not need the SDK, just the plain Desktop Video product. The registration has a "Download only" link in the bottom left to bypass.
-    - Untar Desktop video: `tar xzvf Blackmagic_Desktop_Video_Linux_10.8.5.tar.gz`
-    - Install debian packages: `sudo dpkg -i Blackmagic_Desktop_Video_Linux_10.8.5a4/deb/amd64/desktopvideo_10.8.5a4_amd64.deb`
-- (If logging video streams with capture card) Update Blackmagic firmware for each Decklink card (first card is 0, second 1, etc).
-    - `BlackmagicFirmwareUpdater update [Decklink card]`
-- Reboot the computer
 
 ## Publishing the logger from source
 
@@ -83,27 +53,34 @@ If you would like to log to a network volume, ~/robotLogs can be a symbolic link
 ### Customizing the logging location
 If you would like to log somewhere other than ~/robotLogs, you can change the directory using the "-d" command line flag when you launch the logger
 
-## Setting up robot controller network configuration
+## Setting up cameras
 
-To enable logging and selecting which Decklink cards are captured by the logger, the controller needs to be configured using `~/.ihmc/IHMCLoggerConfiguration.ini`.
-
-Create `~/.ihmc/IHMCLoggerConfiguration.ini` and add the following
+Create a new file ~/.ihmc/CameraSettings.yaml. A basic setup looks like this
 
 ```
-camerasToCapture=[comma separated list of Decklink card ID's to capture]
+---
+cameras:
+- type: CAPTURE_CARD
+  camera_id: 1
+  name: User-Friendly-Name
+  identifier: 1
+- type: NETWORK_STREAM
+  camera_id: 2
+  name: Another-User-Friendly-Name
+  identifier: /stream_topic
 ```
+			
+This adds two cameras to the logger, a capture card and a stream. The following fields are needed for each camera:
 
-- `camerasToCapture=...` informs the logger which cameras to use for this contorller. 
+- type: CAPTURE_CARD for Decklink capture cards or NETWORK_STREAM for streaming over DDS/RTPS
+- camera_id: An unique id from 0 to 127 to refer to the camera in the static hosts section
+- name: A user friendly name used to name the file
+- identifier: For CAPTURE_CARD, this is the numeric id of the decklink device, for NETWORK_STREAM this is the DDS topic name 
 
-The Decklink cards are numbered sequentially starting from 0. Video resolution is auto-detected. If you want to log Decklink cards 0 and 2, set "loggedCameras=0,2". If you only want to log Decklink card 1, set "loggedCameras=1". If you do not want to log any cameras, remove the loggedCameras line or set it to an empty string.
-
-Alternatively, you can add `-Dihmc.camerasToCapture` to the java command line arguments.
-
-Make sure a gateway within the same subnet is set for the interface that is connected to the logger. It does not need to exist on the network, but without a default gateway FastRTPS cannot reliably connect. 
 
 ## Adding static hosts
 
-If the logger cannot auto-discover a host, you can add a static host to `~/.ihmc/ControllerHosts.yaml`.
+If the logger cannot auto-discover a host, you can add a static host to `~/.ihmc/ControllerHosts.yaml`. Adding static hosts allows adding a camera to the robot logs.
 
 The file is formatted in YAML format. You can easily add more host/port stanzas. For example, to add `10.0.0.10:8008` and `10.0.0.11:8008` as static hosts, put the following in `~/.ihmc/ControllerHosts.yaml`:
 
@@ -114,7 +91,10 @@ hosts:
   port: 8008
 - hostname: "10.0.0.11"
   port: 8008
+  cameras: [1, 2]
 ```
+
+This adds the host 10.0.0.10 without cameras and the host 10.0.0.11 with two cameras with camera_id 1 and 2.  
 
 Alternatively, you can start `SCSVisualizer` from `ihmc-robot-data-visualizer` and add hosts using the GUI. After you close the visualizer, the hosts you added will be saved  `~/.ihmc/ControllerHosts.yaml`. You can copy that file to the logger if it is on a different computer.
 

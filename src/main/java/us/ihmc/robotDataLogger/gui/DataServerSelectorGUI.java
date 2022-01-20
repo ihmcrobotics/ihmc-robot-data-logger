@@ -64,7 +64,7 @@ public class DataServerSelectorGUI implements HostAddedListener
          int portInt = Integer.valueOf(port);
          InetAddress.getByName(host);
 
-         HTTPDataServerDescription description = new HTTPDataServerDescription(host, portInt, true);
+         HTTPDataServerDescription description = new HTTPDataServerDescription(host, portInt, null, true);
          selector.addHost(description);
          client.addHost(description);
 

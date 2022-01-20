@@ -125,7 +125,7 @@ public class HTTPDataServerConnection
     */
    public static HTTPDataServerConnection connect(String host, int port) throws IOException
    {
-      HTTPDataServerDescription target = new HTTPDataServerDescription(host, port, false);
+      HTTPDataServerDescription target = new HTTPDataServerDescription(host, port, null, false);
 
       CompletableFuture<HTTPDataServerConnection> connectionFuture = new CompletableFuture<>();
 
@@ -400,7 +400,7 @@ public class HTTPDataServerConnection
 
    public static void main(String[] args)
    {
-      new HTTPDataServerConnection(new HTTPDataServerDescription("127.0.0.1", 8008, false), new HTTPDataServerConnectionListener()
+      new HTTPDataServerConnection(new HTTPDataServerDescription("127.0.0.1", 8008, null, false), new HTTPDataServerConnectionListener()
       {
 
          @Override

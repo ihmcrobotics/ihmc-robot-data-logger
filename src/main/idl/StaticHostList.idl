@@ -2,10 +2,12 @@ module us{
 module ihmc{
 module robotDataLogger{
 
+
 	struct Host
 	{
 		string hostname;
 		unsigned short port;
+		sequence<octet, 128> cameras;
 	};
 	
 	struct StaticHostList

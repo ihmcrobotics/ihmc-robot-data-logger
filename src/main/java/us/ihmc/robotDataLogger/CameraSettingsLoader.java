@@ -4,23 +4,21 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import us.ihmc.idl.serializers.extra.YAMLSerializer;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 
-public class StaticHostListLoader
+public class CameraSettingsLoader
 {
-   public static final String location = System.getProperty("user.home") + File.separator + ".ihmc" + File.separator + "ControllerHosts.yaml";
+   public static final String location = System.getProperty("user.home") + File.separator + ".ihmc" + File.separator + "CameraSettings.yaml";
 
-   public static List<HTTPDataServerDescription> load()
+   public static CameraSettings load()
    {
       File in = new File(location);
 
-      if (in.exists())
+      if(in.exists())
       {
          try
          {
@@ -29,47 +27,42 @@ public class StaticHostListLoader
          }
          catch (IOException e)
          {
-            LogTools.warn("Cannot load hosts list: " + e.getMessage());
+            LogTools.warn("Cannot load camera settings: " + e.getMessage());
          }
       }
       else
       {
-         LogTools.warn("Cannot find " + location + ". Starting with empty list of hosts.");
+         LogTools.warn("Cannot find " + location + ". No cameras available.");
 
       }
-
-      return Collections.emptyList();
+      
+      return new CameraSettings();
    }
 
-   public static List<HTTPDataServerDescription> load(String data)
+   public static CameraSettings load(String data)
    {
-      YAMLSerializer<StaticHostList> ser = new YAMLSerializer<>(new StaticHostListPubSubType());
+      YAMLSerializer<CameraSettings> ser = new YAMLSerializer<>(new CameraSettingsPubSubType());
       ser.setAddTypeAsRootNode(false);
 
       try
       {
-         List<HTTPDataServerDescription> list = new ArrayList<>();
-         StaticHostList hostList = ser.deserialize(data);
-         for (Host host : hostList.getHosts())
-         {
-            HTTPDataServerDescription description = new HTTPDataServerDescription(host.getHostnameAsString(), host.getPort(), host.getCameras(), true);
-            list.add(description);
-         }
-
-         return list;
+         return ser.deserialize(data);
       }
       catch (IOException e)
       {
-         LogTools.warn("Cannot load hosts list: " + e.getMessage());
+         LogTools.warn("Cannot load camera settings: " + e.getMessage());
+
+         return new CameraSettings();
+
       }
 
-      return Collections.emptyList();
    }
-
+   
    public static String toString(List<HTTPDataServerDescription> list) throws IOException
    {
       YAMLSerializer<StaticHostList> ser = new YAMLSerializer<>(new StaticHostListPubSubType());
       ser.setAddTypeAsRootNode(false);
+
 
       StaticHostList staticHostList = new StaticHostList();
       for (HTTPDataServerDescription description : list)

@@ -2,7 +2,6 @@ package us.ihmc.robotDataLogger.interfaces;
 
 import java.io.IOException;
 
-import us.ihmc.robotDataLogger.CameraType;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataPublisherType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
@@ -21,14 +20,6 @@ public interface DataProducer
     * @param handshake
     */
    void setHandshake(Handshake handshake);
-
-   /**
-    * Add cameras to log Optional
-    *
-    * @param name     User friendly name to show in the log files
-    * @param cameraId ID of the camera on the logger machine
-    */
-   void addCamera(CameraType type, String name, String cameraId);
 
    /**
     * Activate the producer. This will publish the model, handshake and logger announcement to the

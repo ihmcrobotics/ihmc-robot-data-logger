@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
-import gnu.trove.list.array.TByteArrayList;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.concurrent.ConcurrentRingBuffer;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -142,40 +141,14 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
     */
    public YoVariableServer(String mainClazz, LogModelProvider logModelProvider, DataServerSettings dataServerSettings, double dt)
    {
-      LoggerConfigurationLoader config;
-      try
-      {
-         config = new LoggerConfigurationLoader();
-      }
-      catch (IOException e1)
-      {
-         throw new RuntimeException("Cannot load configuration to start logger, aborting", e1);
-      }
-
       this.dt = dt;
-
       dataProducer = new WebsocketDataProducer(mainClazz, logModelProvider, this, logWatcher, dataServerSettings);
-      addCameras(config, dataServerSettings);
 
    }
 
    public void setRootRegistryName(String name)
    {
       rootRegistryName = name;
-   }
-
-   private void addCameras(LoggerConfigurationLoader config, DataServerSettings logSettings)
-   {
-      TByteArrayList cameras = config.getCameras();
-      for (int i = 0; i < cameras.size(); i++)
-      {
-         dataProducer.addCamera(CameraType.CAPTURE_CARD, "Camera-" + cameras.get(i), String.valueOf(cameras.get(i)));
-      }
-
-      if (logSettings.getVideoStream() != null)
-      {
-         dataProducer.addCamera(CameraType.NETWORK_STREAM, logSettings.getVideoStream(), logSettings.getVideoStream());
-      }
    }
 
    public synchronized void start()
