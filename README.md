@@ -86,6 +86,7 @@ The file is formatted in YAML format. You can easily add more host/port stanzas.
 
 ```
 ---
+disableAutoDiscovery: false
 hosts:
 - hostname: "10.0.0.10"
   port: 8008
@@ -98,7 +99,7 @@ This adds the host 10.0.0.10 without cameras and the host 10.0.0.11 with two cam
 
 Alternatively, you can start `SCSVisualizer` from `ihmc-robot-data-visualizer` and add hosts using the GUI. After you close the visualizer, the hosts you added will be saved  `~/.ihmc/ControllerHosts.yaml`. You can copy that file to the logger if it is on a different computer.
 
- 
+To disable automatic discovery, set "disableAutoDiscovery" to true in ControllerHosts.yaml.
  
 ## Starting the logger
 

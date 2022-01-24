@@ -39,17 +39,26 @@ public class StaticHostListLoader
       }
 
       return Collections.emptyList();
-   }
 
-   public static List<HTTPDataServerDescription> load(String data)
+   }
+   
+   
+   public static StaticHostList loadHostList(String data) throws IOException
    {
       YAMLSerializer<StaticHostList> ser = new YAMLSerializer<>(new StaticHostListPubSubType());
       ser.setAddTypeAsRootNode(false);
 
+      return ser.deserialize(data);
+
+   }
+
+   public static List<HTTPDataServerDescription> load(String data)
+   {
+
       try
       {
          List<HTTPDataServerDescription> list = new ArrayList<>();
-         StaticHostList hostList = ser.deserialize(data);
+         StaticHostList hostList = loadHostList(data);
          for (Host host : hostList.getHosts())
          {
             HTTPDataServerDescription description = new HTTPDataServerDescription(host.getHostnameAsString(), host.getPort(), host.getCameras(), true);
@@ -68,8 +77,6 @@ public class StaticHostListLoader
 
    public static String toString(List<HTTPDataServerDescription> list) throws IOException
    {
-      YAMLSerializer<StaticHostList> ser = new YAMLSerializer<>(new StaticHostListPubSubType());
-      ser.setAddTypeAsRootNode(false);
 
       StaticHostList staticHostList = new StaticHostList();
       for (HTTPDataServerDescription description : list)
@@ -80,6 +87,14 @@ public class StaticHostListLoader
          host.getCameras().addAll(description.getCameraList());
       }
 
+      return toString(staticHostList);
+   }
+
+
+   public static String toString(StaticHostList staticHostList) throws IOException
+   {
+      YAMLSerializer<StaticHostList> ser = new YAMLSerializer<>(new StaticHostListPubSubType());
+      ser.setAddTypeAsRootNode(false);
       return ser.serializeToString(staticHostList);
    }
 

@@ -12,6 +12,7 @@ module robotDataLogger{
 	
 	struct StaticHostList
 	{
+		boolean disableAutoDiscovery;
 		sequence<Host, 128> hosts;
 	};
 

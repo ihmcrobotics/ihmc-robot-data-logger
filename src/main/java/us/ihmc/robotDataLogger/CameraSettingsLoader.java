@@ -4,11 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.util.List;
 
 import us.ihmc.idl.serializers.extra.YAMLSerializer;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 
 public class CameraSettingsLoader
 {
@@ -58,25 +56,14 @@ public class CameraSettingsLoader
 
    }
    
-   public static String toString(List<HTTPDataServerDescription> list) throws IOException
+   public static String toString(CameraSettings settings) throws IOException
    {
-      YAMLSerializer<StaticHostList> ser = new YAMLSerializer<>(new StaticHostListPubSubType());
+      YAMLSerializer<CameraSettings> ser = new YAMLSerializer<>(new CameraSettingsPubSubType());
       ser.setAddTypeAsRootNode(false);
-
-
-      StaticHostList staticHostList = new StaticHostList();
-      for (HTTPDataServerDescription description : list)
-      {
-         Host host = staticHostList.getHosts().add();
-         host.setHostname(description.getHost());
-         host.setPort(description.getPort());
-         host.getCameras().addAll(description.getCameraList());
-      }
-
-      return ser.serializeToString(staticHostList);
+      return ser.serializeToString(settings);
    }
 
-   public static void save(List<HTTPDataServerDescription> list) throws IOException
+   public static void save(CameraSettings settings) throws IOException
    {
       File in = new File(location);
       if (!in.getParentFile().exists())
@@ -84,7 +71,7 @@ public class CameraSettingsLoader
          in.getParentFile().mkdirs();
       }
 
-      Files.write(in.toPath(), toString(list).getBytes());
+      Files.write(in.toPath(), toString(settings).getBytes());
 
    }
 
