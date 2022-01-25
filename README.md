@@ -34,17 +34,15 @@ IHMC Robot Data Logger
 - Reboot the computer
 
 
-## Publishing the logger from source
+## Publishing and configuring the logger
 
-- clone ihmc-open-robotics-software
-- `cd ihmc-open-robotics-software/ihmc-robot-data-logger`
-- `gradle deployLogger -PdeployLoggerHost=[Hostname or IP of logger] -PdeployLoggerUser=[SSH username] -PdeployLoggerPassword=[SSH password]`
+- clone ihmc-robot-data-logger
+- `cd ihmc-robot-data-logger`
+- `gradle deploy`
 
-## Finishing the logger configuration
+This will show a deploy GUI which allows installation and setup of a logger on a remote computer.
 
-Create the directory to log to (either logging locally to the computer or logging to a network volume)
-
-        mkdir ~/robotLogs
+Note: The logger gets unstable after a few days. To avoid issues, there is a hack in the deploy application to restart the logger at midnight. This makes sure there is a working logger every morning.
 
 ### Logging to a Network volume
 
@@ -53,7 +51,14 @@ If you would like to log to a network volume, ~/robotLogs can be a symbolic link
 ### Customizing the logging location
 If you would like to log somewhere other than ~/robotLogs, you can change the directory using the "-d" command line flag when you launch the logger
 
+## Starting the logger
+
+When installed using the `gradle deploy` an systemd script is automatically setup to start the logger on boot. Optionally, a script to restart the logger at midnight is added to cron. 
+
+
 ## Setting up cameras
+
+The easiest way is to use the configuration application from `gradle deploy`. If you want to manually do the setup, follow these steps.
 
 Create a new file ~/.ihmc/CameraSettings.yaml. A basic setup looks like this
 
@@ -98,36 +103,4 @@ hosts:
 This adds the host 10.0.0.10 without cameras and the host 10.0.0.11 with two cameras with camera_id 1 and 2.  
 
 Alternatively, you can start `SCSVisualizer` from `ihmc-robot-data-visualizer` and add hosts using the GUI. After you close the visualizer, the hosts you added will be saved  `~/.ihmc/ControllerHosts.yaml`. You can copy that file to the logger if it is on a different computer.
-
-To disable automatic discovery, set "disableAutoDiscovery" to true in ControllerHosts.yaml.
  
-## Starting the logger
-
-From the logger computer:
-
-    ~/IHMCLogger/bin/IHMCLogger
-
-You can also add the IHMCLogger/bin directory to your PATH. The logger will listen for controller sessions coming online. It will dispatching logging sessions accordingly. There is no need to restart the logger unless it crashes.
-
-If logged in over SSH, it is recommended to use screen to start the logger.
-
-## Set To Run On Boot
-
-Create a new file `/etc/systemd/system/logger.service` with the following contents:
-```
-[Unit]
-Description=IHMC Logger
-After=network.target
-
-[Service]
-User=<user>
-ExecStart=/home/[user]/IHMCLogger/bin/IHMCLogger
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Then reload systemd and enable the logger
-
-- `sudo systemctl daemon-reload`
-- `sudo systemctl enable logger`
