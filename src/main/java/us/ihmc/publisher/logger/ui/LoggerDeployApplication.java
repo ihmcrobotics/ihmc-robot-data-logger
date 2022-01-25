@@ -29,7 +29,7 @@ public class LoggerDeployApplication extends Application
     * @param parameters Parameters from application start
     * @param scene      Parent scene
     */
-   public static void open(Parameters parameters, LoggerDeployScript deployScript, Scene scene)
+   public static void open(String loggerDistribution, LoggerDeployScript deployScript, Scene scene)
    {
       try
       {
@@ -37,7 +37,7 @@ public class LoggerDeployApplication extends Application
          Parent root = loader.load();
          
          LoggerDeployController controller = loader.getController();
-         controller.setParameters(parameters);
+         controller.setLoggerDistribution(loggerDistribution);
          controller.setDeployScript(deployScript);
          
          Stage stage = new Stage();
@@ -65,7 +65,8 @@ public class LoggerDeployApplication extends Application
 
       LoggerDeployController controller = loader.getController();
 
-      controller.setParameters(getParameters());
+      
+      controller.setLoggerDistribution(getParameters().getNamed().get("logger-dist"));
 
       controller.setDeployScript((host, user, pw, sudo_pw, dist, nightly_restart, popup_stage) ->
       {

@@ -374,13 +374,12 @@ public class LoggerDeployController implements Initializable
     * 
     * @param parameters
     */
-   public void setParameters(Parameters parameters)
+   public void setLoggerDistribution(String loggerDistribution)
    {
-      Map<String, String> params = parameters.getNamed();
 
       Platform.runLater(() ->
       {
-         createFileSelection("Logger distribution", params.get("logger-dist"), logger_dist, browse_dist, "*.tar");
+         createFileSelection("Logger distribution", loggerDistribution, logger_dist, browse_dist, "*.tar");
       });
 
    }
