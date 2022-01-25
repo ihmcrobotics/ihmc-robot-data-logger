@@ -18,6 +18,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
@@ -55,6 +56,12 @@ public class LoggerDeployController implements Initializable
        * @param stage
        */
       void deploy(String logger_host, String logger_user, String logger_password, String logger_sudo_password, String logger_dist, boolean nightly_restart, Stage stage);
+      
+      
+      default boolean implementsAutoRestart()
+      {
+         return true;
+      }
    }
    
    private LoggerDeployScript loggerDeployScript;
@@ -109,6 +116,9 @@ public class LoggerDeployController implements Initializable
 
    @FXML
    CheckBox logger_restart_midnight;
+   
+   @FXML 
+   Label restart_label;
 
    @Override
    public void initialize(URL location, ResourceBundle resources)
@@ -173,6 +183,12 @@ public class LoggerDeployController implements Initializable
    public void setDeployScript(LoggerDeployScript loggerDeployScript)
    {  
       this.loggerDeployScript = loggerDeployScript;
+      
+      if(!loggerDeployScript.implementsAutoRestart())
+      {
+         restart_label.setVisible(false);
+         logger_restart_midnight.setVisible(false);
+      }
    }
    
    private byte getNextFreeCameraId()

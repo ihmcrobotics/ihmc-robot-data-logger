@@ -26,7 +26,6 @@
 **/.metadata
 **/.DS_Store
 **/.svn
-**/.metadata
 **/CVS
 **/tmp
 **/.idea_modules
@@ -84,3 +83,4 @@
 **/generatedTestSuites/*TestSuite.java
 
 !gradle/wrapper/gradle-wrapper.jar
+/logger-deploy.log
