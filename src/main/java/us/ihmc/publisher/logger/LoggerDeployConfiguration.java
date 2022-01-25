@@ -74,7 +74,7 @@ public class LoggerDeployConfiguration
       URL crontab = loader.getResource("ihmc-logger-cron");
 
       
-      deploy.addBinaryFile("DIST", dist, "/tmp/logger.tar.gz");
+      deploy.addBinaryFile("DIST", dist, "/tmp/logger.tar");
       deploy.addTextFile("LOGGER_SERVICE", "ihmc-logger.service", loggerService, "/tmp/ihmc-logger.service");
       deploy.addTextFile("CRON_ENTRY", "ihmc-logger-cron", crontab, "/tmp/ihmc-logger-cron");
       
