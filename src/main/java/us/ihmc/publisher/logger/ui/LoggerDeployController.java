@@ -9,16 +9,16 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
 
-import javafx.application.Platform;
 import javafx.application.Application.Parameters;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.SelectionMode;
@@ -45,6 +45,17 @@ public class LoggerDeployController implements Initializable
 {
    public interface LoggerDeployScript
    {
+      /**
+       * Called when clicking "Deploy logger" in the application 
+       * 
+       * @param logger_host
+       * @param logger_user
+       * @param logger_password
+       * @param logger_sudo_password
+       * @param logger_dist
+       * @param nightly_restart
+       * @param stage
+       */
       void deploy(String logger_host, String logger_user, String logger_password, String logger_sudo_password, String logger_dist, boolean nightly_restart, Stage stage);
    }
    
@@ -156,6 +167,11 @@ public class LoggerDeployController implements Initializable
       host_table.setItems(hostList);
    }
 
+   /**
+    * Set the script to deploy the logger. This allows writing custom deploy applications for different environments
+    * 
+    * @param loggerDeployScript
+    */
    public void setDeployScript(LoggerDeployScript loggerDeployScript)
    {  
       this.loggerDeployScript = loggerDeployScript;
@@ -353,6 +369,11 @@ public class LoggerDeployController implements Initializable
 
    }
 
+   /**
+    * Set parameters that were used to start the application
+    * 
+    * @param parameters
+    */
    public void setParameters(Parameters parameters)
    {
       Map<String, String> params = parameters.getNamed();
@@ -363,5 +384,6 @@ public class LoggerDeployController implements Initializable
       });
 
    }
+   
 
 }
