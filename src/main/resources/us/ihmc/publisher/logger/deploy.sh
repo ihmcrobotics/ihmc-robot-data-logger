@@ -34,3 +34,5 @@ rm -f ${CRON_ENTRY}
 @echo ${SUDO_PW} | sudo -S service cron restart && echo "Restarted cron"
 
 
+
+sync
