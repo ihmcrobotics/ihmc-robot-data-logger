@@ -46,6 +46,8 @@ mainDependencies {
    api("us.ihmc:ihmc-commons:0.30.5")
    api("us.ihmc:ihmc-graphics-description:0.19.4")
    api("us.ihmc:mecano:0.8.3")
+   api("com.hierynomus:sshj:0.31.0")
+   
 }
 
 testDependencies {

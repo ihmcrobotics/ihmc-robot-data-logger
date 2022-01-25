@@ -1,0 +1,13 @@
+[Unit]
+Description=IHMC Logger
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/opt/ihmc/logger/bin/IHMCLogger
+User=${USER}
+Group=${USER}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
