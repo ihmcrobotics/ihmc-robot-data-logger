@@ -47,11 +47,12 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox minHeight="600.0" minWidth="1280.0" prefHeight="720.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.publisher.logger.ui.LoggerDeployController">
+
+<VBox xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.publisher.logger.ui.LoggerDeployController">
    <children>
-      <TitledPane animated="false" text="Login">
+      <TitledPane animated="false" text="Login" VBox.vgrow="NEVER">
          <content>
-            <GridPane>
+            <GridPane prefWidth="1278.0">
               <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -75,66 +76,7 @@
             </GridPane>
          </content>
       </TitledPane>
-      <TitledPane prefHeight="437.0" prefWidth="1280.0" text="Configuration">
-         <content>
-            <VBox prefHeight="353.0" prefWidth="1278.0">
-               <children>
-                  <TitledPane prefHeight="200.0" prefWidth="200.0" text="Cameras">
-                     <content>
-                        <VBox prefHeight="200.0" prefWidth="100.0">
-                           <children>
-                              <TableView fx:id="camera_table" prefHeight="200.0" prefWidth="200.0">
-                                <columns>
-                                  <TableColumn fx:id="camera_id_col" prefWidth="244.5" text="ID" />
-                                  <TableColumn fx:id="camera_name_col" prefWidth="318.0" text="Name" />
-                                    <TableColumn fx:id="camera_input_col" prefWidth="193.0" text="Input Number" />
-                                </columns>
-                              </TableView>
-                              <HBox prefHeight="100.0" prefWidth="200.0">
-                                 <children>
-                                    <Button mnemonicParsing="false" onAction="#camera_add" text="Add" />
-                                    <Button mnemonicParsing="false" onAction="#camera_remove" text="Remove" />
-                                 </children>
-                              </HBox>
-                           </children>
-                        </VBox>
-                     </content>
-                  </TitledPane>
-                  <TitledPane animated="false" text="Hosts">
-                     <content>
-                        <VBox prefHeight="200.0" prefWidth="100.0">
-                           <children>
-                              <TableView fx:id="host_table" prefHeight="200.0" prefWidth="200.0">
-                                <columns>
-                                  <TableColumn fx:id="host_col" prefWidth="333.0" text="Host (IP or Hostname)" />
-                                  <TableColumn fx:id="port_col" prefWidth="97.5" text="Port" />
-                                    <TableColumn fx:id="host_cameras_col" prefWidth="355.5" text="Cameras" />
-                                </columns>
-                              </TableView>
-                              <HBox prefHeight="100.0" prefWidth="200.0">
-                                 <children>
-                                    <Button mnemonicParsing="false" onAction="#host_add" text="Add" />
-                                    <Button mnemonicParsing="false" onAction="#host_remove" text="Remove" />
-                                    <Separator orientation="VERTICAL" prefHeight="200.0" />
-                                    <Button mnemonicParsing="false" onAction="#set_cameras" text="Set cameras to selected" />
-                                 </children>
-                              </HBox>
-                           </children>
-                        </VBox>
-                     </content>
-                  </TitledPane>
-                  <Separator prefWidth="200.0" />
-                  <HBox prefHeight="69.0" prefWidth="1257.0">
-                     <children>
-                        <Button mnemonicParsing="false" onAction="#load" text="Load" />
-                        <Button mnemonicParsing="false" onAction="#save" text="Save" />
-                     </children>
-                  </HBox>
-               </children>
-            </VBox>
-         </content>
-      </TitledPane>
-      <TitledPane prefHeight="131.0" prefWidth="1280.0" text="Deployment">
+      <TitledPane text="Deployment" VBox.vgrow="NEVER">
          <content>
             <GridPane>
               <columnConstraints>
@@ -156,6 +98,65 @@
                   <Button mnemonicParsing="false" onAction="#logger_deploy" text="Deploy logger " GridPane.rowIndex="2" />
                </children>
             </GridPane>
+         </content>
+      </TitledPane>
+      <TitledPane prefWidth="1280.0" text="Configuration" VBox.vgrow="ALWAYS">
+         <content>
+            <VBox>
+               <children>
+                  <TitledPane text="Cameras" VBox.vgrow="ALWAYS">
+                     <content>
+                        <VBox prefHeight="200.0" prefWidth="100.0">
+                           <children>
+                              <TableView fx:id="camera_table" prefHeight="480.0" prefWidth="1234.0" VBox.vgrow="ALWAYS">
+                                <columns>
+                                  <TableColumn fx:id="camera_id_col" prefWidth="244.5" text="ID" />
+                                  <TableColumn fx:id="camera_name_col" prefWidth="318.0" text="Name" />
+                                    <TableColumn fx:id="camera_input_col" prefWidth="193.0" text="Input Number" />
+                                </columns>
+                              </TableView>
+                              <HBox prefHeight="100.0" prefWidth="200.0">
+                                 <children>
+                                    <Button mnemonicParsing="false" onAction="#camera_add" text="Add" />
+                                    <Button mnemonicParsing="false" onAction="#camera_remove" text="Remove" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </content>
+                  </TitledPane>
+                  <TitledPane animated="false" text="Hosts" VBox.vgrow="ALWAYS">
+                     <content>
+                        <VBox prefHeight="200.0" prefWidth="100.0">
+                           <children>
+                              <TableView fx:id="host_table" prefHeight="480.0" VBox.vgrow="ALWAYS">
+                                <columns>
+                                  <TableColumn fx:id="host_col" prefWidth="333.0" text="Host (IP or Hostname)" />
+                                  <TableColumn fx:id="port_col" prefWidth="97.5" text="Port" />
+                                    <TableColumn fx:id="host_cameras_col" prefWidth="355.5" text="Cameras" />
+                                </columns>
+                              </TableView>
+                              <HBox prefHeight="100.0" prefWidth="200.0">
+                                 <children>
+                                    <Button mnemonicParsing="false" onAction="#host_add" text="Add" />
+                                    <Button mnemonicParsing="false" onAction="#host_remove" text="Remove" />
+                                    <Separator orientation="VERTICAL" prefHeight="200.0" />
+                                    <Button mnemonicParsing="false" onAction="#set_cameras" text="Set cameras to selected" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </content>
+                  </TitledPane>
+                  <Separator prefWidth="200.0" />
+                  <HBox prefHeight="31.0" prefWidth="1257.0">
+                     <children>
+                        <Button mnemonicParsing="false" onAction="#load" text="Load" />
+                        <Button mnemonicParsing="false" onAction="#save" text="Save" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
          </content>
       </TitledPane>
    </children>
