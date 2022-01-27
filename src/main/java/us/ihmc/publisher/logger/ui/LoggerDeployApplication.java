@@ -71,8 +71,8 @@ public class LoggerDeployApplication extends Application
       controller.setDeployScript((host, user, pw, sudo_pw, dist, nightly_restart, popup_stage) ->
       {
          FXConsole deployConsole = new FXConsole((Stage) popup_stage);
-         SSHRemote remote = new SSHRemote(host, user, pw);
-         LoggerDeployConfiguration.deploy(remote, sudo_pw, dist, nightly_restart, deployConsole);
+         SSHRemote remote = new SSHRemote(host, user, pw, sudo_pw);
+         LoggerDeployConfiguration.deploy(remote, dist, nightly_restart, deployConsole);
 
       });
 

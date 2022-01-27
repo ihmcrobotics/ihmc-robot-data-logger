@@ -26,6 +26,16 @@ import net.schmizz.sshj.xfer.FileSystemFile;
 import net.schmizz.sshj.xfer.InMemoryDestFile;
 import net.schmizz.sshj.xfer.InMemorySourceFile;
 
+/**
+ * Utility class to deploy scripts and files to a remote SSH server
+ * 
+ * Scripts have variable substituation for ${VAR_NAME}. The following variables are pre-defined
+ * 
+ * ${HOME}: Home directory of SSH user
+ * 
+ * @author Jesper Smith
+ *
+ */
 public class SSHDeploy extends Thread
 {
    public static class SSHRemote
@@ -33,20 +43,30 @@ public class SSHDeploy extends Thread
       public final String host;
       public final String user;
       public final String password;
+      public final String sudoPassword;
+      
+      public boolean allowRootLogin = false;
 
-      public SSHRemote(String host, String user, String password)
+      public SSHRemote(String host, String user, String password, String sudoPassword)
       {
          this.host = host;
          this.user = user;
          this.password = password;
+         this.sudoPassword = sudoPassword;
       }
 
+      public void setAllowRootLogin(boolean allowRootLogin)
+      {
+         this.allowRootLogin = allowRootLogin;
+      }
    }
 
    private final SSHRemote remote;
 
    private final DeployConsoleInterface console;
 
+   private final String homeDirectory;
+   
    private URL deployScript;
 
    private final List<DeployFile> files = new ArrayList<>();
@@ -55,25 +75,59 @@ public class SSHDeploy extends Thread
    private final ArrayList<ImmutablePair<String, String>> variables = new ArrayList<ImmutablePair<String, String>>();
 
    private String customErrorMessage = null;
+   
+   private boolean isRebooted = false;
 
    public SSHDeploy(SSHRemote remote, DeployConsoleInterface console)
    {
       this.remote = remote;
       this.console = console;
+      
+      if(remote.user.equals("root"))
+      {
+         homeDirectory = "/root";
+      }
+      else
+      {
+         homeDirectory = "/home/" + remote.user;
+      }
 
+      addVariable("HOME", homeDirectory);
+      addVariable("USER", remote.user);
+   }
+   
+   /**
+    * Expand destination folder with the home directory
+    * 
+    * @param dest
+    * @return home directory
+    */
+   private String expandFilename(String dest)
+   {
+      dest = dest.trim();
+      if(dest.startsWith("~/"))
+      {
+         return homeDirectory + "/" + dest.substring(2);
+      }
+      else
+      {
+         return dest;
+      }
    }
 
    /**
     * Add a file to upload The following variables will be available in the scripts ${[key]} Full path
     * to the file on the target ${[key]_NAME} Name of the file, without extension
+    *
+    * If the dest start with ~/ it gets replaced with the home directory of the SSH server
     * 
     * @param key
     * @param source
     * @param dest
     */
-   public void addBinaryFile(String key, String source, String dest)
+   public void addBinaryFile(String key, String source, String dest, boolean needRootPermissions)
    {
-      DeployFile deployFile = new DeployFile(new File(source), dest);
+      DeployFile deployFile = new DeployFile(new File(source), expandFilename(dest), needRootPermissions);
       files.add(deployFile);
 
       variables.add(new ImmutablePair<>(key, deployFile.dest));
@@ -85,23 +139,37 @@ public class SSHDeploy extends Thread
     * values The following variables will be available in the scripts ${[key]} Full path to the file on
     * the target ${[key]_NAME} name
     * 
+    * If the dest start with ~/ it gets replaced with the home directory of the SSH server
+    * 
     * @param key
     * @param name
     * @param content
     * @param dest
     */
-   public void addTextFile(String key, String name, URL content, String dest)
+   public void addTextFile(String key, String name, URL content, String dest, boolean needRootPermissions)
    {
-      DeployScript script = new URLDeployScript(name, content, dest);
+      DeployScript script = new URLDeployScript(name, content, expandFilename(dest), needRootPermissions);
       scripts.add(script);
 
       variables.add(new ImmutablePair<>(key, script.dest));
       variables.add(new ImmutablePair<>(key + "_NAME", script.name));
    }
 
-   public void addTextFile(String key, String name, String content, String dest)
+   /**
+    * Add a text file to upload Before upload, the variables in this text file are replaced by their
+    * values The following variables will be available in the scripts ${[key]} Full path to the file on
+    * the target ${[key]_NAME} name
+    * 
+    * If the dest start with ~/ it gets replaced with the home directory of the SSH server
+    * 
+    * @param key
+    * @param name
+    * @param content
+    * @param dest
+    */
+   public void addTextFile(String key, String name, String content, String dest, boolean needRootPermissions)
    {
-      DeployScript script = new StringDeployScript(name, dest, content);
+      DeployScript script = new StringDeployScript(name, expandFilename(dest), content, needRootPermissions);
       scripts.add(script);
 
       variables.add(new ImmutablePair<>(key, script.dest));
@@ -158,7 +226,7 @@ public class SSHDeploy extends Thread
          {
 
             DownloadFile out = new DownloadFile();
-            sftp.get(file, out);
+            sftp.get(expandFilename(file), out);
 
             return out.toString();
 
@@ -185,7 +253,7 @@ public class SSHDeploy extends Thread
       return modified;
    }
 
-   private void runCommand(SSHClient ssh, String commandLine) throws IOException
+   private void runCommand(SSHClient ssh, String commandLine, boolean runAsRoot) throws IOException
    {
       String trimCommand = commandLine.trim();
 
@@ -214,15 +282,41 @@ public class SSHDeploy extends Thread
       }
 
       Session session = ssh.startSession();
-      if (trimCommand.equals("reboot"))
+      if (trimCommand.equals("reboot") || trimCommand.equals("sudo reboot"))
       {
          println("Rebooting target");
-         session.exec(trimCommand);
+         isRebooted = true;
+         
+         if("root".equals(remote.user))
+         {
+            session.exec("reboot");
+         }
+         else
+         {
+            session.exec("echo " + remote.sudoPassword + " | sudo -S reboot");            
+         }
       }
       else
       {
          try
          {
+            String echoCommand = trimCommand;
+            
+            if(runAsRoot)
+            {
+               if(!trimCommand.startsWith("sudo"))
+               {
+                  trimCommand = "sudo " + trimCommand;
+               }
+            }
+            
+            
+            if(trimCommand.contains("sudo "))
+            { 
+               trimCommand = trimCommand.replaceAll("sudo ", "echo " + remote.sudoPassword + " | sudo -S ");
+            }
+            
+            
             trimCommand = trimCommand + " 2>&1";
 
             Command command = session.exec(trimCommand);
@@ -256,7 +350,7 @@ public class SSHDeploy extends Thread
                }
                else
                {
-                  throw new IOException(trimCommand + " returned " + command.getExitStatus());
+                  throw new IOException(echoCommand + " returned " + command.getExitStatus());
 
                }
             }
@@ -267,6 +361,11 @@ public class SSHDeploy extends Thread
          }
       }
    }
+   
+   private String createTempPath() 
+   {
+      return "/tmp/" + java.util.UUID.randomUUID().toString() + ".tmp"; 
+   }
 
    public void run()
    {
@@ -275,6 +374,8 @@ public class SSHDeploy extends Thread
       ssh.setConnectTimeout(1000);
 
 
+      isRebooted = false;
+      
       console.open();
 
       try
@@ -288,7 +389,11 @@ public class SSHDeploy extends Thread
                {
                   throw new IOException("Cannot find " + file.source.getAbsolutePath());
                }
-
+            }
+            
+            if("root".equals(remote.user) && !remote.allowRootLogin)
+            {
+               throw new IOException("Cannot login as root. Use normal user account instead");
             }
 
             println("Connecting as " + remote.user);
@@ -301,19 +406,30 @@ public class SSHDeploy extends Thread
             {
                for (DeployFile file : files)
                {
-                  runCommand(ssh, "mkdir -p " + FilenameUtils.getFullPathNoEndSeparator(file.dest));
+                  
+                  String tempPath = createTempPath();
+                  
                   println("Copying " + file.source.getAbsolutePath() + " to " + file.dest);
-                  sftp.put(new FileSystemFile(file.source), file.dest);
+                  sftp.put(new FileSystemFile(file.source), tempPath);
+                  
+                  runCommand(ssh, "mkdir -p " + FilenameUtils.getFullPathNoEndSeparator(file.dest), file.needRootPermissions);
+                  runCommand(ssh, "mv " + tempPath  + " " + file.dest, file.needRootPermissions);
                }
 
                for (DeployScript script : scripts)
                {
-                  runCommand(ssh, "mkdir -p " + FilenameUtils.getFullPathNoEndSeparator(script.dest));
+                  runCommand(ssh, "mkdir -p " + FilenameUtils.getFullPathNoEndSeparator(script.dest), script.needsRootPermission);
                   println("Copying " + script.name + " to " + script.dest);
+                  
+                  
                   script.createInputStream();
-                  sftp.put(script, script.dest);
+                  
+                  String tempPath = createTempPath();
+                  sftp.put(script, tempPath);
+                  runCommand(ssh, "mv " + tempPath + " " + script.dest, script.needsRootPermission);
 
                }
+               
             }
             finally
             {
@@ -329,7 +445,7 @@ public class SSHDeploy extends Thread
 
                   for (String line : lines)
                   {
-                     runCommand(ssh, line);
+                     runCommand(ssh, line, false);
                   }
                }
                finally
@@ -340,6 +456,12 @@ public class SSHDeploy extends Thread
             else
             {
                println("No deploy script provided");
+            }
+            
+
+            if(!isRebooted)
+            {
+               runCommand(ssh, "sync", false);
             }
          }
          finally
@@ -362,11 +484,13 @@ public class SSHDeploy extends Thread
    {
       private final File source;
       private final String dest;
+      private final boolean needRootPermissions;
 
-      public DeployFile(File path, String dest)
+      public DeployFile(File path, String dest, boolean needRootPermissions)
       {
          this.source = path;
          this.dest = dest;
+         this.needRootPermissions = needRootPermissions;
       }
 
       public boolean valid()
@@ -376,7 +500,14 @@ public class SSHDeploy extends Thread
 
       public String getName()
       {
-         return source.getName().substring(0, source.getName().lastIndexOf('.'));
+         if(valid())
+         {
+            return source.getName().substring(0, source.getName().lastIndexOf('.'));
+         }
+         else
+         {
+            return source.getName();
+         }
       }
 
    }
@@ -385,11 +516,13 @@ public class SSHDeploy extends Thread
    {
       private final String name;
       private final String dest;
+      private final boolean needsRootPermission;
 
-      public DeployScript(String name, String dest)
+      public DeployScript(String name, String dest, boolean needsRootPermission)
       {
          this.name = name;
          this.dest = dest;
+         this.needsRootPermission = needsRootPermission;
       }
 
       @Override
@@ -408,9 +541,9 @@ public class SSHDeploy extends Thread
       private final String content;
       private InputStream inputStream;
 
-      public StringDeployScript(String name, String dest, String content)
+      public StringDeployScript(String name, String dest, String content, boolean needRootPermission)
       {
-         super(name, dest);
+         super(name, dest, needRootPermission);
          this.content = content;
       }
 
@@ -442,10 +575,11 @@ public class SSHDeploy extends Thread
 
       private int size;
       private InputStream outputStream;
+      
 
-      public URLDeployScript(String name, URL source, String dest)
+      public URLDeployScript(String name, URL source, String dest, boolean needRootPermissions)
       {
-         super(name, dest);
+         super(name, dest, needRootPermissions);
          this.source = source;
       }
 

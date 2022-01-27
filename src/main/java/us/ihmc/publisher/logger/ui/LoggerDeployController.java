@@ -269,7 +269,7 @@ public class LoggerDeployController implements Initializable
    @FXML
    void load(ActionEvent e)
    {
-      SSHRemote remote = new SSHRemote(logger_host.getText(), logger_user.getText(), logger_pasword.getText());
+      SSHRemote remote = new SSHRemote(logger_host.getText(), logger_user.getText(), logger_pasword.getText(), logger_sudo_password.getText());
       try
       {
          CameraSettings settings = LoggerDeployConfiguration.loadCameraConfiguration(remote);
@@ -311,7 +311,7 @@ public class LoggerDeployController implements Initializable
    {
       FXConsole deployConsole = new FXConsole((Stage) logger_host.getScene().getWindow());
 
-      SSHRemote remote = new SSHRemote(logger_host.getText(), logger_user.getText(), logger_pasword.getText());
+      SSHRemote remote = new SSHRemote(logger_host.getText(), logger_user.getText(), logger_pasword.getText(), logger_sudo_password.getText());
 
       CameraSettings settings = new CameraSettings();
 

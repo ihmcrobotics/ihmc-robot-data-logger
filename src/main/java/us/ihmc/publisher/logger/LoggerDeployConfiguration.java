@@ -22,8 +22,8 @@ public class LoggerDeployConfiguration
       try
       {
          SSHDeploy deploy = new SSHDeploy(remote, console);
-         deploy.addTextFile("CAMERA_SETTINGS", "CameraSettings.yaml", CameraSettingsLoader.toString(settings), getCameraSettingsFile(remote));
-         deploy.addTextFile("STATIC_HOST_LIST", "ControllerHosts.yaml", StaticHostListLoader.toString(staticHostList), getHostsFile(remote));
+         deploy.addTextFile("CAMERA_SETTINGS", "CameraSettings.yaml", CameraSettingsLoader.toString(settings), getCameraSettingsFile(remote), false);
+         deploy.addTextFile("STATIC_HOST_LIST", "ControllerHosts.yaml", StaticHostListLoader.toString(staticHostList), getHostsFile(remote), false);
          deploy.deploy(null);
       }
       catch (IOException e)
@@ -66,7 +66,7 @@ public class LoggerDeployConfiguration
 
 
 
-   public static void deploy(SSHRemote remote, String sudo_pw, String dist, boolean restartNightly, FXConsole deployConsole)
+   public static void deploy(SSHRemote remote, String dist, boolean restartNightly, FXConsole deployConsole)
    {
       SSHDeploy deploy = new SSHDeploy(remote, deployConsole);
       URL deployScript = loader.getResource("deploy.sh");
@@ -74,12 +74,11 @@ public class LoggerDeployConfiguration
       URL crontab = loader.getResource("ihmc-logger-cron");
 
       
-      deploy.addBinaryFile("DIST", dist, "/tmp/logger.tar");
-      deploy.addTextFile("LOGGER_SERVICE", "ihmc-logger.service", loggerService, "/tmp/ihmc-logger.service");
-      deploy.addTextFile("CRON_ENTRY", "ihmc-logger-cron", crontab, "/tmp/ihmc-logger-cron");
+      deploy.addBinaryFile("DIST", dist, "/tmp/logger.tar", false);
+      deploy.addTextFile("LOGGER_SERVICE", "ihmc-logger.service", loggerService, "/etc/systemd/system/ihmc-logger.service", true);
+      deploy.addTextFile("CRON_ENTRY", "ihmc-logger-cron", crontab, "/tmp/ihmc-logger-cron", true);
       
       deploy.addVariable("NIGHTLY_RESTART", restartNightly ? "true" : "false");
-      deploy.addVariable("SUDO_PW", sudo_pw);
 
 
       
