@@ -55,15 +55,20 @@ public class LoggerDeployController implements Initializable
        * @param nightly_restart
        * @param stage
        */
-      void deploy(String logger_host, String logger_user, String logger_password, String logger_sudo_password, String logger_dist, boolean nightly_restart, Stage stage);
-      
-      
+      void deploy(String logger_host,
+                  String logger_user,
+                  String logger_password,
+                  String logger_sudo_password,
+                  String logger_dist,
+                  boolean nightly_restart,
+                  Stage stage);
+
       default boolean implementsAutoRestart()
       {
          return true;
       }
    }
-   
+
    private LoggerDeployScript loggerDeployScript;
 
    PreferencesHolder prefs;
@@ -116,8 +121,8 @@ public class LoggerDeployController implements Initializable
 
    @FXML
    CheckBox logger_restart_midnight;
-   
-   @FXML 
+
+   @FXML
    Label restart_label;
 
    @Override
@@ -181,16 +186,16 @@ public class LoggerDeployController implements Initializable
     * @param loggerDeployScript
     */
    public void setDeployScript(LoggerDeployScript loggerDeployScript)
-   {  
+   {
       this.loggerDeployScript = loggerDeployScript;
-      
-      if(!loggerDeployScript.implementsAutoRestart())
+
+      if (!loggerDeployScript.implementsAutoRestart())
       {
          restart_label.setVisible(false);
          logger_restart_midnight.setVisible(false);
       }
    }
-   
+
    private byte getNextFreeCameraId()
    {
       for (byte i = 0; i < 128; i++)
@@ -270,36 +275,72 @@ public class LoggerDeployController implements Initializable
    void load(ActionEvent e)
    {
       SSHRemote remote = new SSHRemote(logger_host.getText(), logger_user.getText(), logger_pasword.getText(), logger_sudo_password.getText());
+      CameraSettings settings;
+
       try
       {
-         CameraSettings settings = LoggerDeployConfiguration.loadCameraConfiguration(remote);
-         StaticHostList hosts = LoggerDeployConfiguration.loadStaticHostList(remote);
+         settings = LoggerDeployConfiguration.loadCameraConfiguration(remote);
+      }
+      catch (IOException ex)
+      {
+         Alert alert = new Alert(AlertType.ERROR);
+         alert.setTitle("Cannot load camera configuration.");
+         alert.setHeaderText("Cannot load camera configuration from host. Initializing to empty configuration");
+         alert.setContentText(ex.getMessage());
+         alert.showAndWait();
+         settings = new CameraSettings();
+      }
 
+      StaticHostList hosts;
+      try
+      {
+         hosts = LoggerDeployConfiguration.loadStaticHostList(remote);
+      }
+      catch (IOException ex)
+      {
+         Alert alert = new Alert(AlertType.ERROR);
+         alert.setTitle("Cannot load host configuration.");
+         alert.setHeaderText("Cannot load host configuration from host. Initializing to empty host list");
+         alert.setContentText(ex.getMessage());
+         alert.showAndWait();
+         hosts = new StaticHostList();
+      }
+
+      try
+      {
          cameraList.clear();
          hostList.clear();
 
-         for (CameraConfiguration config : settings.getCameras())
+         if (settings != null && settings.getCameras() != null)
          {
-            if (config.getType() == CameraType.CAPTURE_CARD)
+
+            for (CameraConfiguration config : settings.getCameras())
             {
-               CameraBean bean = new CameraBean(config);
-               cameraList.add(bean);
+               if (config.getType() == CameraType.CAPTURE_CARD)
+               {
+                  CameraBean bean = new CameraBean(config);
+                  cameraList.add(bean);
+               }
             }
          }
 
-         for (Host host : hosts.getHosts())
+         if (hosts != null && hosts.getHosts() != null)
          {
-            HostBean bean = new HostBean(host);
-            hostList.add(bean);
+
+            for (Host host : hosts.getHosts())
+            {
+               HostBean bean = new HostBean(host);
+               hostList.add(bean);
+            }
          }
 
          camera_table.refresh();
          host_table.refresh();
       }
-      catch (IOException | NumberFormatException ex)
+      catch (NumberFormatException ex)
       {
          Alert alert = new Alert(AlertType.ERROR);
-         alert.setTitle("Cannot load configuration");
+         alert.setTitle("Configuration is corrupted.");
          alert.setHeaderText(ex.getMessage());
          alert.showAndWait();
       }
@@ -335,7 +376,7 @@ public class LoggerDeployController implements Initializable
    void logger_deploy(ActionEvent e)
    {
 
-      if(loggerDeployScript == null)
+      if (loggerDeployScript == null)
       {
          Alert alert = new Alert(AlertType.ERROR);
          alert.setTitle("No deployment script set for the logger");
@@ -344,7 +385,13 @@ public class LoggerDeployController implements Initializable
       }
       else
       {
-         loggerDeployScript.deploy(logger_host.getText(), logger_user.getText(), logger_pasword.getText(), logger_sudo_password.getText(), logger_dist.getText(), logger_restart_midnight.isSelected(), (Stage) logger_host.getScene().getWindow());
+         loggerDeployScript.deploy(logger_host.getText(),
+                                   logger_user.getText(),
+                                   logger_pasword.getText(),
+                                   logger_sudo_password.getText(),
+                                   logger_dist.getText(),
+                                   logger_restart_midnight.isSelected(),
+                                   (Stage) logger_host.getScene().getWindow());
       }
    }
 
@@ -397,6 +444,5 @@ public class LoggerDeployController implements Initializable
       });
 
    }
-   
 
 }
