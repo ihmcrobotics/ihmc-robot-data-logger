@@ -11,5 +11,8 @@ public interface DeployConsoleInterface
    void close();
 
    void println(String line);
+   
+   
+   void replaceln(String line);
 
 }

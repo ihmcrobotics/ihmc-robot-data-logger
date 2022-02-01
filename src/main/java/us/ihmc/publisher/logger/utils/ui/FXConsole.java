@@ -105,6 +105,15 @@ public class FXConsole implements DeployConsoleInterface
       
       
    }
+   
+   @Override
+   public void replaceln(String line)
+   {
+      Platform.runLater(() ->
+      {
+         outputValues.set(outputValues.size() - 1,line);
+      });
+   }
 
    @Override
    public void println(String line)
