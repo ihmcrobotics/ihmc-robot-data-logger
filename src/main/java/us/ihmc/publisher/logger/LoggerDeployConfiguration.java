@@ -17,14 +17,15 @@ public class LoggerDeployConfiguration
    private final static Class<?> loader = LoggerDeployConfiguration.class;
 
    
-   public static void saveConfiguration(SSHRemote remote, CameraSettings settings, StaticHostList staticHostList, FXConsole console)
+   public static void saveConfiguration(SSHRemote remote, CameraSettings settings, StaticHostList staticHostList, boolean restartonSave, FXConsole console)
    {
       try
       {
          SSHDeploy deploy = new SSHDeploy(remote, console);
+         deploy.addVariable("RESTART_LOGGER", restartonSave ? "true" : "false");
          deploy.addTextFile("CAMERA_SETTINGS", "CameraSettings.yaml", CameraSettingsLoader.toString(settings), getCameraSettingsFile(remote), false);
          deploy.addTextFile("STATIC_HOST_LIST", "ControllerHosts.yaml", StaticHostListLoader.toString(staticHostList), getHostsFile(remote), false);
-         deploy.deploy(null);
+         deploy.deploy("if ${RESTART_LOGGER}; then sudo /bin/systemctl restart ihmc-logger.service; echo \"***\"; echo \"Restarted logger\"; else echo \"Skipped logger restart\"; fi");
       }
       catch (IOException e)
       {

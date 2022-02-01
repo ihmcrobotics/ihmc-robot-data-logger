@@ -124,6 +124,10 @@ public class LoggerDeployController implements Initializable
 
    @FXML
    Label restart_label;
+   
+   @FXML
+   CheckBox restart_on_save;
+   
 
    @Override
    public void initialize(URL location, ResourceBundle resources)
@@ -138,6 +142,8 @@ public class LoggerDeployController implements Initializable
       prefs.linkToPrefs(logger_dist, "");
 
       prefs.linkToPrefs(logger_restart_midnight, false);
+      
+      prefs.linkToPrefs(restart_on_save, true);
 
       camera_table.setEditable(true);
 
@@ -369,7 +375,7 @@ public class LoggerDeployController implements Initializable
          hostBean.pack(host);
 
       }
-      LoggerDeployConfiguration.saveConfiguration(remote, settings, staticHosts, deployConsole);
+      LoggerDeployConfiguration.saveConfiguration(remote, settings, staticHosts, restart_on_save.isSelected(), deployConsole);
    }
 
    @FXML

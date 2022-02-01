@@ -114,7 +114,7 @@
                                     <TableColumn fx:id="camera_input_col" prefWidth="193.0" text="Input Number" />
                                 </columns>
                               </TableView>
-                              <HBox prefHeight="100.0" prefWidth="200.0">
+                              <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0">
                                  <children>
                                     <Button mnemonicParsing="false" onAction="#camera_add" text="Add" />
                                     <Button mnemonicParsing="false" onAction="#camera_remove" text="Remove" />
@@ -135,7 +135,7 @@
                                     <TableColumn fx:id="host_cameras_col" prefWidth="355.5" text="Cameras" />
                                 </columns>
                               </TableView>
-                              <HBox prefHeight="100.0" prefWidth="200.0">
+                              <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0">
                                  <children>
                                     <Button mnemonicParsing="false" onAction="#host_add" text="Add" />
                                     <Button mnemonicParsing="false" onAction="#host_remove" text="Remove" />
@@ -148,10 +148,11 @@
                      </content>
                   </TitledPane>
                   <Separator prefWidth="200.0" />
-                  <HBox prefHeight="31.0" prefWidth="1257.0">
+                  <HBox alignment="CENTER_LEFT" prefHeight="31.0" prefWidth="1257.0" spacing="5.0">
                      <children>
                         <Button mnemonicParsing="false" onAction="#load" text="Load" />
                         <Button mnemonicParsing="false" onAction="#save" text="Save" />
+                        <CheckBox fx:id="restart_on_save" mnemonicParsing="false" text="Restart Logger On Save" />
                      </children>
                   </HBox>
                </children>
