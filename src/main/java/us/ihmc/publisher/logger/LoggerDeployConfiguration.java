@@ -25,7 +25,7 @@ public class LoggerDeployConfiguration
          deploy.addVariable("RESTART_LOGGER", restartonSave ? "true" : "false");
          deploy.addTextFile("CAMERA_SETTINGS", "CameraSettings.yaml", CameraSettingsLoader.toString(settings), getCameraSettingsFile(remote), false);
          deploy.addTextFile("STATIC_HOST_LIST", "ControllerHosts.yaml", StaticHostListLoader.toString(staticHostList), getHostsFile(remote), false);
-         deploy.deploy("if ${RESTART_LOGGER}; then sudo /bin/systemctl restart ihmc-logger.service; echo \"***\"; echo \"Restarted logger\"; else echo \"Skipped logger restart\"; fi");
+         deploy.deploy("if ${RESTART_LOGGER}; then sudo /bin/systemctl restart ihmc-logger.service; echo \"Restarted logger\"; else echo \"Skipped logger restart\"; fi");
       }
       catch (IOException e)
       {
