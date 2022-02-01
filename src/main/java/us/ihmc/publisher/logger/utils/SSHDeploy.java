@@ -16,6 +16,7 @@ import java.util.regex.Matcher;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.text.StringEscapeUtils;
 
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.channel.direct.Session;
@@ -291,6 +292,7 @@ public class SSHDeploy extends Thread
    private void runCommand(SSHClient ssh, String commandLine, boolean runAsRoot) throws IOException
    {
       String trimCommand = commandLine.trim();
+      String escapedSudoPassword = StringEscapeUtils.escapeXSI(remote.sudoPassword);
 
       if (trimCommand.isEmpty())
       {
@@ -328,7 +330,7 @@ public class SSHDeploy extends Thread
          }
          else
          {
-            session.exec("echo " + remote.sudoPassword + " | sudo -S reboot");
+            session.exec("echo " + escapedSudoPassword + " | sudo -S -p \"\" reboot");
          }
       }
       else
@@ -337,17 +339,18 @@ public class SSHDeploy extends Thread
          {
             String echoCommand = trimCommand;
 
+            
             if (runAsRoot)
             {
                if (!trimCommand.startsWith("sudo"))
                {
                   trimCommand = "sudo " + trimCommand;
-               }
+              }
             }
 
             if (trimCommand.contains("sudo "))
             {
-               trimCommand = trimCommand.replaceAll("sudo ", "echo " + remote.sudoPassword + " | sudo -S ");
+               trimCommand = trimCommand.replaceAll("sudo ", "echo " + escapedSudoPassword + " | sudo -p \"\" -S ");
             }
 
             trimCommand = trimCommand + " 2>&1";
@@ -374,7 +377,6 @@ public class SSHDeploy extends Thread
                {
                   str.append((char) c);
                }
-               System.out.print(ch);
             }
 
             command.join(5, TimeUnit.SECONDS);

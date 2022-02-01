@@ -35,6 +35,7 @@ mainDependencies {
    api("net.jpountz.lz4:lz4:1.3.0")
    api("io.netty:netty-all:4.1.32.Final")
    api("org.openjdk.jol:jol-core:0.9")
+   api("org.apache.commons:commons-text:1.9")
 
    api("us.ihmc:euclid:0.17.0")
    api("us.ihmc:ihmc-yovariables:0.9.11")
