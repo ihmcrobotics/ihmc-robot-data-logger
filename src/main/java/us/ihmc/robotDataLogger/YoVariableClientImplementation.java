@@ -9,6 +9,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.interfaces.VariableChangedProducer;
+import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
 import us.ihmc.robotDataLogger.util.DaemonThreadFactory;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.client.WebsocketDataConsumer;
@@ -202,6 +203,11 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
    public void receivedCommand(DataServerCommand command, int argument)
    {
       commandExecutor.execute(() -> yoVariablesUpdatedListener.receivedCommand(command, argument));
+      
+      if (command == DataServerCommand.RESTAT_LOG && yoVariablesUpdatedListener instanceof YoVariableLoggerListener)
+      {
+         disconnect();
+      }
    }
 
    public void connected()

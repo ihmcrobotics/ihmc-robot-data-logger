@@ -213,7 +213,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       synchronized (synchronizer)
       {
-         if (!clearingLog && dataChannel != null)
+         if (!clearingLog && dataChannel != null && dataChannel.isOpen())
          {
             try
             {
@@ -579,6 +579,11 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       {
          clearLog();
       }
+      
+//      if (command == DataServerCommand.STOP_LOG)
+//      {
+//         disconnected();
+//      }
    }
 
    private static String toString(Announcement announcement)

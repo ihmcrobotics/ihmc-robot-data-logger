@@ -41,7 +41,12 @@ public enum DataServerCommand
    /**
     * Broadcast a stop log message Not implemented
     */
-   STOP_LOG(true);
+   STOP_LOG(true),
+   /**
+    * Stops and closes a currently running session, The logger will see the server after it
+    * disconnects and starts a new log, like splitting the log
+    */
+   RESTAT_LOG(true);
 
    private static final int MAX_ARGUMENT_SIZE = 5;
 
