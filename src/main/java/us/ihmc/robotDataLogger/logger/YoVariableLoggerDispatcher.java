@@ -5,6 +5,7 @@ import java.util.HashSet;
 
 import com.martiansoftware.jsap.JSAPException;
 
+import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.StaticHostListLoader;
@@ -43,6 +44,8 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       discoveryClient.addHosts(StaticHostListLoader.load());
 
       LogTools.info("Client started, waiting for data server sessions");
+      
+      ThreadTools.sleepForever();
    }
 
    public static void main(String[] args) throws JSAPException, IOException

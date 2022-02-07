@@ -1,0 +1,25 @@
+module us{
+	module ihmc{
+		module robotDataLogger{
+		
+			enum CameraType
+			{
+				CAPTURE_CARD,
+				NETWORK_STREAM
+			};
+			
+			struct CameraConfiguration
+			{	
+				CameraType type;
+				octet camera_id;
+				string name;
+				string identifier;
+			};
+			
+			struct CameraSettings
+			{
+				sequence<CameraConfiguration, 128> cameras;
+			};
+		};
+	};
+};

@@ -15,7 +15,7 @@ plugins {
 
 ihmc {
    group = "us.ihmc"
-   version = "0.21.0"
+   version = "0.22.0-halodi2"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
@@ -35,6 +35,7 @@ mainDependencies {
    api("net.jpountz.lz4:lz4:1.3.0")
    api("io.netty:netty-all:4.1.32.Final")
    api("org.openjdk.jol:jol-core:0.9")
+   api("org.apache.commons:commons-text:1.9")
 
    api("us.ihmc:euclid:0.17.0")
    api("us.ihmc:ihmc-yovariables:0.9.11")
@@ -46,6 +47,8 @@ mainDependencies {
    api("us.ihmc:ihmc-commons:0.30.5")
    api("us.ihmc:ihmc-graphics-description:0.19.4")
    api("us.ihmc:mecano:0.8.3")
+   api("com.hierynomus:sshj:0.31.0")
+   
 }
 
 testDependencies {
@@ -55,14 +58,19 @@ testDependencies {
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")
 app.entrypoint("TestCapture", "us.ihmc.javadecklink.Capture")
 
-tasks.create("deploy") {
-   dependsOn("installDist")
 
-   doLast {
-      generateMessages()
-      deployLogger()
-   }
-}
+tasks.register<JavaExec>("deploy") {
+		dependsOn("generateMessages")
+		dependsOn("distTar")
+		group = "Deploy"
+		description = "Deploy logger"
+		classpath = sourceSets.main.get().runtimeClasspath
+		main = "us.ihmc.publisher.logger.ui.LoggerDeployApplication"
+		
+		var p =   projectDir.toPath().resolve("build/distributions/" + project.name + "-" + project.version + ".tar").normalize()
+		
+		args("--logger-dist=" + p)
+}	
 
 tasks.create("generateMessages") {
    doLast {
@@ -82,40 +90,3 @@ fun generateMessages()
    }
 }
 
-val loggerDirectory = "IHMCLogger"
-val loggerHostname: String by project
-val loggerUsername: String by project
-val loggerPassword: String by project
-val distFolder by lazy { tasks.named<Sync>("installDist").get().destinationDir.toString() }
-
-fun deployLogger()
-{
-   if (project.hasProperty("loggerPassword"))
-   {
-      remote.session(loggerHostname, loggerUsername, loggerPassword)
-      {
-         deployFunction()
-      }
-   }
-   else
-   {
-      remote.session(loggerHostname, loggerUsername)
-      {
-         deployFunction()
-      }
-   }
-}
-
-fun us.ihmc.cd.RemoteExtension.RemoteConnection.deployFunction()
-{
-   exec("mkdir -p ~/$loggerDirectory")
-
-   exec("rm -rf ~/$loggerDirectory/bin")
-   exec("rm -rf ~/$loggerDirectory/lib")
-
-   put(file("$distFolder/bin").toString(), "$loggerDirectory/bin")
-   put(file("$distFolder/lib").toString(), "$loggerDirectory/lib")
-
-   exec("chmod +x ~/$loggerDirectory/bin/IHMCLogger")
-   exec("chmod +x ~/$loggerDirectory/bin/TestCapture")
-}

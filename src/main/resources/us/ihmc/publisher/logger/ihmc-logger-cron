@@ -1,0 +1,3 @@
+# /etc/cron.d/ihmc-logger-cron Restarts the ihmc-logger service nightly
+
+0 0 * * *	root	/bin/systemctl restart ihmc-logger

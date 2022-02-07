@@ -2,6 +2,8 @@ package us.ihmc.robotDataLogger;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,28 +18,54 @@ public class StaticHostListLoader
 
    public static List<HTTPDataServerDescription> load()
    {
+      File in = new File(location);
+
+      if (in.exists())
+      {
+         try
+         {
+            String data = new String(Files.readAllBytes(in.toPath()), Charset.defaultCharset());
+            return load(data);
+         }
+         catch (IOException e)
+         {
+            LogTools.warn("Cannot load hosts list: " + e.getMessage());
+         }
+      }
+      else
+      {
+         LogTools.warn("Cannot find " + location + ". Starting with empty list of hosts.");
+
+      }
+
+      return Collections.emptyList();
+
+   }
+   
+   
+   public static StaticHostList loadHostList(String data) throws IOException
+   {
       YAMLSerializer<StaticHostList> ser = new YAMLSerializer<>(new StaticHostListPubSubType());
       ser.setAddTypeAsRootNode(false);
 
-      File in = new File(location);
+      return ser.deserialize(data);
+
+   }
+
+   public static List<HTTPDataServerDescription> load(String data)
+   {
+
       try
       {
-         if (in.exists())
+         List<HTTPDataServerDescription> list = new ArrayList<>();
+         StaticHostList hostList = loadHostList(data);
+         for (Host host : hostList.getHosts())
          {
-            List<HTTPDataServerDescription> list = new ArrayList<>();
-            StaticHostList hostList = ser.deserialize(in);
-            for (Host host : hostList.getHosts())
-            {
-               HTTPDataServerDescription description = new HTTPDataServerDescription(host.getHostnameAsString(), host.getPort(), true);
-               list.add(description);
-            }
+            HTTPDataServerDescription description = new HTTPDataServerDescription(host.getHostnameAsString(), host.getPort(), host.getCameras(), true);
+            list.add(description);
+         }
 
-            return list;
-         }
-         else
-         {
-            LogTools.warn("Cannot find " + location + ". Starting with empty list of hosts.");
-         }
+         return list;
       }
       catch (IOException e)
       {
@@ -47,16 +75,8 @@ public class StaticHostListLoader
       return Collections.emptyList();
    }
 
-   public static void save(List<HTTPDataServerDescription> list) throws IOException
+   public static String toString(List<HTTPDataServerDescription> list) throws IOException
    {
-      YAMLSerializer<StaticHostList> ser = new YAMLSerializer<>(new StaticHostListPubSubType());
-      ser.setAddTypeAsRootNode(false);
-
-      File in = new File(location);
-      if (!in.getParentFile().exists())
-      {
-         in.getParentFile().mkdirs();
-      }
 
       StaticHostList staticHostList = new StaticHostList();
       for (HTTPDataServerDescription description : list)
@@ -64,9 +84,29 @@ public class StaticHostListLoader
          Host host = staticHostList.getHosts().add();
          host.setHostname(description.getHost());
          host.setPort(description.getPort());
+         host.getCameras().addAll(description.getCameraList());
       }
 
-      ser.serialize(in, staticHostList);
+      return toString(staticHostList);
+   }
+
+
+   public static String toString(StaticHostList staticHostList) throws IOException
+   {
+      YAMLSerializer<StaticHostList> ser = new YAMLSerializer<>(new StaticHostListPubSubType());
+      ser.setAddTypeAsRootNode(false);
+      return ser.serializeToString(staticHostList);
+   }
+
+   public static void save(List<HTTPDataServerDescription> list) throws IOException
+   {
+      File in = new File(location);
+      if (!in.getParentFile().exists())
+      {
+         in.getParentFile().mkdirs();
+      }
+
+      Files.write(in.toPath(), toString(list).getBytes());
 
    }
 

@@ -8,6 +8,7 @@ import us.ihmc.pubsub.TopicDataType;
 
 public class StaticHostList extends Packet<StaticHostList> implements Settable<StaticHostList>, EpsilonComparable<StaticHostList>
 {
+   public boolean disableAutoDiscovery_;
    public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.Host>  hosts_;
 
    public StaticHostList()
@@ -24,7 +25,18 @@ public class StaticHostList extends Packet<StaticHostList> implements Settable<S
 
    public void set(StaticHostList other)
    {
+      disableAutoDiscovery_ = other.disableAutoDiscovery_;
+
       hosts_.set(other.hosts_);
+   }
+
+   public void setDisableAutoDiscovery(boolean disableAutoDiscovery)
+   {
+      disableAutoDiscovery_ = disableAutoDiscovery;
+   }
+   public boolean getDisableAutoDiscovery()
+   {
+      return disableAutoDiscovery_;
    }
 
 
@@ -51,12 +63,15 @@ public class StaticHostList extends Packet<StaticHostList> implements Settable<S
       if(other == null) return false;
       if(other == this) return true;
 
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsBoolean(this.disableAutoDiscovery_, other.disableAutoDiscovery_, epsilon)) return false;
+
       if (this.hosts_.size() != other.hosts_.size()) { return false; }
       else
       {
          for (int i = 0; i < this.hosts_.size(); i++)
          {  if (!this.hosts_.get(i).epsilonEquals(other.hosts_.get(i), epsilon)) return false; }
       }
+
 
       return true;
    }
@@ -70,6 +85,8 @@ public class StaticHostList extends Packet<StaticHostList> implements Settable<S
 
       StaticHostList otherMyClass = (StaticHostList) other;
 
+      if(this.disableAutoDiscovery_ != otherMyClass.disableAutoDiscovery_) return false;
+
       if (!this.hosts_.equals(otherMyClass.hosts_)) return false;
 
       return true;
@@ -81,6 +98,8 @@ public class StaticHostList extends Packet<StaticHostList> implements Settable<S
       StringBuilder builder = new StringBuilder();
 
       builder.append("StaticHostList {");
+      builder.append("disableAutoDiscovery=");
+      builder.append(this.disableAutoDiscovery_);      builder.append(", ");
       builder.append("hosts=");
       builder.append(this.hosts_);
       builder.append("}");

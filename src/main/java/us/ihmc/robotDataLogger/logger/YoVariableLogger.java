@@ -65,7 +65,7 @@ public class YoVariableLogger
          throw new IOException("Cannot create directory " + finalDirectory.getAbsolutePath());
       }
 
-      YoVariableLoggerListener logger = new YoVariableLoggerListener(tempDirectory, finalDirectory, timestamp, request, options, doneListener);
+      YoVariableLoggerListener logger = new YoVariableLoggerListener(tempDirectory, finalDirectory, timestamp, request, connection.getTarget(), options, doneListener);
       client = new YoVariableClient(logger);
 
       try

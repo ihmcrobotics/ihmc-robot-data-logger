@@ -19,11 +19,12 @@ import java.util.function.Consumer;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.MathTools;
-import us.ihmc.idl.IDLSequence;
 import us.ihmc.idl.serializers.extra.YAMLSerializer;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
-import us.ihmc.robotDataLogger.CameraAnnouncement;
+import us.ihmc.robotDataLogger.CameraConfiguration;
+import us.ihmc.robotDataLogger.CameraSettings;
+import us.ihmc.robotDataLogger.CameraSettingsLoader;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.HandshakeFileType;
 import us.ihmc.robotDataLogger.HandshakePubSubType;
@@ -34,6 +35,7 @@ import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.robotDataLogger.rtps.LogParticipantSettings;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
+import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 import us.ihmc.tools.compression.SnappyUtils;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -71,7 +73,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private final LogPropertiesWriter logProperties;
    private ArrayList<VideoDataLoggerInterface> videoDataLoggers = new ArrayList<>();
 
-   private final ArrayList<CameraAnnouncement> cameras = new ArrayList<>();
+   private final ArrayList<CameraConfiguration> cameras = new ArrayList<>();
 
    private boolean clearingLog = false;
 
@@ -95,7 +97,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private long lastStatusUpdateTimestamp = 0;
    private long logStartedTimestamp = 0;
 
-   public YoVariableLoggerListener(File tempDirectory, File finalDirectory, String timestamp, Announcement request, YoVariableLoggerOptions options,
+   public YoVariableLoggerListener(File tempDirectory, File finalDirectory, String timestamp, Announcement request, HTTPDataServerDescription target, YoVariableLoggerOptions options,
                                    Consumer<Announcement> doneListener)
    {
       LogTools.info(toString(request));
@@ -116,19 +118,23 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       logProperties.setName(request.getNameAsString());
       logProperties.setTimestamp(timestamp);
 
-      if (!options.getDisableVideo())
+      if (!options.getDisableVideo() && target.getCameraList() != null)
       {
-         IDLSequence.Object<CameraAnnouncement> cameras = request.getCameras();
+         CameraSettings cameras = CameraSettingsLoader.load();
 
-         StringBuilder builder = new StringBuilder();
-         builder.append("Cameras:");
-         for (int i = 0; i < cameras.size(); i++)
+         for (int i = 0; i < target.getCameraList().size(); i++)
          {
-            this.cameras.add(cameras.get(i));
-            builder.append("\n" + toString(cameras.get(i)));
-         }
+            byte camera_id = target.getCameraList().get(i);
 
-         LogTools.info(builder.toString());
+            for (CameraConfiguration camera : cameras.getCameras())
+            {
+               if (camera.getCameraId() == camera_id)
+               {
+                  LogTools.info("Adding camera " + camera.toString());
+                  this.cameras.add(camera);
+               }
+            }
+         }
       }
       else
       {
@@ -462,7 +468,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
          if (!options.getDisableVideo())
          {
-            for (CameraAnnouncement camera : cameras)
+            for (CameraConfiguration camera : cameras)
             {
                try
                {
@@ -593,19 +599,4 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       return builder.toString();
    }
 
-   private static String toString(CameraAnnouncement camera)
-   {
-      StringBuilder builder = new StringBuilder();
-
-      builder.append("CameraAnnouncement {");
-      builder.append("\n  type = ");
-      builder.append(camera.type_);
-      builder.append("\n  name = ");
-      builder.append(camera.name_);
-      builder.append("\n  identifier = ");
-      builder.append(camera.identifier_);
-      builder.append("\n}");
-
-      return builder.toString();
-   }
 }

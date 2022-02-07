@@ -40,9 +40,12 @@ public class StaticHostListPubSubType implements us.ihmc.pubsub.TopicDataType<us
    {
       int initial_alignment = current_alignment;
 
+      current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
+
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 128; ++i0)
       {
           current_alignment += us.ihmc.robotDataLogger.HostPubSubType.getMaxCdrSerializedSize(current_alignment);}
+
       return current_alignment - initial_alignment;
    }
 
@@ -55,16 +58,22 @@ public class StaticHostListPubSubType implements us.ihmc.pubsub.TopicDataType<us
    {
       int initial_alignment = current_alignment;
 
+      current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
+
+
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
       for(int i0 = 0; i0 < data.getHosts().size(); ++i0)
       {
           current_alignment += us.ihmc.robotDataLogger.HostPubSubType.getCdrSerializedSize(data.getHosts().get(i0), current_alignment);}
+
 
       return current_alignment - initial_alignment;
    }
 
    public static void write(us.ihmc.robotDataLogger.StaticHostList data, us.ihmc.idl.CDR cdr)
    {
+      cdr.write_type_7(data.getDisableAutoDiscovery());
+
       if(data.getHosts().size() <= 128)
       cdr.write_type_e(data.getHosts());else
           throw new RuntimeException("hosts field exceeds the maximum length");
@@ -73,6 +82,8 @@ public class StaticHostListPubSubType implements us.ihmc.pubsub.TopicDataType<us
 
    public static void read(us.ihmc.robotDataLogger.StaticHostList data, us.ihmc.idl.CDR cdr)
    {
+      data.setDisableAutoDiscovery(cdr.read_type_7());
+      	
       cdr.read_type_e(data.getHosts());	
 
    }
@@ -80,12 +91,14 @@ public class StaticHostListPubSubType implements us.ihmc.pubsub.TopicDataType<us
    @Override
    public final void serialize(us.ihmc.robotDataLogger.StaticHostList data, us.ihmc.idl.InterchangeSerializer ser)
    {
+      ser.write_type_7("disableAutoDiscovery", data.getDisableAutoDiscovery());
       ser.write_type_e("hosts", data.getHosts());
    }
 
    @Override
    public final void deserialize(us.ihmc.idl.InterchangeSerializer ser, us.ihmc.robotDataLogger.StaticHostList data)
    {
+      data.setDisableAutoDiscovery(ser.read_type_7("disableAutoDiscovery"));
       ser.read_type_e("hosts", data.getHosts());
    }
 

@@ -1,18 +1,7 @@
 module us{
 module ihmc{
 module robotDataLogger{
-	enum CameraType
-	{
-		CAPTURE_CARD,
-		NETWORK_STREAM
-	};
-	
-	struct CameraAnnouncement
-	{	
-		CameraType type;
-		string name;
-		string identifier;
-	};
+
 	
 	struct ModelFileDescription{
 		boolean hasModel;
@@ -34,7 +23,6 @@ module robotDataLogger{
 		string name;
 		string hostName;
 		string reconnectKey;
-		sequence<CameraAnnouncement, 127> cameras;
 		ModelFileDescription modelFileDescription;
 		
 		boolean log;

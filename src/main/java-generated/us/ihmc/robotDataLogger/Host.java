@@ -10,10 +10,13 @@ public class Host extends Packet<Host> implements Settable<Host>, EpsilonCompara
 {
    public java.lang.StringBuilder hostname_;
    public int port_;
+   public us.ihmc.idl.IDLSequence.Byte  cameras_;
 
    public Host()
    {
       hostname_ = new java.lang.StringBuilder(255);
+      cameras_ = new us.ihmc.idl.IDLSequence.Byte (128, "type_9");
+
    }
 
    public Host(Host other)
@@ -29,6 +32,7 @@ public class Host extends Packet<Host> implements Settable<Host>, EpsilonCompara
 
       port_ = other.port_;
 
+      cameras_.set(other.cameras_);
    }
 
    public void setHostname(java.lang.String hostname)
@@ -56,6 +60,12 @@ public class Host extends Packet<Host> implements Settable<Host>, EpsilonCompara
    }
 
 
+   public us.ihmc.idl.IDLSequence.Byte  getCameras()
+   {
+      return cameras_;
+   }
+
+
    public static Supplier<HostPubSubType> getPubSubType()
    {
       return HostPubSubType::new;
@@ -77,6 +87,8 @@ public class Host extends Packet<Host> implements Settable<Host>, EpsilonCompara
 
       if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.port_, other.port_, epsilon)) return false;
 
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsByteSequence(this.cameras_, other.cameras_, epsilon)) return false;
+
 
       return true;
    }
@@ -94,6 +106,7 @@ public class Host extends Packet<Host> implements Settable<Host>, EpsilonCompara
 
       if(this.port_ != otherMyClass.port_) return false;
 
+      if (!this.cameras_.equals(otherMyClass.cameras_)) return false;
 
       return true;
    }
@@ -107,7 +120,9 @@ public class Host extends Packet<Host> implements Settable<Host>, EpsilonCompara
       builder.append("hostname=");
       builder.append(this.hostname_);      builder.append(", ");
       builder.append("port=");
-      builder.append(this.port_);
+      builder.append(this.port_);      builder.append(", ");
+      builder.append("cameras=");
+      builder.append(this.cameras_);
       builder.append("}");
       return builder.toString();
    }

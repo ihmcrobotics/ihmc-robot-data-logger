@@ -75,7 +75,7 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
    @Override
    public void addHost(String host, int port, boolean persistant)
    {
-      HTTPDataServerDescription description = new HTTPDataServerDescription(host, port, persistant);
+      HTTPDataServerDescription description = new HTTPDataServerDescription(host, port, null, persistant);
       addHost(description);
    }
 

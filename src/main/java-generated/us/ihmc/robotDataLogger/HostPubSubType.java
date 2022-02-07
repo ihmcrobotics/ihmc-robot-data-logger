@@ -43,6 +43,8 @@ public class HostPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robo
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
       current_alignment += 2 + us.ihmc.idl.CDR.alignment(current_alignment, 2);
 
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);current_alignment += (128 * 1) + us.ihmc.idl.CDR.alignment(current_alignment, 1);
+
 
       return current_alignment - initial_alignment;
    }
@@ -61,6 +63,10 @@ public class HostPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robo
       current_alignment += 2 + us.ihmc.idl.CDR.alignment(current_alignment, 2);
 
 
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+      current_alignment += (data.getCameras().size() * 1) + us.ihmc.idl.CDR.alignment(current_alignment, 1);
+
+
 
       return current_alignment - initial_alignment;
    }
@@ -73,6 +79,10 @@ public class HostPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robo
 
       cdr.write_type_3(data.getPort());
 
+      if(data.getCameras().size() <= 128)
+      cdr.write_type_e(data.getCameras());else
+          throw new RuntimeException("cameras field exceeds the maximum length");
+
    }
 
    public static void read(us.ihmc.robotDataLogger.Host data, us.ihmc.idl.CDR cdr)
@@ -80,6 +90,7 @@ public class HostPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robo
       cdr.read_type_d(data.getHostname());	
       data.setPort(cdr.read_type_3());
       	
+      cdr.read_type_e(data.getCameras());	
 
    }
 
@@ -88,6 +99,7 @@ public class HostPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robo
    {
       ser.write_type_d("hostname", data.getHostname());
       ser.write_type_3("port", data.getPort());
+      ser.write_type_e("cameras", data.getCameras());
    }
 
    @Override
@@ -95,6 +107,7 @@ public class HostPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robo
    {
       ser.read_type_d("hostname", data.getHostname());
       data.setPort(ser.read_type_3("port"));
+      ser.read_type_e("cameras", data.getCameras());
    }
 
    public static void staticCopy(us.ihmc.robotDataLogger.Host src, us.ihmc.robotDataLogger.Host dest)

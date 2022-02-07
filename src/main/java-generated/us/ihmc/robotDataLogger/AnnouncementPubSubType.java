@@ -44,9 +44,6 @@ public class AnnouncementPubSubType implements us.ihmc.pubsub.TopicDataType<us.i
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 127; ++i0)
-      {
-          current_alignment += us.ihmc.robotDataLogger.CameraAnnouncementPubSubType.getMaxCdrSerializedSize(current_alignment);}
       current_alignment += us.ihmc.robotDataLogger.ModelFileDescriptionPubSubType.getMaxCdrSerializedSize(current_alignment);
 
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
@@ -71,11 +68,6 @@ public class AnnouncementPubSubType implements us.ihmc.pubsub.TopicDataType<us.i
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + data.getHostName().length() + 1;
 
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + data.getReconnectKey().length() + 1;
-
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
-      for(int i0 = 0; i0 < data.getCameras().size(); ++i0)
-      {
-          current_alignment += us.ihmc.robotDataLogger.CameraAnnouncementPubSubType.getCdrSerializedSize(data.getCameras().get(i0), current_alignment);}
 
       current_alignment += us.ihmc.robotDataLogger.ModelFileDescriptionPubSubType.getCdrSerializedSize(data.getModelFileDescription(), current_alignment);
 
@@ -104,10 +96,6 @@ public class AnnouncementPubSubType implements us.ihmc.pubsub.TopicDataType<us.i
       cdr.write_type_d(data.getReconnectKey());else
           throw new RuntimeException("reconnectKey field exceeds the maximum length");
 
-      if(data.getCameras().size() <= 127)
-      cdr.write_type_e(data.getCameras());else
-          throw new RuntimeException("cameras field exceeds the maximum length");
-
       us.ihmc.robotDataLogger.ModelFileDescriptionPubSubType.write(data.getModelFileDescription(), cdr);
       cdr.write_type_7(data.getLog());
 
@@ -119,7 +107,6 @@ public class AnnouncementPubSubType implements us.ihmc.pubsub.TopicDataType<us.i
       cdr.read_type_d(data.getName());	
       cdr.read_type_d(data.getHostName());	
       cdr.read_type_d(data.getReconnectKey());	
-      cdr.read_type_e(data.getCameras());	
       us.ihmc.robotDataLogger.ModelFileDescriptionPubSubType.read(data.getModelFileDescription(), cdr);	
       data.setLog(cdr.read_type_7());
       	
@@ -133,7 +120,6 @@ public class AnnouncementPubSubType implements us.ihmc.pubsub.TopicDataType<us.i
       ser.write_type_d("name", data.getName());
       ser.write_type_d("hostName", data.getHostName());
       ser.write_type_d("reconnectKey", data.getReconnectKey());
-      ser.write_type_e("cameras", data.getCameras());
       ser.write_type_a("modelFileDescription", new us.ihmc.robotDataLogger.ModelFileDescriptionPubSubType(), data.getModelFileDescription());
 
       ser.write_type_7("log", data.getLog());
@@ -146,7 +132,6 @@ public class AnnouncementPubSubType implements us.ihmc.pubsub.TopicDataType<us.i
       ser.read_type_d("name", data.getName());
       ser.read_type_d("hostName", data.getHostName());
       ser.read_type_d("reconnectKey", data.getReconnectKey());
-      ser.read_type_e("cameras", data.getCameras());
       ser.read_type_a("modelFileDescription", new us.ihmc.robotDataLogger.ModelFileDescriptionPubSubType(), data.getModelFileDescription());
 
       data.setLog(ser.read_type_7("log"));
