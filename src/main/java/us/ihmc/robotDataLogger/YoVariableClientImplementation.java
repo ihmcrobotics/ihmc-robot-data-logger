@@ -204,9 +204,10 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
    {
       commandExecutor.execute(() -> yoVariablesUpdatedListener.receivedCommand(command, argument));
       
-      if (command == DataServerCommand.RESTAT_LOG && yoVariablesUpdatedListener instanceof YoVariableLoggerListener)
+      if (command == DataServerCommand.RESTART_LOG && yoVariablesUpdatedListener instanceof YoVariableLoggerListener)
       {
-         disconnect();
+         System.out.println("Restarting Log");
+         commandExecutor.execute(() ->  dataConsumer.close());
       }
    }
 

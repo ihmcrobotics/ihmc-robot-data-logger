@@ -46,7 +46,7 @@ public enum DataServerCommand
     * Stops and closes a currently running session, The logger will see the server after it
     * disconnects and starts a new log, like splitting the log
     */
-   RESTAT_LOG(true);
+   RESTART_LOG(true);
 
    private static final int MAX_ARGUMENT_SIZE = 5;
 
