@@ -591,7 +591,8 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       {
          if (yoVariableClientInterface.isConnected())
          {
-            System.out.println("Restarting Log");
+            
+            LogTools.info("Restarting Log: " + request.getNameAsString());
             yoVariableClientInterface.stop();
          }
       }
