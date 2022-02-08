@@ -97,7 +97,12 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private long lastStatusUpdateTimestamp = 0;
    private long logStartedTimestamp = 0;
 
-   public YoVariableLoggerListener(File tempDirectory, File finalDirectory, String timestamp, Announcement request, HTTPDataServerDescription target, YoVariableLoggerOptions options,
+   public YoVariableLoggerListener(File tempDirectory,
+                                   File finalDirectory,
+                                   String timestamp,
+                                   Announcement request,
+                                   HTTPDataServerDescription target,
+                                   YoVariableLoggerOptions options,
                                    Consumer<Announcement> doneListener)
    {
       LogTools.info(toString(request));
@@ -437,7 +442,10 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
    @SuppressWarnings("resource")
    @Override
-   public void start(YoVariableClientInterface yoVariableClientInterface, LogHandshake handshake, YoVariableHandshakeParser handshakeParser, DebugRegistry debugRegistry)
+   public void start(YoVariableClientInterface yoVariableClientInterface,
+                     LogHandshake handshake,
+                     YoVariableHandshakeParser handshakeParser,
+                     DebugRegistry debugRegistry)
    {
       logHandshake(handshake, handshakeParser);
 
@@ -578,6 +586,14 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       if (command == DataServerCommand.CLEAR_LOG)
       {
          clearLog();
+      }
+      else if (command == DataServerCommand.RESTART_LOG)
+      {
+         if (yoVariableClientInterface.isConnected())
+         {
+            System.out.println("Restarting Log");
+            yoVariableClientInterface.stop();
+         }
       }
    }
 
