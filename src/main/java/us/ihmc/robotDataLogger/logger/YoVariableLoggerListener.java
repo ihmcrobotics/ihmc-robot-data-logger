@@ -579,11 +579,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       {
          clearLog();
       }
-      
-//      if (command == DataServerCommand.STOP_LOG)
-//      {
-//         disconnected();
-//      }
    }
 
    private static String toString(Announcement announcement)
