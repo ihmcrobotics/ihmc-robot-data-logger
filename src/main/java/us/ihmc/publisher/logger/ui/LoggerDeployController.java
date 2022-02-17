@@ -29,10 +29,7 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.converter.IntegerStringConverter;
-import us.ihmc.publisher.logger.LoggerDeployConfiguration;
 import us.ihmc.publisher.logger.ui.HostBean.CameraHolder;
-import us.ihmc.publisher.logger.utils.SSHDeploy.SSHRemote;
-import us.ihmc.publisher.logger.utils.ui.FXConsole;
 import us.ihmc.publisher.logger.utils.ui.PreferencesHolder;
 import us.ihmc.robotDataLogger.CameraConfiguration;
 import us.ihmc.robotDataLogger.CameraSettings;
@@ -42,33 +39,6 @@ import us.ihmc.robotDataLogger.StaticHostList;
 
 public class LoggerDeployController implements Initializable
 {
-   public interface LoggerDeployScript
-   {
-      /**
-       * Called when clicking "Deploy logger" in the application 
-       * 
-       * @param logger_host
-       * @param logger_user
-       * @param logger_password
-       * @param logger_sudo_password
-       * @param logger_dist
-       * @param nightly_restart
-       * @param stage
-       */
-      void deploy(String logger_host,
-                  String logger_user,
-                  String logger_password,
-                  String logger_sudo_password,
-                  String logger_dist,
-                  boolean nightly_restart,
-                  Stage stage);
-
-      default boolean implementsAutoRestart()
-      {
-         return true;
-      }
-   }
-
    private LoggerDeployScript loggerDeployScript;
 
    PreferencesHolder prefs;
@@ -280,12 +250,11 @@ public class LoggerDeployController implements Initializable
    @FXML
    void load(ActionEvent e)
    {
-      SSHRemote remote = new SSHRemote(logger_host.getText(), logger_user.getText(), logger_pasword.getText(), logger_sudo_password.getText());
       CameraSettings settings;
 
       try
       {
-         settings = LoggerDeployConfiguration.loadCameraConfiguration(remote);
+         settings = loggerDeployScript.loadCameraConfiguration(logger_host.getText(), logger_user.getText(), logger_pasword.getText(), logger_sudo_password.getText(), getStage());
       }
       catch (IOException ex)
       {
@@ -300,7 +269,7 @@ public class LoggerDeployController implements Initializable
       StaticHostList hosts;
       try
       {
-         hosts = LoggerDeployConfiguration.loadStaticHostList(remote);
+         hosts = loggerDeployScript.loadStaticHostList(logger_host.getText(), logger_user.getText(), logger_pasword.getText(), logger_sudo_password.getText(), getStage());
       }
       catch (IOException ex)
       {
@@ -356,9 +325,6 @@ public class LoggerDeployController implements Initializable
    @FXML
    void save(ActionEvent e)
    {
-      FXConsole deployConsole = new FXConsole((Stage) logger_host.getScene().getWindow());
-
-      SSHRemote remote = new SSHRemote(logger_host.getText(), logger_user.getText(), logger_pasword.getText(), logger_sudo_password.getText());
 
       CameraSettings settings = new CameraSettings();
 
@@ -375,30 +341,29 @@ public class LoggerDeployController implements Initializable
          hostBean.pack(host);
 
       }
-      LoggerDeployConfiguration.saveConfiguration(remote, settings, staticHosts, restart_on_save.isSelected(), deployConsole);
+
+      loggerDeployScript.saveConfiguration(logger_host.getText(), logger_user.getText(), logger_pasword.getText(), logger_sudo_password.getText(), settings, staticHosts, restart_on_save.isSelected(), getStage());
    }
 
+   
    @FXML
    void logger_deploy(ActionEvent e)
    {
 
-      if (loggerDeployScript == null)
-      {
-         Alert alert = new Alert(AlertType.ERROR);
-         alert.setTitle("No deployment script set for the logger");
-         alert.setHeaderText("Application bug: Logger deployment script not set. Contact the developer.");
-         alert.showAndWait();
-      }
-      else
-      {
+      
          loggerDeployScript.deploy(logger_host.getText(),
                                    logger_user.getText(),
                                    logger_pasword.getText(),
                                    logger_sudo_password.getText(),
                                    logger_dist.getText(),
                                    logger_restart_midnight.isSelected(),
-                                   (Stage) logger_host.getScene().getWindow());
-      }
+                                   getStage());
+      
+   }
+
+   private Stage getStage()
+   {
+      return (Stage) logger_host.getScene().getWindow();
    }
 
    private void createFileSelection(String name, String argument, TextField textField, Button browseButton, String filter)
