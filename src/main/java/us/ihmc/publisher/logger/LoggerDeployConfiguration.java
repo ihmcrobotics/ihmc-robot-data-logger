@@ -35,12 +35,12 @@ public class LoggerDeployConfiguration
    
    
 
-   private static String getCameraSettingsFile(SSHRemote remote)
+   public static String getCameraSettingsFile(SSHRemote remote)
    {
       return "/home/" + remote.user + "/.ihmc/CameraSettings.yaml";
    }
 
-   private static String getHostsFile(SSHRemote remote)
+   public static String getHostsFile(SSHRemote remote)
    {
       return "/home/" + remote.user + "/.ihmc/ControllerHosts.yaml";
    }

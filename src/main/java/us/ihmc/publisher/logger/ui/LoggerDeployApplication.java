@@ -13,11 +13,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import us.ihmc.publisher.logger.LoggerDeployConfiguration;
-import us.ihmc.publisher.logger.ui.LoggerDeployController.LoggerDeployScript;
-import us.ihmc.publisher.logger.utils.SSHDeploy.SSHRemote;
 import us.ihmc.publisher.logger.utils.TeeStream;
-import us.ihmc.publisher.logger.utils.ui.FXConsole;
 
 public class LoggerDeployApplication extends Application
 {
@@ -64,17 +60,10 @@ public class LoggerDeployApplication extends Application
       Parent root = loader.load();
 
       LoggerDeployController controller = loader.getController();
+      controller.setDeployScript(new LoggerDeployScript(){});
 
       
       controller.setLoggerDistribution(getParameters().getNamed().get("logger-dist"));
-
-      controller.setDeployScript((host, user, pw, sudo_pw, dist, nightly_restart, popup_stage) ->
-      {
-         FXConsole deployConsole = new FXConsole((Stage) popup_stage);
-         SSHRemote remote = new SSHRemote(host, user, pw, sudo_pw);
-         LoggerDeployConfiguration.deploy(remote, dist, nightly_restart, deployConsole);
-
-      });
 
       Scene scene = new Scene(root, 1280, 900);
       stage.setTitle("Logger deployment");
