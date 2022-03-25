@@ -15,7 +15,7 @@ plugins {
 
 ihmc {
    group = "us.ihmc"
-   version = "0.23.1-halodi1"
+   version = "0.23.1-halodi2"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 

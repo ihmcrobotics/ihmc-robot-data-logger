@@ -84,7 +84,11 @@ public class StaticHostListLoader
          Host host = staticHostList.getHosts().add();
          host.setHostname(description.getHost());
          host.setPort(description.getPort());
-         host.getCameras().addAll(description.getCameraList());
+         
+         if(description.getCameraList() != null)
+         {
+            host.getCameras().addAll(description.getCameraList());
+         }
       }
 
       return toString(staticHostList);
