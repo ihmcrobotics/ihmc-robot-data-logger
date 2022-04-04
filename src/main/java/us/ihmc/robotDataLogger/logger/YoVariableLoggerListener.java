@@ -269,7 +269,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    {
       synchronized (synchronizer)
       {
-         if (yoVariableClientInterface != null)
+         if (yoVariableClientInterface != null && yoVariableClientInterface.isConnected())
          {
             long now = System.nanoTime();
 
