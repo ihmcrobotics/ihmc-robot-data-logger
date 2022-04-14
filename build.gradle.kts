@@ -37,7 +37,7 @@ mainDependencies {
    api("org.openjdk.jol:jol-core:0.9")
    api("org.apache.commons:commons-text:1.9")
 
-   api("us.ihmc:euclid:0.17.0")
+   api("us.ihmc:euclid:0.17.2")
    api("us.ihmc:ihmc-yovariables:0.9.12")
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-realtime:1.5.0")
