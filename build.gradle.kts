@@ -2,7 +2,7 @@ import us.ihmc.idl.generator.IDLGenerator
 
 buildscript {
    dependencies {
-      classpath("us.ihmc:ihmc-pub-sub-generator:0.16.2")
+      classpath("us.ihmc:ihmc-pub-sub-generator:0.16.3")
    }
 }
 
@@ -41,11 +41,11 @@ mainDependencies {
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-realtime:1.5.0")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
-   api("us.ihmc:ihmc-pub-sub:0.16.2")
-   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.16.2")
+   api("us.ihmc:ihmc-pub-sub:0.16.3")
+   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.16.3")
    api("us.ihmc:ihmc-commons:0.31.0")
    api("us.ihmc:ihmc-graphics-description:0.19.7")
-   api("us.ihmc:mecano:0.11.1")
+   api("us.ihmc:mecano:0.11.2")
    api("com.hierynomus:sshj:0.31.0")
 
    var javaFXVersion = "17.0.2"
