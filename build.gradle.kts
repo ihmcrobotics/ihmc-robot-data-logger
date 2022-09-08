@@ -37,7 +37,7 @@ mainDependencies {
    api("org.openjdk.jol:jol-core:0.9")
    api("org.apache.commons:commons-text:1.9")
 
-   api("us.ihmc:euclid:0.18.1")
+   api("us.ihmc:euclid:0.19.0")
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-realtime:1.5.0")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
