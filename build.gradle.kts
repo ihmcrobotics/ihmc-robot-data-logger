@@ -45,7 +45,7 @@ mainDependencies {
    api("us.ihmc:ihmc-pub-sub-serializers-extra:0.16.4")
    api("us.ihmc:ihmc-commons:0.31.0")
    api("us.ihmc:ihmc-graphics-description:0.19.8")
-   api("us.ihmc:mecano:17-0.11.3")
+   api("us.ihmc:mecano:17-0.11.4")
    api("com.hierynomus:sshj:0.31.0")
 
    var javaFXVersion = "17.0.2"
