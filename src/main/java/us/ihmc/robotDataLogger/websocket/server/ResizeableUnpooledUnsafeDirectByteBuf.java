@@ -30,13 +30,13 @@ class ResizeableUnpooledUnsafeDirectByteBuf extends UnpooledUnsafeDirectByteBuf
    @Override
    public ByteBuf capacity(int newCapacity)
    {
-      if (newCapacity < maxCapacity())
+      if (newCapacity <= maxCapacity())
       {
          internalCapacity = newCapacity;
       }
       else
       {
-         throw new IllegalArgumentException("newCapacity is larger than maxCapacity");
+         throw new IllegalArgumentException("newCapacity is larger than maxCapacity " + newCapacity + " " + maxCapacity());
       }
 
       return this;

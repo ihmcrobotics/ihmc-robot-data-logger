@@ -15,7 +15,7 @@ plugins {
 
 ihmc {
    group = "us.ihmc"
-   version = "17-0.23.4"
+   version = "0.24.0"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
@@ -33,7 +33,7 @@ mainDependencies {
    api("org.tukaani:xz:1.5")
    api("org.xerial.snappy:snappy-java:1.1.1-M1")
    api("net.jpountz.lz4:lz4:1.3.0")
-   api("io.netty:netty-all:4.1.32.Final")
+   api("io.netty:netty-all:4.1.77.Final")
    api("org.openjdk.jol:jol-core:0.9")
    api("org.apache.commons:commons-text:1.9")
 
