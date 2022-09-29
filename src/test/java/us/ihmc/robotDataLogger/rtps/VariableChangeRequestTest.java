@@ -34,6 +34,7 @@ public class VariableChangeRequestTest
       domain.setLogLevel(LogLevel.WARNING);
 
       ParticipantAttributes attr = domain.createParticipantAttributes(1, "TestParticipant");
+      attr.useOnlySharedMemoryTransport();
       Participant participant = domain.createParticipant(attr);
 
       VariableChangeRequestPubSubType type = new VariableChangeRequestPubSubType();
