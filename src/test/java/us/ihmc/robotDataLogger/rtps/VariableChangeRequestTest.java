@@ -34,7 +34,6 @@ public class VariableChangeRequestTest
       domain.setLogLevel(LogLevel.WARNING);
 
       ParticipantAttributes attr = domain.createParticipantAttributes(1, "TestParticipant");
-      attr.bindToLocalhost();
       Participant participant = domain.createParticipant(attr);
 
       VariableChangeRequestPubSubType type = new VariableChangeRequestPubSubType();
