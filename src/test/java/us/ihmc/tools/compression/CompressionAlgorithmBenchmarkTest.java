@@ -20,8 +20,94 @@ public class CompressionAlgorithmBenchmarkTest
    private final int ELEMENTS = 128000000;
 
    @Test
+   // This test is meant to analyze the compression ratio of Snappy and LZ4 compression algorithms
+   public void benchmarkTestCompression() throws IOException
+   {
+      ArrayList<Double> snappy;
+      ArrayList<Double> LZ4;
+      snappy = benchmarkTestCompressionRatioSnappy();
+      LZ4 = benchmarkTestCompressionRatioLZ4();
+
+      System.out.println("Snappy compression ratio for random input: " + snappy.get(0) * 100);
+      System.out.println("Snappy compression ratio for repeating input: " + snappy.get(1) * 100);
+      System.out.println("LZ4 compression ratio for random input: " + LZ4.get(0) * 100);
+      System.out.println("LZ4 compression ratio for repeating input: " + LZ4.get(1) * 100);
+   }
+
+   public ArrayList<Double> benchmarkTestCompressionRatioSnappy() throws IOException
+   {
+      // Setup buffers for Snappy compression
+      ArrayList<Double> results = new ArrayList<>();
+      ByteBuffer in = ByteBuffer.allocateDirect(ELEMENTS * 4);
+      ByteBuffer repeat = ByteBuffer.allocateDirect(ELEMENTS * 4);
+
+      ByteBuffer out = ByteBuffer.allocateDirect(SnappyUtils.maxCompressedLength(ELEMENTS * 4));
+      ByteBuffer repeatOut = ByteBuffer.allocateDirect(SnappyUtils.maxCompressedLength(ELEMENTS * 4));
+
+
+      for (int i = 0; i < ELEMENTS; i++)
+      {
+         in.putInt(rand.nextInt());
+         repeat.putInt(10);
+      }
+
+      in.flip();
+      repeat.flip();
+
+      SnappyUtils.compress(in, out);
+      SnappyUtils.compress(repeat, repeatOut);
+
+      out.flip();
+      repeatOut.flip();
+
+      results.add((double) out.limit() / in.limit());
+      results.add((double) repeatOut.limit() / repeat.limit());
+
+
+      return results;
+   }
+
+   public ArrayList<Double> benchmarkTestCompressionRatioLZ4()
+   {
+      // Setup buffers and variable for Lz4 compression
+      ArrayList<Double> results = new ArrayList<>();
+      LZ4CompressionImplementation impl = new LZ4CompressionImplementation();
+
+      ByteBuffer in = ByteBuffer.allocateDirect(ELEMENTS * 4);
+      ByteBuffer repeat = ByteBuffer.allocateDirect(ELEMENTS * 4);
+      ByteBuffer out = ByteBuffer.allocateDirect(impl.maxCompressedLength(in.capacity()));
+      ByteBuffer repeatOut = ByteBuffer.allocateDirect(impl.maxCompressedLength(in.capacity()));
+
+      in.position(0);
+      out.position(0);
+
+      for (int i = 0; i < ELEMENTS; i++)
+      {
+         in.putInt(rand.nextInt());
+         repeat.putInt(10);
+      }
+
+      in.flip();
+      in.position(0);
+      repeat.flip();
+      repeat.position(0);
+
+      impl.compress(in, out);
+      impl.compress(repeat, repeatOut);
+
+
+      out.flip();
+      repeatOut.flip();
+
+      results.add((double) out.limit() / in.limit());
+      results.add((double) repeatOut.limit() / repeat.limit());
+
+      return results;
+   }
+
+   @Test
    // This test is meant to return the run times of the Snappy and LZ4 compression algorithms
-   public void benchmarkTimeCompression() throws IOException
+   public void benchmarkTestForTime() throws IOException
    {
       ArrayList<Double> snappy;
       ArrayList<Double> LZ4;
