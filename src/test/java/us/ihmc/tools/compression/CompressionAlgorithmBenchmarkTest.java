@@ -7,20 +7,73 @@ import java.nio.ByteBuffer;
 import java.util.Random;
 import java.util.function.Supplier;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 public class CompressionAlgorithmBenchmarkTest
 {
    private final int ELEMENTS = 128000000;
 
    static class BenchmarkTest
    {
-      double time;
+      double compressTime = 0;
+      double decompressTime = 0;
+      double totalTime = 0;
       double ratio;
    }
 
+   public static Supplier<ByteBuffer> fullRandomByteBufferGenerator(Random random, int elements)
+   {
+      return () ->
+      {
+         ByteBuffer hybrid =  ByteBuffer.allocateDirect(elements * 4);
+
+         for (int i = 0; i < elements; i++)
+         {
+            hybrid.putInt(random.nextInt());
+         }
+
+         return hybrid;
+      };
+   }
+
+   public static Supplier<ByteBuffer> hybridRandomByteBufferGenerator(Random random, int elements)
+   {
+      return () ->
+      {
+         ByteBuffer hybrid =  ByteBuffer.allocateDirect(elements * 4);
+
+         for (int i = 0; i < elements; i++)
+         {
+            if (i % 20 < 10)
+            {
+               hybrid.putInt(12);
+            }
+            else
+            {
+               hybrid.putInt(random.nextInt());
+            }
+         }
+
+         return hybrid;
+      };
+   }
+
+   public static Supplier<ByteBuffer> repeatRandomByteBufferGenerator(int elements)
+   {
+      return () ->
+      {
+         ByteBuffer hybrid =  ByteBuffer.allocateDirect(elements * 4);
+
+         for (int i = 0; i < elements; i++)
+         {
+            hybrid.putInt(10);
+         }
+
+         return hybrid;
+      };
+   }
+
+
    @Test
-   public void benchmarkTestCompression() throws IOException
+   public void benchmarkTestCompressionAlgorithm() throws IOException
    {
       CompressionAlgorithm snappyCompression = new CompressionAlgorithm()
       {
@@ -76,138 +129,83 @@ public class CompressionAlgorithmBenchmarkTest
          }
       };
 
-      BenchmarkTest snappyRatioFullRandom = benchmarkTestCompression(snappyCompression, fullRandomByteBufferGenerator(new Random(1234), ELEMENTS));
-      BenchmarkTest snappyRatioHybridRandom = benchmarkTestCompression(snappyCompression, hybridRandomByteBufferGenerator(new Random(1234), ELEMENTS));
-      BenchmarkTest snappyRatioRepeat = benchmarkTestCompression(snappyCompression, repeatRandomByteBufferGenerator(ELEMENTS));
+      BenchmarkTest snappyFullRandom = benchmarkTestCompressionAlgorithm(snappyCompression, fullRandomByteBufferGenerator(new Random(1234), ELEMENTS));
+      BenchmarkTest snappyHybridRandom = benchmarkTestCompressionAlgorithm(snappyCompression, hybridRandomByteBufferGenerator(new Random(1234), ELEMENTS));
+      BenchmarkTest snappyRepeat = benchmarkTestCompressionAlgorithm(snappyCompression, repeatRandomByteBufferGenerator(ELEMENTS));
 
-      BenchmarkTest lz4RatioFullRandom = benchmarkTestCompression(lz4Compression, fullRandomByteBufferGenerator(new Random(1234), ELEMENTS));
-      BenchmarkTest lz4RatioHybridRandom = benchmarkTestCompression(lz4Compression, hybridRandomByteBufferGenerator(new Random(1234), ELEMENTS));
-      BenchmarkTest lz4RatioRepeat = benchmarkTestCompression(lz4Compression, repeatRandomByteBufferGenerator(ELEMENTS));
+      BenchmarkTest lz4FullRandom = benchmarkTestCompressionAlgorithm(lz4Compression, fullRandomByteBufferGenerator(new Random(1234), ELEMENTS));
+      BenchmarkTest lz4HybridRandom = benchmarkTestCompressionAlgorithm(lz4Compression, hybridRandomByteBufferGenerator(new Random(1234), ELEMENTS));
+      BenchmarkTest lz4Repeat = benchmarkTestCompressionAlgorithm(lz4Compression, repeatRandomByteBufferGenerator(ELEMENTS));
 
-      System.out.println("Snappy compression ratio for random input: " + snappyRatioFullRandom.ratio * 100);
-      System.out.println("Snappy compression ratio for hybrid input: " + snappyRatioHybridRandom.ratio * 100);
-      System.out.println("Snappy compression ratio for repeat input: " + snappyRatioRepeat.ratio * 100);
+      System.out.println("Snappy Random: " + snappyFullRandom.ratio * 100 + " time: " + snappyFullRandom.totalTime);
+      System.out.println("Snappy Hybrid: " + snappyHybridRandom.ratio * 100 + " time: " + snappyHybridRandom.totalTime);
+      System.out.println("Snappy Repeat: " + snappyRepeat.ratio * 100 + " time: " + snappyRepeat.totalTime);
 
-      System.out.println("Snappy compression speed for random input: " + snappyRatioFullRandom.time);
-      System.out.println("Snappy compression speed for hybrid input: " + snappyRatioHybridRandom.time);
-      System.out.println("Snappy compression speed for repeat input: " + snappyRatioRepeat.time);
-
-      System.out.println("LZ4 compression ratio for random input: " + lz4RatioFullRandom.ratio * 100);
-      System.out.println("LZ4 compression ratio for hybrid input: " + lz4RatioHybridRandom.ratio * 100);
-      System.out.println("LZ4 compression ratio for repeat input: " + lz4RatioRepeat.ratio * 100);
-
-      System.out.println("LZ4 compression speed for random input: " + lz4RatioFullRandom.time);
-      System.out.println("LZ4 compression speed for hybrid input: " + lz4RatioHybridRandom.time);
-      System.out.println("LZ4 compression speed for repeat input: " + lz4RatioRepeat.time);
+      System.out.println("LZ4 random: " + lz4FullRandom.ratio * 100 + " time: " + lz4FullRandom.totalTime);
+      System.out.println("LZ4 hybrid: " + lz4HybridRandom.ratio * 100 + " time: " + lz4HybridRandom.totalTime);
+      System.out.println("LZ4 repeat: " + lz4Repeat.ratio * 100 + " time: " + lz4Repeat.totalTime);
    }
 
-   public static Supplier<ByteBuffer> fullRandomByteBufferGenerator(Random random, int elements)
+
+   public BenchmarkTest benchmarkTestCompressionAlgorithm(CompressionAlgorithm algorithm, Supplier<ByteBuffer> randomGenerator) throws IOException
    {
-      return () ->
-      {
-         ByteBuffer hybrid =  ByteBuffer.allocateDirect(elements * 4);
-
-         for (int i = 0; i < elements; i++)
-         {
-            hybrid.putInt(random.nextInt());
-         }
-
-         return hybrid;
-      };
-   }
-
-   public static Supplier<ByteBuffer> hybridRandomByteBufferGenerator(Random random, int elements)
-   {
-      return () ->
-      {
-         ByteBuffer hybrid =  ByteBuffer.allocateDirect(elements * 4);
-
-         for (int i = 0; i < elements; i++)
-         {
-            if (i % 20 < 10)
-            {
-               hybrid.putInt(12);
-            }
-            else
-            {
-               hybrid.putInt(random.nextInt());
-            }
-         }
-
-         return hybrid;
-      };
-   }
-
-   public static Supplier<ByteBuffer> repeatRandomByteBufferGenerator(int elements)
-   {
-      return () ->
-      {
-         ByteBuffer hybrid =  ByteBuffer.allocateDirect(elements * 4);
-
-         for (int i = 0; i < elements; i++)
-         {
-            hybrid.putInt(10);
-         }
-
-         return hybrid;
-      };
-   }
-   public BenchmarkTest benchmarkTestCompression(CompressionAlgorithm algorithm, Supplier<ByteBuffer> randomGenerator) throws IOException
-   {
-      Stopwatch stopwatch = new Stopwatch();
+      // Initial setup of variables
+      Stopwatch stopwatchCompress = new Stopwatch();
+      Stopwatch stopwatchDecompress = new Stopwatch();
+      Stopwatch stopwatchTotal = new Stopwatch();
       BenchmarkTest results = new BenchmarkTest();
       ByteBuffer buffer = randomGenerator.get();
-      ByteBuffer bufferRatioOut = ByteBuffer.allocateDirect(algorithm.maxCompressedLength(buffer.capacity()));
       ByteBuffer bufferOut = ByteBuffer.allocateDirect(algorithm.maxCompressedLength(buffer.capacity()));
       ByteBuffer bufferDecompress = ByteBuffer.allocateDirect(algorithm.minCompressedLength(bufferOut.capacity()));
 
-      buffer.flip();
-      algorithm.compress(buffer, bufferRatioOut);
-      bufferRatioOut.flip();
-
-      results.ratio = (double) bufferRatioOut.limit() / buffer.limit();
-
-      boolean decompressOnly = false;
-      boolean compressOnly = false;
-      if (compressOnly)
-      {
-         stopwatch.start();
-         algorithm.compress(buffer, bufferOut);
-         results.time = stopwatch.totalElapsed();
-         assertEquals(0, buffer.remaining());
-      }
-      else if (decompressOnly)
-      {
-         algorithm.compress(buffer, bufferOut);
-         assertEquals(0, buffer.remaining());
-
-         bufferOut.flip();
-         bufferOut.position(0);
-
-         stopwatch.start();
-         algorithm.decompress(buffer, bufferDecompress);
-         results.time = stopwatch.totalElapsed();
-      }
-      else
+      // Warmup for algorithm methods, helps to optimize the JIT compiler
+      for (int i = 0; i < 500; i++)
       {
          buffer.flip();
-         stopwatch.start();
+         bufferOut.clear();
+         bufferDecompress.clear();
+
          algorithm.compress(buffer, bufferOut);
-         assertEquals(0, buffer.remaining());
 
          bufferOut.flip();
          bufferOut.position(0);
 
          algorithm.decompress(bufferOut, bufferDecompress);
-         results.time = stopwatch.totalElapsed();
-
-
-         bufferDecompress.flip();
-         buffer.flip();
-         assertEquals(ELEMENTS * 4, bufferDecompress.remaining());
-
-         assertEquals(buffer, bufferDecompress);
       }
+
+      int iterations = 100;
+
+      // Run benchmark on algorithm that takes an average for the ratio and time computed
+      for (int i = 0; i < iterations; i++)
+      {
+         buffer.flip();
+         bufferOut.clear();
+         bufferDecompress.clear();
+
+         stopwatchTotal.start();
+         stopwatchCompress.start();
+
+         algorithm.compress(buffer, bufferOut);
+
+         results.compressTime += stopwatchCompress.totalElapsed();
+
+         bufferOut.flip();
+         bufferOut.position(0);
+
+         results.ratio += (double) bufferOut.limit() / buffer.limit();
+
+         stopwatchDecompress.start();
+
+         algorithm.decompress(bufferOut, bufferDecompress);
+
+         results.decompressTime += stopwatchDecompress.totalElapsed();
+         results.totalTime += stopwatchTotal.totalElapsed();
+      }
+
+      results.ratio /= iterations;
+      results.compressTime /= iterations;
+      results.decompressTime /= iterations;
+      results.totalTime /= iterations;
 
       return results;
    }
