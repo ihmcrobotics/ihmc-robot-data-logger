@@ -1,306 +1,226 @@
 package us.ihmc.tools.compression;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import us.ihmc.commons.time.Stopwatch;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Objects;
 import java.util.Random;
-import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
-import static org.jcodec.common.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CompressionAlgorithmBenchmarkTest
 {
-   private static final Random rand = new Random(98753244356L);
-
-   private final boolean COMPRESS_ONLY = false;
-   private final boolean DECOMPRESS_ONLY = false;
    private final int ELEMENTS = 128000000;
 
-   private static class BenchmarkResult
+   static class BenchmarkTest
    {
-      private double compressionRatioRandom = -1.0;
-      private double compressionRatioHybrid = -1.0;
-      private double compressionRatioRepeat = -1.0;
-
-      private double compressionTime;
+      double time;
+      double ratio;
    }
 
    @Test
-   // This test is meant to analyze the compression ratio of Snappy and LZ4 compression algorithms
-   public void benchmarkTestCompression()
+   public void benchmarkTestCompression() throws IOException
    {
-      BenchmarkResult snappy;
-      BenchmarkResult LZ4;
+      CompressionAlgorithm snappyCompression = new CompressionAlgorithm()
+      {
+         @Override
+         public void compress(ByteBuffer in, ByteBuffer out) throws IOException
+         {
+            SnappyUtils.compress(in, out);
+         }
 
-      snappy = benchmarkTestCompressionRatio("Snappy", (rawIn, compressedOut) ->
-                                                               {
-                                                                  try
-                                                                  {
-                                                                     SnappyUtils.compress(rawIn, compressedOut);
-                                                                  }
-                                                                  catch (IOException e)
-                                                                  {
-                                                                     throw new RuntimeException(e);
-                                                                  }
-                                                               });
+         @Override
+         public void decompress(ByteBuffer in, ByteBuffer out) throws IOException
+         {
+            SnappyUtils.uncompress(in, out);
+         }
 
-      LZ4 = benchmarkTestCompressionRatio("LZ4", (rawIn, compressedOut) ->
-                                                         {
-                                                            LZ4CompressionImplementation impl = new LZ4CompressionImplementation();
-                                                            impl.compress(rawIn, compressedOut);
-                                                         });
+         @Override
+         public int maxCompressedLength(int rawDataLength)
+         {
+            return SnappyUtils.maxCompressedLength(rawDataLength);
+         }
 
-      System.out.println("Snappy compression ratio for random input: " + snappy.compressionRatioRandom * 100);
-      System.out.println("Snappy compression ratio for hybrid input: " + snappy.compressionRatioHybrid * 100);
-      System.out.println("Snappy compression ratio for repeating input: " + snappy.compressionRatioRepeat * 100);
-      System.out.println("LZ4 compression ratio for random input: " + LZ4.compressionRatioRandom * 100);
-      System.out.println("LZ4 compression ratio for random input: " + LZ4.compressionRatioHybrid * 100);
-      System.out.println("LZ4 compression ratio for repeating input: " + LZ4.compressionRatioRandom * 100);
+         @Override
+         public int minCompressedLength(int rawDataLength)
+         {
+            return ELEMENTS * 4;
+         }
+      };
+
+      CompressionAlgorithm lz4Compression = new CompressionAlgorithm()
+      {
+         final LZ4CompressionImplementation impl = new LZ4CompressionImplementation();
+         @Override
+         public void compress(ByteBuffer in, ByteBuffer out)
+         {
+            impl.compress(in, out);
+         }
+
+         @Override
+         public void decompress(ByteBuffer in, ByteBuffer out)
+         {
+            impl.decompress(in, out, out.limit());
+         }
+
+         @Override
+         public int maxCompressedLength(int rawDataLength)
+         {
+            return impl.maxCompressedLength(rawDataLength);
+         }
+
+         public int minCompressedLength(int rawDataLength)
+         {
+            return impl.minimumDecompressedLength(rawDataLength);
+         }
+      };
+
+      BenchmarkTest snappyRatioFullRandom = benchmarkTestCompression(snappyCompression, fullRandomByteBufferGenerator(new Random(1234), ELEMENTS));
+      BenchmarkTest snappyRatioHybridRandom = benchmarkTestCompression(snappyCompression, hybridRandomByteBufferGenerator(new Random(1234), ELEMENTS));
+      BenchmarkTest snappyRatioRepeat = benchmarkTestCompression(snappyCompression, repeatRandomByteBufferGenerator(ELEMENTS));
+
+      BenchmarkTest lz4RatioFullRandom = benchmarkTestCompression(lz4Compression, fullRandomByteBufferGenerator(new Random(1234), ELEMENTS));
+      BenchmarkTest lz4RatioHybridRandom = benchmarkTestCompression(lz4Compression, hybridRandomByteBufferGenerator(new Random(1234), ELEMENTS));
+      BenchmarkTest lz4RatioRepeat = benchmarkTestCompression(lz4Compression, repeatRandomByteBufferGenerator(ELEMENTS));
+
+      System.out.println("Snappy compression ratio for random input: " + snappyRatioFullRandom.ratio * 100);
+      System.out.println("Snappy compression ratio for hybrid input: " + snappyRatioHybridRandom.ratio * 100);
+      System.out.println("Snappy compression ratio for repeat input: " + snappyRatioRepeat.ratio * 100);
+
+      System.out.println("Snappy compression speed for random input: " + snappyRatioFullRandom.time);
+      System.out.println("Snappy compression speed for hybrid input: " + snappyRatioHybridRandom.time);
+      System.out.println("Snappy compression speed for repeat input: " + snappyRatioRepeat.time);
+
+      System.out.println("LZ4 compression ratio for random input: " + lz4RatioFullRandom.ratio * 100);
+      System.out.println("LZ4 compression ratio for hybrid input: " + lz4RatioHybridRandom.ratio * 100);
+      System.out.println("LZ4 compression ratio for repeat input: " + lz4RatioRepeat.ratio * 100);
+
+      System.out.println("LZ4 compression speed for random input: " + lz4RatioFullRandom.time);
+      System.out.println("LZ4 compression speed for hybrid input: " + lz4RatioHybridRandom.time);
+      System.out.println("LZ4 compression speed for repeat input: " + lz4RatioRepeat.time);
    }
-   public BenchmarkResult benchmarkTestCompressionRatio(String type, BiConsumer<ByteBuffer, ByteBuffer> algorithm)
+
+   public static Supplier<ByteBuffer> fullRandomByteBufferGenerator(Random random, int elements)
    {
-      // Setup buffers for Snappy compression
-      BenchmarkResult results = new BenchmarkResult();
-      LZ4CompressionImplementation impl = new LZ4CompressionImplementation();
-
-      ByteBuffer random = ByteBuffer.allocateDirect(ELEMENTS * 4);
-      ByteBuffer hybrid =  ByteBuffer.allocateDirect(ELEMENTS * 4);
-      ByteBuffer repeat = ByteBuffer.allocateDirect(ELEMENTS * 4);
-
-      ByteBuffer randomOut;
-      ByteBuffer hybridOut;
-      ByteBuffer repeatOut;
-
-      if (Objects.equals(type, "Snappy"))
+      return () ->
       {
-         randomOut = ByteBuffer.allocateDirect(SnappyUtils.maxCompressedLength(random.capacity()));
-         hybridOut = ByteBuffer.allocateDirect(SnappyUtils.maxCompressedLength(hybrid.capacity()));
-         repeatOut = ByteBuffer.allocateDirect(SnappyUtils.maxCompressedLength(repeat.capacity()));
+         ByteBuffer hybrid =  ByteBuffer.allocateDirect(elements * 4);
+
+         for (int i = 0; i < elements; i++)
+         {
+            hybrid.putInt(random.nextInt());
+         }
+
+         return hybrid;
+      };
+   }
+
+   public static Supplier<ByteBuffer> hybridRandomByteBufferGenerator(Random random, int elements)
+   {
+      return () ->
+      {
+         ByteBuffer hybrid =  ByteBuffer.allocateDirect(elements * 4);
+
+         for (int i = 0; i < elements; i++)
+         {
+            if (i % 20 < 10)
+            {
+               hybrid.putInt(12);
+            }
+            else
+            {
+               hybrid.putInt(random.nextInt());
+            }
+         }
+
+         return hybrid;
+      };
+   }
+
+   public static Supplier<ByteBuffer> repeatRandomByteBufferGenerator(int elements)
+   {
+      return () ->
+      {
+         ByteBuffer hybrid =  ByteBuffer.allocateDirect(elements * 4);
+
+         for (int i = 0; i < elements; i++)
+         {
+            hybrid.putInt(10);
+         }
+
+         return hybrid;
+      };
+   }
+   public BenchmarkTest benchmarkTestCompression(CompressionAlgorithm algorithm, Supplier<ByteBuffer> randomGenerator) throws IOException
+   {
+      Stopwatch stopwatch = new Stopwatch();
+      BenchmarkTest results = new BenchmarkTest();
+      ByteBuffer buffer = randomGenerator.get();
+      ByteBuffer bufferRatioOut = ByteBuffer.allocateDirect(algorithm.maxCompressedLength(buffer.capacity()));
+      ByteBuffer bufferOut = ByteBuffer.allocateDirect(algorithm.maxCompressedLength(buffer.capacity()));
+      ByteBuffer bufferDecompress = ByteBuffer.allocateDirect(algorithm.minCompressedLength(bufferOut.capacity()));
+
+      buffer.flip();
+      algorithm.compress(buffer, bufferRatioOut);
+      bufferRatioOut.flip();
+
+      results.ratio = (double) bufferRatioOut.limit() / buffer.limit();
+
+      boolean decompressOnly = false;
+      boolean compressOnly = false;
+      if (compressOnly)
+      {
+         stopwatch.start();
+         algorithm.compress(buffer, bufferOut);
+         results.time = stopwatch.totalElapsed();
+         assertEquals(0, buffer.remaining());
       }
-      else if (Objects.equals(type, "LZ4"))
+      else if (decompressOnly)
       {
-         randomOut = ByteBuffer.allocateDirect(impl.maxCompressedLength(random.capacity()));
-         hybridOut = ByteBuffer.allocateDirect(impl.maxCompressedLength(hybrid.capacity()));
-         repeatOut = ByteBuffer.allocateDirect(impl.maxCompressedLength(repeat.capacity()));
+         algorithm.compress(buffer, bufferOut);
+         assertEquals(0, buffer.remaining());
+
+         bufferOut.flip();
+         bufferOut.position(0);
+
+         stopwatch.start();
+         algorithm.decompress(buffer, bufferDecompress);
+         results.time = stopwatch.totalElapsed();
       }
       else
       {
-         return results;
+         buffer.flip();
+         stopwatch.start();
+         algorithm.compress(buffer, bufferOut);
+         assertEquals(0, buffer.remaining());
+
+         bufferOut.flip();
+         bufferOut.position(0);
+
+         algorithm.decompress(bufferOut, bufferDecompress);
+         results.time = stopwatch.totalElapsed();
+
+
+         bufferDecompress.flip();
+         buffer.flip();
+         assertEquals(ELEMENTS * 4, bufferDecompress.remaining());
+
+         assertEquals(buffer, bufferDecompress);
       }
-
-      for (int i = 0; i < ELEMENTS; i++)
-      {
-         random.putInt(rand.nextInt());
-
-         if (i % 20 < 10)
-         {
-            hybrid.putInt(12);
-         }
-         else
-         {
-            hybrid.putInt(rand.nextInt());
-         }
-
-         repeat.putInt(10);
-      }
-
-      random.flip();
-      hybrid.flip();
-      repeat.flip();
-
-      algorithm.accept(random, randomOut);
-      algorithm.accept(hybrid, hybridOut);
-      algorithm.accept(repeat, repeatOut);
-
-      randomOut.flip();
-      hybridOut.flip();
-      repeatOut.flip();
-
-      results.compressionRatioRandom = (double) randomOut.limit() / random.limit();
-      results.compressionRatioHybrid = (double) hybridOut.limit() / hybrid.limit();
-      results.compressionRatioRepeat = (double) repeatOut.limit() / repeat.limit();
 
       return results;
    }
 
 
-   @Test
-   // This test is meant to return the run times of the Snappy and LZ4 compression algorithms
-   public void benchmarkTestForTime() throws IOException
+   private interface CompressionAlgorithm
    {
-      BenchmarkResult snappy;
-      BenchmarkResult LZ4;
+      void compress(ByteBuffer in, ByteBuffer out) throws IOException;
 
-      snappy = benchmarkTimeSnappy();
-      LZ4 = benchmarkTimeLZ4();
+      void decompress(ByteBuffer in, ByteBuffer out) throws IOException;
 
-      String snappyType = COMPRESS_ONLY ? "Compressed " : (DECOMPRESS_ONLY ? "Decompressed " : "Compress and Decompress ");
-      String LZ4Type = COMPRESS_ONLY ? "Compressed " : (DECOMPRESS_ONLY ? "Decompressed " : "Compress and Decompress ");
+      int maxCompressedLength(int rawDataLength);
 
-      assertTrue(snappy.compressionTime > LZ4.compressionTime);
-
-      System.out.println(snappyType + "Snappy Time: " + snappy.compressionTime + ", for element size: " + ELEMENTS);
-      System.out.println(LZ4Type + "LZ4 Time: " + LZ4.compressionTime + ", for element size: " + ELEMENTS);
-   }
-
-
-   public BenchmarkResult benchmarkTimeSnappy() throws IOException
-   {
-      // Setup buffers and variable for Snappy compression
-      BenchmarkResult results = new BenchmarkResult();
-      Stopwatch stopwatch = new Stopwatch();
-
-      int inOffset = rand.nextInt(ELEMENTS);
-      int outOffset = rand.nextInt(ELEMENTS);
-      int decompressOffset = rand.nextInt(ELEMENTS);
-      double time;
-
-      ByteBuffer in = ByteBuffer.allocate(ELEMENTS * 4 + inOffset);
-      ByteBuffer out = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(in.remaining()) + outOffset);
-      ByteBuffer decompress = ByteBuffer.allocateDirect(ELEMENTS * 4 + decompressOffset);
-
-      in.position(inOffset);
-      out.position(outOffset);
-      decompress.position(decompressOffset);
-
-      for (int i = 0; i < ELEMENTS; i++)
-      {
-         in.putInt(rand.nextInt());
-      }
-
-      in.flip();
-      in.position(inOffset);
-
-      if (COMPRESS_ONLY)
-      {
-         // Return the time strictly for compressing the data
-         stopwatch.start();
-         SnappyUtils.compress(in, out);
-         time = stopwatch.totalElapsed();
-
-         results.compressionTime = time;
-
-         return results;
-      }
-      else if (DECOMPRESS_ONLY)
-      {
-         SnappyUtils.compress(in, out);
-
-         out.flip();
-         out.position(outOffset);
-
-         // Return the time strictly for decompressing the data
-         stopwatch.start();
-         SnappyUtils.uncompress(out, decompress);
-         time = stopwatch.totalElapsed();
-
-         results.compressionTime = time;
-
-         return results;
-      }
-      else
-      {
-         // Return time for compressing and decompressing the data
-         stopwatch.start();
-         SnappyUtils.compress(in, out);
-         assertEquals(0, in.remaining());
-
-         out.flip();
-         out.position(outOffset);
-
-         SnappyUtils.uncompress(out, decompress);
-         time = stopwatch.totalElapsed();
-
-         in.position(inOffset);
-         decompress.flip();
-         decompress.position(decompressOffset);
-         assertEquals(ELEMENTS * 4, decompress.remaining());
-
-         for (int i = 0; i < ELEMENTS; i++)
-         {
-            Assertions.assertEquals(in.getInt(), decompress.getInt());
-         }
-
-         results.compressionTime = time;
-
-         return results;
-      }
-   }
-
-
-   public BenchmarkResult benchmarkTimeLZ4()
-   {
-      // Setup buffers and variable for Lz4 compression
-      LZ4CompressionImplementation impl = new LZ4CompressionImplementation();
-      BenchmarkResult results = new BenchmarkResult();
-      Stopwatch stopwatch = new Stopwatch();
-
-      double time;
-
-      ByteBuffer in = ByteBuffer.allocateDirect(ELEMENTS * 4);
-      ByteBuffer out = ByteBuffer.allocateDirect(impl.maxCompressedLength(in.capacity()));
-      ByteBuffer decompress = ByteBuffer.allocateDirect(impl.minimumDecompressedLength(out.capacity()));
-
-      in.position(0);
-      out.position(0);
-
-      for (int i = 0; i < ELEMENTS; i++)
-      {
-         in.putInt(rand.nextInt());
-      }
-
-      in.flip();
-      in.position(0);
-
-      if (COMPRESS_ONLY)
-      {
-         // Return the time strictly for compressing the data
-         stopwatch.start();
-         impl.compress(in, out);
-         time = stopwatch.totalElapsed();
-
-         results.compressionTime = time;
-
-         return results;
-      }
-      else if (DECOMPRESS_ONLY)
-      {
-         // Return the time strictly for decompressing the data
-         impl.compress(in, out);
-
-         out.flip();
-         out.position(0);
-
-         stopwatch.start();
-         impl.decompress(out, decompress, decompress.limit());
-         time = stopwatch.totalElapsed();
-
-         results.compressionTime = time;
-
-         return results;
-      }
-      else
-      {
-         // Return time for compressing and decompressing the data
-         stopwatch.start();
-         impl.compress(in, out);
-
-         out.flip();
-         out.position(0);
-
-         impl.decompress(out, decompress, decompress.limit());
-         time = stopwatch.totalElapsed();
-
-         assertEquals(0, in.remaining());
-         Assertions.assertEquals(in, decompress);
-
-         results.compressionTime = time;
-
-         return results;
-      }
+      int minCompressedLength(int rawDataLength);
    }
 }
