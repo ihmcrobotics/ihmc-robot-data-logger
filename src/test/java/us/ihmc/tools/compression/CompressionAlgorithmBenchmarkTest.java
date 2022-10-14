@@ -7,6 +7,8 @@ import java.nio.ByteBuffer;
 import java.util.Random;
 import java.util.function.Supplier;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 public class CompressionAlgorithmBenchmarkTest
 {
    private final int ELEMENTS = 128000000;
@@ -167,10 +169,14 @@ public class CompressionAlgorithmBenchmarkTest
 
          algorithm.compress(buffer, bufferOut);
 
+         assertEquals(0, buffer.remaining());
+
          bufferOut.flip();
          bufferOut.position(0);
 
          algorithm.decompress(bufferOut, bufferDecompress);
+
+         assertEquals(buffer, bufferDecompress);
       }
 
       int iterations = 100;
