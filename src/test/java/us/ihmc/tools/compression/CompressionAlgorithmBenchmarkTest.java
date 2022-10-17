@@ -160,8 +160,8 @@ public class CompressionAlgorithmBenchmarkTest
       ByteBuffer bufferOut = ByteBuffer.allocateDirect(algorithm.maxCompressedLength(buffer.capacity()));
       ByteBuffer bufferDecompress = ByteBuffer.allocateDirect(algorithm.minCompressedLength(bufferOut.capacity()));
 
-      // Warmup for algorithm methods, helps to optimize the JIT compiler
-      for (int i = 0; i < 500; i++)
+      // Warmup for algorithm methods, helps to optimize the JIT compiler, at 400 cycles the for loop takes 15 minutes
+      for (int i = 0; i < 400; i++)
       {
          buffer.flip();
          bufferOut.clear();
