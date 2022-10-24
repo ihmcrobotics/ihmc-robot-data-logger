@@ -1,7 +1,11 @@
 package us.ihmc.tools.compression;
 
+import org.bytedeco.javacpp.Pointer;
+import org.bytedeco.javacpp.SizeTPointer;
+import org.bytedeco.lz4.LZ4FDecompressionContext;
 import org.junit.jupiter.api.Test;
 import us.ihmc.commons.time.Stopwatch;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Random;
@@ -11,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class CompressionAlgorithmBenchmarkTest
 {
-   private final int ELEMENTS = 128000000;
+   private final int ELEMENTS = 10200;
 
    static class BenchmarkTest
    {
@@ -25,7 +29,7 @@ public class CompressionAlgorithmBenchmarkTest
    {
       return () ->
       {
-         ByteBuffer hybrid =  ByteBuffer.allocateDirect(elements * 4);
+         ByteBuffer hybrid = ByteBuffer.allocateDirect(elements * 4);
 
          for (int i = 0; i < elements; i++)
          {
@@ -75,7 +79,7 @@ public class CompressionAlgorithmBenchmarkTest
 
 
    @Test
-   public void benchmarkTestCompressionAlgorithm() throws IOException
+   public void benchmarkTestCompressionAlgorithm() throws IOException, LZ4ByteDecoCompressionImplementation.LZ4Exception
    {
       CompressionAlgorithm snappyCompression = new CompressionAlgorithm()
       {
@@ -131,25 +135,78 @@ public class CompressionAlgorithmBenchmarkTest
          }
       };
 
-      BenchmarkTest snappyFullRandom = benchmarkTestCompressionAlgorithm(snappyCompression, fullRandomByteBufferGenerator(new Random(1234), ELEMENTS));
-      BenchmarkTest snappyHybridRandom = benchmarkTestCompressionAlgorithm(snappyCompression, hybridRandomByteBufferGenerator(new Random(1234), ELEMENTS));
-      BenchmarkTest snappyRepeat = benchmarkTestCompressionAlgorithm(snappyCompression, repeatRandomByteBufferGenerator(ELEMENTS));
+      CompressionAlgorithm lz4ByteDeco = new CompressionAlgorithm()
+      {
+         final LZ4ByteDecoCompressionImplementation impl = new LZ4ByteDecoCompressionImplementation();
 
-      BenchmarkTest lz4FullRandom = benchmarkTestCompressionAlgorithm(lz4Compression, fullRandomByteBufferGenerator(new Random(1234), ELEMENTS));
-      BenchmarkTest lz4HybridRandom = benchmarkTestCompressionAlgorithm(lz4Compression, hybridRandomByteBufferGenerator(new Random(1234), ELEMENTS));
-      BenchmarkTest lz4Repeat = benchmarkTestCompressionAlgorithm(lz4Compression, repeatRandomByteBufferGenerator(ELEMENTS));
+         @Override
+         public void compress(ByteBuffer in, ByteBuffer out)
+         {
+            Pointer inPointer = new Pointer(in);
+            Pointer outPointer = new Pointer(out);
 
+            LZ4ByteDecoCompressionImplementation.compress(in, inPointer, out, outPointer);
+         }
+
+         @Override
+         public void decompress(ByteBuffer in, ByteBuffer out) throws LZ4ByteDecoCompressionImplementation.LZ4Exception
+         {
+            LZ4FDecompressionContext decompressionContext;
+            decompressionContext = LZ4ByteDecoCompressionImplementation.ByteDecoLZ4CompressionImplementation();
+            Pointer inPointer = new Pointer(in);
+            Pointer outPointer = new Pointer(out);
+            SizeTPointer inSize = new SizeTPointer(in.limit());
+            SizeTPointer outSize = new SizeTPointer(out.remaining());
+
+            LZ4ByteDecoCompressionImplementation.decompress(decompressionContext, inPointer, outPointer, inSize, outSize, in, ELEMENTS);
+         }
+
+         @Override
+         public int maxCompressedLength(int rawDataLength)
+         {
+            return impl.maxCompressedLength(rawDataLength);
+         }
+
+         @Override
+         public int minCompressedLength(int rawDataLength)
+         {
+            return impl.minimumDecompressedLength(rawDataLength);
+         }
+      };
+
+      // Snappy Compression
+      BenchmarkTest snappyFullRandom = benchmarkTestCompressionAlgorithm(true, snappyCompression, fullRandomByteBufferGenerator(new Random(1234), ELEMENTS));
       System.out.println("Snappy Random: " + snappyFullRandom.ratio * 100 + " time: " + snappyFullRandom.totalTime);
+
+      BenchmarkTest snappyHybridRandom = benchmarkTestCompressionAlgorithm(false, snappyCompression, hybridRandomByteBufferGenerator(new Random(1234), ELEMENTS));
       System.out.println("Snappy Hybrid: " + snappyHybridRandom.ratio * 100 + " time: " + snappyHybridRandom.totalTime);
+
+      BenchmarkTest snappyRepeat = benchmarkTestCompressionAlgorithm(false, snappyCompression, repeatRandomByteBufferGenerator(ELEMENTS));
       System.out.println("Snappy Repeat: " + snappyRepeat.ratio * 100 + " time: " + snappyRepeat.totalTime);
 
-      System.out.println("LZ4 random: " + lz4FullRandom.ratio * 100 + " time: " + lz4FullRandom.totalTime);
-      System.out.println("LZ4 hybrid: " + lz4HybridRandom.ratio * 100 + " time: " + lz4HybridRandom.totalTime);
-      System.out.println("LZ4 repeat: " + lz4Repeat.ratio * 100 + " time: " + lz4Repeat.totalTime);
+      // LZ4 1.8 Compression
+      BenchmarkTest lz4FullRandom = benchmarkTestCompressionAlgorithm(true, lz4Compression, fullRandomByteBufferGenerator(new Random(1234), ELEMENTS));
+      System.out.println("LZ4 1.8 random: " + lz4FullRandom.ratio * 100 + " time: " + lz4FullRandom.totalTime);
+
+      BenchmarkTest lz4HybridRandom = benchmarkTestCompressionAlgorithm(false, lz4Compression, hybridRandomByteBufferGenerator(new Random(1234), ELEMENTS));
+      System.out.println("LZ4 1.8 hybrid: " + lz4HybridRandom.ratio * 100 + " time: " + lz4HybridRandom.totalTime);
+
+      BenchmarkTest lz4Repeat = benchmarkTestCompressionAlgorithm(false, lz4Compression, repeatRandomByteBufferGenerator(ELEMENTS));
+      System.out.println("LZ4 1.8 repeat: " + lz4Repeat.ratio * 100 + " time: " + lz4Repeat.totalTime);
+
+      // LZ4 1.9 Compression
+      BenchmarkTest lz4ByteDecoFullRandom = benchmarkTestCompressionAlgorithm(true, lz4ByteDeco, fullRandomByteBufferGenerator(new Random(1234), ELEMENTS));
+      System.out.println("lz4 1.9 ByteDeco Random: " + lz4ByteDecoFullRandom.ratio * 100 + " time: " + lz4ByteDecoFullRandom.totalTime);
+
+      BenchmarkTest lz4ByteDecoHybridRandom = benchmarkTestCompressionAlgorithm(false, lz4ByteDeco, hybridRandomByteBufferGenerator(new Random(1234), ELEMENTS));
+      System.out.println("lz4 1.9 ByteDeco Hybrid: " + lz4ByteDecoHybridRandom.ratio * 100 + " time: " + lz4ByteDecoHybridRandom.totalTime);
+
+      BenchmarkTest lz4ByteDecoRepeat = benchmarkTestCompressionAlgorithm(false, lz4ByteDeco, repeatRandomByteBufferGenerator(ELEMENTS));
+      System.out.println("lz4 1.9 ByteDeco Repeat: " + lz4ByteDecoRepeat.ratio * 100 + " time: " + lz4ByteDecoRepeat.totalTime);
    }
 
-
-   public BenchmarkTest benchmarkTestCompressionAlgorithm(CompressionAlgorithm algorithm, Supplier<ByteBuffer> randomGenerator) throws IOException
+   public BenchmarkTest benchmarkTestCompressionAlgorithm(boolean warmup, CompressionAlgorithm algorithm, Supplier<ByteBuffer> randomGenerator)
+         throws IOException, LZ4ByteDecoCompressionImplementation.LZ4Exception
    {
       // Initial setup of variables
       Stopwatch stopwatchCompress = new Stopwatch();
@@ -160,26 +217,46 @@ public class CompressionAlgorithmBenchmarkTest
       ByteBuffer bufferOut = ByteBuffer.allocateDirect(algorithm.maxCompressedLength(buffer.capacity()));
       ByteBuffer bufferDecompress = ByteBuffer.allocateDirect(algorithm.minCompressedLength(bufferOut.capacity()));
 
-      // Warmup for algorithm methods, helps to optimize the JIT compiler, at 400 cycles the for loop takes 15 minutes
-      for (int i = 0; i < 400; i++)
+      // Warmup for algorithm methods, helps to optimize the JIT compiler, optimized at about 38 iterations
+      if (warmup)
       {
-         buffer.flip();
-         bufferOut.clear();
-         bufferDecompress.clear();
+         for (int i = 0; i < 5000; i++)
+         {
+            buffer.flip();
+            bufferOut.clear();
+            bufferDecompress.clear();
 
-         algorithm.compress(buffer, bufferOut);
+            algorithm.compress(buffer, bufferOut);
 
-         assertEquals(0, buffer.remaining());
+            if (bufferOut.position() == 0)
+            {
+               bufferOut.position(bufferOut.limit());
+            }
 
-         bufferOut.flip();
-         bufferOut.position(0);
+            bufferOut.flip();
 
-         algorithm.decompress(bufferOut, bufferDecompress);
+            algorithm.decompress(bufferOut, bufferDecompress);
 
-         assertEquals(buffer, bufferDecompress);
+            if ( buffer.position() == 0)
+            {
+               buffer.position(buffer.limit());
+            }
+
+            if (bufferDecompress.position() == 0)
+            {
+               bufferDecompress.position(bufferDecompress.limit());
+            }
+
+            assertEquals(buffer, bufferDecompress);
+
+            for (int j = 0; j < ELEMENTS; j++)
+            {
+               assertEquals(buffer.get(j), bufferDecompress.get(j));
+            }
+         }
       }
 
-      int iterations = 100;
+      int iterations = 800;
 
       // Run benchmark on algorithm that takes an average for the ratio and time computed
       for (int i = 0; i < iterations; i++)
@@ -195,8 +272,12 @@ public class CompressionAlgorithmBenchmarkTest
 
          results.compressTime += stopwatchCompress.totalElapsed();
 
+         if (bufferOut.position() == 0)
+         {
+            bufferOut.position(bufferOut.limit());
+         }
+
          bufferOut.flip();
-         bufferOut.position(0);
 
          results.ratio += (double) bufferOut.limit() / buffer.limit();
 
@@ -206,6 +287,16 @@ public class CompressionAlgorithmBenchmarkTest
 
          results.decompressTime += stopwatchDecompress.totalElapsed();
          results.totalTime += stopwatchTotal.totalElapsed();
+
+         if ( buffer.position() == 0)
+         {
+            buffer.position(buffer.limit());
+         }
+
+         if (bufferDecompress.position() == 0)
+         {
+            bufferDecompress.position(bufferDecompress.limit());
+         }
       }
 
       results.ratio /= iterations;
@@ -221,7 +312,7 @@ public class CompressionAlgorithmBenchmarkTest
    {
       void compress(ByteBuffer in, ByteBuffer out) throws IOException;
 
-      void decompress(ByteBuffer in, ByteBuffer out) throws IOException;
+      void decompress(ByteBuffer in, ByteBuffer out) throws IOException, LZ4ByteDecoCompressionImplementation.LZ4Exception;
 
       int maxCompressedLength(int rawDataLength);
 
