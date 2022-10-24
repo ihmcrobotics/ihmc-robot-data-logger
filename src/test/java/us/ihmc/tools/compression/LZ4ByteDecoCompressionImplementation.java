@@ -16,9 +16,9 @@ public class LZ4ByteDecoCompressionImplementation
             return dctx;
    }
 
-   public static void compress(ByteBuffer src, Pointer srcPointer, ByteBuffer dst, Pointer dstPointer)
+   public static double compress(ByteBuffer src, Pointer srcPointer, ByteBuffer dst, Pointer dstPointer)
    {
-      lz4.LZ4F_compressFrame(dstPointer, dst.limit(), srcPointer, src.limit(), null);
+      return lz4.LZ4F_compressFrame(dstPointer, dst.limit(), srcPointer, src.limit(), null);
    }
 
    public static void decompress(LZ4FDecompressionContext dctx,
@@ -26,10 +26,10 @@ public class LZ4ByteDecoCompressionImplementation
                                  Pointer dstPointer,
                                  SizeTPointer srcSize,
                                  SizeTPointer dstSize,
-                                 ByteBuffer compressed,
+                                 ByteBuffer uncompressed,
                                  int uncompressedSize)
    {
-      if (compressed.position() + uncompressedSize > compressed.limit())
+      if (uncompressed.position() + uncompressedSize > uncompressed.limit())
       {
          throw new BufferOverflowException();
       }

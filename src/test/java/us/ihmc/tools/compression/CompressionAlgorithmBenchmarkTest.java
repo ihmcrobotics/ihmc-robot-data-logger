@@ -84,9 +84,10 @@ public class CompressionAlgorithmBenchmarkTest
       CompressionAlgorithm snappyCompression = new CompressionAlgorithm()
       {
          @Override
-         public void compress(ByteBuffer in, ByteBuffer out) throws IOException
+         public double compress(ByteBuffer in, ByteBuffer out) throws IOException
          {
             SnappyUtils.compress(in, out);
+            return 0;
          }
 
          @Override
@@ -112,9 +113,9 @@ public class CompressionAlgorithmBenchmarkTest
       {
          final LZ4CompressionImplementation impl = new LZ4CompressionImplementation();
          @Override
-         public void compress(ByteBuffer in, ByteBuffer out)
+         public double compress(ByteBuffer in, ByteBuffer out)
          {
-            impl.compress(in, out);
+            return impl.compress(in, out);
          }
 
          @Override
@@ -140,12 +141,12 @@ public class CompressionAlgorithmBenchmarkTest
          final LZ4ByteDecoCompressionImplementation impl = new LZ4ByteDecoCompressionImplementation();
 
          @Override
-         public void compress(ByteBuffer in, ByteBuffer out)
+         public double compress(ByteBuffer in, ByteBuffer out)
          {
             Pointer inPointer = new Pointer(in);
             Pointer outPointer = new Pointer(out);
 
-            LZ4ByteDecoCompressionImplementation.compress(in, inPointer, out, outPointer);
+            return LZ4ByteDecoCompressionImplementation.compress(in, inPointer, out, outPointer);
          }
 
          @Override
@@ -158,7 +159,7 @@ public class CompressionAlgorithmBenchmarkTest
             SizeTPointer inSize = new SizeTPointer(in.limit());
             SizeTPointer outSize = new SizeTPointer(out.remaining());
 
-            LZ4ByteDecoCompressionImplementation.decompress(decompressionContext, inPointer, outPointer, inSize, outSize, in, ELEMENTS);
+            LZ4ByteDecoCompressionImplementation.decompress(decompressionContext, inPointer, outPointer, inSize, outSize, out, ELEMENTS);
          }
 
          @Override
@@ -213,6 +214,8 @@ public class CompressionAlgorithmBenchmarkTest
       Stopwatch stopwatchDecompress = new Stopwatch();
       Stopwatch stopwatchTotal = new Stopwatch();
       BenchmarkTest results = new BenchmarkTest();
+      int bytesCompressed = 0;
+
       ByteBuffer buffer = randomGenerator.get();
       ByteBuffer bufferOut = ByteBuffer.allocateDirect(algorithm.maxCompressedLength(buffer.capacity()));
       ByteBuffer bufferDecompress = ByteBuffer.allocateDirect(algorithm.minCompressedLength(bufferOut.capacity()));
@@ -226,11 +229,11 @@ public class CompressionAlgorithmBenchmarkTest
             bufferOut.clear();
             bufferDecompress.clear();
 
-            algorithm.compress(buffer, bufferOut);
+            bytesCompressed = (int) algorithm.compress(buffer, bufferOut);
 
             if (bufferOut.position() == 0)
             {
-               bufferOut.position(bufferOut.limit());
+               bufferOut.position(bytesCompressed);
             }
 
             bufferOut.flip();
@@ -268,13 +271,13 @@ public class CompressionAlgorithmBenchmarkTest
          stopwatchTotal.start();
          stopwatchCompress.start();
 
-         algorithm.compress(buffer, bufferOut);
+         bytesCompressed = (int) algorithm.compress(buffer, bufferOut);
 
          results.compressTime += stopwatchCompress.totalElapsed();
 
          if (bufferOut.position() == 0)
          {
-            bufferOut.position(bufferOut.limit());
+            bufferOut.position(bytesCompressed);
          }
 
          bufferOut.flip();
@@ -288,7 +291,7 @@ public class CompressionAlgorithmBenchmarkTest
          results.decompressTime += stopwatchDecompress.totalElapsed();
          results.totalTime += stopwatchTotal.totalElapsed();
 
-         if ( buffer.position() == 0)
+         if (buffer.position() == 0)
          {
             buffer.position(buffer.limit());
          }
@@ -310,7 +313,7 @@ public class CompressionAlgorithmBenchmarkTest
 
    private interface CompressionAlgorithm
    {
-      void compress(ByteBuffer in, ByteBuffer out) throws IOException;
+      double compress(ByteBuffer in, ByteBuffer out) throws IOException;
 
       void decompress(ByteBuffer in, ByteBuffer out) throws IOException, LZ4ByteDecoCompressionImplementation.LZ4Exception;
 
