@@ -6,7 +6,7 @@ import org.bytedeco.javacpp.*;
 import org.bytedeco.lz4.*;
 import org.bytedeco.lz4.global.lz4;
 
-public class LZ4ByteDecoCompressionImplementation
+public class LZ4BytedecoCompressionImplementation
 {
    public static LZ4FDecompressionContext ByteDecoLZ4CompressionImplementation() throws LZ4Exception
    {

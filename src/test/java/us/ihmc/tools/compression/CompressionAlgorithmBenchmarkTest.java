@@ -77,9 +77,18 @@ public class CompressionAlgorithmBenchmarkTest
       };
    }
 
+   @Test
+   public void testOverAndOver() throws LZ4BytedecoCompressionImplementation.LZ4Exception, IOException
+   {
+      for (int i = 0; i < 100; i++)
+      {
+         benchmarkTestCompressionAlgorithm();
+      }
+   }
+
 
    @Test
-   public void benchmarkTestCompressionAlgorithm() throws IOException, LZ4ByteDecoCompressionImplementation.LZ4Exception
+   public void benchmarkTestCompressionAlgorithm() throws IOException, LZ4BytedecoCompressionImplementation.LZ4Exception
    {
       CompressionAlgorithm snappyCompression = new CompressionAlgorithm()
       {
@@ -138,7 +147,7 @@ public class CompressionAlgorithmBenchmarkTest
 
       CompressionAlgorithm lz4ByteDeco = new CompressionAlgorithm()
       {
-         final LZ4ByteDecoCompressionImplementation impl = new LZ4ByteDecoCompressionImplementation();
+         final LZ4BytedecoCompressionImplementation impl = new LZ4BytedecoCompressionImplementation();
 
          @Override
          public double compress(ByteBuffer in, ByteBuffer out)
@@ -146,20 +155,20 @@ public class CompressionAlgorithmBenchmarkTest
             Pointer inPointer = new Pointer(in);
             Pointer outPointer = new Pointer(out);
 
-            return LZ4ByteDecoCompressionImplementation.compress(in, inPointer, out, outPointer);
+            return LZ4BytedecoCompressionImplementation.compress(in, inPointer, out, outPointer);
          }
 
          @Override
-         public void decompress(ByteBuffer in, ByteBuffer out) throws LZ4ByteDecoCompressionImplementation.LZ4Exception
+         public void decompress(ByteBuffer in, ByteBuffer out) throws LZ4BytedecoCompressionImplementation.LZ4Exception
          {
             LZ4FDecompressionContext decompressionContext;
-            decompressionContext = LZ4ByteDecoCompressionImplementation.ByteDecoLZ4CompressionImplementation();
+            decompressionContext = LZ4BytedecoCompressionImplementation.ByteDecoLZ4CompressionImplementation();
             Pointer inPointer = new Pointer(in);
             Pointer outPointer = new Pointer(out);
             SizeTPointer inSize = new SizeTPointer(in.limit());
             SizeTPointer outSize = new SizeTPointer(out.remaining());
 
-            LZ4ByteDecoCompressionImplementation.decompress(decompressionContext, inPointer, outPointer, inSize, outSize, out, ELEMENTS);
+            LZ4BytedecoCompressionImplementation.decompress(decompressionContext, inPointer, outPointer, inSize, outSize, out, ELEMENTS);
          }
 
          @Override
@@ -207,7 +216,7 @@ public class CompressionAlgorithmBenchmarkTest
    }
 
    public BenchmarkTest benchmarkTestCompressionAlgorithm(boolean warmup, CompressionAlgorithm algorithm, Supplier<ByteBuffer> randomGenerator)
-         throws IOException, LZ4ByteDecoCompressionImplementation.LZ4Exception
+         throws IOException, LZ4BytedecoCompressionImplementation.LZ4Exception
    {
       // Initial setup of variables
       Stopwatch stopwatchCompress = new Stopwatch();
@@ -315,7 +324,7 @@ public class CompressionAlgorithmBenchmarkTest
    {
       double compress(ByteBuffer in, ByteBuffer out) throws IOException;
 
-      void decompress(ByteBuffer in, ByteBuffer out) throws IOException, LZ4ByteDecoCompressionImplementation.LZ4Exception;
+      void decompress(ByteBuffer in, ByteBuffer out) throws IOException, LZ4BytedecoCompressionImplementation.LZ4Exception;
 
       int maxCompressedLength(int rawDataLength);
 
