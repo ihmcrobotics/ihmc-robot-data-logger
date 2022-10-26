@@ -3,6 +3,7 @@ package us.ihmc.tools.compression;
 import org.bytedeco.javacpp.Pointer;
 import org.bytedeco.javacpp.SizeTPointer;
 import org.bytedeco.lz4.LZ4FDecompressionContext;
+import org.bytedeco.lz4.global.lz4;
 import org.junit.jupiter.api.Test;
 import us.ihmc.commons.time.Stopwatch;
 
@@ -15,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class CompressionAlgorithmBenchmarkTest
 {
-   private final int ELEMENTS = 10200;
+   private final int ELEMENTS = 510;
 
    static class BenchmarkTest
    {
@@ -77,113 +78,113 @@ public class CompressionAlgorithmBenchmarkTest
       };
    }
 
+   CompressionAlgorithm snappyCompression = new CompressionAlgorithm()
+   {
+      @Override
+      public double compress(ByteBuffer in, ByteBuffer out) throws IOException
+      {
+         SnappyUtils.compress(in, out);
+         return 0;
+      }
+
+      @Override
+      public void decompress(ByteBuffer in, ByteBuffer out) throws IOException
+      {
+         SnappyUtils.uncompress(in, out);
+      }
+
+      @Override
+      public int maxCompressedLength(int rawDataLength)
+      {
+         return SnappyUtils.maxCompressedLength(rawDataLength);
+      }
+
+      @Override
+      public int minCompressedLength(int rawDataLength)
+      {
+         return ELEMENTS * 4;
+      }
+   };
+
+   CompressionAlgorithm lz4Compression = new CompressionAlgorithm()
+   {
+      final LZ4CompressionImplementation impl = new LZ4CompressionImplementation();
+      @Override
+      public double compress(ByteBuffer in, ByteBuffer out)
+      {
+         return impl.compress(in, out);
+      }
+
+      @Override
+      public void decompress(ByteBuffer in, ByteBuffer out)
+      {
+         impl.decompress(in, out, out.limit());
+      }
+
+      @Override
+      public int maxCompressedLength(int rawDataLength)
+      {
+         return impl.maxCompressedLength(rawDataLength);
+      }
+
+      public int minCompressedLength(int rawDataLength)
+      {
+         return impl.minimumDecompressedLength(rawDataLength);
+      }
+   };
+
+   CompressionAlgorithm lz4ByteDeco = new CompressionAlgorithm()
+   {
+      final LZ4BytedecoCompressionImplementation impl = new LZ4BytedecoCompressionImplementation();
+
+      @Override
+      public double compress(ByteBuffer in, ByteBuffer out)
+      {
+         Pointer inPointer = new Pointer(in);
+         Pointer outPointer = new Pointer(out);
+
+         return LZ4BytedecoCompressionImplementation.compress(in, inPointer, out, outPointer);
+      }
+
+      @Override
+      public void decompress(ByteBuffer in, ByteBuffer out) throws LZ4BytedecoCompressionImplementation.LZ4Exception
+      {
+         LZ4FDecompressionContext decompressionContext;
+         decompressionContext = LZ4BytedecoCompressionImplementation.ByteDecoLZ4CompressionImplementation();
+         Pointer inPointer = new Pointer(in);
+         Pointer outPointer = new Pointer(out);
+         SizeTPointer inSize = new SizeTPointer(in.limit());
+         SizeTPointer outSize = new SizeTPointer(out.remaining());
+
+         LZ4BytedecoCompressionImplementation.decompress(decompressionContext, inPointer, outPointer, inSize, outSize, out, ELEMENTS);
+         lz4.LZ4F_freeDecompressionContext(decompressionContext);
+      }
+
+      @Override
+      public int maxCompressedLength(int rawDataLength)
+      {
+         return impl.maxCompressedLength(rawDataLength);
+      }
+
+      @Override
+      public int minCompressedLength(int rawDataLength)
+      {
+         return impl.minimumDecompressedLength(rawDataLength);
+      }
+   };
+
    @Test
    public void testOverAndOver() throws LZ4BytedecoCompressionImplementation.LZ4Exception, IOException
    {
-      for (int i = 0; i < 100; i++)
+      for (int i = 0; i < 10; i++)
       {
          benchmarkTestCompressionAlgorithm();
       }
    }
 
-
    @Test
    public void benchmarkTestCompressionAlgorithm() throws IOException, LZ4BytedecoCompressionImplementation.LZ4Exception
    {
-      CompressionAlgorithm snappyCompression = new CompressionAlgorithm()
-      {
-         @Override
-         public double compress(ByteBuffer in, ByteBuffer out) throws IOException
-         {
-            SnappyUtils.compress(in, out);
-            return 0;
-         }
-
-         @Override
-         public void decompress(ByteBuffer in, ByteBuffer out) throws IOException
-         {
-            SnappyUtils.uncompress(in, out);
-         }
-
-         @Override
-         public int maxCompressedLength(int rawDataLength)
-         {
-            return SnappyUtils.maxCompressedLength(rawDataLength);
-         }
-
-         @Override
-         public int minCompressedLength(int rawDataLength)
-         {
-            return ELEMENTS * 4;
-         }
-      };
-
-      CompressionAlgorithm lz4Compression = new CompressionAlgorithm()
-      {
-         final LZ4CompressionImplementation impl = new LZ4CompressionImplementation();
-         @Override
-         public double compress(ByteBuffer in, ByteBuffer out)
-         {
-            return impl.compress(in, out);
-         }
-
-         @Override
-         public void decompress(ByteBuffer in, ByteBuffer out)
-         {
-            impl.decompress(in, out, out.limit());
-         }
-
-         @Override
-         public int maxCompressedLength(int rawDataLength)
-         {
-            return impl.maxCompressedLength(rawDataLength);
-         }
-
-         public int minCompressedLength(int rawDataLength)
-         {
-            return impl.minimumDecompressedLength(rawDataLength);
-         }
-      };
-
-      CompressionAlgorithm lz4ByteDeco = new CompressionAlgorithm()
-      {
-         final LZ4BytedecoCompressionImplementation impl = new LZ4BytedecoCompressionImplementation();
-
-         @Override
-         public double compress(ByteBuffer in, ByteBuffer out)
-         {
-            Pointer inPointer = new Pointer(in);
-            Pointer outPointer = new Pointer(out);
-
-            return LZ4BytedecoCompressionImplementation.compress(in, inPointer, out, outPointer);
-         }
-
-         @Override
-         public void decompress(ByteBuffer in, ByteBuffer out) throws LZ4BytedecoCompressionImplementation.LZ4Exception
-         {
-            LZ4FDecompressionContext decompressionContext;
-            decompressionContext = LZ4BytedecoCompressionImplementation.ByteDecoLZ4CompressionImplementation();
-            Pointer inPointer = new Pointer(in);
-            Pointer outPointer = new Pointer(out);
-            SizeTPointer inSize = new SizeTPointer(in.limit());
-            SizeTPointer outSize = new SizeTPointer(out.remaining());
-
-            LZ4BytedecoCompressionImplementation.decompress(decompressionContext, inPointer, outPointer, inSize, outSize, out, ELEMENTS);
-         }
-
-         @Override
-         public int maxCompressedLength(int rawDataLength)
-         {
-            return impl.maxCompressedLength(rawDataLength);
-         }
-
-         @Override
-         public int minCompressedLength(int rawDataLength)
-         {
-            return impl.minimumDecompressedLength(rawDataLength);
-         }
-      };
-
       // Snappy Compression
       BenchmarkTest snappyFullRandom = benchmarkTestCompressionAlgorithm(true, snappyCompression, fullRandomByteBufferGenerator(new Random(1234), ELEMENTS));
       System.out.println("Snappy Random: " + snappyFullRandom.ratio * 100 + " time: " + snappyFullRandom.totalTime);
@@ -223,7 +224,7 @@ public class CompressionAlgorithmBenchmarkTest
       Stopwatch stopwatchDecompress = new Stopwatch();
       Stopwatch stopwatchTotal = new Stopwatch();
       BenchmarkTest results = new BenchmarkTest();
-      int bytesCompressed = 0;
+      int bytesCompressed;
 
       ByteBuffer buffer = randomGenerator.get();
       ByteBuffer bufferOut = ByteBuffer.allocateDirect(algorithm.maxCompressedLength(buffer.capacity()));
@@ -265,6 +266,7 @@ public class CompressionAlgorithmBenchmarkTest
             {
                assertEquals(buffer.get(j), bufferDecompress.get(j));
             }
+
          }
       }
 
