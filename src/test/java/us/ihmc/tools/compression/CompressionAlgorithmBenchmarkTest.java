@@ -140,7 +140,7 @@ public class CompressionAlgorithmBenchmarkTest extends Pointer
       }
    };
 
-   CompressionAlgorithm lz4ByteDecoCompression = new CompressionAlgorithm()
+   CompressionAlgorithm lz4BytedecoCompression = new CompressionAlgorithm()
    {
       // Creates the variables needed to compress and decompress, they are only created when the algorithm is used
       final LZ4BytedecoCompressionImplementation impl = new LZ4BytedecoCompressionImplementation();
@@ -172,7 +172,7 @@ public class CompressionAlgorithmBenchmarkTest extends Pointer
       public void decompress(ByteBuffer in, ByteBuffer out) throws LZ4BytedecoCompressionImplementation.LZ4Exception
       {
          // The decompress method requires decompressionContext to check for errors
-         decompressionContext = LZ4BytedecoCompressionImplementation.ByteDecoLZ4CompressionImplementation();
+         decompressionContext = LZ4BytedecoCompressionImplementation.BytedecoLZ4CompressionImplementation();
 
          inSize.put(in.limit());
          outSize.put(out.remaining());
@@ -238,14 +238,16 @@ public class CompressionAlgorithmBenchmarkTest extends Pointer
       System.out.println("LZ4 1.8 repeat: " + lz4Repeat.ratio * 100 + " time: " + lz4Repeat.totalTime);
 
       // LZ4 1.9 Compression for fullRandom, hybridRandom, and repetitive
-      BenchmarkTest lz4ByteDecoFullRandom = benchmarkTestCompressionAlgorithm(true, lz4ByteDecoCompression, fullRandomByteBufferGenerator(new Random(1234), ELEMENTS));
-      System.out.println("lz4 1.9 ByteDeco Random: " + lz4ByteDecoFullRandom.ratio * 100 + " time: " + lz4ByteDecoFullRandom.totalTime);
+      BenchmarkTest lz4BytedecoFullRandom = benchmarkTestCompressionAlgorithm(true,
+                                                                              lz4BytedecoCompression, fullRandomByteBufferGenerator(new Random(1234), ELEMENTS));
+      System.out.println("lz4 1.9 Bytedeco Random: " + lz4BytedecoFullRandom.ratio * 100 + " time: " + lz4BytedecoFullRandom.totalTime);
 
-      BenchmarkTest lz4ByteDecoHybridRandom = benchmarkTestCompressionAlgorithm(false, lz4ByteDecoCompression, hybridRandomByteBufferGenerator(new Random(1234), ELEMENTS));
-      System.out.println("lz4 1.9 ByteDeco Hybrid: " + lz4ByteDecoHybridRandom.ratio * 100 + " time: " + lz4ByteDecoHybridRandom.totalTime);
+      BenchmarkTest lz4BytedecoHybridRandom = benchmarkTestCompressionAlgorithm(false,
+                                                                                lz4BytedecoCompression, hybridRandomByteBufferGenerator(new Random(1234), ELEMENTS));
+      System.out.println("lz4 1.9 Bytedeco Hybrid: " + lz4BytedecoHybridRandom.ratio * 100 + " time: " + lz4BytedecoHybridRandom.totalTime);
 
-      BenchmarkTest lz4ByteDecoRepeat = benchmarkTestCompressionAlgorithm(false, lz4ByteDecoCompression, repeatRandomByteBufferGenerator(ELEMENTS));
-      System.out.println("lz4 1.9 ByteDeco Repeat: " + lz4ByteDecoRepeat.ratio * 100 + " time: " + lz4ByteDecoRepeat.totalTime);
+      BenchmarkTest lz4BytedecoRepeat = benchmarkTestCompressionAlgorithm(false, lz4BytedecoCompression, repeatRandomByteBufferGenerator(ELEMENTS));
+      System.out.println("lz4 1.9 Bytedeco Repeat: " + lz4BytedecoRepeat.ratio * 100 + " time: " + lz4BytedecoRepeat.totalTime);
    }
 
    public BenchmarkTest benchmarkTestCompressionAlgorithm(boolean warmup, CompressionAlgorithm algorithm, Supplier<ByteBuffer> randomGenerator)

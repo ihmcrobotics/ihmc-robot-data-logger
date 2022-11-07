@@ -11,7 +11,7 @@ public class LZ4BytedecoCompressionImplementation
    final static LZ4FDecompressionContext dctx = new LZ4FDecompressionContext();
 
    // Method checks to see if anything goes wrong with the decomopression of the data
-   public static LZ4FDecompressionContext ByteDecoLZ4CompressionImplementation() throws LZ4Exception
+   public static LZ4FDecompressionContext BytedecoLZ4CompressionImplementation() throws LZ4Exception
    {
             final long ctxError = lz4.LZ4F_createDecompressionContext(dctx, lz4.LZ4F_VERSION);
             checkForError(ctxError);
