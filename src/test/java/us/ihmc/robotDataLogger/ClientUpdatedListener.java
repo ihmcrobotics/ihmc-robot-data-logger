@@ -5,14 +5,23 @@ import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 import us.ihmc.yoVariables.registry.YoRegistry;
+import us.ihmc.yoVariables.variable.YoVariable;
+
+import java.util.List;
 
 public class ClientUpdatedListener implements YoVariablesUpdatedListener
 {
-   private final YoRegistry parentRegistry;
+   private YoRegistry parentRegistry;
 
    public ClientUpdatedListener(YoRegistry parentRegistry)
    {
       this.parentRegistry = parentRegistry;
+   }
+
+   // Returns a list of the variables that were set when creating the server, this is how I access the server variables from the client
+   public List<YoVariable> getConnectedClientVariables()
+   {
+      return parentRegistry.getChildren().get(0).getChildren().get(0).getChildren().get(0).getVariables();
    }
 
    @Override

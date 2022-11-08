@@ -15,7 +15,6 @@ import java.util.Random;
 
 public class ServerClientConnectionTest
 {
-   private static final double TIMEOUT = 2.5;
    private static final double dt = 0.001;
    private static final int variablesPerType = 24;
    public YoVariableServer yoVariableServer;
@@ -51,6 +50,15 @@ public class ServerClientConnectionTest
 
       LogTools.info("Starting to loop - not sure what for though currently");
 
+      updateVariables(mainChangingVariables);
+
+      List<YoVariable> fromServer = clientListener.getConnectedClientVariables();
+
+      for (int i = 0; i < clientListener.getConnectedClientVariables().size(); i++)
+      {
+         System.out.println(fromServer.get(i));
+      }
+
       while (true)
       {
          // Increase timestamp and update variables
@@ -84,5 +92,42 @@ public class ServerClientConnectionTest
       YoDouble input = new YoDouble(prefix + "Input", registry);
       YoDouble output = new YoDouble(prefix + "Output", registry);
       input.addListener((v) -> output.set(input.getValue()));
+   }
+
+   private void updateVariables(List<YoVariable> allChangingVariables)
+   {
+      for (int varIdx = 0; varIdx < allChangingVariables.size(); varIdx++)
+      {
+         updateVariable(allChangingVariables.get(varIdx));
+      }
+   }
+
+   private void updateVariable(YoVariable variable)
+   {
+      if (variable instanceof YoBoolean)
+      {
+         ((YoBoolean) variable).set(random.nextBoolean());
+      }
+      else if (variable instanceof YoDouble)
+      {
+         ((YoDouble) variable).set(random.nextDouble());
+      }
+      else if (variable instanceof YoInteger)
+      {
+         ((YoInteger) variable).set(random.nextInt());
+      }
+      else if (variable instanceof YoLong)
+      {
+         ((YoLong) variable).set(random.nextLong());
+      }
+      else if (variable instanceof YoEnum<?>)
+      {
+         int enumSize = ((YoEnum<?>) variable).getEnumSize();
+         ((YoEnum<?>) variable).set(random.nextInt(enumSize));
+      }
+      else
+      {
+         throw new RuntimeException("Implement this case for " + variable.getClass().getSimpleName() + ".");
+      }
    }
 }
