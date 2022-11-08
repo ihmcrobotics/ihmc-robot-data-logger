@@ -8,10 +8,12 @@ import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class ClientUpdatedListener implements YoVariablesUpdatedListener
 {
-   private YoVariableClientInterface yoVariableClientInterface;
-   private YoRegistry parentRegistry;
-   private YoRegistry clientRootRegistry;
-   private boolean handshakeComplete;
+   private final YoRegistry parentRegistry;
+
+   public ClientUpdatedListener(YoRegistry parentRegistry)
+   {
+      this.parentRegistry = parentRegistry;
+   }
 
    @Override
    public boolean updateYoVariables()
@@ -38,6 +40,10 @@ public class ClientUpdatedListener implements YoVariablesUpdatedListener
                      DebugRegistry debugRegistry)
    {
 
+      YoRegistry clientRootRegistry = handshakeParser.getRootRegistry();
+      YoRegistry serverRegistry = new YoRegistry(yoVariableClientInterface.getServerName() + "Container");
+      serverRegistry.addChild(clientRootRegistry);
+      parentRegistry.addChild(serverRegistry);
    }
 
    @Override
