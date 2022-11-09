@@ -1,6 +1,5 @@
 package us.ihmc.tools.compression;
 
-import org.bytedeco.javacpp.Pointer;
 import org.bytedeco.javacpp.SizeTPointer;
 import org.bytedeco.lz4.LZ4FDecompressionContext;
 import org.bytedeco.lz4.global.lz4;
@@ -15,7 +14,7 @@ import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CompressionAlgorithmBenchmarkTest extends Pointer
+public class CompressionAlgorithmBenchmarkTest
 {
    private final int ELEMENTS = 1024;
 
@@ -156,8 +155,8 @@ public class CompressionAlgorithmBenchmarkTest extends Pointer
       public double compress(ByteBuffer in, ByteBuffer out)
       {
          //The wrapMutableBytePointer sets the address, limit, and capacity of a MutableBytePointer to the ByteBuffer that's passed in
-         inPointer.wrapMutableBytePointer(in);
-         outPointer.wrapMutableBytePointer(out);
+         inPointer.wrapByteBuffer(in);
+         outPointer.wrapByteBuffer(out);
 
          return LZ4BytedecoCompressionImplementation.compress(in, inPointer, out, outPointer);
       }
@@ -172,8 +171,8 @@ public class CompressionAlgorithmBenchmarkTest extends Pointer
          outSize.put(out.remaining());
 
          //The wrapMutableBytePointer sets the address, limit, and capacity of a MutableBytePointer to the ByteBuffer that's passed in
-         inPointer.wrapMutableBytePointer(in);
-         outPointer.wrapMutableBytePointer(out);
+         inPointer.wrapByteBuffer(in);
+         outPointer.wrapByteBuffer(out);
 
          LZ4BytedecoCompressionImplementation.decompress(decompressionContext, inPointer, outPointer, inSize, outSize, out, ELEMENTS);
          lz4.LZ4F_freeDecompressionContext(decompressionContext);
