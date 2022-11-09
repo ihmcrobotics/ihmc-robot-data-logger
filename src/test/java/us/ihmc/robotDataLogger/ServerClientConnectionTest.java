@@ -25,7 +25,6 @@ public class ServerClientConnectionTest
    private final Random random = new Random(666);
    private long timestamp = 0;
 
-
    @Test
    public void connectToServerTest()
    {
@@ -96,9 +95,9 @@ public class ServerClientConnectionTest
 
    private void updateVariables(List<YoVariable> allChangingVariables)
    {
-      for (int varIdx = 0; varIdx < allChangingVariables.size(); varIdx++)
+      for (int i = 0; i < allChangingVariables.size(); i++)
       {
-         updateVariable(allChangingVariables.get(varIdx));
+         updateVariable(allChangingVariables.get(i));
       }
    }
 

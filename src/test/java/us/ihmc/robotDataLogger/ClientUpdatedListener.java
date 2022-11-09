@@ -24,10 +24,12 @@ public class ClientUpdatedListener implements YoVariablesUpdatedListener
       return parentRegistry.getChildren().get(0).getChildren().get(0).getChildren().get(0).getVariables();
    }
 
+
+   // NEed to update these variables, that is why the client listener isn't getting updates
    @Override
    public boolean updateYoVariables()
    {
-      return false;
+      return true;
    }
 
    @Override
