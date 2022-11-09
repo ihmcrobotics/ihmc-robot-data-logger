@@ -249,20 +249,19 @@ public class CompressionAlgorithmBenchmarkTest extends Pointer
       BenchmarkTest results = new BenchmarkTest();
       int bytesCompressed;
 
-      // Each ByteBuffer is filled with a random generator that is passed in during the method call
-      ByteBuffer buffer = randomGenerator.get();
-      ByteBuffer bufferOut = ByteBuffer.allocateDirect(algorithm.maxCompressedLength(buffer.capacity()));
-      ByteBuffer bufferDecompress = ByteBuffer.allocateDirect(algorithm.minDecompressedLength(bufferOut.capacity()));
-
       // Warmup for algorithm methods, helps to optimize the JIT compiler and is only called if warmup is set as true in the parameters
       if (warmup)
       {
          for (int i = 0; i < 25000; i++)
          {
-            // Resets buffers for each start of the loop because the positions change during compression and decompression
+            // Each ByteBuffer is filled with a random generator that is passed in during the method call
+            // This is in the for loop so the supplier can get new values at each iteration of the for loop using get and a set seed
+            ByteBuffer buffer = randomGenerator.get();
+            ByteBuffer bufferOut = ByteBuffer.allocateDirect(algorithm.maxCompressedLength(buffer.capacity()));
+            ByteBuffer bufferDecompress = ByteBuffer.allocateDirect(algorithm.minDecompressedLength(bufferOut.capacity()));
+
+            // When using the supplier the position of this buffer gets moved and needs to be reset before compress is called
             buffer.flip();
-            bufferOut.clear();
-            bufferDecompress.clear();
 
             // Compresses data into bufferOut and returns the number of bytes that were compressed
             bytesCompressed = (int) algorithm.compress(buffer, bufferOut);
@@ -278,20 +277,7 @@ public class CompressionAlgorithmBenchmarkTest extends Pointer
             // Decompress the compressed data into bufferDecompress
             algorithm.decompress(bufferOut, bufferDecompress);
 
-            // LZ4 1.9 uses pointers to implement so the positions of the buffers don't actually change, this ensures that the positions get updates
-            if (buffer.position() == 0)
-            {
-               buffer.position(buffer.limit());
-            }
-
-            if (bufferDecompress.position() == 0)
-            {
-               bufferDecompress.position(bufferDecompress.limit());
-            }
-
             // Tests to see if the initial data and the decompressed data are the same, this makes sure the test actually works
-            assertEquals(buffer, bufferDecompress);
-
             for (int j = 0; j < ELEMENTS; j++)
             {
                assertEquals(buffer.get(j), bufferDecompress.get(j));
@@ -305,9 +291,13 @@ public class CompressionAlgorithmBenchmarkTest extends Pointer
       // This loop is the same as the warmup loop but keeps track of time for the benchmark
       for (int i = 0; i < iterations; i++)
       {
+         // Each ByteBuffer is filled with a random generator that is passed in during the method call
+         // This is in the for loop so the supplier can get new values at each iteration of the for loop using get and a set seed
+         ByteBuffer buffer = randomGenerator.get();
+         ByteBuffer bufferOut = ByteBuffer.allocateDirect(algorithm.maxCompressedLength(buffer.capacity()));
+         ByteBuffer bufferDecompress = ByteBuffer.allocateDirect(algorithm.minDecompressedLength(bufferOut.capacity()));
+
          buffer.flip();
-         bufferOut.clear();
-         bufferDecompress.clear();
 
          stopwatchTotal.start();
          stopwatchCompress.start();
@@ -331,16 +321,6 @@ public class CompressionAlgorithmBenchmarkTest extends Pointer
 
          results.decompressTime += stopwatchDecompress.totalElapsed();
          results.totalTime += stopwatchTotal.totalElapsed();
-
-         if (buffer.position() == 0)
-         {
-            buffer.position(buffer.limit());
-         }
-
-         if (bufferDecompress.position() == 0)
-         {
-            bufferDecompress.position(bufferDecompress.limit());
-         }
       }
 
       // After the benchmark has finished, the times and ratio's get divided by the number of time the for loop ran, this gives results for a single use
