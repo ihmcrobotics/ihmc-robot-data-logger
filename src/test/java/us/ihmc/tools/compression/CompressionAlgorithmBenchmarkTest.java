@@ -155,15 +155,9 @@ public class CompressionAlgorithmBenchmarkTest extends Pointer
       @Override
       public double compress(ByteBuffer in, ByteBuffer out)
       {
-         // Sets the address of the pointer to the address of the ByteBuffer, does the same thing with limit and capacity
-         inPointer.setAddress(getDirectBufferAddress(in));
-         outPointer.setAddress(getDirectBufferAddress(out));
-
-         inPointer.setLimit(in.limit());
-         outPointer.setLimit(out.limit());
-
-         inPointer.setCapacity(in.capacity());
-         outPointer.setCapacity(out.capacity());
+         //The wrapMutableBytePointer sets the address, limit, and capacity of a MutableBytePointer to the ByteBuffer that's passed in
+         inPointer.wrapMutableBytePointer(in);
+         outPointer.wrapMutableBytePointer(out);
 
          return LZ4BytedecoCompressionImplementation.compress(in, inPointer, out, outPointer);
       }
@@ -177,14 +171,9 @@ public class CompressionAlgorithmBenchmarkTest extends Pointer
          inSize.put(in.limit());
          outSize.put(out.remaining());
 
-         inPointer.setAddress(getDirectBufferAddress(in));
-         outPointer.setAddress(getDirectBufferAddress(out));
-
-         inPointer.setLimit(in.limit());
-         outPointer.setLimit(out.limit());
-
-         inPointer.setCapacity(in.capacity());
-         outPointer.setCapacity(out.capacity());
+         //The wrapMutableBytePointer sets the address, limit, and capacity of a MutableBytePointer to the ByteBuffer that's passed in
+         inPointer.wrapMutableBytePointer(in);
+         outPointer.wrapMutableBytePointer(out);
 
          LZ4BytedecoCompressionImplementation.decompress(decompressionContext, inPointer, outPointer, inSize, outSize, out, ELEMENTS);
          lz4.LZ4F_freeDecompressionContext(decompressionContext);
