@@ -4,8 +4,10 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
+import us.ihmc.parameterTuner.remote.ParameterUpdateListener;
 import us.ihmc.robotDataLogger.example.ExampleServer;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
+import us.ihmc.yoVariables.listener.YoRegistryChangedListener;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.*;
 
@@ -24,6 +26,8 @@ public class ServerClientConnectionTest
    private final List<YoVariable> mainChangingVariables = new ArrayList<>();
    private final Random random = new Random(666);
    private long timestamp = 0;
+   private final ClientUpdatedListener clientListener = new ClientUpdatedListener(listenerRegistry);
+   private final ParameterUpdateListener updateListener = new ParameterUpdateListener();
 
    @Test
    public void connectToServerTest()
@@ -39,17 +43,22 @@ public class ServerClientConnectionTest
       yoVariableServer.start();
       LogTools.info("Server has started.");
 
+      //update the YoVaraibles on the server before the client starts to see if I can get those to be changed
+      updateVariables(mainChangingVariables);
+      //didn't work, still wasn't gettin the updates variables, its because I don't think it actually
+      // is connected to the variables, so regardless of there values, it gets the intially pushed values
+
+
       // Somehow this starts a client but currently can't recall how it gets past client.start()? Need to figure that out
       //start client
-      ClientUpdatedListener clientListener = new ClientUpdatedListener(listenerRegistry);
+
+      registry.addListener(clientListener);
 
       final YoVariableClient client = new YoVariableClient(clientListener);
       client.startWithHostSelector();
       LogTools.info("Client has started.");
 
       LogTools.info("Starting to loop - not sure what for though currently");
-
-      updateVariables(mainChangingVariables);
 
       List<YoVariable> fromServer = clientListener.getConnectedClientVariables();
 
@@ -86,11 +95,11 @@ public class ServerClientConnectionTest
          new YoEnum<>(prefix + "Enum" + i, registry, ExampleServer.SomeEnum.class, random.nextBoolean());
       }
 
-      allChangingVariables.addAll(registry.collectSubtreeVariables());
+//      This addVariable method is called each time you create a yoVariable, so it doesn't ever need to be done here
+//      registry.addVariable(new YoBoolean(prefix + "Boolean" + 0, registry));
 
-      YoDouble input = new YoDouble(prefix + "Input", registry);
-      YoDouble output = new YoDouble(prefix + "Output", registry);
-      input.addListener((v) -> output.set(input.getValue()));
+
+      allChangingVariables.addAll(registry.collectSubtreeVariables());
    }
 
    private void updateVariables(List<YoVariable> allChangingVariables)
