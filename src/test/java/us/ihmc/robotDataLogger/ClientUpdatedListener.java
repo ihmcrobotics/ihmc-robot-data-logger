@@ -4,12 +4,13 @@ import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
+import us.ihmc.yoVariables.listener.YoRegistryChangedListener;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 import java.util.List;
 
-public class ClientUpdatedListener implements YoVariablesUpdatedListener
+public class ClientUpdatedListener implements YoVariablesUpdatedListener, YoRegistryChangedListener
 {
    private YoRegistry parentRegistry;
 
@@ -83,6 +84,12 @@ public class ClientUpdatedListener implements YoVariablesUpdatedListener
 
    @Override
    public void receivedTimestampOnly(long timestamp)
+   {
+
+   }
+
+   @Override
+   public void changed(Change change)
    {
 
    }
