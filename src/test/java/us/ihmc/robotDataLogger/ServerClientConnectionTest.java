@@ -51,14 +51,19 @@ public class ServerClientConnectionTest
 
       // Somehow this starts a client but currently can't recall how it gets past client.start()? Need to figure that out
       //start client
+//prepend sefver of client stuff
+      //currently not sure if this does anything but its being used so leave it for now
+//      registry.addListener(clientListener);
 
-      registry.addListener(clientListener);
-
-      final YoVariableClient client = new YoVariableClient(clientListener);
-      client.startWithHostSelector();
+      final YoVariableClient yoVariableClient = new YoVariableClient(clientListener);
+      yoVariableClient.startWithHostSelector();
       LogTools.info("Client has started.");
 
       LogTools.info("Starting to loop - not sure what for though currently");
+
+      long dtFactor = Conversions.secondsToNanoseconds(dt) / 2;
+      long jitteryTimestamp = timestamp + (long) ((random.nextDouble() - 0.5) * dtFactor);
+      yoVariableServer.update(jitteryTimestamp);
 
       List<YoVariable> fromServer = clientListener.getConnectedClientVariables();
 
@@ -73,8 +78,8 @@ public class ServerClientConnectionTest
          timestamp += Conversions.secondsToNanoseconds(dt);
 
          // Adjust timestamp by +- 0.25 * dt to simulate jitter
-         long dtFactor = Conversions.secondsToNanoseconds(dt) / 2;
-         long jitteryTimestamp = timestamp + (long) ((random.nextDouble() - 0.5) * dtFactor);
+//         long dtFactor = Conversions.secondsToNanoseconds(dt) / 2;
+//         long jitteryTimestamp = timestamp + (long) ((random.nextDouble() - 0.5) * dtFactor);
 
          // Send main registry
          yoVariableServer.update(jitteryTimestamp);
