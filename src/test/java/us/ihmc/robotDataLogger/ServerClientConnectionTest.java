@@ -4,10 +4,12 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.parameterTuner.remote.ParameterUpdateListener;
 import us.ihmc.robotDataLogger.example.ExampleServer;
+import us.ihmc.robotDataLogger.handshake.LogHandshake;
+import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
-import us.ihmc.yoVariables.listener.YoRegistryChangedListener;
+import us.ihmc.robotDataLogger.util.DebugRegistry;
+import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.*;
 
@@ -19,72 +21,50 @@ public class ServerClientConnectionTest
 {
    private static final double dt = 0.001;
    private static final int variablesPerType = 24;
-   public YoVariableServer yoVariableServer;
-   private static final DataServerSettings logSettings = new DataServerSettings(true);
-   private final YoRegistry registry = new YoRegistry("Main");
-   private final YoRegistry listenerRegistry = new YoRegistry("ListenerRegistry");
-   private final List<YoVariable> mainChangingVariables = new ArrayList<>();
-   private final Random random = new Random(666);
    private long timestamp = 0;
-   private final ClientUpdatedListener clientListener = new ClientUpdatedListener(listenerRegistry);
-   private final ParameterUpdateListener updateListener = new ParameterUpdateListener();
+   private final Random random = new Random(666);
+   private static final DataServerSettings logSettings = new DataServerSettings(true);
+   private final List<YoVariable> mainChangingVariables = new ArrayList<>();
+   public YoVariableServer yoVariableServer;
+   public YoVariableClient yoVariableClient;
+   private final YoRegistry serverRegistry = new YoRegistry("Main");
+   private final YoRegistry clientListenerRegistry = new YoRegistry("ListenerRegistry");
+   private final ClientUpdatedListener clientListener = new ClientUpdatedListener(clientListenerRegistry);
 
    @Test
-   public void connectToServerTest()
+   public void sendVariablesToClientTest()
    {
-      // Create variables for the registry
-      createVariables("Main", variablesPerType, registry, mainChangingVariables);
+      // This method creates all the YoVariables to be stored on the server, change how many with the variablesPerType int
+      createVariables("Main", variablesPerType, serverRegistry, mainChangingVariables);
 
-      // Create server
+      // Creates the server and adds the main registry to the server with all the YoVariables, the server is then started
       yoVariableServer = new YoVariableServer("TestServer", null, logSettings, dt);
-      // Add main registry to server
-      yoVariableServer.setMainRegistry(registry, null);
-      // Start the server before the loop and after all registries are added to the server.
+      yoVariableServer.setMainRegistry(serverRegistry, null);
       yoVariableServer.start();
-      LogTools.info("Server has started.");
 
-      //update the YoVaraibles on the server before the client starts to see if I can get those to be changed
-      updateVariables(mainChangingVariables);
-      //didn't work, still wasn't gettin the updates variables, its because I don't think it actually
-      // is connected to the variables, so regardless of there values, it gets the intially pushed values
-
-
-      // Somehow this starts a client but currently can't recall how it gets past client.start()? Need to figure that out
-      //start client
-//prepend sefver of client stuff
-      //currently not sure if this does anything but its being used so leave it for now
-//      registry.addListener(clientListener);
-
-      final YoVariableClient yoVariableClient = new YoVariableClient(clientListener);
+      // Creates the client and adds the listener to the client, then the client is started as well
+      yoVariableClient = new YoVariableClient(clientListener);
       yoVariableClient.startWithHostSelector();
-      LogTools.info("Client has started.");
 
-      LogTools.info("Starting to loop - not sure what for though currently");
-
-      long dtFactor = Conversions.secondsToNanoseconds(dt) / 2;
-      long jitteryTimestamp = timestamp + (long) ((random.nextDouble() - 0.5) * dtFactor);
-      yoVariableServer.update(jitteryTimestamp);
-
-      List<YoVariable> fromServer = clientListener.getConnectedClientVariables();
-
-      for (int i = 0; i < clientListener.getConnectedClientVariables().size(); i++)
-      {
-         System.out.println(fromServer.get(i));
-      }
+      // Message to let the user know that the client and server should now both be running
+      LogTools.info("Server and Client are started!");
 
       while (true)
       {
-         // Increase timestamp and update variables
+         LogTools.info("Starting to loop the Server and Client, in the loop update variables and send to Client");
+
+         // timestamp and dtFactor are used to generate the jitteryTimestamp that will be sent to the server as the time when the update method was called
          timestamp += Conversions.secondsToNanoseconds(dt);
+         long dtFactor = Conversions.secondsToNanoseconds(dt) / 2;
+         long jitteryTimestamp = timestamp + (long) ((random.nextDouble() - 0.5) * dtFactor);
 
-         // Adjust timestamp by +- 0.25 * dt to simulate jitter
-//         long dtFactor = Conversions.secondsToNanoseconds(dt) / 2;
-//         long jitteryTimestamp = timestamp + (long) ((random.nextDouble() - 0.5) * dtFactor);
+         // Update the YoVariables before sending the data to the server
+         updateVariables(mainChangingVariables);
 
-         // Send main registry
+         // This should take the timestamp and send the updated variables to the client as well as the timestamp
          yoVariableServer.update(jitteryTimestamp);
 
-         // Wait to not crash the network
+         // Since the networks don't run at the same rate, it's good to sleep for a bit in order to not crash the network
          ThreadTools.sleepSeconds(dt);
       }
    }
@@ -99,10 +79,6 @@ public class ServerClientConnectionTest
          new YoLong(prefix + "Long" + i, registry);
          new YoEnum<>(prefix + "Enum" + i, registry, ExampleServer.SomeEnum.class, random.nextBoolean());
       }
-
-//      This addVariable method is called each time you create a yoVariable, so it doesn't ever need to be done here
-//      registry.addVariable(new YoBoolean(prefix + "Boolean" + 0, registry));
-
 
       allChangingVariables.addAll(registry.collectSubtreeVariables());
    }
@@ -141,6 +117,84 @@ public class ServerClientConnectionTest
       else
       {
          throw new RuntimeException("Implement this case for " + variable.getClass().getSimpleName() + ".");
+      }
+   }
+
+   /** Class that implements the YoVariableUpdatedListener to connect with the client */
+   public static class ClientUpdatedListener implements YoVariablesUpdatedListener
+   {
+      private final YoRegistry parentRegistry;
+
+      public ClientUpdatedListener(YoRegistry parentRegistry)
+      {
+         this.parentRegistry = parentRegistry;
+      }
+
+      // Returns a list of the variables that were set when creating the server, this is how I access the server variables from the client
+      public List<YoVariable> getConnectedClientVariables()
+      {
+         return parentRegistry.getChildren().get(0).getChildren().get(0).getChildren().get(0).getVariables();
+      }
+
+      @Override
+      public boolean updateYoVariables()
+      {
+         return true;
+      }
+
+      @Override
+      public boolean changesVariables()
+      {
+         return false;
+      }
+
+      @Override
+      public void setShowOverheadView(boolean showOverheadView)
+      {
+
+      }
+
+      @Override
+      public void start(YoVariableClientInterface yoVariableClientInterface,
+                        LogHandshake handshake,
+                        YoVariableHandshakeParser handshakeParser,
+                        DebugRegistry debugRegistry)
+      {
+
+         YoRegistry clientRootRegistry = handshakeParser.getRootRegistry();
+         YoRegistry serverRegistry = new YoRegistry(yoVariableClientInterface.getServerName() + "Container");
+         serverRegistry.addChild(clientRootRegistry);
+         parentRegistry.addChild(serverRegistry);
+      }
+
+      @Override
+      public void disconnected()
+      {
+
+      }
+
+      @Override
+      public void receivedTimestampAndData(long timestamp)
+      {
+
+      }
+
+      @Override
+      public void connected()
+      {
+
+      }
+
+      @Override
+      public void receivedCommand(DataServerCommand command, int argument)
+      {
+
+      }
+
+      @Override
+      public void receivedTimestampOnly(long timestamp)
+      {
+
       }
    }
 }
