@@ -1,5 +1,6 @@
 package us.ihmc.robotDataLogger;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
@@ -12,7 +13,6 @@ import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -49,8 +49,9 @@ public class ServerClientConnectionTest
       // Message to let the user know that the client and server should now both be running
       LogTools.info("Server and Client are started!");
 
-      while (true)
+      for (int i = 0; i < 10; i++)
       {
+         LogTools.info(i);
          LogTools.info("Starting to loop the Server and Client, in the loop update variables and send to Client");
 
          // timestamp and dtFactor are used to generate the jitteryTimestamp that will be sent to the server as the time when the update method was called
@@ -59,15 +60,43 @@ public class ServerClientConnectionTest
          long jitteryTimestamp = timestamp + (long) ((random.nextDouble() - 0.5) * dtFactor);
 
          // Update the YoVariables before sending the data to the server
-         updateVariables(mainChangingVariables);
+            updateVariables(mainChangingVariables);
 
          // This should take the timestamp and send the updated variables to the client as well as the timestamp
-         yoVariableServer.update(jitteryTimestamp);
+         update(jitteryTimestamp);
 
-         // Since the networks don't run at the same rate, it's good to sleep for a bit in order to not crash the network
-         ThreadTools.sleepSeconds(dt);
+         // Store the variables that are in the server and client, this will allow us to compare the values and see if they match
+         List<YoVariable> serverVariables = new ArrayList<>(serverRegistry.collectSubtreeVariables());
+         List<YoVariable> clientVariables = new ArrayList<>(clientListenerRegistry.collectSubtreeVariables());
+
+         for (int j = 0; j < serverVariables.size(); j++)
+         {
+            Assertions.assertEquals(serverVariables.get(j).getValueAsString(), clientVariables.get(j).getValueAsString(),
+                                    "The server variable: " + serverVariables.get(j) + ", the client variable: "
+                                    + clientVariables.get(j));
+         }
       }
    }
+
+   // This method is just used to cleanup the main loop, basically because of time and idk what else, the update method needs to be called several times and
+   // the program needs to wait for a bit for the client to detect that the variables have changed on the server, WEIRD
+   public void update(long jitteryTimestamp)
+   {
+      yoVariableServer.update(jitteryTimestamp);
+      yoVariableServer.update(jitteryTimestamp);
+      ThreadTools.sleepSeconds(6);
+      yoVariableServer.update(jitteryTimestamp);
+      yoVariableServer.update(jitteryTimestamp);
+      ThreadTools.sleepSeconds(6);
+      yoVariableServer.update(jitteryTimestamp);
+      yoVariableServer.update(jitteryTimestamp);
+
+      // Since the networks don't run at the same rate, it's good to sleep for a bit in order to not crash the network
+      ThreadTools.sleepSeconds(18);
+      yoVariableServer.update(jitteryTimestamp);
+      yoVariableServer.update(jitteryTimestamp);
+   }
+
 
    public void createVariables(String prefix, int variablesPerType, YoRegistry registry, List<YoVariable> allChangingVariables)
    {
@@ -85,9 +114,9 @@ public class ServerClientConnectionTest
 
    private void updateVariables(List<YoVariable> allChangingVariables)
    {
-      for (int i = 0; i < allChangingVariables.size(); i++)
+      for (YoVariable allChangingVariable : allChangingVariables)
       {
-         updateVariable(allChangingVariables.get(i));
+         updateVariable(allChangingVariable);
       }
    }
 
@@ -128,12 +157,6 @@ public class ServerClientConnectionTest
       public ClientUpdatedListener(YoRegistry parentRegistry)
       {
          this.parentRegistry = parentRegistry;
-      }
-
-      // Returns a list of the variables that were set when creating the server, this is how I access the server variables from the client
-      public List<YoVariable> getConnectedClientVariables()
-      {
-         return parentRegistry.getChildren().get(0).getChildren().get(0).getChildren().get(0).getVariables();
       }
 
       @Override
