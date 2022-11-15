@@ -44,7 +44,7 @@ public class ServerClientConnectionTest
 
       // Creates the client and adds the listener to the client, then the client is started as well
       yoVariableClient = new YoVariableClient(clientListener);
-      yoVariableClient.startWithHostSelector();
+      yoVariableClient.start("localhost", 8008);
 
       // Message to let the user know that the client and server should now both be running
       LogTools.info("Server and Client are started!");
