@@ -51,8 +51,6 @@ public class DoubleToLongBitsSpeedTest
 
       for (int i = 0; i < 120; i++)
       {
-         fillDoubleBuffer(numberOfVariables, variables, doubleBuffer);
-         fillLongBuffer(numberOfVariables, variables, longBuffer);
          doubleBuffer.clear();
          longBuffer.clear();
 
@@ -65,7 +63,7 @@ public class DoubleToLongBitsSpeedTest
          longTimeTaken = (System.nanoTime() - startTime) / 1e6;
 
          Assertions.assertFalse(doubleTimeTaken > longTimeTaken,
-                                "Double Buffer took: " + doubleTimeTaken + ", and Long Buffer took: " + longTimeTaken);
+                                "Double Buffer took: " + doubleTimeTaken + ", and Long Buffer took: " + longTimeTaken + "For loop: " + i);
       }
    }
 
