@@ -93,20 +93,6 @@ public class RegistrySendBufferTest
       }
    }
 
-   public static int[] calculateOffsets(int[] segmentSizes)
-   {
-      int[] offsets = new int[segmentSizes.length];
-      int currentOffset = 0;
-      for (int i = 0; i < segmentSizes.length; i++)
-      {
-         offsets[i] = currentOffset;
-         currentOffset += segmentSizes[i];
-      }
-
-      return offsets;
-
-   }
-
    public static int calculateMaximumNumberOfVariables(int variables, int jointStates)
    {
       int[] segmentSizes = calculateLogSegmentSizes(variables, jointStates);
@@ -124,9 +110,8 @@ public class RegistrySendBufferTest
    @Test
    public void testYoVariables() throws IOException
    {
-      Random random = new Random(23589735l);
+      Random random = new Random(23589735L);
 
-      //      int numberOfVariables = 10000;
       for (int numberOfVariables = 1000; numberOfVariables <= 33000; numberOfVariables += 1000)
       {
          ArrayList<JointHolder> sendJointHolders = new ArrayList<>();
@@ -142,7 +127,6 @@ public class RegistrySendBufferTest
             sendJoint.setQd(random.nextDouble() * Math.PI * 2.0);
             sendJointHolders.add(new OneDoFJointHolder(sendJoint));
             receiveJointStates.add(new OneDoFState("Joint" + j));
-
          }
 
          int numberOfJointStates = RegistrySendBufferBuilder.getNumberOfJointStates(sendJointHolders);
@@ -155,6 +139,9 @@ public class RegistrySendBufferTest
          long uid = random.nextLong();
 
          YoRegistry sendRegistry = new YoRegistry("sendRegistry");
+         YoRegistry receiveRegistry = new YoRegistry("receiveRegistry");
+
+         // Fill the registry that is going to send data with YoVariables, this way it actually has something to send and isn't empty
          for (int v = 0; v < numberOfVariables; v++)
          {
             YoLong newLong = new YoLong("var" + v, sendRegistry);
@@ -164,26 +151,32 @@ public class RegistrySendBufferTest
          // Receive data
          CustomLogDataSubscriberType subscriberType = new CustomLogDataSubscriberType(calculateMaximumNumberOfVariables(numberOfVariables, numberOfJointStates),
                                                                                       numberOfJointStates);
-         YoRegistry receiveRegistry = new YoRegistry("receiveRegistry");
+
+         // Make copies of the YoVariables and put them int the recieveing buffer, that way when variables are sent, they have a place to be stored
          for (int v = 0; v < numberOfVariables; v++)
          {
             new YoLong("var" + v, receiveRegistry);
          }
-         RegistryDecompressor registryDecompressor = new RegistryDecompressor(receiveRegistry.collectSubtreeVariables(), receiveJointStates);
 
-         // Test
+         // Now that the data has been generated, test the buffers, update the variables and assert that the variables in both send and receive buffers match
+         RegistryDecompressor registryDecompressor = new RegistryDecompressor(receiveRegistry.collectSubtreeVariables(), receiveJointStates);
          RegistrySendBuffer sendBuffer = new RegistrySendBuffer(1, sendRegistry.collectSubtreeVariables(), sendJointHolders);
+         RegistryReceiveBuffer receiveBuffer = new RegistryReceiveBuffer(sendBuffer.getTimestamp());
+
+         payload.getData().clear();
+
+         // This will calculate the time taken to update the buffer with the new values for the variables
          long start = System.nanoTime();
          sendBuffer.updateBufferFromVariables(timestamp, uid, numberOfVariables);
-         System.out.println("Time taken for update if " + (numberOfVariables + numberOfJointStates) + " "
-               + Conversions.nanosecondsToSeconds(System.nanoTime() - start));
-         payload.getData().clear();
-         publisherType.serialize(sendBuffer, payload);
+         System.out.println("Time taken to update when variables and joint states total to: " + (numberOfVariables + numberOfJointStates) + " : Time: "
+                            + Conversions.nanosecondsToSeconds(System.nanoTime() - start));
 
-         RegistryReceiveBuffer receiveBuffer = new RegistryReceiveBuffer(sendBuffer.getTimestamp());
+         publisherType.serialize(sendBuffer, payload);
          subscriberType.deserialize(payload, receiveBuffer);
+
          registryDecompressor.decompressSegment(receiveBuffer, 0);
 
+         // Double check that all the variables that were transmitted are the same, otherwise through error
          List<YoVariable> sendVariables = sendRegistry.collectSubtreeVariables();
          List<YoVariable> receiveVariables = receiveRegistry.collectSubtreeVariables();
 
@@ -192,7 +185,6 @@ public class RegistrySendBufferTest
          {
             assertEquals(sendVariables.get(t).getValueAsLongBits(), receiveVariables.get(t).getValueAsLongBits());
          }
-
       }
    }
 }

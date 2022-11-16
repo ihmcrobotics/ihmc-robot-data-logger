@@ -8,63 +8,90 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import us.ihmc.commons.time.Stopwatch;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
+import java.awt.*;
+import java.util.function.Supplier;
+import javax.swing.*;
 
 public class DoubleToLongBitsSpeedTest
 {
+   int numberOfVariables = 100000;
+   Random random = new Random();
+   ProgressBar bar = new ProgressBar();
+
+   // Made use of a supplier for future updates with the test, this allows the user to grab the next bit of data each time the supplier is called
+   // Currently its only called once so the use of the supplier isn't needed
+   Supplier<ArrayList<YoDouble>> generateRandomData()
+   {
+      return () ->
+      {
+         YoRegistry registry = new YoRegistry("TestRegistry");
+         ArrayList<YoDouble> variables = new ArrayList<>(numberOfVariables);
+
+         for (int i = 0; i < numberOfVariables; i++)
+         {
+            bar.setValue(i);
+            YoDouble v = new YoDouble("test-" + i, registry);
+            v.set(random.nextDouble());
+            variables.add(v);
+         }
+
+         return variables;
+      };
+   }
+
    @Test
    public void testDoubleToLongBitsSpeed()
    {
-      int numberOfVariables = 10000;
-      long startTime = 0;
+      // Variables needed for testing
       double doubleTimeTaken;
       double longTimeTaken;
-
-
-      Random random = new Random(1234);
-      ArrayList<YoDouble> variables = new ArrayList<>(numberOfVariables);
-
-      YoRegistry registry = new YoRegistry("TestRegistry");
-
-      // Seems like a lot of variables and maybe it could be a bit less, NOT CURRENTLY SURE WHY THIS HAPPENS
-      for (int i = 0; i < numberOfVariables; i++)
-      {
-         YoDouble v = new YoDouble("test-" + i, registry);
-         v.set(random.nextDouble());
-         variables.add(v);
-      }
+      Stopwatch doubleTime = new Stopwatch();
+      Stopwatch longTime = new Stopwatch();
+      ArrayList<YoDouble> variables;
 
       // Buffers created for the test, the original buffer is just used to generate the double and long buffer
       ByteBuffer buffer = ByteBuffer.allocate(numberOfVariables * 8);
       DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
       LongBuffer longBuffer = buffer.asLongBuffer();
 
+      //Fills the ArrayList with random values that will get tested
+      variables = generateRandomData().get();
+
       // Used to optimize the JIT Compiler, that way the time taken is accurate to the fullest extent
       for (int i = 0; i < 4200; i++)
       {
+         bar.setValue(i);
          fillDoubleBuffer(numberOfVariables, variables, doubleBuffer);
          fillLongBuffer(numberOfVariables, variables, longBuffer);
          doubleBuffer.clear();
          longBuffer.clear();
       }
 
-      for (int i = 0; i < 120; i++)
+      //Runs the DoubleBuffer a bunch and stores how long it takes to run them all
+      doubleTime.start();
+      for (int i = 0; i < 1000; i++)
       {
-         doubleBuffer.clear();
-         longBuffer.clear();
-
-         startTime = System.nanoTime();
          fillDoubleBuffer(numberOfVariables, variables, doubleBuffer);
-         doubleTimeTaken = (System.nanoTime() - startTime) / 1e6;
-
-         startTime = System.nanoTime();
-         fillLongBuffer(numberOfVariables, variables, longBuffer);
-         longTimeTaken = (System.nanoTime() - startTime) / 1e6;
-
-         Assertions.assertFalse(doubleTimeTaken > longTimeTaken,
-                                "Double Buffer took: " + doubleTimeTaken + ", and Long Buffer took: " + longTimeTaken + "For loop: " + i);
+         doubleBuffer.clear();
       }
+      doubleTimeTaken = doubleTime.totalElapsed();
+
+      //Runs the LongBuffer a bunch and stores how long it takes to run them all
+      longTime.start();
+      for (int i = 0; i < 1000; i++)
+      {
+         fillLongBuffer(numberOfVariables, variables, longBuffer);
+         longBuffer.clear();
+      }
+      longTimeTaken = longTime.totalElapsed();
+
+      // On each individual attempt the double conversion may be slower than the long conversion but over time and on average, the double
+      // will be faster than the long which is how the test is designed
+      Assertions.assertTrue(doubleTimeTaken < longTimeTaken,
+                             "Double Buffer took: " + doubleTimeTaken + ", and Long Buffer took: " + longTimeTaken);
    }
 
    // Fills the DoubleBuffer with doubles from the list
@@ -82,6 +109,34 @@ public class DoubleToLongBitsSpeedTest
       for (int i = 0; i < numberOfVariables; i++)
       {
          longBuffer.put(Double.doubleToLongBits(variables.get(i).getDoubleValue()));
+      }
+   }
+
+   // This class is making use of a progress bar, It's helpful to see how far the program has gotten but isn't actually necessary for the test
+   public class ProgressBar {
+
+      JFrame frame = new JFrame();
+      JProgressBar bar = new JProgressBar(0,numberOfVariables);
+
+      ProgressBar(){
+
+         bar.setValue(0);
+         bar.setBounds(0,0,420,50);
+         bar.setStringPainted(true);
+         bar.setFont(new Font("MV Boli",Font.BOLD,25));
+         bar.setForeground(Color.red);
+         bar.setBackground(Color.black);
+
+         frame.add(bar);
+         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+         frame.setSize(420, 420);
+         frame.setLayout(null);
+         frame.setVisible(true);
+      }
+
+      public void setValue(int value)
+      {
+         bar.setValue(value);
       }
    }
 }

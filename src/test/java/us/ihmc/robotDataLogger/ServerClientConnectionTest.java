@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.example.ExampleServer;
 import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
@@ -19,6 +18,12 @@ import java.util.Random;
 
 public class ServerClientConnectionTest
 {
+   // This method is used when creating the YoEnums
+   public enum SomeEnum
+   {
+      A, B, C, D, E, F;
+   }
+
    private static final double dt = 0.001;
    private static final int variablesPerType = 24;
    private long timestamp = 0;
@@ -51,9 +56,6 @@ public class ServerClientConnectionTest
 
       for (int i = 0; i < 10; i++)
       {
-         LogTools.info(i);
-         LogTools.info("Starting to loop the Server and Client, in the loop update variables and send to Client");
-
          // timestamp and dtFactor are used to generate the jitteryTimestamp that will be sent to the server as the time when the update method was called
          timestamp += Conversions.secondsToNanoseconds(dt);
          long dtFactor = Conversions.secondsToNanoseconds(dt) / 2;
@@ -106,7 +108,7 @@ public class ServerClientConnectionTest
          new YoDouble(prefix + "Double" + i, registry);
          new YoInteger(prefix + "Integer" + i, registry);
          new YoLong(prefix + "Long" + i, registry);
-         new YoEnum<>(prefix + "Enum" + i, registry, ExampleServer.SomeEnum.class, random.nextBoolean());
+         new YoEnum<>(prefix + "Enum" + i, registry, SomeEnum.class, random.nextBoolean());
       }
 
       allChangingVariables.addAll(registry.collectSubtreeVariables());
