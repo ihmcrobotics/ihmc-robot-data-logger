@@ -16,16 +16,18 @@ import us.ihmc.robotDataLogger.logger.YoVariableLogReader;
  *
  * @author Jesper Smith
  */
+
+// Test is in the wrong spot, like what the heck is going on here, if this is a test class, then maybe this is on, but if its
+   // a test its onthe wrong spont, need to loop into it and regardless it would be an example and not a test class
 public class CompressionBenchmark extends YoVariableLogReader
 {
    //   public static final File directory = new File("/home/jesper/robotLogs/DW17/FinalsTabSequence1");
-   public static final File directory = new File("/home/jesper/robotLogs/20170315_165154_AtlasControllerFactory");
-
-   private final ByteBuffer[] trainingSet;
-   private final ByteBuffer[] testSet;
+   // This path is broken but idk if I will be able to get it working because I don't have a log file anywhere
+   public static final File directory = new File("C:/Users/nkitchel/testsomething");
 
    public CompressionBenchmark() throws IOException
    {
+      // Not sure what this does but currently its causing problems, because its looking for an actual log of the robotData, interesting
       super(directory, new LogPropertiesReader(new File(directory, File.separator + "robotData.log")));
 
       initialize();
@@ -36,8 +38,8 @@ public class CompressionBenchmark extends YoVariableLogReader
       int trainingSetSize = getNumberOfEntries() / 10;
       int testSetSize = getNumberOfEntries() - trainingSetSize;
 
-      trainingSet = new ByteBuffer[trainingSetSize];
-      testSet = new ByteBuffer[testSetSize];
+      ByteBuffer[] trainingSet = new ByteBuffer[trainingSetSize];
+      ByteBuffer[] testSet = new ByteBuffer[testSetSize];
 
       for (int i = 0; i < trainingSetSize; i++)
       {
@@ -99,7 +101,7 @@ public class CompressionBenchmark extends YoVariableLogReader
          return benchMarkLZ4(jniCompressor, set);
       });
 
-      ByteBuffer directSet[] = new ByteBuffer[set.length];
+      ByteBuffer[] directSet = new ByteBuffer[set.length];
       for (int i = 0; i < set.length; i++)
       {
          directSet[i] = ByteBuffer.allocateDirect(set[i].capacity());
@@ -135,14 +137,14 @@ public class CompressionBenchmark extends YoVariableLogReader
       {
          target = ByteBuffer.allocate(getNumberOfVariables() * 8);
       }
-      long totalSize = (long) set.length * (long) (getNumberOfVariables() * 8);
+      long totalSize = (long) set.length * (getNumberOfVariables() * 8L);
       long compressedSize = 0;
 
-      for (int i = 0; i < set.length; i++)
+      for (ByteBuffer byteBuffer : set)
       {
-         set[i].clear();
+         byteBuffer.clear();
          target.clear();
-         target.put(set[i]);
+         target.put(byteBuffer);
          compressedSize += target.position();
       }
       return (double) compressedSize / (double) totalSize;
@@ -152,16 +154,18 @@ public class CompressionBenchmark extends YoVariableLogReader
    {
       ByteBuffer target = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(getNumberOfVariables() * 8));
 
-      long totalSize = (long) set.length * (long) (getNumberOfVariables() * 8);
+      // In case anyone is wondering, the L after a number stands for long, idk if that is a generic thing or just in certain situations
+      long totalSize = (long) set.length * (getNumberOfVariables() * 8L);
       long compressedSize = 0;
 
       try
       {
-         for (int i = 0; i < set.length; i++)
+         // If people are able to read an enhanced for loop, then its way easier syntax wise and intelliJ says its better
+         for (ByteBuffer byteBuffer : set)
          {
-            set[i].clear();
+            byteBuffer.clear();
             target.clear();
-            SnappyUtils.compress(set[i], target);
+            SnappyUtils.compress(byteBuffer, target);
             compressedSize += target.position();
          }
       }
@@ -174,6 +178,7 @@ public class CompressionBenchmark extends YoVariableLogReader
 
    private double benchMarkLZ4(LZ4Compressor compressor, ByteBuffer[] set)
    {
+      // I wonder if these commented out lines are still useful, it seems like this was unfinished and mainly just for Jesper to read
       ByteBuffer target;
       //      if (set[0].isDirect())
       {
@@ -184,14 +189,14 @@ public class CompressionBenchmark extends YoVariableLogReader
       //         target = ByteBuffer.allocate(compressor.maxCompressedLength(getNumberOfVariables() * 8));
       //      }
 
-      long totalSize = (long) set.length * (long) (getNumberOfVariables() * 8);
+      long totalSize = (long) set.length * (getNumberOfVariables() * 8L);
       long compressedSize = 0;
 
-      for (int i = 0; i < set.length; i++)
+      for (ByteBuffer byteBuffer : set)
       {
-         set[i].clear();
+         byteBuffer.clear();
          target.clear();
-         compressor.compress(set[i], target);
+         compressor.compress(byteBuffer, target);
          compressedSize += target.position();
       }
 

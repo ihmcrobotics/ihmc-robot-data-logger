@@ -2,6 +2,8 @@ package us.ihmc.tools.compression;
 
 import java.nio.ByteBuffer;
 
+
+// Seems like the copy compressoin implementation is completely useless, and could be deleted, will look into
 public class CopyCompressionImplementation implements CompressionImplementation
 {
 
