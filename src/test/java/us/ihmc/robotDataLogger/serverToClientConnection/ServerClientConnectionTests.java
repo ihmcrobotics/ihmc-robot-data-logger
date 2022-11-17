@@ -1,10 +1,15 @@
-package us.ihmc.robotDataLogger;
+package us.ihmc.robotDataLogger.serverToClientConnection;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
+import us.ihmc.commons.time.Stopwatch;
 import us.ihmc.log.LogTools;
+import us.ihmc.robotDataLogger.YoVariableClient;
+import us.ihmc.robotDataLogger.YoVariableClientInterface;
+import us.ihmc.robotDataLogger.YoVariableServer;
+import us.ihmc.robotDataLogger.YoVariablesUpdatedListener;
 import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
@@ -12,11 +17,13 @@ import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.*;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class ServerClientConnectionTest
+public class ServerClientConnectionTests
 {
    // This method is used when creating the YoEnums
    public enum SomeEnum
@@ -37,7 +44,54 @@ public class ServerClientConnectionTest
    private final ClientUpdatedListener clientListener = new ClientUpdatedListener(clientListenerRegistry);
 
    @Test
-   public void sendVariablesToClientTest()
+   public void testReconnectToClient() throws IOException
+   {
+      String receivedServerName;
+      Stopwatch timer = new Stopwatch();
+      timer.start();
+
+      // This method creates all the YoVariables to be stored on the server, change how many with the variablesPerType int
+      createVariables("Main", variablesPerType, serverRegistry, mainChangingVariables);
+
+      // Creates the server and adds the main registry to the server with all the YoVariables, the server is then started
+      yoVariableServer = new YoVariableServer("TestServer", null, logSettings, dt);
+      yoVariableServer.setMainRegistry(serverRegistry, null);
+      yoVariableServer.start();
+
+      // Creates the client and adds the listener to the client, then the client is started as well
+      yoVariableClient = new YoVariableClient(clientListener);
+      yoVariableClient.start("localhost", 8008);
+
+      // Message to let the user know that the client and server should now both be running
+      LogTools.info("Server and Client are started!");
+
+      while(timer.totalElapsed() < 12)
+      {
+         Assertions.assertTrue(yoVariableClient.isConnected());
+
+         yoVariableClient.disconnect();
+
+         // Needs to sleep for a bit to let the client shutdown properly, otherwise the test will fail
+         ThreadTools.sleepSeconds(1);
+         Assertions.assertFalse(yoVariableClient.isConnected());
+
+         yoVariableClient.reconnect();
+         Assertions.assertTrue(yoVariableClient.isConnected());
+
+         receivedServerName = yoVariableClient.getServerName();
+         Assertions.assertEquals("TestServer", receivedServerName);
+      }
+
+      yoVariableClient.stop();
+      Assertions.assertFalse(yoVariableClient.isConnected());
+
+      // Prevents bug when creating more than one server across multiple tests because the servers by default go to the same address
+      yoVariableServer.close();
+      ThreadTools.sleepSeconds(1);
+   }
+
+   @Test
+   public void testSendingVariablesToClient()
    {
       // This method creates all the YoVariables to be stored on the server, change how many with the variablesPerType int
       createVariables("Main", variablesPerType, serverRegistry, mainChangingVariables);
@@ -54,7 +108,7 @@ public class ServerClientConnectionTest
       // Message to let the user know that the client and server should now both be running
       LogTools.info("Server and Client are started!");
 
-      for (int i = 0; i < 10; i++)
+      for (int i = 0; i < 6; i++)
       {
          // timestamp and dtFactor are used to generate the jitteryTimestamp that will be sent to the server as the time when the update method was called
          timestamp += Conversions.secondsToNanoseconds(dt);
@@ -78,17 +132,23 @@ public class ServerClientConnectionTest
                                     + clientVariables.get(j));
          }
       }
+
+      // These are both useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
+      yoVariableClient.stop();
+      yoVariableServer.close();
    }
 
-   // This method is just used to cleanup the main loop, basically because of time and idk what else, the update method needs to be called several times and
+   // This method is just used to clean up the main loop, basically because of time and idk what else, the update method needs to be called several times and
    // the program needs to wait for a bit for the client to detect that the variables have changed on the server, WEIRD
    public void update(long jitteryTimestamp)
    {
       yoVariableServer.update(jitteryTimestamp);
       yoVariableServer.update(jitteryTimestamp);
+
       ThreadTools.sleepSeconds(6);
       yoVariableServer.update(jitteryTimestamp);
       yoVariableServer.update(jitteryTimestamp);
+
       ThreadTools.sleepSeconds(6);
       yoVariableServer.update(jitteryTimestamp);
       yoVariableServer.update(jitteryTimestamp);

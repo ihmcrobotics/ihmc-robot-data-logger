@@ -21,9 +21,9 @@ public class YoVariableHandShakeBuilderTest
    private void generateRegistries(int depth, Random random, YoRegistry parent)
    {
 
-      int numberOfChilderen = random.nextInt(10);
+      int numberOfChildren = random.nextInt(10);
 
-      for (int c = 0; c < numberOfChilderen; c++)
+      for (int c = 0; c < numberOfChildren; c++)
       {
          int numberOfVariables = random.nextInt(50);
 
@@ -45,11 +45,11 @@ public class YoVariableHandShakeBuilderTest
    @Test
    public void testHandshake()
    {
-      Random random = new Random(12451528l);
+      Random random = new Random(12451528L);
       YoRegistry root = new YoRegistry("root");
       YoVariableHandShakeBuilder handShakeBuilder = new YoVariableHandShakeBuilder(root.getName(), 0.001);
 
-      YoRegistry registries[] = new YoRegistry[5];
+      YoRegistry[] registries = new YoRegistry[5];
       for (int r = 0; r < registries.length; r++)
       {
          registries[r] = new YoRegistry("main_" + r);
@@ -71,7 +71,7 @@ public class YoVariableHandShakeBuilderTest
       {
          YoRegistry original = registries[i];
          YoRegistry parsed = parsedRegistries.get(i);
-         assertTrue(original.equals(parsed), "Registries are not equal");
+         assertEquals(original, parsed, "Registries are not equal");
       }
 
    }
