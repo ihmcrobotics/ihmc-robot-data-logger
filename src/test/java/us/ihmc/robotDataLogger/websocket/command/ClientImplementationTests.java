@@ -1,6 +1,7 @@
 package us.ihmc.robotDataLogger.websocket.command;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.YoVariableClient;
@@ -24,6 +25,7 @@ public class ClientImplementationTests
    private final YoRegistry clientListenerRegistry = new YoRegistry("ListenerRegistry");
    private final ClientUpdatedListener clientListener = new ClientUpdatedListener(clientListenerRegistry);
 
+   @Disabled
    @Test
    // This test requires manual input in order for the client to connect with the server, so when running on Bamboo it should be disabled
    // In order for this test to work correctly the user must select the same server for both clients, this is testing the failure conditions
