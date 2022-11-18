@@ -1,11 +1,10 @@
-package us.ihmc.robotDataLogger.serverToClientConnection;
+package us.ihmc.robotDataLogger.websocket.command;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.commons.time.Stopwatch;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPolygon;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.YoVariableClient;
 import us.ihmc.robotDataLogger.YoVariableClientInterface;
@@ -15,8 +14,6 @@ import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
-import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
-import us.ihmc.yoVariables.euclid.YoPoint2D;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.*;
 
@@ -170,7 +167,7 @@ public class ServerClientConnectionTests
          new YoDouble(prefix + "Double" + i, registry);
          new YoInteger(prefix + "Integer" + i, registry);
          new YoLong(prefix + "Long" + i, registry);
-         new YoEnum<>(prefix + "Enum" + i, registry, SomeEnum.class, random.nextBoolean());
+         new YoEnum<>(prefix + "Enum" + i, registry, SomeEnum.class, true);
       }
 
       allChangingVariables.addAll(registry.collectSubtreeVariables());
