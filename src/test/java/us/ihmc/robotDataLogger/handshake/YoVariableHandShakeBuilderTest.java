@@ -18,30 +18,6 @@ public class YoVariableHandShakeBuilderTest
 {
    private static final int MAX_DEPTH = 5;
 
-   private void generateRegistries(int depth, Random random, YoRegistry parent)
-   {
-
-      int numberOfChildren = random.nextInt(10);
-
-      for (int c = 0; c < numberOfChildren; c++)
-      {
-         int numberOfVariables = random.nextInt(50);
-
-         YoRegistry registry = new YoRegistry(parent.getName() + "_" + c);
-         for (int i = 0; i < numberOfVariables; i++)
-         {
-            new YoDouble(registry.getName() + "_" + i, registry);
-         }
-         parent.addChild(registry);
-
-         if (depth < random.nextInt(MAX_DEPTH))
-         {
-            generateRegistries(depth + 1, random, registry);
-         }
-      }
-
-   }
-
    @Test
    public void testHandshake()
    {
@@ -73,6 +49,27 @@ public class YoVariableHandShakeBuilderTest
          YoRegistry parsed = parsedRegistries.get(i);
          assertEquals(original, parsed, "Registries are not equal");
       }
+   }
 
+   private void generateRegistries(int depth, Random random, YoRegistry parent)
+   {
+      int numberOfChildren = random.nextInt(10);
+
+      for (int c = 0; c < numberOfChildren; c++)
+      {
+         int numberOfVariables = random.nextInt(50);
+
+         YoRegistry registry = new YoRegistry(parent.getName() + "_" + c);
+         for (int i = 0; i < numberOfVariables; i++)
+         {
+            new YoDouble(registry.getName() + "_" + i, registry);
+         }
+         parent.addChild(registry);
+
+         if (depth < random.nextInt(MAX_DEPTH))
+         {
+            generateRegistries(depth + 1, random, registry);
+         }
+      }
    }
 }

@@ -43,6 +43,9 @@ public class ServerImplementationTests
 
          Assertions.assertTrue(failure);
       }
+
+      //Need to stop server otherwise next test will fail when trying to start server
+      yoVariableServer.close();
    }
 
 
@@ -69,6 +72,9 @@ public class ServerImplementationTests
 
          Assertions.assertTrue(failure);
       }
+
+      //Prevents error when running another test because the server is still running
+      yoVariableServer.close();
    }
 
 
