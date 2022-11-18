@@ -25,11 +25,45 @@ public class ClientImplementationTests
    private final YoRegistry clientListenerRegistry = new YoRegistry("ListenerRegistry");
    private final ClientUpdatedListener clientListener = new ClientUpdatedListener(clientListenerRegistry);
 
+   @Test
+   public void testClientBadHostException()
+   {
+      boolean failure = false;
+
+      // Creates the server and adds the main registry to the server with all the YoVariables, the server is then started
+      yoVariableServer = new YoVariableServer("TestServer", null, logSettings, dt);
+      yoVariableServer.setMainRegistry(serverRegistry, null);
+      yoVariableServer.start();
+
+
+      // Creates the client and adds the listener to the client
+      yoVariableClientOne = new YoVariableClient(clientListener);
+
+      for (int i = 0; i < 4; i++)
+      {
+         try
+         {
+            yoVariableClientOne.start("1.1.1.1.1.1.1", 9009);
+         } catch (Exception e)
+         {
+            failure = true;
+         }
+
+         Assertions.assertTrue(failure);
+      }
+
+      LogTools.info("Closing down server and client successfully");
+
+      // These are both useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
+      yoVariableServer.close();
+   }
+
+
    @Disabled
    @Test
    // This test requires manual input in order for the client to connect with the server, so when running on Bamboo it should be disabled
    // In order for this test to work correctly the user must select the same server for both clients, this is testing the failure conditions
-   public void testSendingVariablesToClient()
+   public void testDuplicateClientException()
    {
       boolean failure = false;
 

@@ -20,7 +20,7 @@ import us.ihmc.yoVariables.variable.YoInteger;
 
 //TODO This entire test seems like a bad setup because there isn't any sort of check to see if its working. Also when you change the value of a YoVariable,
 //TODO it updates automatically so the only way to check something would be on the client side, and there isn't a client in this test.
-//TODO Some how this could incorporate a test with a thread but currently it seems like its a bad test that is now at the very least commented!
+//TODO Somehow this could incorporate a test with a thread but currently it seems like its a bad test that is now at the very least commented!
 
 public class YoVariableUpdatesTest
 {
@@ -42,7 +42,6 @@ public class YoVariableUpdatesTest
    private final YoInteger echoOut = new YoInteger("echoOut", registry);
 
    private final YoBoolean startVariableSummary = new YoBoolean("startVariableSummary", registry);
-   private final YoBoolean garbageCollector = new YoBoolean("garbageCollector", registry);
 
    private final DoubleParameter parameter1 = new DoubleParameter("param1", registry);
    private final DoubleParameter parameter2 = new DoubleParameter("param2", registry);

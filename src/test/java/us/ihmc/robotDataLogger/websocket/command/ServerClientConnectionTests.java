@@ -87,6 +87,8 @@ public class ServerClientConnectionTests
       // Prevents bug when creating more than one server across multiple tests because the servers by default go to the same address
       yoVariableServer.close();
       ThreadTools.sleepSeconds(1);
+
+      yoVariableServer.close();
    }
 
    @Test
@@ -115,7 +117,7 @@ public class ServerClientConnectionTests
          long jitteryTimestamp = timestamp + (long) ((random.nextDouble() - 0.5) * dtFactor);
 
          // Update the YoVariables before sending the data to the server
-            updateVariables(mainChangingVariables);
+         updateVariables(mainChangingVariables);
 
          // This should take the timestamp and send the updated variables to the client as well as the timestamp
          update(jitteryTimestamp);
@@ -131,6 +133,9 @@ public class ServerClientConnectionTests
                                     + clientVariables.get(j));
          }
       }
+
+      // This should be set to true when the update is called so double check that it actually worked
+      Assertions.assertTrue(yoVariableServer.isLogging());
 
       // These are both useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
       yoVariableClient.stop();

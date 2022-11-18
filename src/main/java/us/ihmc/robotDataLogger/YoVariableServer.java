@@ -369,28 +369,6 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    }
 
    @Override
-   public void changeVariable(int id, double newValue)
-   {
-      VariableChangedMessage message;
-      ImmutablePair<YoVariable, YoRegistry> variableAndRootRegistry = handshakeBuilder.getVariablesAndRootRegistries().get(id);
-
-      RegistryHolder holder = getRegistryHolder(variableAndRootRegistry.getRight());
-      ConcurrentRingBuffer<VariableChangedMessage> buffer = holder.variableChangeData;
-      while ((message = buffer.next()) == null)
-      {
-         ThreadTools.sleep(1);
-      }
-
-      if (message != null)
-      {
-         message.setVariable(variableAndRootRegistry.getLeft());
-         message.setVal(newValue);
-         buffer.commit();
-      }
-
-   }
-
-   @Override
    public long getLatestTimestamp()
    {
       return latestTimestamp;
@@ -399,6 +377,12 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    public boolean isLogging()
    {
       return logWatcher.isLogging();
+   }
+
+   @Override
+   public void changeVariable(int id, double newValue)
+   {
+
    }
 
    private class RegistryHolder
