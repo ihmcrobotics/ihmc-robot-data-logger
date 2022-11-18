@@ -38,14 +38,14 @@ public class YoVariableClient
       yoVariableClientImplementation = new YoVariableClientImplementation(listener);
    }
 
-   /**
-    * Use {@link #startWithHostSelector}
-    */
-   @Deprecated
-   public void start()
-   {
-      startWithHostSelector();
-   }
+//   /**
+//    * Use {@link #startWithHostSelector}
+//    */
+//   @Deprecated
+//   public void start()
+//   {
+//      startWithHostSelector();
+//   }
 
    /**
     * Start a client for a host selected in the host selector GUI
