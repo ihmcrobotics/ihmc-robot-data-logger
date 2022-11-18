@@ -112,7 +112,7 @@ public class RegistrySendBufferTest
    {
       Random random = new Random(23589735L);
 
-      for (int numberOfVariables = 1000; numberOfVariables <= 33000; numberOfVariables += 1000)
+      for (int numberOfVariables = 1000; numberOfVariables <= 24000; numberOfVariables += 1000)
       {
          ArrayList<JointHolder> sendJointHolders = new ArrayList<>();
          ArrayList<JointState> receiveJointStates = new ArrayList<>();

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.commons.time.Stopwatch;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPolygon;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.YoVariableClient;
 import us.ihmc.robotDataLogger.YoVariableClientInterface;
@@ -15,6 +16,7 @@ import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
+import us.ihmc.yoVariables.euclid.YoPoint2D;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.*;
 
@@ -28,7 +30,7 @@ public class ServerClientConnectionTests
    // This method is used when creating the YoEnums
    public enum SomeEnum
    {
-      A, B, C, D, E, F;
+      A, B, C, D, E, F
    }
 
    private static final double dt = 0.001;
@@ -204,10 +206,6 @@ public class ServerClientConnectionTests
       {
          int enumSize = ((YoEnum<?>) variable).getEnumSize();
          ((YoEnum<?>) variable).set(random.nextInt(enumSize));
-      }
-      else
-      {
-         throw new RuntimeException("Implement this case for " + variable.getClass().getSimpleName() + ".");
       }
    }
 
