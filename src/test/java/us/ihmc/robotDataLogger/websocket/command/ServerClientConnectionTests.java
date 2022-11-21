@@ -24,7 +24,7 @@ import java.util.Random;
 
 public class ServerClientConnectionTests
 {
-   boolean CHANGEDVARIABLES;
+   boolean CHANGEDVARIABLES = false;
    // This method is used when creating the YoEnums
    public enum SomeEnum
    {
@@ -117,7 +117,7 @@ public class ServerClientConnectionTests
       // Message to let the user know that the client and server should now both be running
       LogTools.info("Server and Client are started!");
 
-      for (int i = 0; i < 6; i++)
+      for (int i = 0; i < 4; i++)
       {
          LogTools.info("Running updates variables for the (" + i + ") time!");
 
