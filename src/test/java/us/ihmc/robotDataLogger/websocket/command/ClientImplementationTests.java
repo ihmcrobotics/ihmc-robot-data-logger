@@ -60,7 +60,7 @@ public class ClientImplementationTests
 
       // These are both useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
       yoVariableServer.close();
-      ThreadTools.sleepSeconds(1);
+//      ThreadTools.sleepSeconds(1);
    }
 
    @Disabled
@@ -91,7 +91,7 @@ public class ClientImplementationTests
 
       // This is useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
       yoVariableServer.close();
-      ThreadTools.sleepSeconds(1);
+//      ThreadTools.sleepSeconds(1);
    }
 
    // The purpose of this function is to set the connection announcement model to true, this will run different parts of the code in the test
@@ -152,7 +152,7 @@ public class ClientImplementationTests
       // These are both useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
       yoVariableClient.stop();
       yoVariableServer.close();
-      ThreadTools.sleepSeconds(1);
+//      ThreadTools.sleepSeconds(1);
    }
 
    /** Class that implements the YoVariableUpdatedListener to connect with the client */
