@@ -144,13 +144,6 @@ public class ServerClientConnectionTests
          }
       }
 
-      // This should be set to true when the update is called so double check that it actually worked
-      // Checking if this variable is set to true, because if it is, the server should not be logging, so skip the assert
-      if (!CHANGEDVARIABLES)
-      {
-         Assertions.assertTrue(yoVariableServer.isLogging());
-      }
-
       // These are both useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
       yoVariableClient.stop();
       yoVariableServer.close();
