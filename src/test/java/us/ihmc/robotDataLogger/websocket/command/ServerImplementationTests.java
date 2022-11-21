@@ -18,7 +18,6 @@ public class ServerImplementationTests
    private final YoRegistry serverRegistry = new YoRegistry("Main");
    private final YoRegistry otherRegistry = new YoRegistry("OtherRegistry");
 
-   @Disabled
    @Test
    public void testYoVariableConnections()
    {

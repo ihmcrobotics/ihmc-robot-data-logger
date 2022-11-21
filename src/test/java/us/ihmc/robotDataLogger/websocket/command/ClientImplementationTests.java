@@ -62,7 +62,6 @@ public class ClientImplementationTests
       yoVariableServer.close();
    }
 
-   @Disabled
    @Test
    public void testClientBadConnectionException()
    {
