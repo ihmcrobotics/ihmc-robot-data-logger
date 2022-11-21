@@ -49,7 +49,6 @@ public class ServerImplementationTests
 
       //Need to stop server otherwise next test will fail when trying to start server, the sleep is used because it takes a minute for the server to close
       yoVariableServer.close();
-//      ThreadTools.sleepSeconds(1);
    }
 
 
@@ -79,7 +78,6 @@ public class ServerImplementationTests
 
       //Need to stop server otherwise next test will fail when trying to start server, the sleep is used because it takes a minute for the server to close
       yoVariableServer.close();
-//      ThreadTools.sleepSeconds(1);
    }
 
 
@@ -125,7 +123,6 @@ public class ServerImplementationTests
       }
 
       yoVariableServer.close();
-//      ThreadTools.sleepSeconds(1);
    }
 
    @Test
@@ -168,6 +165,5 @@ public class ServerImplementationTests
       }
 
       yoVariableServer.close();
-      ThreadTools.sleepSeconds(1);
    }
 }

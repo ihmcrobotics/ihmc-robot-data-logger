@@ -87,7 +87,6 @@ public class ServerClientConnectionTests
 
       // Prevents bug when creating more than one server across multiple tests because the servers by default go to the same address
       yoVariableServer.close();
-//      ThreadTools.sleepSeconds(1);
    }
 
    @Test
@@ -98,7 +97,6 @@ public class ServerClientConnectionTests
       testSendingVariablesToClient();
       CHANGEDVARIABLES = false;
 
-//      ThreadTools.sleepSeconds(1);
    }
 
    @Test
@@ -121,6 +119,8 @@ public class ServerClientConnectionTests
 
       for (int i = 0; i < 6; i++)
       {
+         LogTools.info("Running updates variables for the (" + i + ") time!");
+
          // timestamp and dtFactor are used to generate the jitteryTimestamp that will be sent to the server as the time when the update method was called
          timestamp += Conversions.secondsToNanoseconds(dt);
          long dtFactor = Conversions.secondsToNanoseconds(dt) / 2;
@@ -138,19 +138,22 @@ public class ServerClientConnectionTests
 
          for (int j = 0; j < serverVariables.size(); j++)
          {
-//            Assertions.assertEquals(serverVariables.get(j).getValueAsString(), clientVariables.get(j).getValueAsString(),
-//                                    "The server variable: " + serverVariables.get(j) + ", the client variable: "
-//                                    + clientVariables.get(j));
+            Assertions.assertEquals(serverVariables.get(j).getValueAsString(), clientVariables.get(j).getValueAsString(),
+                                    "The server variable: " + serverVariables.get(j) + ", the client variable: "
+                                    + clientVariables.get(j));
          }
       }
 
       // This should be set to true when the update is called so double check that it actually worked
-//      Assertions.assertTrue(yoVariableServer.isLogging());
+      // Checking if this variable is set to true, because if it is, the server should not be logging, so skip the assert
+      if (!CHANGEDVARIABLES)
+      {
+         Assertions.assertTrue(yoVariableServer.isLogging());
+      }
 
       // These are both useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
       yoVariableClient.stop();
       yoVariableServer.close();
-//      ThreadTools.sleepSeconds(1);
    }
 
    // This method is just used to clean up the main loop, basically because of time and idk what else, the update method needs to be called several times and
