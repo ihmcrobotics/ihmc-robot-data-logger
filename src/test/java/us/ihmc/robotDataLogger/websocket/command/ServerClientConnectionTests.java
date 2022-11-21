@@ -97,6 +97,8 @@ public class ServerClientConnectionTests
       CHANGEDVARIABLES = true;
       testSendingVariablesToClient();
       CHANGEDVARIABLES = false;
+
+      ThreadTools.sleepSeconds(1);
    }
 
    @Test

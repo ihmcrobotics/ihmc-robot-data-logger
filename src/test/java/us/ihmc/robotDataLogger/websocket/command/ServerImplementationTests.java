@@ -2,6 +2,7 @@ package us.ihmc.robotDataLogger.websocket.command;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.commons.time.Stopwatch;
 import us.ihmc.robotDataLogger.YoVariableServer;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
@@ -44,8 +45,9 @@ public class ServerImplementationTests
          Assertions.assertTrue(failure);
       }
 
-      //Need to stop server otherwise next test will fail when trying to start server
+      //Need to stop server otherwise next test will fail when trying to start server, the sleep is used because it takes a minute for the server to close
       yoVariableServer.close();
+      ThreadTools.sleepSeconds(1);
    }
 
 
@@ -73,8 +75,9 @@ public class ServerImplementationTests
          Assertions.assertTrue(failure);
       }
 
-      //Prevents error when running another test because the server is still running
+      //Need to stop server otherwise next test will fail when trying to start server, the sleep is used because it takes a minute for the server to close
       yoVariableServer.close();
+      ThreadTools.sleepSeconds(1);
    }
 
 
