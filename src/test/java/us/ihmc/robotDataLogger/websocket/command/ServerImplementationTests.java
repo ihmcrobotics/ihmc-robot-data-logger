@@ -121,6 +121,9 @@ public class ServerImplementationTests
 
          Assertions.assertTrue(failure);
       }
+
+      yoVariableServer.close();
+      ThreadTools.sleepSeconds(1);
    }
 
    @Test
@@ -161,5 +164,8 @@ public class ServerImplementationTests
 
          Assertions.assertTrue(failure);
       }
+
+      yoVariableServer.close();
+      ThreadTools.sleepSeconds(1);
    }
 }
