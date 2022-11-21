@@ -24,6 +24,7 @@ import java.util.Random;
 
 public class ServerClientConnectionTests
 {
+   boolean CHANGEDVARIABLES;
    // This method is used when creating the YoEnums
    public enum SomeEnum
    {
@@ -87,8 +88,15 @@ public class ServerClientConnectionTests
       // Prevents bug when creating more than one server across multiple tests because the servers by default go to the same address
       yoVariableServer.close();
       ThreadTools.sleepSeconds(1);
+   }
 
-      yoVariableServer.close();
+   @Test
+   // This test will force a VariableChangedProducer to be created
+   public void testServerClientChangedVariablesTrue()
+   {
+      CHANGEDVARIABLES = true;
+      testSendingVariablesToClient();
+      CHANGEDVARIABLES = false;
    }
 
    @Test
@@ -212,7 +220,7 @@ public class ServerClientConnectionTests
    }
 
    /** Class that implements the YoVariableUpdatedListener to connect with the client */
-   public static class ClientUpdatedListener implements YoVariablesUpdatedListener
+   public class ClientUpdatedListener implements YoVariablesUpdatedListener
    {
       private final YoRegistry parentRegistry;
 
@@ -230,7 +238,8 @@ public class ServerClientConnectionTests
       @Override
       public boolean changesVariables()
       {
-         return false;
+         // This variable is set to true in another test to ensure different pieces of code get tested
+         return CHANGEDVARIABLES;
       }
 
       @Override

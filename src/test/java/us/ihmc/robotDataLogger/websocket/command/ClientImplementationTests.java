@@ -12,14 +12,17 @@ import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
+import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 import us.ihmc.yoVariables.registry.YoRegistry;
+
+import java.io.IOException;
 
 public class ClientImplementationTests
 {
    private static final double dt = 0.001;
    private static final DataServerSettings logSettings = new DataServerSettings(true);
    public YoVariableServer yoVariableServer;
-   public YoVariableClient yoVariableClientOne;
+   public YoVariableClient yoVariableClient;
    public YoVariableClient yoVariableClientShouldFail;
    private final YoRegistry serverRegistry = new YoRegistry("Main");
    private final YoRegistry clientListenerRegistry = new YoRegistry("ListenerRegistry");
@@ -37,13 +40,13 @@ public class ClientImplementationTests
 
 
       // Creates the client and adds the listener to the client
-      yoVariableClientOne = new YoVariableClient(clientListener);
+      yoVariableClient = new YoVariableClient(clientListener);
 
       for (int i = 0; i < 4; i++)
       {
          try
          {
-            yoVariableClientOne.start("1.1.1.1.1.1.1", 9009);
+            yoVariableClient.start("1.1.1.1.1.1.1", 9009);
          } catch (Exception e)
          {
             failure = true;
@@ -57,6 +60,55 @@ public class ClientImplementationTests
       // These are both useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
       yoVariableServer.close();
    }
+
+   @Test
+   public void testClientBadConnectionException()
+   {
+      boolean failure;
+
+      // Creates the server and adds the main registry to the server with all the YoVariables, the server is then started
+      yoVariableServer = new YoVariableServer("TestServer", null, logSettings, dt);
+      yoVariableServer.setMainRegistry(serverRegistry, null);
+      yoVariableServer.start();
+
+
+      // Creates the client and adds the listener to the client
+      yoVariableClient = new YoVariableClient(clientListener);
+
+      for (int i = 0; i < 4; i++)
+      {
+         failure = startWithSetModelTrue("localhost", 8008, yoVariableClient);
+
+         yoVariableClient.stop();
+
+         Assertions.assertTrue(failure);
+      }
+
+      LogTools.info("Closing down server and client successfully, test passed");
+
+      // This is useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
+      yoVariableServer.close();
+   }
+
+   // The purpose of this function is to set the connection announcement model to true, this will run different parts of the code in the test
+   public boolean startWithSetModelTrue(String host, int port, YoVariableClient yoVariableClient)
+   {
+      try
+      {
+         HTTPDataServerConnection connection = HTTPDataServerConnection.connect(host, port);
+
+         // Setting this to true will try to connect a model file which is good to test because this should fail
+         connection.getAnnouncement().getModelFileDescription().setHasModel(true);
+         yoVariableClient.start(25000, connection);
+      }
+      catch (IOException e)
+      {
+         return true;
+      }
+
+      return false;
+   }
+
 
 
    @Disabled
@@ -73,9 +125,9 @@ public class ClientImplementationTests
       yoVariableServer.start();
 
       // Creates the client and adds the listener to the client, starts both clients, and connects the first one to the localhost
-      yoVariableClientOne = new YoVariableClient(clientListener);
+      yoVariableClient = new YoVariableClient(clientListener);
       yoVariableClientShouldFail = new YoVariableClient(clientListener);
-      yoVariableClientOne.startWithHostSelector();
+      yoVariableClient.startWithHostSelector();
 
       for (int i = 0; i < 2; i++)
       {
@@ -94,7 +146,7 @@ public class ClientImplementationTests
       LogTools.info("Closing down server and client successfully");
 
       // These are both useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
-      yoVariableClientOne.stop();
+      yoVariableClient.stop();
       yoVariableServer.close();
    }
 
