@@ -63,6 +63,7 @@ public class ClientImplementationTests
       ThreadTools.sleepSeconds(1);
    }
 
+   @Disabled
    @Test
    public void testClientBadConnectionException()
    {
