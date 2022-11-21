@@ -44,13 +44,13 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
 
    private volatile boolean waitingForPong = false;
 
-   public WebSocketDataServerClientHandler(WebSocketClientHandshaker handShaker,
+   public WebSocketDataServerClientHandler(WebSocketClientHandshaker handshaker,
                                            YoVariableClientImplementation yoVariableClient,
                                            int timestampPort,
                                            RegistryConsumer consumer,
                                            CustomLogDataSubscriberType type)
    {
-      this.handshaker = handShaker;
+      this.handshaker = handshaker;
       this.yoVariableClient = yoVariableClient;
       this.consumer = consumer;
       this.type = type;

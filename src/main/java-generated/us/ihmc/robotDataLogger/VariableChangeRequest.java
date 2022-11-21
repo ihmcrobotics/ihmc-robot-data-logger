@@ -13,7 +13,6 @@ public class VariableChangeRequest extends Packet<VariableChangeRequest> impleme
 
    public VariableChangeRequest()
    {
-      // Creates a VariableChangeRequest without setting values to anything, most often used
    }
 
    public VariableChangeRequest(VariableChangeRequest other)
@@ -25,28 +24,29 @@ public class VariableChangeRequest extends Packet<VariableChangeRequest> impleme
    public void set(VariableChangeRequest other)
    {
       variableID_ = other.variableID_;
+
       requestedValue_ = other.requestedValue_;
+
    }
 
    public void setVariableID(int variableID)
    {
       variableID_ = variableID;
    }
-
-   public void setRequestedValue(double requestedValue)
-   {
-      requestedValue_ = requestedValue;
-   }
-
    public int getVariableID()
    {
       return variableID_;
    }
 
+   public void setRequestedValue(double requestedValue)
+   {
+      requestedValue_ = requestedValue;
+   }
    public double getRequestedValue()
    {
       return requestedValue_;
    }
+
 
    public static Supplier<VariableChangeRequestPubSubType> getPubSubType()
    {
@@ -69,6 +69,7 @@ public class VariableChangeRequest extends Packet<VariableChangeRequest> impleme
 
       if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.requestedValue_, other.requestedValue_, epsilon)) return false;
 
+
       return true;
    }
 
@@ -85,6 +86,7 @@ public class VariableChangeRequest extends Packet<VariableChangeRequest> impleme
 
       if(this.requestedValue_ != otherMyClass.requestedValue_) return false;
 
+
       return true;
    }
 
@@ -95,8 +97,7 @@ public class VariableChangeRequest extends Packet<VariableChangeRequest> impleme
 
       builder.append("VariableChangeRequest {");
       builder.append("variableID=");
-      builder.append(this.variableID_);
-      builder.append(", ");
+      builder.append(this.variableID_);      builder.append(", ");
       builder.append("requestedValue=");
       builder.append(this.requestedValue_);
       builder.append("}");

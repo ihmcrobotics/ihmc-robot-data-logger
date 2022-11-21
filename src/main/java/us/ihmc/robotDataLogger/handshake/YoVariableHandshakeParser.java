@@ -20,7 +20,7 @@ public abstract class YoVariableHandshakeParser
 {
    private final RemoteYoGraphicFactory yoGraphicFactory = new RemoteYoGraphicFactory();
 
-   @Deprecated
+   @SuppressWarnings("deprecation")
    public static YoVariableHandshakeParser create(HandshakeFileType type)
    {
       if (type == null)
