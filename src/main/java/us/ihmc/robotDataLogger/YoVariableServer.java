@@ -382,7 +382,22 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    @Override
    public void changeVariable(int id, double newValue)
    {
+      VariableChangedMessage message;
+      ImmutablePair<YoVariable, YoRegistry> variableAndRootRegistry = handshakeBuilder.getVariablesAndRootRegistries().get(id);
 
+      RegistryHolder holder = getRegistryHolder(variableAndRootRegistry.getRight());
+      ConcurrentRingBuffer<VariableChangedMessage> buffer = holder.variableChangeData;
+      while ((message = buffer.next()) == null)
+      {
+         ThreadTools.sleep(1);
+      }
+
+      if (message != null)
+      {
+         message.setVariable(variableAndRootRegistry.getLeft());
+         message.setVal(newValue);
+         buffer.commit();
+      }
    }
 
    private class RegistryHolder

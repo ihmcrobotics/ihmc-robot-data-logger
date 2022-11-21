@@ -19,16 +19,6 @@ public class YoVariableClient
    private final YoVariableClientImplementation yoVariableClientImplementation;
 
    /**
-    * LogSessionFilters are not implemented anymore. Advised is to set listenForBroadcasts to false and
-    * manually set the IP of the target
-    */
-//   @Deprecated
-//   public YoVariableClient(YoVariablesUpdatedListener listener, LogProducerDisplay.LogSessionFilter... filters)
-//   {
-//      this(listener);
-//   }
-
-   /**
     * Start a new client while allowing the user to select a desired logging session
     *
     * @param listener
@@ -37,15 +27,6 @@ public class YoVariableClient
    {
       yoVariableClientImplementation = new YoVariableClientImplementation(listener);
    }
-
-//   /**
-//    * Use {@link #startWithHostSelector}
-//    */
-//   @Deprecated
-//   public void start()
-//   {
-//      startWithHostSelector();
-//   }
 
    /**
     * Start a client for a host selected in the host selector GUI
