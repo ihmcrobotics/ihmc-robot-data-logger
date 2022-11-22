@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class ServerClientConnectionTests
+public class ServerClientConnectionTest
 {
    boolean CHANGEDVARIABLES = false;
    // This method is used when creating the YoEnums

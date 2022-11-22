@@ -3,7 +3,6 @@ package us.ihmc.robotDataLogger.websocket.command;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.YoVariableClient;
 import us.ihmc.robotDataLogger.YoVariableClientInterface;
@@ -18,7 +17,7 @@ import us.ihmc.yoVariables.registry.YoRegistry;
 
 import java.io.IOException;
 
-public class ClientImplementationTests
+public class ClientImplementationTest
 {
    private static final double dt = 0.001;
    private static final DataServerSettings logSettings = new DataServerSettings(true);

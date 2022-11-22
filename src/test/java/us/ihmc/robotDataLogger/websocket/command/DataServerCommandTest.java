@@ -10,7 +10,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
-public class DataServerCommandTests
+public class DataServerCommandTest
 {
    @Test
    public void testMaxArgumentSize()

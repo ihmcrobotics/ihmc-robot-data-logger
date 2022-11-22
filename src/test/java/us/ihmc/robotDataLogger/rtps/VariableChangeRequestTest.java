@@ -23,7 +23,7 @@ import us.ihmc.robotDataLogger.VariableChangeRequestPubSubType;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class VariableChangeRequestTests
+public class VariableChangeRequestTest
 {
 
    @Test

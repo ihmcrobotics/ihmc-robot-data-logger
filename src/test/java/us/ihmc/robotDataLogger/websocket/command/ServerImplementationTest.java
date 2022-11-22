@@ -1,16 +1,14 @@
 package us.ihmc.robotDataLogger.websocket.command;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.commons.time.Stopwatch;
 import us.ihmc.robotDataLogger.YoVariableServer;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
-public class ServerImplementationTests
+public class ServerImplementationTest
 {
    private static final double dt = 0.001;
    private static final DataServerSettings logSettings = new DataServerSettings(true);
