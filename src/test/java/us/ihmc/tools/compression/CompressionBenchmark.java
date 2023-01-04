@@ -76,6 +76,10 @@ public class CompressionBenchmark extends YoVariableLogReader
       {
          return benchMarkCopy(set);
       });
+      benchmarkFunction("Snappy (Xerial)", set.length, () ->
+      {
+         return benchMarkSnappy(set);
+      });
 
       LZ4Compressor safeCompressor = LZ4Factory.safeInstance().fastCompressor();
       benchmarkFunction("LZ4 (Safe)", set.length, () ->
@@ -106,6 +110,11 @@ public class CompressionBenchmark extends YoVariableLogReader
       benchmarkFunction("LZ4 (Unsafe - direct buffer)", set.length, () ->
       {
          return benchMarkLZ4(unsafeCompressor, directSet);
+      });
+
+      benchmarkFunction("LZ4 (JNI - direct buffer)", directSet.length, () ->
+      {
+         return benchMarkLZ4(jniCompressor, directSet);
       });
 
       benchmarkFunction("Copy (Direct)", directSet.length, () ->
@@ -139,11 +148,41 @@ public class CompressionBenchmark extends YoVariableLogReader
       return (double) compressedSize / (double) totalSize;
    }
 
+   private double benchMarkSnappy(ByteBuffer[] set)
+   {
+      ByteBuffer target = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(getNumberOfVariables() * 8));
+
+      long totalSize = (long) set.length * (long) (getNumberOfVariables() * 8);
+      long compressedSize = 0;
+
+      try
+      {
+         for (int i = 0; i < set.length; i++)
+         {
+            set[i].clear();
+            target.clear();
+            SnappyUtils.compress(set[i], target);
+            compressedSize += target.position();
+         }
+      }
+      catch (IOException e)
+      {
+         throw new RuntimeException(e);
+      }
+      return (double) compressedSize / (double) totalSize;
+   }
+
    private double benchMarkLZ4(LZ4Compressor compressor, ByteBuffer[] set)
    {
       ByteBuffer target;
-
-      target = ByteBuffer.allocateDirect(compressor.maxCompressedLength(getNumberOfVariables() * 8));
+      //      if (set[0].isDirect())
+      {
+         target = ByteBuffer.allocateDirect(compressor.maxCompressedLength(getNumberOfVariables() * 8));
+      }
+      //      else
+      //      {
+      //         target = ByteBuffer.allocate(compressor.maxCompressedLength(getNumberOfVariables() * 8));
+      //      }
 
       long totalSize = (long) set.length * (long) (getNumberOfVariables() * 8);
       long compressedSize = 0;
