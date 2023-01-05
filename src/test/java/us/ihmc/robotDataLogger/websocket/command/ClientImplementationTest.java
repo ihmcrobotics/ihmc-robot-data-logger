@@ -111,7 +111,7 @@ public class ClientImplementationTest
 
 
 
-   @Disabled
+//   @Disabled
    @Test
    // This test requires manual input in order for the client to connect with the server, so when running on Bamboo it should be disabled
    // In order for this test to work correctly the user must select the same server for both clients, this is testing the failure conditions
