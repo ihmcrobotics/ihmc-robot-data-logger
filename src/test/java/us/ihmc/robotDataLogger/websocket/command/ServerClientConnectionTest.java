@@ -7,13 +7,9 @@ import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.commons.time.Stopwatch;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.YoVariableClient;
-import us.ihmc.robotDataLogger.YoVariableClientInterface;
 import us.ihmc.robotDataLogger.YoVariableServer;
-import us.ihmc.robotDataLogger.YoVariablesUpdatedListener;
-import us.ihmc.robotDataLogger.handshake.LogHandshake;
-import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
-import us.ihmc.robotDataLogger.util.DebugRegistry;
+import us.ihmc.robotDataVisualizer.BasicYoVariablesUpdatedListener;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.*;
 
@@ -24,7 +20,6 @@ import java.util.Random;
 
 public class ServerClientConnectionTest
 {
-   boolean CHANGEDVARIABLES = false;
    // This method is used when creating the YoEnums
    public enum SomeEnum
    {
@@ -41,7 +36,7 @@ public class ServerClientConnectionTest
    public YoVariableClient yoVariableClient;
    private final YoRegistry serverRegistry = new YoRegistry("Main");
    private final YoRegistry clientListenerRegistry = new YoRegistry("ListenerRegistry");
-   private final ClientUpdatedListener clientListener = new ClientUpdatedListener(clientListenerRegistry);
+   private final BasicYoVariablesUpdatedListener clientListener = new BasicYoVariablesUpdatedListener(clientListenerRegistry);
 
    @Test
    public void testReconnectToClient() throws IOException
@@ -89,15 +84,6 @@ public class ServerClientConnectionTest
       yoVariableServer.close();
    }
 
-   @Test
-   // This test will force a VariableChangedProducer to be created
-   public void testServerClientChangedVariablesTrue()
-   {
-      CHANGEDVARIABLES = true;
-      testSendingVariablesToClient();
-      CHANGEDVARIABLES = false;
-
-   }
 
    @Test
    public void testSendingVariablesToClient()
@@ -170,7 +156,6 @@ public class ServerClientConnectionTest
       yoVariableServer.update(jitteryTimestamp);
    }
 
-
    public void createVariables(String prefix, int variablesPerType, YoRegistry registry, List<YoVariable> allChangingVariables)
    {
       for (int i = 0; i < variablesPerType; i++)
@@ -215,79 +200,6 @@ public class ServerClientConnectionTest
       {
          int enumSize = ((YoEnum<?>) variable).getEnumSize();
          ((YoEnum<?>) variable).set(random.nextInt(enumSize));
-      }
-   }
-
-   /** Class that implements the YoVariableUpdatedListener to connect with the client */
-   public class ClientUpdatedListener implements YoVariablesUpdatedListener
-   {
-      private final YoRegistry parentRegistry;
-
-      public ClientUpdatedListener(YoRegistry parentRegistry)
-      {
-         this.parentRegistry = parentRegistry;
-      }
-
-      @Override
-      public boolean updateYoVariables()
-      {
-         return true;
-      }
-
-      @Override
-      public boolean changesVariables()
-      {
-         // This variable is set to true in another test to ensure different pieces of code get tested
-         return CHANGEDVARIABLES;
-      }
-
-      @Override
-      public void setShowOverheadView(boolean showOverheadView)
-      {
-
-      }
-
-      @Override
-      public void start(YoVariableClientInterface yoVariableClientInterface,
-                        LogHandshake handshake,
-                        YoVariableHandshakeParser handshakeParser,
-                        DebugRegistry debugRegistry)
-      {
-
-         YoRegistry clientRootRegistry = handshakeParser.getRootRegistry();
-         YoRegistry serverRegistry = new YoRegistry(yoVariableClientInterface.getServerName() + "Container");
-         serverRegistry.addChild(clientRootRegistry);
-         parentRegistry.addChild(serverRegistry);
-      }
-
-      @Override
-      public void disconnected()
-      {
-
-      }
-
-      @Override
-      public void receivedTimestampAndData(long timestamp)
-      {
-
-      }
-
-      @Override
-      public void connected()
-      {
-
-      }
-
-      @Override
-      public void receivedCommand(DataServerCommand command, int argument)
-      {
-
-      }
-
-      @Override
-      public void receivedTimestampOnly(long timestamp)
-      {
-
       }
    }
 }

@@ -52,22 +52,22 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
    private final LogWatcher logWatcher = new LogWatcher();
 
-   @Deprecated
-   /**
-    * A thread scheduler is not necessary anymore. This function is left in for backwards
-    * compatibility.
-    *
-    * @param mainClazz
-    * @param schedulerFactory
-    * @param logModelProvider
-    * @param dataServerSettings
-    * @param dt
-    */
-   public YoVariableServer(Class<?> mainClazz, PeriodicThreadSchedulerFactory schedulerFactory, LogModelProvider logModelProvider,
-                           DataServerSettings dataServerSettings, double dt)
-   {
-      this(mainClazz, logModelProvider, dataServerSettings, dt);
-   }
+//   @Deprecated
+//   /**
+//    * A thread scheduler is not necessary anymore. This function is left in for backwards
+//    * compatibility.
+//    *
+//    * @param mainClazz
+//    * @param schedulerFactory
+//    * @param logModelProvider
+//    * @param dataServerSettings
+//    * @param dt
+//    */
+//   public YoVariableServer(Class<?> mainClazz, PeriodicThreadSchedulerFactory schedulerFactory, LogModelProvider logModelProvider,
+//                           DataServerSettings dataServerSettings, double dt)
+//   {
+//      this(mainClazz, logModelProvider, dataServerSettings, dt);
+//   }
 
    @Deprecated
    /**
