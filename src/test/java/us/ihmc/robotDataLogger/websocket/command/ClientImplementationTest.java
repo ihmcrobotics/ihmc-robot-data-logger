@@ -5,10 +5,14 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.YoVariableClient;
+import us.ihmc.robotDataLogger.YoVariableClientInterface;
 import us.ihmc.robotDataLogger.YoVariableServer;
+import us.ihmc.robotDataLogger.YoVariablesUpdatedListener;
+import us.ihmc.robotDataLogger.handshake.LogHandshake;
+import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
+import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
-import us.ihmc.robotDataVisualizer.BasicYoVariablesUpdatedListener;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 import java.io.IOException;
@@ -22,7 +26,7 @@ public class ClientImplementationTest
    public YoVariableClient yoVariableClientShouldFail;
    private final YoRegistry serverRegistry = new YoRegistry("Main");
    private final YoRegistry clientListenerRegistry = new YoRegistry("ListenerRegistry");
-   private final BasicYoVariablesUpdatedListener clientListener = new BasicYoVariablesUpdatedListener(clientListenerRegistry);
+   private final ClientUpdatedListener clientListener = new ClientUpdatedListener(clientListenerRegistry);
 
    @Test
    public void testClientBadHostException()
@@ -107,6 +111,7 @@ public class ClientImplementationTest
    }
 
 
+
    @Disabled
    @Test
    // This test requires manual input in order for the client to connect with the server, so when running on Bamboo it should be disabled
@@ -144,5 +149,77 @@ public class ClientImplementationTest
       // These are both useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
       yoVariableClient.stop();
       yoVariableServer.close();
+   }
+
+   /** Class that implements the YoVariableUpdatedListener to connect with the client */
+   public static class ClientUpdatedListener implements YoVariablesUpdatedListener
+   {
+      private final YoRegistry parentRegistry;
+
+      public ClientUpdatedListener(YoRegistry parentRegistry)
+      {
+         this.parentRegistry = parentRegistry;
+      }
+
+      @Override
+      public boolean updateYoVariables()
+      {
+         return true;
+      }
+
+      @Override
+      public boolean changesVariables()
+      {
+         return false;
+      }
+
+      @Override
+      public void setShowOverheadView(boolean showOverheadView)
+      {
+
+      }
+
+      @Override
+      public void start(YoVariableClientInterface yoVariableClientInterface,
+                        LogHandshake handshake,
+                        YoVariableHandshakeParser handshakeParser,
+                        DebugRegistry debugRegistry)
+      {
+
+         YoRegistry clientRootRegistry = handshakeParser.getRootRegistry();
+         YoRegistry serverRegistry = new YoRegistry(yoVariableClientInterface.getServerName() + "Container");
+         serverRegistry.addChild(clientRootRegistry);
+         parentRegistry.addChild(serverRegistry);
+      }
+
+      @Override
+      public void disconnected()
+      {
+
+      }
+
+      @Override
+      public void receivedTimestampAndData(long timestamp)
+      {
+
+      }
+
+      @Override
+      public void connected()
+      {
+
+      }
+
+      @Override
+      public void receivedCommand(DataServerCommand command, int argument)
+      {
+
+      }
+
+      @Override
+      public void receivedTimestampOnly(long timestamp)
+      {
+
+      }
    }
 }
