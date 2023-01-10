@@ -89,6 +89,14 @@ public class ServerClientConnectionTest
       yoVariableServer.close();
    }
 
+   @Test
+   // This test will force a VariableChangedProducer to be created
+   public void testServerClientChangedVariablesTrue()
+   {
+      CHANGEDVARIABLES = true;
+      testSendingVariablesToClient();
+      CHANGEDVARIABLES = false;
+   }
 
    @Test
    public void testSendingVariablesToClient()
