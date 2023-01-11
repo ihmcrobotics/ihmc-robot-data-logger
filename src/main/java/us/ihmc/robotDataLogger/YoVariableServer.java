@@ -21,7 +21,6 @@ import us.ihmc.robotDataLogger.interfaces.RegistryPublisher;
 import us.ihmc.robotDataLogger.listeners.VariableChangedListener;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.websocket.server.WebsocketDataProducer;
-import us.ihmc.util.PeriodicThreadSchedulerFactory;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -51,40 +50,6 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    private final SummaryProvider summaryProvider = new SummaryProvider();
 
    private final LogWatcher logWatcher = new LogWatcher();
-
-//   @Deprecated
-//   /**
-//    * A thread scheduler is not necessary anymore. This function is left in for backwards
-//    * compatibility.
-//    *
-//    * @param mainClazz
-//    * @param schedulerFactory
-//    * @param logModelProvider
-//    * @param dataServerSettings
-//    * @param dt
-//    */
-//   public YoVariableServer(Class<?> mainClazz, PeriodicThreadSchedulerFactory schedulerFactory, LogModelProvider logModelProvider,
-//                           DataServerSettings dataServerSettings, double dt)
-//   {
-//      this(mainClazz, logModelProvider, dataServerSettings, dt);
-//   }
-
-   @Deprecated
-   /**
-    * A thread scheduler is not necessary anymore. This function is left in for backwards
-    * compatibility.
-    *
-    * @param mainClazz
-    * @param schedulerFactory
-    * @param logModelProvider
-    * @param dataServerSettings
-    * @param dt
-    */
-   public YoVariableServer(String mainClazz, PeriodicThreadSchedulerFactory schedulerFactory, LogModelProvider logModelProvider,
-                           DataServerSettings dataServerSettings, double dt)
-   {
-      this(mainClazz, logModelProvider, dataServerSettings, dt);
-   }
 
    /**
     * Create a YoVariable server with mainClazz.getSimpleName(). For example, see other constructor.
