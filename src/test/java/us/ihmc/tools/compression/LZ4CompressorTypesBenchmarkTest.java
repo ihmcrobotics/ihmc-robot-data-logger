@@ -12,11 +12,11 @@ import java.util.function.DoubleSupplier;
 
 public class LZ4CompressorTypesBenchmarkTest
 {
-   int ELEMENTS = 1024;
-   Random random = new Random(1234);
-   ByteBuffer[] dataset;
-   ByteBuffer[] datasetDirect;
-   double totalSize = 0;
+   public static final int ELEMENTS = 1024;
+   private final Random random = new Random(1234);
+   private ByteBuffer[] dataset;
+   private ByteBuffer[] datasetDirect;
+   private double totalSize = 0.0;
 
    public void fillRandomData()
    {
@@ -82,10 +82,10 @@ public class LZ4CompressorTypesBenchmarkTest
       fillRandomData();
       fillRandomDataDirect();
 
-      //JIT warmup
+      // JIT warmup
       warmup();
 
-      //Actual Benchmark
+      // Actual Benchmark
       benchmarkPrintFunction("LZ4 (Safe)", ELEMENTS, this::testLZ4FactorySafeInstance);
       benchmarkPrintFunction("LZ4 (Safe - Direct Buffer)", ELEMENTS, this::testLZ4FactorySafeInstanceDirect);
       benchmarkPrintFunction("LZ4 (Unsafe)", ELEMENTS, this::testLZ4FactoryUnsafeInstance);
@@ -160,7 +160,7 @@ public class LZ4CompressorTypesBenchmarkTest
    {
       ByteBuffer target = ByteBuffer.allocate(ELEMENTS * 4);
 
-      double compressedSize = 0;
+      double compressedSize = 0.0;
 
       for( int i = 0; i < dataset.length; i++)
       {
@@ -176,7 +176,7 @@ public class LZ4CompressorTypesBenchmarkTest
    {
       ByteBuffer target = ByteBuffer.allocateDirect(ELEMENTS * 4);
 
-      double compressedSize = 0;
+      double compressedSize = 0.0;
 
       for( int i = 0; i < datasetDirect.length; i++)
       {
@@ -200,7 +200,7 @@ public class LZ4CompressorTypesBenchmarkTest
 
          compressor.compress(dataset[i], target);
          compressedSize += target.position();
-         checkDataIsDifferent(dataset[i], target);
+         assertDataNotEqualTarget(dataset[i], target);
       }
 
       return compressedSize / totalSize;
@@ -217,13 +217,13 @@ public class LZ4CompressorTypesBenchmarkTest
 
          compressor.compress(dataset[i], target);
          compressedSize += target.position();
-         checkDataIsDifferent(dataset[i], target);
+         assertDataNotEqualTarget(dataset[i], target);
       }
 
       return compressedSize / totalSize;
    }
 
-   public void checkDataIsDifferent(ByteBuffer data, ByteBuffer target)
+   public void assertDataNotEqualTarget(ByteBuffer data, ByteBuffer target)
    {
       int dataSum = 0;
       int targetSum = 0;
