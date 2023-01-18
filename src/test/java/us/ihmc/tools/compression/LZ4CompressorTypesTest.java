@@ -2,21 +2,26 @@ package us.ihmc.tools.compression;
 
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import us.ihmc.commons.Conversions;
-
 import java.nio.ByteBuffer;
 import java.util.Random;
 import java.util.function.DoubleSupplier;
 
-public class LZ4CompressorTypesBenchmarkTest
+import static org.jcodec.common.Assert.assertTrue;
+
+/**
+ * These tests are meant to replicate the CompressionBenchmark.java but with generated data since its much faster to load.
+ * With the idea that the ratios should match between the CompressionBenchmark.java and this.
+ */
+
+public class LZ4CompressorTypesTest
 {
-   public static final int ELEMENTS = 1024;
+   public static final int ELEMENTS = 30197;
    private final Random random = new Random(1234);
    private ByteBuffer[] dataset;
    private ByteBuffer[] datasetDirect;
-   private double totalSize = 0.0;
+   private final double totalSize = (ELEMENTS * 4) * 12;
 
    public void fillRandomData()
    {
@@ -29,8 +34,6 @@ public class LZ4CompressorTypesBenchmarkTest
          {
             dataset[i].putInt(random.nextInt());
          }
-
-         totalSize += (ELEMENTS * 4);
       }
    }
 
@@ -45,8 +48,6 @@ public class LZ4CompressorTypesBenchmarkTest
          {
             datasetDirect[i].putInt(random.nextInt());
          }
-
-         totalSize += (ELEMENTS * 4);
       }
    }
 
@@ -101,9 +102,7 @@ public class LZ4CompressorTypesBenchmarkTest
       LZ4Compressor safeCompressor = LZ4Factory.safeInstance().fastCompressor();
       ByteBuffer target = ByteBuffer.allocate(safeCompressor.maxCompressedLength(ELEMENTS * 4));
 
-      double compressedSize = compressLZ4(safeCompressor, target);
-
-      return compressedSize / (ELEMENTS * 4);
+      return compressLZ4(safeCompressor, target);
    }
 
    public double testLZ4FactorySafeInstanceDirect()
@@ -111,9 +110,7 @@ public class LZ4CompressorTypesBenchmarkTest
       LZ4Compressor safeCompressor = LZ4Factory.safeInstance().fastCompressor();
       ByteBuffer targetDirect = ByteBuffer.allocateDirect(safeCompressor.maxCompressedLength(ELEMENTS * 4));
 
-      double compressedSize = compressLZ4Direct(safeCompressor, targetDirect);
-
-      return compressedSize / (ELEMENTS * 4);
+      return compressLZ4Direct(safeCompressor, targetDirect);
    }
 
    public double testLZ4FactoryUnsafeInstance()
@@ -121,9 +118,7 @@ public class LZ4CompressorTypesBenchmarkTest
       LZ4Compressor unsafeCompressor = LZ4Factory.unsafeInstance().fastCompressor();
       ByteBuffer target = ByteBuffer.allocate(unsafeCompressor.maxCompressedLength(ELEMENTS * 4));
 
-      double compressedSize = compressLZ4(unsafeCompressor, target);
-
-      return compressedSize / (ELEMENTS * 4);
+      return compressLZ4(unsafeCompressor, target);
    }
 
    public double testLZ4FactoryUnsafeInstanceDirect()
@@ -131,9 +126,7 @@ public class LZ4CompressorTypesBenchmarkTest
       LZ4Compressor unsafeCompressor = LZ4Factory.unsafeInstance().fastCompressor();
       ByteBuffer targetDirect = ByteBuffer.allocateDirect(unsafeCompressor.maxCompressedLength(ELEMENTS * 4));
 
-      double compressedSize = compressLZ4Direct(unsafeCompressor, targetDirect);
-
-      return compressedSize / (ELEMENTS * 4);
+      return compressLZ4Direct(unsafeCompressor, targetDirect);
    }
 
    public double testLZ4FactoryNativeInstance()
@@ -141,9 +134,7 @@ public class LZ4CompressorTypesBenchmarkTest
       LZ4Compressor jniCompressor = LZ4Factory.nativeInstance().fastCompressor();
       ByteBuffer target = ByteBuffer.allocate(jniCompressor.maxCompressedLength(ELEMENTS * 4));
 
-      double compressedSize = compressLZ4(jniCompressor, target);
-
-      return compressedSize / (ELEMENTS * 4);
+      return compressLZ4(jniCompressor, target);
    }
 
    public double testLZ4FactoryNativeInstanceDirect()
@@ -151,9 +142,7 @@ public class LZ4CompressorTypesBenchmarkTest
       LZ4Compressor jniCompressor = LZ4Factory.nativeInstance().fastCompressor();
       ByteBuffer targetDirect = ByteBuffer.allocateDirect(jniCompressor.maxCompressedLength(ELEMENTS * 4));
 
-      double compressedSize = compressLZ4Direct(jniCompressor, targetDirect);
-
-      return compressedSize / (ELEMENTS * 4);
+      return compressLZ4Direct(jniCompressor, targetDirect);
    }
 
    public double testCopy()
@@ -162,11 +151,11 @@ public class LZ4CompressorTypesBenchmarkTest
 
       double compressedSize = 0.0;
 
-      for( int i = 0; i < dataset.length; i++)
+      for (ByteBuffer byteBuffer : dataset)
       {
-         dataset[i].clear();
+         byteBuffer.clear();
          target.clear();
-         target.put(dataset[i]);
+         target.put(byteBuffer);
          compressedSize += target.position();
       }
       return compressedSize / totalSize;
@@ -178,11 +167,11 @@ public class LZ4CompressorTypesBenchmarkTest
 
       double compressedSize = 0.0;
 
-      for( int i = 0; i < datasetDirect.length; i++)
+      for (ByteBuffer byteBuffer : datasetDirect)
       {
-         datasetDirect[i].clear();
+         byteBuffer.clear();
          target.clear();
-         target.put(datasetDirect[i]);
+         target.put(byteBuffer);
          compressedSize += target.position();
       }
 
@@ -193,14 +182,14 @@ public class LZ4CompressorTypesBenchmarkTest
    {
       int compressedSize = 0;
 
-      for (int i = 0; i < dataset.length; i++)
+      for (ByteBuffer byteBuffer : dataset)
       {
-         dataset[i].clear();
+         byteBuffer.clear();
          target.clear();
 
-         compressor.compress(dataset[i], target);
+         compressor.compress(byteBuffer, target);
          compressedSize += target.position();
-         assertDataNotEqualTarget(dataset[i], target);
+         assertDataNotEqualTarget(byteBuffer, target);
       }
 
       return compressedSize / totalSize;
@@ -210,14 +199,14 @@ public class LZ4CompressorTypesBenchmarkTest
    {
       int compressedSize = 0;
 
-      for (int i = 0; i < datasetDirect.length; i++)
+      for (ByteBuffer byteBuffer : dataset)
       {
-         dataset[i].clear();
+         byteBuffer.clear();
          target.clear();
 
-         compressor.compress(dataset[i], target);
+         compressor.compress(byteBuffer, target);
          compressedSize += target.position();
-         assertDataNotEqualTarget(dataset[i], target);
+         assertDataNotEqualTarget(byteBuffer, target);
       }
 
       return compressedSize / totalSize;
@@ -225,19 +214,20 @@ public class LZ4CompressorTypesBenchmarkTest
 
    public void assertDataNotEqualTarget(ByteBuffer data, ByteBuffer target)
    {
-      int dataSum = 0;
-      int targetSum = 0;
+      double totalLength = target.capacity();
+      double matchingCount = 0.0;
+      double maxRatioOfMatchingData = 0.1;
+      double actualRatioOfMatchingData;
 
       for (int i = 0; i < data.capacity(); i++)
       {
-         dataSum += data.get(i);
+         if (data.get(i) == target.get(i))
+         {
+            matchingCount += 1;
+         }
       }
 
-      for (int i = 0; i < target.capacity(); i++)
-      {
-         targetSum += target.get(i);
-      }
-
-      Assertions.assertTrue(dataSum != targetSum);
+      actualRatioOfMatchingData = matchingCount / totalLength;
+      assertTrue(maxRatioOfMatchingData > actualRatioOfMatchingData);
    }
 }
