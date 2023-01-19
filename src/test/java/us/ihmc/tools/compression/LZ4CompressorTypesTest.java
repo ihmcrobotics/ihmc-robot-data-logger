@@ -15,6 +15,8 @@ import static org.jcodec.common.Assert.assertTrue;
  * With the idea that the ratios should match between the CompressionBenchmark.java and this.
  */
 
+//TODO Currently the ratios don't match because CompressionBenchmark.java calculates it in a different way, need to get them to match
+
 public class LZ4CompressorTypesTest
 {
    public static final int ELEMENTS = 30197;
