@@ -48,6 +48,10 @@ mainDependencies {
    api("us.ihmc:mecano:17-0.11.5")
    api("com.hierynomus:sshj:0.31.0")
 
+   api("org.bytedeco:javacv:1.5.8")
+   api("org.bytedeco:javacpp:1.5.8")
+   api("org.bytedeco:javacv-platform:1.5.8")
+
    var javaFXVersion = "17.0.2"
    api(ihmc.javaFXModule("base", javaFXVersion))
    api(ihmc.javaFXModule("controls", javaFXVersion))
