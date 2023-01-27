@@ -14,6 +14,7 @@ import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.StaticHostListLoader;
 import us.ihmc.robotDataLogger.interfaces.DataServerDiscoveryListener;
 import us.ihmc.robotDataLogger.listeners.LogAnnouncementListener;
+import us.ihmc.robotDataLogger.logReport.LogFinishedSlackNotifyListener;
 import us.ihmc.robotDataLogger.websocket.client.discovery.DataServerDiscoveryClient;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 
@@ -58,7 +59,11 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
    public static void main(String[] args) throws JSAPException, IOException
    {
       YoVariableLoggerOptions options = YoVariableLoggerOptions.parse(args);
-      new YoVariableLoggerDispatcher(options);
+
+      // Create listeners
+      LogFinishedSlackNotifyListener slackNotifyListener = new LogFinishedSlackNotifyListener();
+
+      new YoVariableLoggerDispatcher(options, slackNotifyListener);
    }
 
    @Override
