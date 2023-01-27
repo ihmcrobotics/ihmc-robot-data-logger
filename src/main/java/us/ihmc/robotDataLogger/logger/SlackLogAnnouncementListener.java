@@ -70,9 +70,6 @@ public class SlackLogAnnouncementListener implements LogAnnouncementListener
    public CompletableFuture<Boolean> publishSlackLogMessage(SlackLogMessage slackLogMessage, Announcement announcement)
    {
       HttpClient client = HttpClient.newHttpClient();
-      System.out.println(slackLogSettings.slackWebhookURL);
-      System.out.println(slackLogMessage.toJson());
-
       HttpRequest request = HttpRequest.newBuilder()
                                        .uri(URI.create(slackLogSettings.slackWebhookURL))
                                        .POST(HttpRequest.BodyPublishers.ofString(slackLogMessage.toJson()))
