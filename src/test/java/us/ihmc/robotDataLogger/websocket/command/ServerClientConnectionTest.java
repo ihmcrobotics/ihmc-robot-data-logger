@@ -106,7 +106,7 @@ public class ServerClientConnectionTest
       createVariables("Main", variablesPerType, serverRegistry, mainChangingVariables);
 
       // Creates the server and adds the main registry to the server with all the YoVariables, the server is then started
-      yoVariableServer = new YoVariableServer("HeyAtLeastEveryThingIsBeingSavedCorrectly", null, logSettings, dt);
+      yoVariableServer = new YoVariableServer("HelloSlackHowAreYouToday", null, logSettings, dt);
       yoVariableServer.setMainRegistry(serverRegistry, null);
       yoVariableServer.start();
 

@@ -27,7 +27,7 @@ public class ScreenCapture
 //         public static File timestampFile = new File("C:/Users/nkitchel/Workspaces/Security-Camera/repository-group/ihmc-video-codecs/src/test/resources/testing.dat");
 
          //         String filename = "C:/Users/nadiaocu/eclipse-java-17-ws/repository-group/ihmc-video-codecs/src/test/resources/recordedVideo.mov";
-         String filename = "C:/Users/nkitchel/Workspaces/Security-Camera/repository-group/ihmc-video-codecs/src/test/resources/screenRecording.mov";
+         String filename = "C:/Users/nkitchel/Workspaces/Security-Camera/repository-group/ihmc-robot-data-logger/src/test/resources/screenRecording.mov";
 
          final CanvasFrame cFrame = new CanvasFrame("Capture Preview", CanvasFrame.getDefaultGamma() / grabber.getGamma());
 

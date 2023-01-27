@@ -30,7 +30,7 @@ public class VideoCapture
          grabber.start();
 
 //         String filename = "C:/Users/nadiaocu/eclipse-java-17-ws/repository-group/ihmc-video-codecs/src/test/resources/recordedVideo.mov";
-         String filename = "ihmc-video-codecs/src/test/resources/recordedVideo.mov";
+         String filename = "ihmc-robot-data-logger/src/test/resources/recordedVideo.mov";
 
          // RTMP url to an FMS / Wowza server
          try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(filename, captureWidth, captureHeight))
@@ -54,7 +54,7 @@ public class VideoCapture
             Frame capturedFrame;
 
             // Loop to capture a video, will stop after iterations have been completed
-            while (timer < 10 && ((capturedFrame = grabber.grabAtFrameRate()) != null))
+            while (timer < 500 && ((capturedFrame = grabber.grabAtFrameRate()) != null))
             {
 //               Thread.sleep(80);
                // Shows the captured frame its currently recording
