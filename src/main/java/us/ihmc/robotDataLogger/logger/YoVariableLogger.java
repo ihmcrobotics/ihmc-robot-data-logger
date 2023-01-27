@@ -47,10 +47,12 @@ public class YoVariableLogger
       DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
       Calendar calendar = Calendar.getInstance();
       String timestamp = dateFormat.format(calendar.getTime());
+      String timestampName = timestamp + "_" + request.getName();
+      request.setTimestampName(timestampName);
 
-      File tempDirectory = new File(logDirectory.toFile(), "." + timestamp + "_" + request.getName());
+      File tempDirectory = new File(logDirectory.toFile(), "." + timestampName);
 
-      File finalDirectory = new File(logDirectory.toFile(), timestamp + "_" + request.getName());
+      File finalDirectory = new File(logDirectory.toFile(), timestampName);
       if (finalDirectory.exists())
       {
          throw new IOException("Directory " + finalDirectory.getAbsolutePath() + " already exists");

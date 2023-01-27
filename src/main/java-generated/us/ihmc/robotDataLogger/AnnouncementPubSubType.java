@@ -44,6 +44,7 @@ public class AnnouncementPubSubType implements us.ihmc.pubsub.TopicDataType<us.i
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
       current_alignment += us.ihmc.robotDataLogger.ModelFileDescriptionPubSubType.getMaxCdrSerializedSize(current_alignment);
 
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
@@ -64,6 +65,8 @@ public class AnnouncementPubSubType implements us.ihmc.pubsub.TopicDataType<us.i
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + data.getIdentifier().length() + 1;
 
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + data.getName().length() + 1;
+
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + data.getTimestampName().length() + 1;
 
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + data.getHostName().length() + 1;
 
@@ -88,6 +91,10 @@ public class AnnouncementPubSubType implements us.ihmc.pubsub.TopicDataType<us.i
       cdr.write_type_d(data.getName());else
           throw new RuntimeException("name field exceeds the maximum length");
 
+      if(data.getTimestampName().length() <= 255)
+      cdr.write_type_d(data.getTimestampName());else
+          throw new RuntimeException("timestampName field exceeds the maximum length");
+
       if(data.getHostName().length() <= 255)
       cdr.write_type_d(data.getHostName());else
           throw new RuntimeException("hostName field exceeds the maximum length");
@@ -105,6 +112,7 @@ public class AnnouncementPubSubType implements us.ihmc.pubsub.TopicDataType<us.i
    {
       cdr.read_type_d(data.getIdentifier());	
       cdr.read_type_d(data.getName());	
+      cdr.read_type_d(data.getTimestampName());	
       cdr.read_type_d(data.getHostName());	
       cdr.read_type_d(data.getReconnectKey());	
       us.ihmc.robotDataLogger.ModelFileDescriptionPubSubType.read(data.getModelFileDescription(), cdr);	
@@ -118,6 +126,7 @@ public class AnnouncementPubSubType implements us.ihmc.pubsub.TopicDataType<us.i
    {
       ser.write_type_d("identifier", data.getIdentifier());
       ser.write_type_d("name", data.getName());
+      ser.write_type_d("timestampName", data.getTimestampName());
       ser.write_type_d("hostName", data.getHostName());
       ser.write_type_d("reconnectKey", data.getReconnectKey());
       ser.write_type_a("modelFileDescription", new us.ihmc.robotDataLogger.ModelFileDescriptionPubSubType(), data.getModelFileDescription());
@@ -130,6 +139,7 @@ public class AnnouncementPubSubType implements us.ihmc.pubsub.TopicDataType<us.i
    {
       ser.read_type_d("identifier", data.getIdentifier());
       ser.read_type_d("name", data.getName());
+      ser.read_type_d("timestampName", data.getTimestampName());
       ser.read_type_d("hostName", data.getHostName());
       ser.read_type_d("reconnectKey", data.getReconnectKey());
       ser.read_type_a("modelFileDescription", new us.ihmc.robotDataLogger.ModelFileDescriptionPubSubType(), data.getModelFileDescription());

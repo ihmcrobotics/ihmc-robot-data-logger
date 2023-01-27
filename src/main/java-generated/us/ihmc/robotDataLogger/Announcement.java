@@ -10,6 +10,7 @@ public class Announcement extends Packet<Announcement> implements Settable<Annou
 {
    public java.lang.StringBuilder identifier_;
    public java.lang.StringBuilder name_;
+   public java.lang.StringBuilder timestampName_;
    public java.lang.StringBuilder hostName_;
    public java.lang.StringBuilder reconnectKey_;
    public us.ihmc.robotDataLogger.ModelFileDescription modelFileDescription_;
@@ -19,6 +20,7 @@ public class Announcement extends Packet<Announcement> implements Settable<Annou
    {
       identifier_ = new java.lang.StringBuilder(255);
       name_ = new java.lang.StringBuilder(255);
+      timestampName_ = new java.lang.StringBuilder(255);
       hostName_ = new java.lang.StringBuilder(255);
       reconnectKey_ = new java.lang.StringBuilder(255);
       modelFileDescription_ = new us.ihmc.robotDataLogger.ModelFileDescription();
@@ -37,6 +39,9 @@ public class Announcement extends Packet<Announcement> implements Settable<Annou
 
       name_.setLength(0);
       name_.append(other.name_);
+
+      timestampName_.setLength(0);
+      timestampName_.append(other.timestampName_);
 
       hostName_.setLength(0);
       hostName_.append(other.hostName_);
@@ -77,6 +82,21 @@ public class Announcement extends Packet<Announcement> implements Settable<Annou
    public java.lang.StringBuilder getName()
    {
       return name_;
+   }
+
+   public void setTimestampName(java.lang.String timestampName)
+   {
+      timestampName_.setLength(0);
+      timestampName_.append(timestampName);
+   }
+
+   public java.lang.String getTimestampNameAsString()
+   {
+      return getTimestampName().toString();
+   }
+   public java.lang.StringBuilder getTimestampName()
+   {
+      return timestampName_;
    }
 
    public void setHostName(java.lang.String hostName)
@@ -146,6 +166,8 @@ public class Announcement extends Packet<Announcement> implements Settable<Annou
 
       if (!us.ihmc.idl.IDLTools.epsilonEqualsStringBuilder(this.name_, other.name_, epsilon)) return false;
 
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsStringBuilder(this.timestampName_, other.timestampName_, epsilon)) return false;
+
       if (!us.ihmc.idl.IDLTools.epsilonEqualsStringBuilder(this.hostName_, other.hostName_, epsilon)) return false;
 
       if (!us.ihmc.idl.IDLTools.epsilonEqualsStringBuilder(this.reconnectKey_, other.reconnectKey_, epsilon)) return false;
@@ -170,6 +192,8 @@ public class Announcement extends Packet<Announcement> implements Settable<Annou
 
       if (!us.ihmc.idl.IDLTools.equals(this.name_, otherMyClass.name_)) return false;
 
+      if (!us.ihmc.idl.IDLTools.equals(this.timestampName_, otherMyClass.timestampName_)) return false;
+
       if (!us.ihmc.idl.IDLTools.equals(this.hostName_, otherMyClass.hostName_)) return false;
 
       if (!us.ihmc.idl.IDLTools.equals(this.reconnectKey_, otherMyClass.reconnectKey_)) return false;
@@ -191,6 +215,8 @@ public class Announcement extends Packet<Announcement> implements Settable<Annou
       builder.append(this.identifier_);      builder.append(", ");
       builder.append("name=");
       builder.append(this.name_);      builder.append(", ");
+      builder.append("timestampName=");
+      builder.append(this.timestampName_);      builder.append(", ");
       builder.append("hostName=");
       builder.append(this.hostName_);      builder.append(", ");
       builder.append("reconnectKey=");

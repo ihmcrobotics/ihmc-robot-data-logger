@@ -21,6 +21,7 @@ module robotDataLogger{
 		string identifier;
 		
 		string name;
+		string timestampName;
 		string hostName;
 		string reconnectKey;
 		ModelFileDescription modelFileDescription;
