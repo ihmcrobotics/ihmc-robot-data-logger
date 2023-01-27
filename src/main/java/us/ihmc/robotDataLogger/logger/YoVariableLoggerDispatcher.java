@@ -1,7 +1,10 @@
 package us.ihmc.robotDataLogger.logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 import com.martiansoftware.jsap.JSAPException;
 
@@ -10,6 +13,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.StaticHostListLoader;
 import us.ihmc.robotDataLogger.interfaces.DataServerDiscoveryListener;
+import us.ihmc.robotDataLogger.listeners.LogAnnouncementListener;
 import us.ihmc.robotDataLogger.websocket.client.discovery.DataServerDiscoveryClient;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 
@@ -18,6 +22,8 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
    private final DataServerDiscoveryClient discoveryClient;
 
    private final Object lock = new Object();
+
+   private final List<LogAnnouncementListener> announcementListeners = new ArrayList<>();
 
    /**
     * List of sessions for which we started a logger. This is to avoid double logging should there be
@@ -34,9 +40,10 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
     * @param options
     * @throws IOException
     */
-   public YoVariableLoggerDispatcher(YoVariableLoggerOptions options) throws IOException
+   public YoVariableLoggerDispatcher(YoVariableLoggerOptions options, LogAnnouncementListener... announcementListeners) throws IOException
    {
       this.options = options;
+      this.announcementListeners.addAll(Arrays.stream(announcementListeners).toList());
       LogTools.info("Starting YoVariableLoggerDispatcher");
 
       boolean enableAutoDiscovery = !options.isDisableAutoDiscovery();
@@ -72,8 +79,9 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
             {
                try
                {
-                  new YoVariableLogger(connection, options, (request) -> finishedLog(request));
+                  new YoVariableLogger(connection, options, this::finishedLog);
                   activeLogSessions.add(hashAnnouncement);
+                  announcementListeners.forEach(listener -> listener.logSessionCameOnline(announcement));
                   LogTools.info("Logging session started for " + announcement.getNameAsString());
                }
                catch (Exception e)
@@ -111,8 +119,8 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
          LogTools.info("Removing log session.");
          HashAnnouncement hashRequest = new HashAnnouncement(request);
          activeLogSessions.remove(hashRequest);
+         announcementListeners.forEach(listener -> listener.logSessionWentOffline(request));
          LogTools.info("Logging session for " + request.getNameAsString() + " has finished.");
-
       }
    }
 
