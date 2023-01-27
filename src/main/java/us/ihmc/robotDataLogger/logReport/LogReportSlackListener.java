@@ -14,12 +14,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-public class LogFinishedSlackNotifyListener extends LogReportListener
+public class LogReportSlackListener extends LogReportListener
 {
    private static final String SLACK_SETTINGS_FILE_NAME = "slackSettings.properties";
    private SlackLogSettings slackLogSettings;
 
-   public LogFinishedSlackNotifyListener(YoVariableLoggerOptions options)
+   public LogReportSlackListener(YoVariableLoggerOptions options)
    {
       File slackSettingsFile = new File(options.getLogDirectory(), SLACK_SETTINGS_FILE_NAME);
       slackLogSettings = new SlackLogSettings(slackSettingsFile);

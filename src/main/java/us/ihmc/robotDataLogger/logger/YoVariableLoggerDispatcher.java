@@ -13,7 +13,7 @@ import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.StaticHostListLoader;
 import us.ihmc.robotDataLogger.interfaces.DataServerDiscoveryListener;
 import us.ihmc.robotDataLogger.listeners.LogAnnouncementListener;
-import us.ihmc.robotDataLogger.logReport.LogFinishedSlackNotifyListener;
+import us.ihmc.robotDataLogger.logReport.LogReportSlackListener;
 import us.ihmc.robotDataLogger.websocket.client.discovery.DataServerDiscoveryClient;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 
@@ -50,7 +50,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       discoveryClient.addHosts(StaticHostListLoader.load());
 
       // Register default listeners
-      LogFinishedSlackNotifyListener slackNotifyListener = new LogFinishedSlackNotifyListener(options);
+      LogReportSlackListener slackNotifyListener = new LogReportSlackListener(options);
       registerLogAnnouncementListener(slackNotifyListener);
 
       LogTools.info("Client started, waiting for data server sessions");
