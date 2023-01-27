@@ -3,7 +3,7 @@ package us.ihmc.robotDataLogger.logReport;
 import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.listeners.LogAnnouncementListener;
 
-public abstract class LogFinishedReporterListener implements LogAnnouncementListener
+public abstract class LogReportListener implements LogAnnouncementListener
 {
    @Override
    public void logSessionCameOnline(Announcement announcement)

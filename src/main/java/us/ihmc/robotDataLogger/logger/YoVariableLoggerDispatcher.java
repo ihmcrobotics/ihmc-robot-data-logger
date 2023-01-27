@@ -2,7 +2,6 @@ package us.ihmc.robotDataLogger.logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -24,7 +23,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 
    private final Object lock = new Object();
 
-   private final List<LogAnnouncementListener> announcementListeners = new ArrayList<>();
+   private final List<LogAnnouncementListener> logAnnouncementListeners = new ArrayList<>();
 
    /**
     * List of sessions for which we started a logger. This is to avoid double logging should there be
@@ -41,15 +40,18 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
     * @param options
     * @throws IOException
     */
-   public YoVariableLoggerDispatcher(YoVariableLoggerOptions options, LogAnnouncementListener... announcementListeners) throws IOException
+   public YoVariableLoggerDispatcher(YoVariableLoggerOptions options) throws IOException
    {
       this.options = options;
-      this.announcementListeners.addAll(Arrays.stream(announcementListeners).toList());
       LogTools.info("Starting YoVariableLoggerDispatcher");
 
       boolean enableAutoDiscovery = !options.isDisableAutoDiscovery();
       discoveryClient = new DataServerDiscoveryClient(this, enableAutoDiscovery);
       discoveryClient.addHosts(StaticHostListLoader.load());
+
+      // Register default listeners
+      LogFinishedSlackNotifyListener slackNotifyListener = new LogFinishedSlackNotifyListener(options);
+      registerLogAnnouncementListener(slackNotifyListener);
 
       LogTools.info("Client started, waiting for data server sessions");
       
@@ -59,11 +61,12 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
    public static void main(String[] args) throws JSAPException, IOException
    {
       YoVariableLoggerOptions options = YoVariableLoggerOptions.parse(args);
+      new YoVariableLoggerDispatcher(options);
+   }
 
-      // Create listeners
-      LogFinishedSlackNotifyListener slackNotifyListener = new LogFinishedSlackNotifyListener();
-
-      new YoVariableLoggerDispatcher(options, slackNotifyListener);
+   public void registerLogAnnouncementListener(LogAnnouncementListener listener)
+   {
+      logAnnouncementListeners.add(listener);
    }
 
    @Override
@@ -86,7 +89,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
                {
                   new YoVariableLogger(connection, options, this::finishedLog);
                   activeLogSessions.add(hashAnnouncement);
-                  announcementListeners.forEach(listener -> listener.logSessionCameOnline(announcement));
+                  logAnnouncementListeners.forEach(listener -> listener.logSessionCameOnline(announcement));
                   LogTools.info("Logging session started for " + announcement.getNameAsString());
                }
                catch (Exception e)
@@ -124,7 +127,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
          LogTools.info("Removing log session.");
          HashAnnouncement hashRequest = new HashAnnouncement(request);
          activeLogSessions.remove(hashRequest);
-         announcementListeners.forEach(listener -> listener.logSessionWentOffline(request));
+         logAnnouncementListeners.forEach(listener -> listener.logSessionWentOffline(request));
          LogTools.info("Logging session for " + request.getNameAsString() + " has finished.");
       }
    }
