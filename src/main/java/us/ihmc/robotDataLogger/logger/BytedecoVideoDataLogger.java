@@ -114,7 +114,6 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
 
    public void startCapture() throws FFmpegFrameRecorder.Exception, FrameGrabber.Exception
    {
-      ThreadTools.startAThread(null, "Capture");
       long startTime = 0;
       grabber.start();
       recorder.start();
@@ -152,6 +151,7 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
             recordTimestampToArray(System.nanoTime(), i + 1);
 
             recorder.record(capturedFrame);
+            receivedFrameAtTime(getHardwareTimestamp(), recorder.getTimestamp(), 1, Math.round(1.0 / recorder.getFrameRate()));
          }
          else
          {
@@ -189,17 +189,21 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
    @Override
    public void timestampChanged(long newTimestamp)
    {
-      LogTools.info("Running timestampChanged function");
       if (recorder != null)
       {
-         long hardwareTimestamp = recorder.getTimestamp();
+         long hardwareTimestamp = getHardwareTimestamp();
 
-         if (hardwareTimestamp != -1)
+         if (hardwareTimestamp > 0)
          {
+            LogTools.info("hardwareTimestamp={}, newTimestamp={}", hardwareTimestamp, newTimestamp);
             circularLongMap.insert(hardwareTimestamp, newTimestamp);
-            receivedFrameAtTime(hardwareTimestamp, newTimestamp, 1, 60000);
          }
       }
+   }
+
+   private long getHardwareTimestamp()
+   {
+      return Math.round(recorder.getFrameNumber() * 1000000000L / recorder.getFrameRate());
    }
 
    /*
@@ -286,7 +290,6 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
    @Override
    public long getLastFrameReceivedTimestamp()
    {
-      LogTools.info("Going inside getLastFrameReceivedTimestamp");
       return lastFrameTimestamp;
    }
 

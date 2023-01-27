@@ -1,4 +1,4 @@
-package us.ihmc.robotDataLogger.captureVideo;
+package us.ihmc.publisher.logger;
 
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.*;
@@ -30,7 +30,8 @@ public class VideoCapture
          grabber.start();
 
 //         String filename = "C:/Users/nadiaocu/eclipse-java-17-ws/repository-group/ihmc-video-codecs/src/test/resources/recordedVideo.mov";
-         String filename = "ihmc-robot-data-logger/src/test/resources/recordedVideo.mov";
+//         String filename = "ihmc-robot-data-logger/src/test/resources/recordedVideo.mov";
+         String filename = "/home/shadylady/recordVideo.mov";
 
          // RTMP url to an FMS / Wowza server
          try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(filename, captureWidth, captureHeight))
@@ -48,7 +49,7 @@ public class VideoCapture
             recorder.start();
 
             // A really nice hardware accelerated component for our preview...
-            final CanvasFrame cFrame = new CanvasFrame("Capture Preview", CanvasFrame.getDefaultGamma() / grabber.getGamma());
+//            final CanvasFrame cFrame = new CanvasFrame("Capture Preview", CanvasFrame.getDefaultGamma() / grabber.getGamma());
 
             int timer = 0;
             Frame capturedFrame;
@@ -58,10 +59,10 @@ public class VideoCapture
             {
 //               Thread.sleep(80);
                // Shows the captured frame its currently recording
-               if (cFrame.isVisible())
-               {
-                  cFrame.showImage(capturedFrame);
-               }
+//               if (cFrame.isVisible())
+//               {
+//                  cFrame.showImage(capturedFrame);
+//               }
 
                // Keeps track of time for the recorder because often times it gets offset
                if (startTime == 0)
@@ -93,7 +94,7 @@ public class VideoCapture
             }
 
             Thread.sleep(2000);
-            cFrame.dispose();
+//            cFrame.dispose();
             recorder.flush();
             recorder.stop();
          }
