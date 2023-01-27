@@ -27,7 +27,7 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
    final int captureHeight = 720;
 //   String filename;// = "C:/Users/nkitchel/robotLogs/BytedecoVideos/bytedecoLogVideo.mov";
    OpenCVFrameGrabber grabber;
-   CanvasFrame cFrame;
+//   CanvasFrame cFrame;
 
    public static ArrayList<Long> timestampList = new ArrayList<>();
 
@@ -63,7 +63,7 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
          case AV_CODEC_ID_H264:
          case AV_CODEC_ID_MJPEG:
             grabber = new OpenCVFrameGrabber(decklink);
-            cFrame = new CanvasFrame("Capture Preview", CanvasFrame.getDefaultGamma() / grabber.getGamma());
+//            cFrame = new CanvasFrame("Capture Preview", CanvasFrame.getDefaultGamma() / grabber.getGamma());
             grabber.setImageWidth(captureWidth);
             grabber.setImageHeight(captureHeight);
             recorder = new FFmpegFrameRecorder(videoCaptureFile, captureWidth, captureHeight);
@@ -129,10 +129,10 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
          {
             LogTools.info(i);
 
-            if (cFrame.isVisible())
-            {
-               cFrame.showImage(capturedFrame);
-            }
+//            if (cFrame.isVisible())
+//            {
+//               cFrame.showImage(capturedFrame);
+//            }
 
             if (startTime == 0)
             {
@@ -215,7 +215,7 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
          try
          {
             LogTools.info("Stopping capture.");
-            cFrame.dispose();
+//            cFrame.dispose();
             recorder.flush();
             recorder.stop();
             grabber.stop();
