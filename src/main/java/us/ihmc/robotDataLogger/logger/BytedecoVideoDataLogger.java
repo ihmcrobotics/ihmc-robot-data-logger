@@ -22,7 +22,6 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
     */
    private static boolean WRITTEN_TO_TIMESTAMP = false;
 
-   final private static int WEBCAM_DEVICE_INDEX = 0;
    final private static int FRAME_RATE = 60;
    final int captureWidth = 1280;
    final int captureHeight = 720;
@@ -63,7 +62,7 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
       {
          case AV_CODEC_ID_H264:
          case AV_CODEC_ID_MJPEG:
-            grabber = new OpenCVFrameGrabber(WEBCAM_DEVICE_INDEX);
+            grabber = new OpenCVFrameGrabber(decklink);
             cFrame = new CanvasFrame("Capture Preview", CanvasFrame.getDefaultGamma() / grabber.getGamma());
             grabber.setImageWidth(captureWidth);
             grabber.setImageHeight(captureHeight);
