@@ -1,4 +1,4 @@
-package us.ihmc.robotDataLogger.logReport;
+package us.ihmc.robotDataLogger.logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import us.ihmc.commons.nio.FileTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
-import us.ihmc.robotDataLogger.logger.YoVariableLoggerOptions;
+import us.ihmc.robotDataLogger.listeners.LogAnnouncementListener;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,12 +19,17 @@ import java.net.http.HttpResponse;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
-public class LogReportSlackListener extends LogReportListener
+public class SlackLogAnnouncementListener implements LogAnnouncementListener
 {
    private static final String SLACK_SETTINGS_FILE_NAME = "slackSettings.properties";
    private final SlackLogSettings slackLogSettings;
 
-   public LogReportSlackListener(YoVariableLoggerOptions options)
+   private enum LogEventType
+   {
+      STARTED, FINISHED;
+   }
+
+   public SlackLogAnnouncementListener(YoVariableLoggerOptions options)
    {
       File slackSettingsFile = new File(options.getLogDirectory(), SLACK_SETTINGS_FILE_NAME);
       slackLogSettings = new SlackLogSettings(slackSettingsFile);
@@ -47,19 +52,22 @@ public class LogReportSlackListener extends LogReportListener
    }
 
    @Override
-   public void logSessionReport(Announcement announcement, LogReport logReport)
+   public void logSessionCameOnline(Announcement announcement)
    {
-      SlackLogMessage slackLogMessage = new SlackLogMessage(slackLogSettings);
+      SlackLogMessage slackLogMessage = new SlackLogMessage(slackLogSettings, LogEventType.STARTED);
       slackLogMessage.setLogDirectoryName(announcement.getTimestampNameAsString());
-      publishSlackLogMessage(slackLogMessage).thenAccept(success -> {
-         if (success)
-            LogTools.info("Pushed log report notification to Slack " + announcement.getTimestampNameAsString());
-         else
-            LogTools.info("Unable to POST to Slack webhook. Check your " + SLACK_SETTINGS_FILE_NAME);
-      });
+      publishSlackLogMessage(slackLogMessage, announcement);
    }
 
-   public CompletableFuture<Boolean> publishSlackLogMessage(SlackLogMessage slackLogMessage)
+   @Override
+   public void logSessionWentOffline(Announcement announcement)
+   {
+      SlackLogMessage slackLogMessage = new SlackLogMessage(slackLogSettings, LogEventType.FINISHED);
+      slackLogMessage.setLogDirectoryName(announcement.getTimestampNameAsString());
+      publishSlackLogMessage(slackLogMessage, announcement);
+   }
+
+   public CompletableFuture<Boolean> publishSlackLogMessage(SlackLogMessage slackLogMessage, Announcement announcement)
    {
       HttpClient client = HttpClient.newHttpClient();
       System.out.println(slackLogSettings.slackWebhookURL);
@@ -69,7 +77,15 @@ public class LogReportSlackListener extends LogReportListener
                                        .uri(URI.create(slackLogSettings.slackWebhookURL))
                                        .POST(HttpRequest.BodyPublishers.ofString(slackLogMessage.toJson()))
                                        .build();
-      return client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).thenApply(stringHttpResponse -> stringHttpResponse.statusCode() == 200);
+      return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+            .thenApply(response -> {
+               boolean success = response.statusCode() == 200;
+               if (success)
+                  LogTools.info("Pushed log report notification to Slack " + announcement.getTimestampNameAsString());
+               else
+                  LogTools.info("Unable to POST to Slack webhook. Check your " + SLACK_SETTINGS_FILE_NAME);
+               return success;
+            });
    }
 
    private static class SlackLogSettings
@@ -136,10 +152,12 @@ public class LogReportSlackListener extends LogReportListener
    {
       private final SlackLogSettings slackLogSettings;
       private String logDirectoryName;
+      private LogEventType eventType;
 
-      public SlackLogMessage(SlackLogSettings slackLogSettings)
+      public SlackLogMessage(SlackLogSettings slackLogSettings, LogEventType eventType)
       {
          this.slackLogSettings = slackLogSettings;
+         this.eventType = eventType;
       }
 
       public void setLogDirectoryName(String logDirectoryName)
@@ -155,11 +173,12 @@ public class LogReportSlackListener extends LogReportListener
       public String getMessage()
       {
          StringBuilder stringBuilder = new StringBuilder();
-
-         stringBuilder.append("A new robot data log has been generated.");
+         switch (eventType) {
+            case STARTED -> stringBuilder.append("A new robot data log has been started.");
+            case FINISHED -> stringBuilder.append("A new robot data log has finished.");
+         }
          stringBuilder.append("\n");
          stringBuilder.append(logDirectoryName);
-
          return stringBuilder.toString();
       }
 
