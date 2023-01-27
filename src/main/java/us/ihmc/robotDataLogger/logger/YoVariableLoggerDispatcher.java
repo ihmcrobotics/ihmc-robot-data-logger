@@ -49,7 +49,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       discoveryClient.addHosts(StaticHostListLoader.load());
 
       // Register default listeners
-      SlackLogAnnouncementListener slackNotifyListener = new SlackLogAnnouncementListener(options);
+      SlackLogAnnouncementListener slackNotifyListener = new SlackLogAnnouncementListener();
       registerLogAnnouncementListener(slackNotifyListener);
 
       LogTools.info("Client started, waiting for data server sessions");

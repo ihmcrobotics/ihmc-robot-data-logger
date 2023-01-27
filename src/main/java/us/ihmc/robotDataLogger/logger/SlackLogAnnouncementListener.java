@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class SlackLogAnnouncementListener implements LogAnnouncementListener
 {
-   private static final String SLACK_SETTINGS_FILE_NAME = "slackSettings.properties";
+   private static final String SLACK_SETTINGS_FILE_NAME = "slackDataLoggerSettings.properties";
    private final SlackLogSettings slackLogSettings;
 
    private enum LogEventType
@@ -29,9 +29,9 @@ public class SlackLogAnnouncementListener implements LogAnnouncementListener
       STARTED, FINISHED;
    }
 
-   public SlackLogAnnouncementListener(YoVariableLoggerOptions options)
+   public SlackLogAnnouncementListener()
    {
-      File slackSettingsFile = new File(options.getLogDirectory(), SLACK_SETTINGS_FILE_NAME);
+      File slackSettingsFile = new File(System.getProperty("user.home") + "/.ihmc", SLACK_SETTINGS_FILE_NAME);
       slackLogSettings = new SlackLogSettings(slackSettingsFile);
 
       try
@@ -54,6 +54,8 @@ public class SlackLogAnnouncementListener implements LogAnnouncementListener
    @Override
    public void logSessionCameOnline(Announcement announcement)
    {
+      if (!slackLogSettings.loaded())
+         return;
       SlackLogMessage slackLogMessage = new SlackLogMessage(slackLogSettings, LogEventType.STARTED);
       slackLogMessage.setLogDirectoryName(announcement.getTimestampNameAsString());
       publishSlackLogMessage(slackLogMessage, announcement);
@@ -62,6 +64,8 @@ public class SlackLogAnnouncementListener implements LogAnnouncementListener
    @Override
    public void logSessionWentOffline(Announcement announcement)
    {
+      if (!slackLogSettings.loaded())
+         return;
       SlackLogMessage slackLogMessage = new SlackLogMessage(slackLogSettings, LogEventType.FINISHED);
       slackLogMessage.setLogDirectoryName(announcement.getTimestampNameAsString());
       publishSlackLogMessage(slackLogMessage, announcement);
