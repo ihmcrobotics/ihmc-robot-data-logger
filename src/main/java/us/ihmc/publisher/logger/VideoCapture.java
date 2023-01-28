@@ -1,8 +1,10 @@
 package us.ihmc.publisher.logger;
 
+import com.martiansoftware.jsap.*;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.*;
 import org.bytedeco.javacv.FrameRecorder.Exception;
+import us.ihmc.javadecklink.Capture;
 
 import java.util.ArrayList;
 
@@ -17,14 +19,88 @@ public class VideoCapture
 
    private static long startTime = 0;
 
-   public static void main(String[] args) throws Exception, org.bytedeco.javacv.FrameGrabber.Exception, InterruptedException
+   public static void main(String[] args) throws Exception, org.bytedeco.javacv.FrameGrabber.Exception, InterruptedException, JSAPException
    {
-      // This is the size of the finalized video, proportions need to be right
-      final int captureWidth = 1280;
-      final int captureHeight = 720;
-
-      try (OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(WEBCAM_DEVICE_INDEX))
+      SimpleJSAP jsap = new SimpleJSAP("Capture test",
+                                       "Test capture of one or more video capture card",
+                                       new Parameter[] {
+                                             new FlaggedOption("codec",
+                                                               JSAP.STRING_PARSER,
+                                                               "MJPEG",
+                                                               JSAP.NOT_REQUIRED,
+                                                               'c',
+                                                               "codec",
+                                                               "Codec either: H264 or MJPEG"),
+                                             new FlaggedOption("outputPath",
+                                                               JSAP.STRING_PARSER,
+                                                               "",
+                                                               JSAP.NOT_REQUIRED,
+                                                               'p',
+                                                               "path",
+                                                               "Path to directory where video file(s) are to be saved, expected to end with '/'."),
+                                             new FlaggedOption("crf",
+                                                               JSAP.INTEGER_PARSER,
+                                                               String.valueOf(23),
+                                                               JSAP.NOT_REQUIRED,
+                                                               'r',
+                                                               "crf",
+                                                               "CRF (Constant rate factor) for H264. 0-51, 0 is lossless. Sane values are 18 to 28."),
+                                             new FlaggedOption("frameWidth",
+                                                               JSAP.INTEGER_PARSER,
+                                                               String.valueOf(1280),
+                                                               JSAP.NOT_REQUIRED,
+                                                               'w',
+                                                               "frameWidth",
+                                                               "Frame width"),
+                                             new FlaggedOption("frameHeight",
+                                                               JSAP.INTEGER_PARSER,
+                                                               String.valueOf(720),
+                                                               JSAP.NOT_REQUIRED,
+                                                               'h',
+                                                               "frameHeight",
+                                                               "Frame Height"),
+                                             new FlaggedOption("frameRate",
+                                                               JSAP.INTEGER_PARSER,
+                                                               String.valueOf(120),
+                                                               JSAP.NOT_REQUIRED,
+                                                               'f',
+                                                               "frameRate",
+                                                               "Frame rate of stuff"),
+                                             new FlaggedOption("captureDuration",
+                                                               JSAP.INTEGER_PARSER,
+                                                               "5000",
+                                                               JSAP.NOT_REQUIRED,
+                                                               'd',
+                                                               "duration",
+                                                               "Capture duration in milliseconds for each capture card"),
+                                             new FlaggedOption("decklinkId",
+                                                               JSAP.INTEGER_PARSER,
+                                                               String.valueOf(0),
+                                                               JSAP.NOT_REQUIRED,
+                                                               'i',
+                                                               "Id",
+                                                               "ID of the capture card to test")});
+      JSAPResult config = jsap.parse(args);
+      if (jsap.messagePrinted())
       {
+         System.out.println(jsap.getUsage());
+         System.out.println(jsap.getHelp());
+         System.exit(-1);
+      }
+
+      int firstId = config.getInt("decklinkId");
+      String outputPath = config.getString("outputPath");
+      int duration = config.getInt("captureDuration");
+      Capture.CodecID codec = config.getString("codec").contains("264") ? Capture.CodecID.AV_CODEC_ID_H264 : Capture.CodecID.AV_CODEC_ID_MJPEG;
+
+      // This is the size of the finalized video, proportions need to be right
+      final int captureWidth = config.getInt("frameWidth");
+      final int captureHeight = config.getInt("frameHeight");
+
+      System.out.println("Entering grabber try catch");
+      try (OpenCVFrameGrabber grabber = new OpenCVFrameGrabber("/dev/blackmagic/io" + Integer.toString(firstId)))
+      {
+         System.out.println("INSIDE grabber try catch");
          grabber.setImageWidth(captureWidth);
          grabber.setImageHeight(captureHeight);
          grabber.start();
@@ -34,35 +110,37 @@ public class VideoCapture
          String filename = "/home/shadylady/recordVideo.mov";
 
          // RTMP url to an FMS / Wowza server
+         System.out.println("Entering Recorder try catch");
          try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(filename, captureWidth, captureHeight))
          {
-            recorder.setVideoOption("crf", "1");
+            System.out.println("Inside loop Recorder try catch");
+
+            recorder.setVideoOption("crf", Integer.toString(config.getInt("crf")));
 //            recorder.setVideoOption("coder", "vlc");
             recorder.setVideoOption("tune", "zerolatency");
 //            recorder.setVideoBitrate(200000);
             recorder.setVideoCodec(avcodec.AV_CODEC_ID_MJPEG);
             recorder.setFormat("mov");
-            recorder.setFrameRate(120);
-//            recorder.setGopSize(59.94);
+            recorder.setFrameRate(config.getInt("frameRate"));
 
             // Start the recording piece of equipment, webcam and decklink work
             recorder.start();
 
             // A really nice hardware accelerated component for our preview...
-//            final CanvasFrame cFrame = new CanvasFrame("Capture Preview", CanvasFrame.getDefaultGamma() / grabber.getGamma());
+            final CanvasFrame cFrame = new CanvasFrame("Capture Preview", CanvasFrame.getDefaultGamma() / grabber.getGamma());
 
             int timer = 0;
             Frame capturedFrame;
 
             // Loop to capture a video, will stop after iterations have been completed
-            while (timer < 500 && ((capturedFrame = grabber.grabAtFrameRate()) != null))
+            while (timer < duration && ((capturedFrame = grabber.grabAtFrameRate()) != null))
             {
 //               Thread.sleep(80);
                // Shows the captured frame its currently recording
-//               if (cFrame.isVisible())
-//               {
-//                  cFrame.showImage(capturedFrame);
-//               }
+               if (cFrame.isVisible())
+               {
+                  cFrame.showImage(capturedFrame);
+               }
 
                // Keeps track of time for the recorder because often times it gets offset
                if (startTime == 0)
@@ -94,7 +172,7 @@ public class VideoCapture
             }
 
             Thread.sleep(2000);
-//            cFrame.dispose();
+            cFrame.dispose();
             recorder.flush();
             recorder.stop();
          }
