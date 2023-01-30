@@ -3,7 +3,9 @@ package us.ihmc.publisher.logger;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.*;
 import org.bytedeco.javacv.FrameRecorder.Exception;
+import us.ihmc.robotDataLogger.logger.VideoIn;
 
+import java.io.FileInputStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 
@@ -25,8 +27,9 @@ public class WindowsVideoCapture
         final int captureHeight = 720;
 
 //        try (OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(WEBCAM_DEVICE_INDEX))
-//        try (IPCameraFrameGrabber grabber = new IPCameraFrameGrabber("PathToCameraIndexIThink", -1, -1, null))
-        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber("ihmc-robot-data-logger/src/test/resources/recordedVideo.mov"))
+        try (VideoInputFrameGrabber grabber = new VideoInputFrameGrabber(0))
+//        try (VideoInputFrameGrabber grabber = new VideoInputFrameGrabber(0))
+//        try (VideoInputFrameGrabber grabber = new VideoInputFrameGrabber(0))
         {
             grabber.setImageWidth(captureWidth);
             grabber.setImageHeight(captureHeight);
