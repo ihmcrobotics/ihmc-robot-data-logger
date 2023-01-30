@@ -11,8 +11,10 @@ import java.util.ArrayList;
 // There is currently no audio capture in this class
 public class VideoCapture
 {
-
+   private static final boolean VIEW_FRAME = false;
    public static ArrayList<Long> timestampList = new ArrayList<>();
+
+   static CanvasFrame cFrame = null;
 
    final private static int WEBCAM_DEVICE_INDEX = 0;
    final private static int FRAME_RATE = 60;
@@ -116,18 +118,19 @@ public class VideoCapture
             System.out.println("Inside loop Recorder try catch");
 
             recorder.setVideoOption("crf", Integer.toString(config.getInt("crf")));
-//            recorder.setVideoOption("coder", "vlc");
             recorder.setVideoOption("tune", "zerolatency");
+//            recorder.setVideoOption("coder", "vlc");
 //            recorder.setVideoBitrate(200000);
             recorder.setVideoCodec(avcodec.AV_CODEC_ID_MJPEG);
             recorder.setFormat("mov");
             recorder.setFrameRate(config.getInt("frameRate"));
 
-            // Start the recording piece of equipment, webcam and decklink work
             recorder.start();
 
-            // A really nice hardware accelerated component for our preview...
-            final CanvasFrame cFrame = new CanvasFrame("Capture Preview", CanvasFrame.getDefaultGamma() / grabber.getGamma());
+            if (VIEW_FRAME)
+            {
+               cFrame = new CanvasFrame("Capture Preview", CanvasFrame.getDefaultGamma() / grabber.getGamma());
+            }
 
             int timer = 0;
             Frame capturedFrame;
@@ -135,11 +138,13 @@ public class VideoCapture
             // Loop to capture a video, will stop after iterations have been completed
             while (timer < duration && ((capturedFrame = grabber.grabAtFrameRate()) != null))
             {
-//               Thread.sleep(80);
                // Shows the captured frame its currently recording
-               if (cFrame.isVisible())
+               if (VIEW_FRAME)
                {
-                  cFrame.showImage(capturedFrame);
+                  if (cFrame.isVisible())
+                  {
+                     cFrame.showImage(capturedFrame);
+                  }
                }
 
                // Keeps track of time for the recorder because often times it gets offset
@@ -157,22 +162,23 @@ public class VideoCapture
                {
                   System.out.println("Timer: " + timer + " Lip-flap correction: " + videoTS + " : " + recorder.getTimestamp() + " -> " + (videoTS - recorder.getTimestamp()));
 
-//                  System.out.println(timer);
-                  // We tell the recorder to write this frame at this timestamp
                   recorder.setTimestamp(videoTS);
                }
-//               recorder.setTimestamp(System.currentTimeMillis() - startTime);
 
+               // Send the frame to the org.bytedeco.javacv.FFmpegFrameRecorder
                recorder.record(capturedFrame);
                recordTimestampToArray(System.nanoTime(), timer + 1);
-               // Send the frame to the org.bytedeco.javacv.FFmpegFrameRecorder
-//               recorder.record(capturedFrame);
 
                timer += 1;
             }
 
             Thread.sleep(2000);
-            cFrame.dispose();
+
+            if (VIEW_FRAME)
+            {
+               cFrame.dispose();
+            }
+
             recorder.flush();
             recorder.stop();
          }
