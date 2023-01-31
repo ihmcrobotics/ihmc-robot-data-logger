@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -16,6 +18,8 @@ import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.AnnouncementPubSubType;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.HandshakePubSubType;
+import us.ihmc.robotDataLogger.logger.DataServerSettings;
+import us.ihmc.robotDataLogger.util.HandshakeHashCalculator;
 
 /**
  * This class holds all the static content that is available on the HTTP server. This includes the
@@ -24,7 +28,7 @@ import us.ihmc.robotDataLogger.HandshakePubSubType;
  *
  * @author Jesper Smith
  */
-class DataServerServerContent
+public class DataServerServerContent
 {
    private final String name;
    private final String hostName;
@@ -36,11 +40,12 @@ class DataServerServerContent
    private final ByteBuf model;
    private final ByteBuf resourceZip;
 
-   public DataServerServerContent(Announcement announcement, Handshake handshake, LogModelProvider logModelProvider)
+   public DataServerServerContent(String name, Handshake handshake, LogModelProvider logModelProvider, DataServerSettings dataServerSettings)
    {
       try
       {
-         name = announcement.getNameAsString();
+         this.name = name;
+         Announcement announcement = createAnnouncement(name, dataServerSettings.isLogSession(), handshake);
          hostName = announcement.getHostNameAsString();
 
          announcement.setIdentifier(UUID.randomUUID().toString());
@@ -97,6 +102,22 @@ class DataServerServerContent
       {
          throw new RuntimeException(e);
       }
+   }
+   
+
+   private Announcement createAnnouncement(String name, boolean log, Handshake handshake) throws UnknownHostException
+   {
+      Announcement announcement = new Announcement();
+      announcement.setName(name);
+      announcement.setHostName(InetAddress.getLocalHost().getHostName());
+      announcement.setIdentifier("");
+
+      announcement.setLog(log);
+
+      String handshakeHash = HandshakeHashCalculator.calculateHash(handshake);
+      announcement.setReconnectKey(handshakeHash);
+
+      return announcement;
    }
 
    public ByteBuf getAnnouncement()
