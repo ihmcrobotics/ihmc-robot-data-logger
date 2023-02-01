@@ -226,6 +226,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
          if(bufferListener != null)
          {
             bufferListener.setContent(content);
+            bufferListener.start();
          }
 
          dataProducer.setDataServerContent(content);

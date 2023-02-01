@@ -30,9 +30,17 @@ public interface BufferListenerInterface
     */
    void updateBuffer(int bufferID, RegistrySendBuffer buffer);
 
+   
+   /**
+    * Called before the first updateBuffer() call
+    */
+   void start();
+   
    /**
     * Called when the variable server is closed
     */
    void close();
+
+
    
 }
