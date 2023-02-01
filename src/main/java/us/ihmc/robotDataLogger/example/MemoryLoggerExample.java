@@ -1,4 +1,5 @@
 package us.ihmc.robotDataLogger.example;
+import java.io.File;
 import java.io.IOException;
 
 import us.ihmc.commons.Conversions;
@@ -60,7 +61,7 @@ public class MemoryLoggerExample
       new YoEnum<>("var6", "", registry, TestEnum.class, true);
       parameterReader = new XmlParameterReader(getClass().getResourceAsStream("TestParameters.xml"));
 
-      server.addBufferListener(new CircularMemoryLogger(60 * 1000));
+      server.addBufferListener(new CircularMemoryLogger(new File("/tmp"), 60 * 1000));
       
       server.setMainRegistry(registry, null);
       jvmStatisticsGenerator = new JVMStatisticsGenerator(server);
