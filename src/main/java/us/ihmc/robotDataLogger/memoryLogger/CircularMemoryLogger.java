@@ -120,13 +120,54 @@ public class CircularMemoryLogger implements BufferListenerInterface
    {
       
    }
+   
+   /**
+    * Look back in the buffer to find the buffer with the closest timestamp that is higher than or equal to the current
+    * 
+    * Only looks back to 10% of the buffer length for optimization and race condition avoidance
+    * 
+    * if the timestamp is not found, return -1
+    * 
+    * @param currentIndex
+    * @param timestamp
+    * @return
+    */
+   private int getIndexForTimestamp(int currentIndex, long timestamp)
+   {
+      int index = currentIndex;      
+      for(int i = 1; i < circularBuffer.length/10; i++)
+      {
+         int nextIndex = currentIndex - i;
+         if(nextIndex < 0)
+         {
+            nextIndex = circularBuffer.length + nextIndex;
+         }
+         
+         long ts = circularBuffer[nextIndex].getTimestamp();
+         
+         if(ts < timestamp)   
+         {
+            return index;
+         }
+         else if (ts == timestamp)
+         {
+            return nextIndex;
+         }
+         else
+         {
+            index = nextIndex;
+         }
+      }
+      
+      return -1;
+   }
 
    @Override
    public void updateBuffer(int bufferID, RegistrySendBuffer buffer)
    {
-      int bufferIndex;
+      int bufferIndex = -1;
       // Figure out if we have to advance the write index
-      while(true)
+      for(int i = 0; i < 1000; i++) // Use a for loop to avoid deadlock
       {
          long currentValue = timestampAndIndex.get();
          
@@ -142,8 +183,16 @@ public class CircularMemoryLogger implements BufferListenerInterface
          }
          else if (currentTimestamp > bufferTimestamp)
          {
-            LogTools.info("Skipping log");
-            return;
+            bufferIndex = getIndexForTimestamp(currentIndex, bufferTimestamp);
+            LogTools.info("Rewound to put data " + currentIndex  + " " + bufferIndex + " latest ts: " + currentTimestamp + " buffer ts: " + bufferTimestamp);
+            if(bufferIndex > 0)
+            {
+               break;
+            }
+            else
+            {
+               return;
+            }
          }
          else 
          {
@@ -158,6 +207,12 @@ public class CircularMemoryLogger implements BufferListenerInterface
          }
       }
       
+      if(bufferIndex < 0)
+      {
+         LogTools.info("Timeout");
+         return;
+      }
+      
       
       MemoryBufferEntry nextBuffer = circularBuffer[bufferIndex];
       
@@ -165,7 +220,9 @@ public class CircularMemoryLogger implements BufferListenerInterface
       
       ByteBuffer variableData = buffer.getBuffer();
       variableData.position(0);
-      nextBuffer.variables[bufferID].put(variableData);
+      ByteBuffer nextVariableData = nextBuffer.variables[bufferID];
+      nextVariableData.clear();
+      nextVariableData.put(variableData);
       
       int jointStates = buffer.getJointStates().length;
       if(jointStates > 0)

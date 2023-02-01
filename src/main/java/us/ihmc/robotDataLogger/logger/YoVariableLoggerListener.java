@@ -301,7 +301,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       }
    }
 
-   private ByteBuffer reconstructBuffer(long timestamp)
+   protected ByteBuffer reconstructBuffer(long timestamp)
    {
       dataBuffer.clear();
       dataBufferAsLong.clear();

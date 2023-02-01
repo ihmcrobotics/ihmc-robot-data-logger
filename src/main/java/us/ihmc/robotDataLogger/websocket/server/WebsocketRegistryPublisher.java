@@ -159,17 +159,14 @@ class WebsocketRegistryPublisher implements RegistryPublisher
                   }
                }
                
-               if(bufferListener == null)
-               {
-                  ringBuffer.flush();
-               }
-               else
+               if(bufferListener != null)
                {
                   while ((buffer = ringBuffer.read()) != null)
                   {
                      bufferListener.updateBuffer(bufferID, buffer);
                   }
                }
+               ringBuffer.flush();
             }
 
          }

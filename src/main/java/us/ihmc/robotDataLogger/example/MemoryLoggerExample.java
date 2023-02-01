@@ -1,4 +1,4 @@
-package us.ihmc.robotDataLogger.examples;
+package us.ihmc.robotDataLogger.example;
 import java.io.IOException;
 
 import us.ihmc.commons.Conversions;
@@ -15,7 +15,7 @@ import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.yoVariables.variable.YoInteger;
 
-public class YoVariableServerExample
+public class MemoryLoggerExample
 {
    enum TestEnum
    {
@@ -30,6 +30,8 @@ public class YoVariableServerExample
    private final YoInteger var4 = new YoInteger("var4", registry);
    private final YoEnum<TestEnum> var3 = new YoEnum<>("var3", "", registry, TestEnum.class, true);
 
+   private final YoBoolean stop = new YoBoolean("stop", registry);
+   
    private final YoInteger echoIn = new YoInteger("echoIn", registry);
    private final YoInteger echoOut = new YoInteger("echoOut", registry);
 
@@ -52,7 +54,7 @@ public class YoVariableServerExample
 
    private volatile long timestamp = 0;
 
-   public YoVariableServerExample() throws IOException
+   public MemoryLoggerExample() throws IOException
    {
       new YoInteger("var5", registry);
       new YoEnum<>("var6", "", registry, TestEnum.class, true);
@@ -76,7 +78,9 @@ public class YoVariableServerExample
 
       parameterReader.readParametersInRegistry(registry);
 
-      new ThreadTester(server).start();
+      ThreadTester tester = new ThreadTester(server);
+      tester.start();
+      
       server.start();
       var4.set(5000);
 
@@ -84,7 +88,7 @@ public class YoVariableServerExample
 
       int i = 0;
       TestEnum[] values = {TestEnum.A, TestEnum.B, TestEnum.C, TestEnum.D};
-      while (true)
+      while (!stop.getValue())
       {
          var1.add(1.0);
          var2.sub(1.0);
@@ -113,6 +117,20 @@ public class YoVariableServerExample
          server.update(timestamp);
          ThreadTools.sleep(timeout.getIntegerValue());
       }
+      
+      tester.running = false;
+      try
+      {
+         tester.join();
+      }
+      catch (InterruptedException e)
+      {
+      }
+      
+      server.close();
+      
+      
+      
    }
 
    private class ThreadTester extends Thread
@@ -131,6 +149,8 @@ public class YoVariableServerExample
       private final YoDouble param1Echo = new YoDouble("threadParam1Echo", registry);
       private final YoDouble param2Echo = new YoDouble("threadParam2Echo", registry);
 
+      public volatile boolean running = true;
+      
       public ThreadTester(YoVariableServer server)
       {
          server.addRegistry(registry, null);
@@ -140,7 +160,7 @@ public class YoVariableServerExample
       @Override
       public void run()
       {
-         while (true)
+         while (running)
          {
             A.set(A.getDoubleValue() + 0.5);
             B.set(B.getDoubleValue() - 0.5);
@@ -161,6 +181,6 @@ public class YoVariableServerExample
 
    public static void main(String[] args) throws IOException
    {
-      new YoVariableServerExample();
+      new MemoryLoggerExample();
    }
 }

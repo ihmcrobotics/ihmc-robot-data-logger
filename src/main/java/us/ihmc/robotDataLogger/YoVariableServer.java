@@ -194,6 +194,12 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
       handshakeBuilder = new YoVariableHandShakeBuilder(rootRegistryName, dt);
       handshakeBuilder.setFrames(ReferenceFrame.getWorldFrame());
       handshakeBuilder.setSummaryProvider(summaryProvider);
+      
+      for (int i = 0; i < registeredBuffers.size(); i++)
+      {
+         RegistrySendBufferBuilder builder = registeredBuffers.get(i);
+         handshakeBuilder.addRegistryBuffer(builder);
+      }
      
       try
       {
