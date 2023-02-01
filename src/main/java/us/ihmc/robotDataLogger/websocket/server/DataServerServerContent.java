@@ -18,6 +18,7 @@ import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.AnnouncementPubSubType;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.HandshakePubSubType;
+import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.util.HandshakeHashCalculator;
 
@@ -32,9 +33,13 @@ public class DataServerServerContent
 {
    private final String name;
    private final String hostName;
-
+   
+   private final Announcement announcement;
    private final ByteBuf announcementBuffer;
+
+   private final Handshake handshake;
    private final ByteBuf handshakeBuffer;
+   
    private final ByteBuf index;
 
    private final ByteBuf model;
@@ -45,7 +50,7 @@ public class DataServerServerContent
       try
       {
          this.name = name;
-         Announcement announcement = createAnnouncement(name, dataServerSettings.isLogSession(), handshake);
+         announcement = createAnnouncement(name, dataServerSettings.isLogSession(), handshake);
          hostName = announcement.getHostNameAsString();
 
          announcement.setIdentifier(UUID.randomUUID().toString());
@@ -93,6 +98,7 @@ public class DataServerServerContent
          HandshakePubSubType handshakeType = new HandshakePubSubType();
          JSONSerializer<Handshake> handshakeSerializer = new JSONSerializer<>(handshakeType);
          byte[] handshakeData = handshakeSerializer.serializeToBytes(handshake);
+         this.handshake = handshake;
          handshakeBuffer = Unpooled.directBuffer(handshakeData.length);
          handshakeBuffer.writeBytes(handshakeData);
 
@@ -124,12 +130,23 @@ public class DataServerServerContent
    {
       return announcementBuffer.retainedDuplicate();
    }
+   
+   public Announcement getAnnouncementObject()
+   {
+      return announcement;
+   }
 
    public String getAnnouncementContentType()
    {
       return "application/json; charset=UTF-8";
    }
 
+
+   public Handshake getHandshakeObject()
+   {
+      return handshake;
+   }
+   
    public ByteBuf getHandshake()
    {
       return handshakeBuffer.retainedDuplicate();
@@ -200,5 +217,8 @@ public class DataServerServerContent
       }
 
    }
+
+
+
 
 }

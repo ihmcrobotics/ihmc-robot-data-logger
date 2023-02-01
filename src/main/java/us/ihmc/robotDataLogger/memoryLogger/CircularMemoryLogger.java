@@ -1,7 +1,7 @@
 package us.ihmc.robotDataLogger.memoryLogger;
 
+import java.io.File;
 import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import us.ihmc.log.LogTools;
@@ -17,50 +17,11 @@ public class CircularMemoryLogger implements BufferListenerInterface
    private int previousBufferID = -1;
    private int numberOfRegistries;
    
-   private class MemoryBufferEntry
-   {
-      private final ByteBuffer variables[];
-      private final double[][] jointStates;
-      private final long[] timestamps;
-      
-      
-      public MemoryBufferEntry(int numberOfBuffers)
-      {
-         variables = new ByteBuffer[numberOfBuffers];
-         jointStates = new double[numberOfBuffers][];
-         timestamps = new long[numberOfBuffers];         
-      }
-      
-      public void initializeRegistry(int registryID, int numberOfVariables, int numberOfJointStates)
-      {
-         variables[registryID] = ByteBuffer.allocateDirect(numberOfVariables * Long.BYTES);
-         if(numberOfJointStates > 0)
-         {
-            jointStates[registryID] = new double[numberOfJointStates];
-         }
-         else
-         {
-            jointStates[registryID] = null;
-         }
-      }
-      
-      public long getTimestamp()
-      {
-         long maxTimestamp = 0;
-         for(int i = 0; i < timestamps.length; i++)
-         {
-            if(timestamps[i] > maxTimestamp)
-            {
-               maxTimestamp = timestamps[i];
-            }
-         }
-         
-         return maxTimestamp;
-      }
-   }
-   
    private final MemoryBufferEntry[] circularBuffer;
    
+   private final File logDirectory;
+   
+   private volatile boolean isRecording;
    
    /*
     * 40 bit timestamp 
@@ -71,13 +32,14 @@ public class CircularMemoryLogger implements BufferListenerInterface
     */
    private final AtomicLong timestampAndIndex = new AtomicLong();
    
-   public CircularMemoryLogger(int numberOfEntries)
+   public CircularMemoryLogger(File logDirectory, int numberOfEntries)
    {
       if(numberOfEntries > 16777215)
       {
          throw new RuntimeException("Memory logger supports a maximum of 16777215 entries, using 24bit index");
       }
       
+      this.logDirectory = logDirectory;
       circularBuffer = new MemoryBufferEntry[numberOfEntries];
    }
    
@@ -118,7 +80,7 @@ public class CircularMemoryLogger implements BufferListenerInterface
    @Override
    public void start()
    {
-      
+      isRecording = true;
    }
    
    /**
@@ -158,7 +120,6 @@ public class CircularMemoryLogger implements BufferListenerInterface
             index = nextIndex;
          }
       }
-      
       return -1;
    }
 
@@ -166,9 +127,16 @@ public class CircularMemoryLogger implements BufferListenerInterface
    public void updateBuffer(int bufferID, RegistrySendBuffer buffer)
    {
       int bufferIndex = -1;
+      long adjustedTimestamp = -1;
       // Figure out if we have to advance the write index
       for(int i = 0; i < 1000; i++) // Use a for loop to avoid deadlock
       {
+         // Return once recording is done to avoid creating new blocks
+         if(!isRecording)
+         {
+            return;
+         }
+         
          long currentValue = timestampAndIndex.get();
          
          int currentIndex = (int) (currentValue & 0xFFFFFF);
@@ -179,12 +147,17 @@ public class CircularMemoryLogger implements BufferListenerInterface
          if(currentTimestamp == bufferTimestamp)
          {
             bufferIndex = currentIndex;
+            adjustedTimestamp = buffer.getTimestamp();
             break;
          }
          else if (currentTimestamp > bufferTimestamp)
          {
+
             bufferIndex = getIndexForTimestamp(currentIndex, bufferTimestamp);
+            adjustedTimestamp = circularBuffer[bufferIndex].getTimestamp();
+            
             LogTools.info("Rewound to put data " + currentIndex  + " " + bufferIndex + " latest ts: " + currentTimestamp + " buffer ts: " + bufferTimestamp);
+            
             if(bufferIndex > 0)
             {
                break;
@@ -202,6 +175,7 @@ public class CircularMemoryLogger implements BufferListenerInterface
             if(timestampAndIndex.compareAndSet(currentValue, nextValue))
             {
                bufferIndex = nextIndex;
+               adjustedTimestamp = buffer.getTimestamp();
                break;
             }
          }
@@ -216,7 +190,8 @@ public class CircularMemoryLogger implements BufferListenerInterface
       
       MemoryBufferEntry nextBuffer = circularBuffer[bufferIndex];
       
-      nextBuffer.timestamps[bufferID] = buffer.getTimestamp();
+      // Use the adjusted timestamp instead of the actual buffer timestamp so that a field is written if the timestamp matches the maximum timestamp in an entry
+      nextBuffer.timestamps[bufferID] = adjustedTimestamp;
       
       ByteBuffer variableData = buffer.getBuffer();
       variableData.position(0);
@@ -235,8 +210,45 @@ public class CircularMemoryLogger implements BufferListenerInterface
    @Override
    public void close()
    {
-      // TODO Auto-generated method stub
+      isRecording = false;
       
+      long currentValue = timestampAndIndex.get();
+      
+      int currentIndex = (int) (currentValue & 0xFFFFFF);
+      
+      // Skip number of registries + 1 packets, because each thread could write one more log field
+      int skipPackets = numberOfRegistries + 1;
+      
+      
+      MemoryBufferEntry previousBufferEntry = new MemoryBufferEntry(numberOfRegistries);
+      
+      
+      MemoryLogWriter writer = new MemoryLogWriter(dataserverContent, logDirectory);
+      
+      for(int i = currentIndex + skipPackets; i < currentIndex + circularBuffer.length; i++)
+      {
+         int writeIndex = i % circularBuffer.length;
+         
+         if(writeIndex == currentIndex)
+         {
+            throw new RuntimeException();
+         }
+         
+         MemoryBufferEntry entry = circularBuffer[writeIndex];
+         long entryTimestamp = entry.getTimestamp();
+         
+         // Skip empty entries
+         if(entryTimestamp == 0)
+         {
+            continue;
+         }
+         
+         writer.addBuffer(entry);
+         
+         
+      }
+
+      writer.finish();
    }
 
 
