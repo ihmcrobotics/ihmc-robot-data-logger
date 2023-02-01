@@ -155,9 +155,7 @@ public class CircularMemoryLogger implements BufferListenerInterface
 
             bufferIndex = getIndexForTimestamp(currentIndex, bufferTimestamp);
             adjustedTimestamp = circularBuffer[bufferIndex].getTimestamp();
-            
-            LogTools.info("Rewound to put data " + currentIndex  + " " + bufferIndex + " latest ts: " + currentTimestamp + " buffer ts: " + bufferTimestamp);
-            
+                        
             if(bufferIndex > 0)
             {
                break;
@@ -242,6 +240,32 @@ public class CircularMemoryLogger implements BufferListenerInterface
          {
             continue;
          }
+         
+         
+         // Write data for slower threads on all buffer entries
+         for(int r = 0; r < numberOfRegistries; r++)
+         {
+            long bufferTime = entry.timestamps[r];
+            
+            if(bufferTime != entryTimestamp)
+            {
+               if(previousBufferEntry.variables[r] != null)
+               {
+                  entry.variables[r] = previousBufferEntry.variables[r];
+               }
+               if(previousBufferEntry.jointStates[r] != null)
+               {
+                  entry.jointStates[r] = previousBufferEntry.jointStates[r];
+               }
+            }
+            else
+            {
+               previousBufferEntry.variables[r] = entry.variables[r];
+               previousBufferEntry.jointStates[r] = entry.jointStates[r];
+            }
+         }
+         
+         
          
          writer.addBuffer(entry);
          
