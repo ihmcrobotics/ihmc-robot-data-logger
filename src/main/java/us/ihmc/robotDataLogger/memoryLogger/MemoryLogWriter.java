@@ -15,7 +15,6 @@ import us.ihmc.robotDataLogger.websocket.server.DataServerServerContent;
 
 public class MemoryLogWriter
 {
-   
    private class MemoryLoggerListener extends YoVariableLoggerListener
    {
       private final ByteBuffer buffer;
@@ -23,7 +22,6 @@ public class MemoryLogWriter
       public MemoryLoggerListener(File tempDirectory, File finalDirectory, String timestamp, Announcement request, IDLYoVariableHandshakeParser handshakeParser)
       {
          super(tempDirectory, finalDirectory, timestamp, request);
-         
          
          buffer = ByteBuffer.allocateDirect(handshakeParser.getBufferSize());
       }
@@ -39,7 +37,6 @@ public class MemoryLogWriter
          buffer.clear();
          
          long timestamp = entry.getTimestamp();
-         
          
          buffer.putLong(timestamp);
          
@@ -66,14 +63,12 @@ public class MemoryLogWriter
          
          super.receivedTimestampAndData(timestamp);
       }
-      
    }
    
    /**
     * Hacky way to re-use the writer from the logger, to make sure the format is the same
     */
    private final MemoryLoggerListener listener;
-   
    
    public MemoryLogWriter(DataServerServerContent content, File logDirectory)
    {
@@ -100,8 +95,6 @@ public class MemoryLogWriter
          throw new RuntimeException("Cannot create directory " + finalDirectory.getAbsolutePath());
       }
       
-      
-      
       LogHandshake logHandshake = new LogHandshake();
       
       String modelName = announcement.getModelFileDescription().getNameAsString();
@@ -119,9 +112,7 @@ public class MemoryLogWriter
             logHandshake.setResourceZip(content.getResourceZip().array());
          }
       }
-      
-      
-      
+     
       IDLYoVariableHandshakeParser handshakeParser = new IDLYoVariableHandshakeParser(HandshakeFileType.IDL_YAML);
       handshakeParser.parseFrom(content.getHandshakeObject());
       
@@ -135,12 +126,8 @@ public class MemoryLogWriter
       this.listener.writeMemoryBufferEntry(entry);
    }
    
-   
    public void finish()
    {
       this.listener.disconnected();
    }
-   
-   
-
 }
