@@ -118,7 +118,6 @@ public class MemoryLogWriter
          
          if (announcement.getModelFileDescription().getHasResourceZip())
          {
-            LogTools.info("Requesting resource bundle");
             logHandshake.setResourceZip(content.getResourceZip().array());
          }
       }
