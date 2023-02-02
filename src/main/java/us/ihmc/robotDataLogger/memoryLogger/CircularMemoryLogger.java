@@ -34,7 +34,7 @@ public class CircularMemoryLogger implements BufferListenerInterface
    
    public CircularMemoryLogger(File logDirectory, int numberOfEntries)
    {
-      if(numberOfEntries > 16777215)
+      if (numberOfEntries > 16777215)
       {
          throw new RuntimeException("Memory logger supports a maximum of 16777215 entries, using 24bit index");
       }
@@ -47,7 +47,6 @@ public class CircularMemoryLogger implements BufferListenerInterface
       circularBuffer = new MemoryBufferEntry[numberOfEntries];
    }
    
-   
    @Override
    public void setContent(DataServerServerContent content)
    {
@@ -59,12 +58,12 @@ public class CircularMemoryLogger implements BufferListenerInterface
    {
       this.numberOfRegistries = numberOfRegistries;
       
-      if(circularBuffer.length <= numberOfRegistries + 1)
+      if (circularBuffer.length <= numberOfRegistries + 1)
       {
          throw new RuntimeException("Memory logger needs at " + (numberOfRegistries + 2) + " entries");
       }
       
-      for(int i = 0; i < circularBuffer.length; i++)
+      for (int i = 0; i < circularBuffer.length; i++)
       {
          circularBuffer[i] = new MemoryBufferEntry(numberOfRegistries);
       }
@@ -73,19 +72,18 @@ public class CircularMemoryLogger implements BufferListenerInterface
    @Override
    public void addBuffer(int bufferID, RegistrySendBufferBuilder builder)
    {
-      if(previousBufferID + 1 != bufferID)
+      if (previousBufferID + 1 != bufferID)
       {
          throw new RuntimeException("Non sequential buffer IDs");
       }
       previousBufferID = bufferID;
       
-      for(int i = 0; i < circularBuffer.length; i++)
+      for (int i = 0; i < circularBuffer.length; i++)
       {
          circularBuffer[i].initializeRegistry(bufferID, builder.getNumberOfVariables(), builder.getNumberOfJointStates());
       }
    }
    
-
    @Override
    public void start()
    {
@@ -106,17 +104,17 @@ public class CircularMemoryLogger implements BufferListenerInterface
    private int getIndexForTimestamp(int currentIndex, long timestamp)
    {
       int index = currentIndex;      
-      for(int i = 1; i < circularBuffer.length/10; i++)
+      for (int i = 1; i < circularBuffer.length/10; i++)
       {
          int nextIndex = currentIndex - i;
-         if(nextIndex < 0)
+         if (nextIndex < 0)
          {
             nextIndex = circularBuffer.length + nextIndex;
          }
          
          long ts = circularBuffer[nextIndex].getTimestamp();
          
-         if(ts < timestamp)   
+         if (ts < timestamp)   
          {
             return index;
          }
@@ -138,7 +136,7 @@ public class CircularMemoryLogger implements BufferListenerInterface
       int bufferIndex = -1;
       long adjustedTimestamp = -1;
       // Figure out if we have to advance the write index
-      for(int i = 0; i < 1000; i++) // Use a for loop to avoid deadlock
+      for (int i = 0; i < 1000; i++) // Use a for loop to avoid deadlock
       {
          // Return once recording is done to avoid creating new blocks
          if(!isRecording)
@@ -153,7 +151,7 @@ public class CircularMemoryLogger implements BufferListenerInterface
          
          
          long bufferTimestamp = buffer.getTimestamp() & 0xFFFFFFFFFFL;
-         if(currentTimestamp == bufferTimestamp)
+         if (currentTimestamp == bufferTimestamp)
          {
             bufferIndex = currentIndex;
             adjustedTimestamp = buffer.getTimestamp();
@@ -162,7 +160,7 @@ public class CircularMemoryLogger implements BufferListenerInterface
          else if (currentTimestamp > bufferTimestamp)
          {
             bufferIndex = getIndexForTimestamp(currentIndex, buffer.getTimestamp());
-            if(bufferIndex > 0)
+            if (bufferIndex > 0)
             {
                adjustedTimestamp = circularBuffer[bufferIndex].getTimestamp();
                break;
@@ -187,12 +185,11 @@ public class CircularMemoryLogger implements BufferListenerInterface
          }
       }
       
-      if(bufferIndex < 0)
+      if (bufferIndex < 0)
       {
          LogTools.info("Timeout");
          return;
       }
-      
       
       MemoryBufferEntry nextBuffer = circularBuffer[bufferIndex];
       
@@ -210,7 +207,6 @@ public class CircularMemoryLogger implements BufferListenerInterface
       {
          System.arraycopy(buffer.getJointStates(), 0, nextBuffer.jointStates[bufferID], 0, jointStates);
       }
-      
    }
 
    @Override
@@ -225,9 +221,7 @@ public class CircularMemoryLogger implements BufferListenerInterface
       // Skip number of registries + 1 packets, because each thread could write one more log field
       int skipPackets = numberOfRegistries + 1;
       
-      
       MemoryBufferEntry previousBufferEntry = new MemoryBufferEntry(numberOfRegistries);
-      
       
       MemoryLogWriter writer = new MemoryLogWriter(dataserverContent, logDirectory);
       
@@ -235,7 +229,7 @@ public class CircularMemoryLogger implements BufferListenerInterface
       {
          int writeIndex = i % circularBuffer.length;
          
-         if(writeIndex == currentIndex)
+         if (writeIndex == currentIndex)
          {
             throw new RuntimeException();
          }
@@ -244,24 +238,23 @@ public class CircularMemoryLogger implements BufferListenerInterface
          long entryTimestamp = entry.getTimestamp();
          
          // Skip empty entries
-         if(entryTimestamp == 0)
+         if (entryTimestamp == 0)
          {
             continue;
          }
          
-         
          // Write data for slower threads on all buffer entries
-         for(int r = 0; r < numberOfRegistries; r++)
+         for (int r = 0; r < numberOfRegistries; r++)
          {
             long bufferTime = entry.timestamps[r];
             
-            if(bufferTime != entryTimestamp)
+            if (bufferTime != entryTimestamp)
             {
                if(previousBufferEntry.variables[r] != null)
                {
                   entry.variables[r] = previousBufferEntry.variables[r];
                }
-               if(previousBufferEntry.jointStates[r] != null)
+               if (previousBufferEntry.jointStates[r] != null)
                {
                   entry.jointStates[r] = previousBufferEntry.jointStates[r];
                }
@@ -273,15 +266,9 @@ public class CircularMemoryLogger implements BufferListenerInterface
             }
          }
          
-         
-         
          writer.addBuffer(entry);
-         
-         
       }
 
       writer.finish();
    }
-
-
 }
