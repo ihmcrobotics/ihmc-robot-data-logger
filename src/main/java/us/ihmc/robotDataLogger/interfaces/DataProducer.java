@@ -9,7 +9,6 @@ import us.ihmc.robotDataLogger.websocket.server.DataServerServerContent;
 
 public interface DataProducer
 {
-
    /**
     * Deactivate the data producer. After calling this function, the producer cannot be reactivated
     */
@@ -39,5 +38,4 @@ public interface DataProducer
    void publishTimestamp(long timestamp);
 
    RegistryPublisher createRegistryPublisher(RegistrySendBufferBuilder builder, BufferListenerInterface bufferListener) throws IOException;
-
 }
