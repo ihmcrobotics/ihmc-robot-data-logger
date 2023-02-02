@@ -120,7 +120,6 @@ public class MemoryLogWriter
       this.listener.start(null, logHandshake, handshakeParser, null);
    }
    
-   
    public void addBuffer(MemoryBufferEntry entry) 
    {
       this.listener.writeMemoryBufferEntry(entry);
