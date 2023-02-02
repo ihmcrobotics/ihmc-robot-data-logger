@@ -137,7 +137,6 @@ class WebsocketRegistryPublisher implements RegistryPublisher
 
                if ((buffer = ringBuffer.read()) != null)
                {
-
                   serializedPayload.getData().clear();
                   publisherType.serialize(buffer, serializedPayload);
                   broadcaster.write(bufferID, buffer.getTimestamp(), serializedPayload.getData());
