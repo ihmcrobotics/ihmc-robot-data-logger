@@ -22,7 +22,6 @@ import us.ihmc.robotDataLogger.interfaces.RegistryPublisher;
  */
 class WebsocketRegistryPublisher implements RegistryPublisher
 {
-
    private static final int BUFFER_CAPACITY = 128;
 
    private long uid = 0;
@@ -97,7 +96,6 @@ class WebsocketRegistryPublisher implements RegistryPublisher
       {
          e.printStackTrace();
       }
-
    }
 
    @Override
@@ -151,13 +149,13 @@ class WebsocketRegistryPublisher implements RegistryPublisher
                   previousUid = buffer.getUid();
                   
                   
-                  if(bufferListener != null)
+                  if (bufferListener != null)
                   {
                      bufferListener.updateBuffer(bufferID, buffer);
                   }
                }
                
-               if(bufferListener != null)
+               if (bufferListener != null)
                {
                   while ((buffer = ringBuffer.read()) != null)
                   {
@@ -172,9 +170,6 @@ class WebsocketRegistryPublisher implements RegistryPublisher
          {
             e.printStackTrace();
          }
-
       }
-
    }
-
 }
