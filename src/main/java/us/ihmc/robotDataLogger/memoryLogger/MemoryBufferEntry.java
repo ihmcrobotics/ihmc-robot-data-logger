@@ -8,7 +8,6 @@ class MemoryBufferEntry
    final double[][] jointStates;
    final long[] timestamps;
    
-   
    public MemoryBufferEntry(int numberOfBuffers)
    {
       variables = new ByteBuffer[numberOfBuffers];
@@ -19,7 +18,7 @@ class MemoryBufferEntry
    public void initializeRegistry(int registryID, int numberOfVariables, int numberOfJointStates)
    {
       variables[registryID] = ByteBuffer.allocateDirect(numberOfVariables * Long.BYTES);
-      if(numberOfJointStates > 0)
+      if (numberOfJointStates > 0)
       {
          jointStates[registryID] = new double[numberOfJointStates];
       }
@@ -32,7 +31,7 @@ class MemoryBufferEntry
    public long getTimestamp()
    {
       long maxTimestamp = 0;
-      for(int i = 0; i < timestamps.length; i++)
+      for (int i = 0; i < timestamps.length; i++)
       {
          if(timestamps[i] > maxTimestamp)
          {
