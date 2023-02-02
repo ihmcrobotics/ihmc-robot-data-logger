@@ -40,7 +40,4 @@ public interface BufferListenerInterface
     * Called when the variable server is closed
     */
    void close();
-
-
-   
 }
