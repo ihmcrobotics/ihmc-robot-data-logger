@@ -98,7 +98,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private long lastStatusUpdateTimestamp = 0;
    private long logStartedTimestamp = 0;
 
-   
    public YoVariableLoggerListener(File tempDirectory,
                                    File finalDirectory,
                                    String timestamp,
