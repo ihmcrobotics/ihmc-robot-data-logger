@@ -145,8 +145,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       logProperties.setName(request.getNameAsString());
       logProperties.setTimestamp(timestamp);
 
-      
-
       if (!disableVideo)
       {
          
@@ -170,7 +168,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       {
          LogTools.warn("Video capture disabled by configuration file. Ignoring camera's and network streams");
       }
-
    }
 
    @Override
@@ -285,9 +282,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                throw new RuntimeException(e);
             }
          }
-
       }
-
    }
 
    private void updateStatus()
@@ -300,7 +295,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
             if (now > lastStatusUpdateTimestamp + STATUS_PACKET_RATE)
             {
-
                boolean recordingVideo = false;
                for (int i = 0; i < videoDataLoggers.size(); i++)
                {
@@ -547,7 +541,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
          logStartedTimestamp = System.nanoTime();
       }
-
    }
 
    @Override
@@ -640,5 +633,4 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       return builder.toString();
    }
-
 }
