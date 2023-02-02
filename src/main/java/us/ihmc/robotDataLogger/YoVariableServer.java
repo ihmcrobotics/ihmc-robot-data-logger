@@ -227,7 +227,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
             
          }
          
-         DataServerServerContent content = new DataServerServerContent(rootRegistryName, handshakeBuilder.getHandShake(), logModelProvider, dataServerSettings);
+         DataServerServerContent content = new DataServerServerContent(name, handshakeBuilder.getHandShake(), logModelProvider, dataServerSettings);
                
          if(bufferListener != null)
          {
