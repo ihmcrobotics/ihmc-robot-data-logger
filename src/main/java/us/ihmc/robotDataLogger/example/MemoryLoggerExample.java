@@ -127,7 +127,7 @@ public class MemoryLoggerExample
       catch (InterruptedException e)
       {
       }
-      
+      jvmStatisticsGenerator.stop();
       server.close();
       
       

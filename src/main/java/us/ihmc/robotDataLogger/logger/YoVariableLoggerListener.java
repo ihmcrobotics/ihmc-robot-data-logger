@@ -115,7 +115,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                                    YoVariableLoggerOptions options,
                                    Consumer<Announcement> doneListener)
    {
-      LogTools.info(toString(request));
+      LogTools.debug(toString(request));
       this.tempDirectory = tempDirectory;
       this.finalDirectory = finalDirectory;
       
@@ -350,7 +350,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    @Override
    public void disconnected()
    {
-      LogTools.info("Logger disconnected from " + request.getHostNameAsString());
+      LogTools.info("Finalizing log from " + request.getHostNameAsString());
 
       try
       {
