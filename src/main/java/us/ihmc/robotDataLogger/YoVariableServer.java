@@ -270,9 +270,8 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
             registryHolders.get(i).publisher.stop();
          }
          dataProducer.remove();
-
          
-         if(bufferListener != null)
+         if (bufferListener != null)
          {
             bufferListener.close();
          }
