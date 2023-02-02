@@ -147,7 +147,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       if (!disableVideo)
       {
-         
          CameraSettings cameras = CameraSettingsLoader.load();
 
          for (int i = 0; i < target.getCameraList().size(); i++)
