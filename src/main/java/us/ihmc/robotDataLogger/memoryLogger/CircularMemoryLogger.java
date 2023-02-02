@@ -38,6 +38,10 @@ public class CircularMemoryLogger implements BufferListenerInterface
       {
          throw new RuntimeException("Memory logger supports a maximum of 16777215 entries, using 24bit index");
       }
+      if (numberOfEntries <= 0)
+      {
+         throw new RuntimeException("Memory logger needs at least 1 entry");
+      }
       
       this.logDirectory = logDirectory;
       circularBuffer = new MemoryBufferEntry[numberOfEntries];
@@ -54,6 +58,11 @@ public class CircularMemoryLogger implements BufferListenerInterface
    public void allocateBuffers(int numberOfRegistries)
    {
       this.numberOfRegistries = numberOfRegistries;
+      
+      if(circularBuffer.length <= numberOfRegistries + 1)
+      {
+         throw new RuntimeException("Memory logger needs at " + (numberOfRegistries + 2) + " entries");
+      }
       
       for(int i = 0; i < circularBuffer.length; i++)
       {
