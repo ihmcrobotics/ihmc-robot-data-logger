@@ -110,7 +110,6 @@ public class DataServerServerContent
       }
    }
    
-
    private Announcement createAnnouncement(String name, boolean log, Handshake handshake) throws UnknownHostException
    {
       Announcement announcement = new Announcement();
@@ -140,7 +139,6 @@ public class DataServerServerContent
    {
       return "application/json; charset=UTF-8";
    }
-
 
    public Handshake getHandshakeObject()
    {
@@ -217,8 +215,4 @@ public class DataServerServerContent
       }
 
    }
-
-
-
-
 }
