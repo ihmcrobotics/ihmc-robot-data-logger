@@ -163,10 +163,10 @@ public class CircularMemoryLogger implements BufferListenerInterface
          {
 
             bufferIndex = getIndexForTimestamp(currentIndex, bufferTimestamp);
-            adjustedTimestamp = circularBuffer[bufferIndex].getTimestamp();
                         
             if(bufferIndex > 0)
             {
+               adjustedTimestamp = circularBuffer[bufferIndex].getTimestamp();
                break;
             }
             else
