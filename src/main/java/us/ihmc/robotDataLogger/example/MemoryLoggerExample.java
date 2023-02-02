@@ -129,9 +129,6 @@ public class MemoryLoggerExample
       }
       jvmStatisticsGenerator.stop();
       server.close();
-      
-      
-      
    }
 
    private class ThreadTester extends Thread
@@ -177,7 +174,6 @@ public class MemoryLoggerExample
             ThreadTools.sleep(10);
          }
       }
-
    }
 
    public static void main(String[] args) throws IOException
