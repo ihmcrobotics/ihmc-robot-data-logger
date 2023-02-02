@@ -1,13 +1,11 @@
 package us.ihmc.robotDataLogger.memoryLogger;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.HandshakeFileType;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
