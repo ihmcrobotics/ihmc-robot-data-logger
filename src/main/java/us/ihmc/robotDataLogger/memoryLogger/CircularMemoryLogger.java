@@ -169,7 +169,7 @@ public class CircularMemoryLogger implements BufferListenerInterface
             }
             else
             {
-               LogTools.error("Cannot find timestamp for " + buffer.getTimestamp() + ". Current ts: " + currentTimestamp + "idx: " + currentIndex);
+               LogTools.error("Cannot find timestamp for " + buffer.getTimestamp() + ". Current ts: " + currentTimestamp + " idx: " + currentIndex);
                return;
             }
          }
