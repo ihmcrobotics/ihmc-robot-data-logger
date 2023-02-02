@@ -148,7 +148,6 @@ class WebsocketRegistryPublisher implements RegistryPublisher
                   }
                   previousUid = buffer.getUid();
                   
-                  
                   if (bufferListener != null)
                   {
                      bufferListener.updateBuffer(bufferID, buffer);
