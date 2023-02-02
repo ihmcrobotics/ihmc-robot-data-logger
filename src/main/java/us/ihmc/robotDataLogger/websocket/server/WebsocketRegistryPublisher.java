@@ -62,7 +62,6 @@ class WebsocketRegistryPublisher implements RegistryPublisher
 
       serializedPayload = new SerializedPayload(publisherType.getMaximumTypeSize());
       
-
       this.bufferListener = bufferListener;
       
       if(bufferListener != null)
