@@ -51,6 +51,9 @@ mainDependencies {
    api("org.bytedeco:javacv:1.5.8")
    api("org.bytedeco:javacpp:1.5.8")
    api("org.bytedeco:javacv-platform:1.5.8")
+   api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
+   api("net.java.dev.jna:jna:5.13.0")
+   api("net.java.dev.jna:jna-platform:5.13.0")
 
    var javaFXVersion = "17.0.2"
    api(ihmc.javaFXModule("base", javaFXVersion))
