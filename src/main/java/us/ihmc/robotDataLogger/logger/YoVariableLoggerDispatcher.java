@@ -46,9 +46,10 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       if (!file.exists())
       {
          file.createNewFile();
+         LogTools.info("Creating Logger lock file");
       } else
       {
-         System.out.println("Logger already running, exiting");
+         System.out.println("Maybe if you weren't so full of yourself you would have checked if the logger was already running");
          System.exit(0);
       }
 
@@ -64,7 +65,6 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       Runtime.getRuntime().addShutdownHook(new Thread(() -> {
          file.delete();
          System.out.println("Interrupted by Ctrl+C, deleting lock file");
-         System.exit(0);
       }, "ShutdownThread"));
 
       ThreadTools.sleepForever();
