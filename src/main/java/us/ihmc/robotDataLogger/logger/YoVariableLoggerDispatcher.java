@@ -6,7 +6,6 @@ import java.util.HashSet;
 
 import com.martiansoftware.jsap.JSAPException;
 
-import sun.misc.Signal;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
@@ -39,7 +38,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
    public YoVariableLoggerDispatcher(YoVariableLoggerOptions options) throws IOException
    {
 
-      //Prevents more than one instance of the logger running on one machine
+      // Prevents more than one instance of the logger running on one machine
       String userHome = System.getProperty("user.home") + File.separator;
       File file = new File(userHome + "loggerDispatcher.lock");
 
@@ -47,9 +46,10 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       {
          file.createNewFile();
          LogTools.info("Creating Logger lock file");
-      } else
+      }
+      else
       {
-         System.out.println("Maybe if you weren't so full of yourself you would have checked if the logger was already running");
+         LogTools.info("Maybe if you weren't so full of yourself you would have checked if the logger was already running");
          System.exit(0);
       }
 
@@ -64,7 +64,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 
       Runtime.getRuntime().addShutdownHook(new Thread(() -> {
          file.delete();
-         System.out.println("Interrupted by Ctrl+C, deleting lock file");
+         LogTools.info("Interrupted by Ctrl+C, deleting lock file");
       }, "ShutdownThread"));
 
       ThreadTools.sleepForever();
