@@ -44,7 +44,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
    public YoVariableLoggerDispatcher(YoVariableLoggerOptions options) throws IOException
    {
 
-      if (lockFile.exists() || modifiedTimeInFileIsCurrentTime())
+      if (modifiedTimeInFileIsCurrentTime())
       {
          LogTools.info("Maybe if you weren't so full of yourself you would have checked if the logger was already running");
          System.exit(0);
@@ -74,6 +74,11 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 
    private boolean modifiedTimeInFileIsCurrentTime()
    {
+      if (!lockFile.exists())
+      {
+         return false;
+      }
+
       long currentTimeInSeconds = LocalDateTime.now().toLocalTime().toSecondOfDay();
 
       SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -86,6 +91,10 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       fileModifiedTimeInSeconds = Integer.parseInt(hoursMinutesSeconds[0]) * 60 * 60L;
       fileModifiedTimeInSeconds += Integer.parseInt(hoursMinutesSeconds[1]) * 60L;
       fileModifiedTimeInSeconds += Integer.parseInt(hoursMinutesSeconds[2]);
+
+      System.out.println(fileModifiedTimeInSeconds);
+      System.out.println(currentTimeInSeconds);
+      System.out.println(fileModifiedTimeInSeconds - currentTimeInSeconds);
 
       return Math.abs(fileModifiedTimeInSeconds - currentTimeInSeconds) < 12;
    }
