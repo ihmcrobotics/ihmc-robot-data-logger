@@ -16,7 +16,8 @@ import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnecti
 
 public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 {
-   private final File file = new File(System.getProperty("user.home") + File.separator + "loggerDispatcher.lock");
+   // Used to prevent multiple instances of the Logger running at the same time
+   private final File lockFile = new File(System.getProperty("user.home") + File.separator + "loggerDispatcher.lock");
 
    private final DataServerDiscoveryClient discoveryClient;
 
@@ -39,9 +40,9 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
     */
    public YoVariableLoggerDispatcher(YoVariableLoggerOptions options) throws IOException
    {
-      if (!file.exists())
+      if (!lockFile.exists())
       {
-         file.createNewFile();
+         lockFile.createNewFile();
          LogTools.info("Creating Logger lock file");
       }
       else
@@ -60,8 +61,8 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       LogTools.info("Client started, waiting for data server sessions");
 
       Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-         file.delete();
-         file.deleteOnExit();
+         lockFile.delete();
+         lockFile.deleteOnExit();
          LogTools.info("Interrupted by Ctrl+C, deleting lock file");
       }, "ShutdownThread"));
 
@@ -77,9 +78,9 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
          {
             ThreadTools.sleepSeconds(120);
 
-            if (!file.exists())
+            if (!lockFile.exists())
             {
-               file.createNewFile();
+               lockFile.createNewFile();
                LogTools.info("Lock file got deleted, creating Logger lock file");
             }
 
