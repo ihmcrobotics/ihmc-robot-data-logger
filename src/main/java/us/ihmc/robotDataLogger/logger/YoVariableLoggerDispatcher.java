@@ -61,12 +61,11 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 
       LogTools.info("Client started, waiting for data server sessions");
 
-      Signal.handle(new Signal("INT"), signal ->
-      {
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
          file.delete();
          System.out.println("Interrupted by Ctrl+C, deleting lock file");
          System.exit(0);
-      });
+      }, "ShutdownThread"));
 
       ThreadTools.sleepForever();
    }
