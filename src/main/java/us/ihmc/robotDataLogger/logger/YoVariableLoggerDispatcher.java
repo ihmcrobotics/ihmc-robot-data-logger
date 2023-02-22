@@ -2,10 +2,13 @@ package us.ihmc.robotDataLogger.logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 
 import com.martiansoftware.jsap.JSAPException;
 
+import org.apache.commons.io.FileUtils;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
@@ -40,16 +43,15 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
     */
    public YoVariableLoggerDispatcher(YoVariableLoggerOptions options) throws IOException
    {
-      if (!lockFile.exists())
-      {
-         lockFile.createNewFile();
-         LogTools.info("Creating Logger lock file");
-      }
-      else
+
+      if (lockFile.exists() || modifiedTimeInFileIsCurrentTime())
       {
          LogTools.info("Maybe if you weren't so full of yourself you would have checked if the logger was already running");
          System.exit(0);
       }
+
+      lockFile.createNewFile();
+      LogTools.info("Creating Logger lock file");
 
       this.options = options;
       LogTools.info("Starting YoVariableLoggerDispatcher");
@@ -70,19 +72,39 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       ThreadTools.sleepForever();
    }
 
+   private boolean modifiedTimeInFileIsCurrentTime()
+   {
+      long currentTimeInSeconds = LocalDateTime.now().toLocalTime().toSecondOfDay();
+
+      SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+
+      String fileFormattedTime = dateFormat.format(lockFile.lastModified());
+
+      String[] hoursMinutesSeconds = fileFormattedTime.split(":");
+
+      long fileModifiedTimeInSeconds;
+      fileModifiedTimeInSeconds = Integer.parseInt(hoursMinutesSeconds[0]) * 60 * 60L;
+      fileModifiedTimeInSeconds += Integer.parseInt(hoursMinutesSeconds[1]) * 60L;
+      fileModifiedTimeInSeconds += Integer.parseInt(hoursMinutesSeconds[2]);
+
+      return Math.abs(fileModifiedTimeInSeconds - currentTimeInSeconds) < 12;
+   }
+
    private void ensureLockFileExists()
    {
       while(true)
       {
          try
          {
-            ThreadTools.sleepSeconds(120);
+            ThreadTools.sleepSeconds(12);
 
             if (!lockFile.exists())
             {
                lockFile.createNewFile();
                LogTools.info("Lock file got deleted, creating Logger lock file");
             }
+
+            FileUtils.touch(lockFile);
 
          } catch (IOException e)
          {
