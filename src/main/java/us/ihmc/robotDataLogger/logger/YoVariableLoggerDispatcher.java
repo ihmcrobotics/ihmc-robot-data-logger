@@ -16,6 +16,8 @@ import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnecti
 
 public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 {
+   private final File file = new File(System.getProperty("user.home") + File.separator + "loggerDispatcher.lock");
+
    private final DataServerDiscoveryClient discoveryClient;
 
    private final Object lock = new Object();
@@ -37,11 +39,6 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
     */
    public YoVariableLoggerDispatcher(YoVariableLoggerOptions options) throws IOException
    {
-
-      // Prevents more than one instance of the logger running on one machine
-      String userHome = System.getProperty("user.home") + File.separator;
-      File file = new File(userHome + "loggerDispatcher.lock");
-
       if (!file.exists())
       {
          file.createNewFile();
@@ -64,10 +61,33 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 
       Runtime.getRuntime().addShutdownHook(new Thread(() -> {
          file.delete();
+         file.deleteOnExit();
          LogTools.info("Interrupted by Ctrl+C, deleting lock file");
       }, "ShutdownThread"));
 
+      ThreadTools.startAThread(this::ensureLockFileExists, "CheckFileExistsThread");
       ThreadTools.sleepForever();
+   }
+
+   private void ensureLockFileExists()
+   {
+      while(true)
+      {
+         try
+         {
+            ThreadTools.sleepSeconds(120);
+
+            if (!file.exists())
+            {
+               file.createNewFile();
+               LogTools.info("Lock file got deleted, creating Logger lock file");
+            }
+
+         } catch (IOException e)
+         {
+            throw new RuntimeException(e);
+         }
+      }
    }
 
    public static void main(String[] args) throws JSAPException, IOException
