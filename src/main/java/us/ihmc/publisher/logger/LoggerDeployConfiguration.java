@@ -67,16 +67,26 @@ public class LoggerDeployConfiguration
 
 
 
-   public static void deploy(SSHRemote remote, String dist, boolean restartNightly, FXConsole deployConsole)
+   public static void deploy(SSHRemote remote, String dist, boolean restartNightly, FXConsole deployConsole, boolean logger_service)
    {
       SSHDeploy deploy = new SSHDeploy(remote, deployConsole);
       URL deployScript = loader.getResource("deploy.sh");
-      URL loggerService = loader.getResource("ihmc-logger.service");
+      URL loggerService = null;
+
+      if (logger_service)
+      {
+         loggerService = loader.getResource("ihmc-logger.service");
+      }
+
       URL crontab = loader.getResource("ihmc-logger-cron");
 
       
       deploy.addBinaryFile("DIST", dist, "/tmp/logger.tar", false);
-      deploy.addTextFile("LOGGER_SERVICE", "ihmc-logger.service", loggerService, "/etc/systemd/system/ihmc-logger.service", true);
+
+      if (logger_service)
+      {
+         deploy.addTextFile("LOGGER_SERVICE", "ihmc-logger.service", loggerService, "/etc/systemd/system/ihmc-logger.service", true);
+      }
       deploy.addTextFile("CRON_ENTRY", "ihmc-logger-cron", crontab, "/tmp/ihmc-logger-cron", true);
       
       deploy.addVariable("NIGHTLY_RESTART", restartNightly ? "true" : "false");

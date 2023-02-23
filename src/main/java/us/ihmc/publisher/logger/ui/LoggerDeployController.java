@@ -357,8 +357,23 @@ public class LoggerDeployController implements Initializable
                                    logger_sudo_password.getText(),
                                    logger_dist.getText(),
                                    logger_restart_midnight.isSelected(),
-                                   getStage());
+                                   getStage(), true);
       
+   }
+
+   @FXML
+   void logger_deploy_only(ActionEvent e)
+   {
+
+
+      loggerDeployScript.deploy(logger_host.getText(),
+              logger_user.getText(),
+              logger_pasword.getText(),
+              logger_sudo_password.getText(),
+              logger_dist.getText(),
+              logger_restart_midnight.isSelected(),
+              getStage(), false);
+
    }
 
    private Stage getStage()
