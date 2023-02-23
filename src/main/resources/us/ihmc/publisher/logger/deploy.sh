@@ -24,8 +24,12 @@ rm -f ${CRON_ENTRY}
 
 # Reloading systemd 
 sudo /bin/systemctl daemon-reload && echo "Reloaded systemctl"
-sudo /bin/systemctl enable ihmc-logger.service && echo "Enabled ihmc-logger.service"
-sudo /bin/systemctl restart ihmc-logger.service && echo "Restarted ihmc-logger.service"
+
+# Setting up deploy without starting the service
+if ${DEPLOY_WITHOUT_SERVICE};
+then
+  sudo /bin/systemctl enable ihmc-logger.service && echo "Enabled ihmc-logger.service" &&
+  sudo /bin/systemctl restart ihmc-logger.service && echo "Restarted ihmc-logger.service"
 
 # Restarting cron
 sudo service cron restart && echo "Restarted cron"

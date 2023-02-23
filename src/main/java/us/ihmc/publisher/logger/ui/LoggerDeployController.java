@@ -357,7 +357,8 @@ public class LoggerDeployController implements Initializable
                                    logger_sudo_password.getText(),
                                    logger_dist.getText(),
                                    logger_restart_midnight.isSelected(),
-                                   getStage(), true);
+                                   getStage(),
+                        true);
       
    }
 
@@ -372,7 +373,8 @@ public class LoggerDeployController implements Initializable
               logger_sudo_password.getText(),
               logger_dist.getText(),
               logger_restart_midnight.isSelected(),
-              getStage(), false);
+              getStage(),
+              false);
 
    }
 
@@ -419,7 +421,7 @@ public class LoggerDeployController implements Initializable
    /**
     * Set parameters that were used to start the application
     * 
-    * @param parameters
+    * @param loggerDistribution
     */
    public void setLoggerDistribution(String loggerDistribution)
    {

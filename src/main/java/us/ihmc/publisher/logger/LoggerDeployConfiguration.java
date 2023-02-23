@@ -13,10 +13,8 @@ import us.ihmc.robotDataLogger.StaticHostListLoader;
 
 public class LoggerDeployConfiguration
 {
-
    private final static Class<?> loader = LoggerDeployConfiguration.class;
 
-   
    public static void saveConfiguration(SSHRemote remote, CameraSettings settings, StaticHostList staticHostList, boolean restartonSave, FXConsole console)
    {
       try
@@ -32,8 +30,6 @@ public class LoggerDeployConfiguration
          console.closeWithError(e, "Cannot save camera settings.");
       }
    }
-   
-   
 
    public static String getCameraSettingsFile(SSHRemote remote)
    {
@@ -53,7 +49,6 @@ public class LoggerDeployConfiguration
       CameraSettings settings = CameraSettingsLoader.load(data);
 
       return settings;
-
    }
 
    public static StaticHostList loadStaticHostList(SSHRemote remote) throws IOException
@@ -62,37 +57,23 @@ public class LoggerDeployConfiguration
       String data = deploy.download(getHostsFile(remote));
 
       return StaticHostListLoader.loadHostList(data);
-
    }
-
-
 
    public static void deploy(SSHRemote remote, String dist, boolean restartNightly, FXConsole deployConsole, boolean logger_service)
    {
       SSHDeploy deploy = new SSHDeploy(remote, deployConsole);
       URL deployScript = loader.getResource("deploy.sh");
-      URL loggerService = null;
-
-      if (logger_service)
-      {
-         loggerService = loader.getResource("ihmc-logger.service");
-      }
-
+      URL loggerService = loader.getResource("ihmc-logger.service");
       URL crontab = loader.getResource("ihmc-logger-cron");
 
       
       deploy.addBinaryFile("DIST", dist, "/tmp/logger.tar", false);
-
-      if (logger_service)
-      {
-         deploy.addTextFile("LOGGER_SERVICE", "ihmc-logger.service", loggerService, "/etc/systemd/system/ihmc-logger.service", true);
-      }
+      deploy.addTextFile("LOGGER_SERVICE", "ihmc-logger.service", loggerService, "/etc/systemd/system/ihmc-logger.service", true);
       deploy.addTextFile("CRON_ENTRY", "ihmc-logger-cron", crontab, "/tmp/ihmc-logger-cron", true);
       
       deploy.addVariable("NIGHTLY_RESTART", restartNightly ? "true" : "false");
+      deploy.addVariable("DEPLOY_WITHOUT_SERVICE", logger_service ? "true" : "false");
 
-
-      
       deploy.deploy(deployScript);
    }
 }
