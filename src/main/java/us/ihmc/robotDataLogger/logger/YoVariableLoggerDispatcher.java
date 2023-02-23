@@ -21,8 +21,8 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 {
    // Used to prevent multiple instances of the Logger running at the same time
    private final File lockFile = new File(System.getProperty("user.home") + File.separator + "loggerDispatcher.lock");
-   FileChannel lockFileChannel;
-   FileLock preventAccessToFile;
+   private final FileChannel lockFileChannel;
+   private final FileLock preventAccessToFile;
 
    private final DataServerDiscoveryClient discoveryClient;
 
