@@ -2,13 +2,13 @@ package us.ihmc.robotDataLogger.logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.HashSet;
 
 import com.martiansoftware.jsap.JSAPException;
 
-import org.apache.commons.io.FileUtils;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
@@ -21,6 +21,8 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 {
    // Used to prevent multiple instances of the Logger running at the same time
    private final File lockFile = new File(System.getProperty("user.home") + File.separator + "loggerDispatcher.lock");
+   FileChannel lockFileChannel;
+   FileLock preventAccessToFile;
 
    private final DataServerDiscoveryClient discoveryClient;
 
@@ -43,13 +45,16 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
     */
    public YoVariableLoggerDispatcher(YoVariableLoggerOptions options) throws IOException
    {
-      if (modifiedTimeInFileIsCurrentTime())
+      if (lockFile.exists())
       {
          LogTools.info("Maybe if you weren't so full of yourself you would have checked if the logger was already running");
+         LogTools.info("Check the file: " + lockFile.getAbsolutePath() + " or run (ps aux | grep java)");
          System.exit(0);
       }
 
       lockFile.createNewFile();
+      lockFileChannel = new RandomAccessFile(lockFile.getAbsoluteFile(), "rw").getChannel();
+      preventAccessToFile = lockFileChannel.lock();
       LogTools.info("Creating Logger lock file");
 
       this.options = options;
@@ -61,60 +66,26 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 
       LogTools.info("Client started, waiting for data server sessions");
 
-      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-         lockFile.delete();
-         lockFile.deleteOnExit();
-         LogTools.info("Interrupted by Ctrl+C, deleting lock file");
-      }, "ShutdownThread"));
+      Runtime.getRuntime().addShutdownHook(new Thread(this::shutDownLockFile, "ShutdownThread"));
 
-      ThreadTools.startAThread(this::ensureLockFileExists, "CheckFileExistsThread");
       ThreadTools.sleepForever();
    }
 
-   private boolean modifiedTimeInFileIsCurrentTime()
+   private void shutDownLockFile()
    {
-      if (!lockFile.exists())
+      try
       {
-         return false;
+         preventAccessToFile.release();
+         lockFileChannel.close();
       }
-
-      long currentTimeInSeconds = LocalDateTime.now().toLocalTime().toSecondOfDay();
-
-      SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-
-      String fileFormattedTime = dateFormat.format(lockFile.lastModified());
-
-      String[] hoursMinutesSeconds = fileFormattedTime.split(":");
-
-      long fileModifiedTimeInSeconds;
-      fileModifiedTimeInSeconds = Integer.parseInt(hoursMinutesSeconds[0]) * 60 * 60L;
-      fileModifiedTimeInSeconds += Integer.parseInt(hoursMinutesSeconds[1]) * 60L;
-      fileModifiedTimeInSeconds += Integer.parseInt(hoursMinutesSeconds[2]);
-
-      return Math.abs(fileModifiedTimeInSeconds - currentTimeInSeconds) < 12;
-   }
-
-   private void ensureLockFileExists()
-   {
-      while(true)
+      catch (IOException e)
       {
-         try
-         {
-            ThreadTools.sleepSeconds(12);
+         throw new RuntimeException(e);
 
-            if (!lockFile.exists())
-            {
-               lockFile.createNewFile();
-               LogTools.info("Lock file got deleted, creating Logger lock file");
-            }
-
-            FileUtils.touch(lockFile);
-
-         } catch (IOException e)
-         {
-            throw new RuntimeException(e);
-         }
       }
+      lockFile.delete();
+
+      LogTools.info("Interrupted by Ctrl+C, deleting lock file");
    }
 
    public static void main(String[] args) throws JSAPException, IOException
