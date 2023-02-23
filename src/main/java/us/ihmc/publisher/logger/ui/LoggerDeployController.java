@@ -97,6 +97,12 @@ public class LoggerDeployController implements Initializable
    
    @FXML
    CheckBox restart_on_save;
+
+   @FXML
+   Label logger_without_service_label;
+
+   @FXML
+   CheckBox logger_service;
    
 
    @Override
@@ -114,6 +120,8 @@ public class LoggerDeployController implements Initializable
       prefs.linkToPrefs(logger_restart_midnight, false);
       
       prefs.linkToPrefs(restart_on_save, true);
+
+      prefs.linkToPrefs(logger_service, false);
 
       camera_table.setEditable(true);
 
@@ -169,6 +177,8 @@ public class LoggerDeployController implements Initializable
       {
          restart_label.setVisible(false);
          logger_restart_midnight.setVisible(false);
+         logger_without_service_label.setVisible(false);
+         logger_service.setVisible(false);
       }
    }
 
@@ -358,7 +368,7 @@ public class LoggerDeployController implements Initializable
                                    logger_dist.getText(),
                                    logger_restart_midnight.isSelected(),
                                    getStage(),
-                        true);
+                                   logger_service.isSelected());
       
    }
 
@@ -374,7 +384,7 @@ public class LoggerDeployController implements Initializable
               logger_dist.getText(),
               logger_restart_midnight.isSelected(),
               getStage(),
-              false);
+              logger_service.isSelected());
 
    }
 

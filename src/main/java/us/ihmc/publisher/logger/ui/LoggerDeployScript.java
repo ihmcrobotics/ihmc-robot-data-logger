@@ -21,6 +21,7 @@ public interface LoggerDeployScript
     * @param logger_dist
     * @param nightly_restart
     * @param stage
+    * @param logger_service
     */
    default void deploy(String logger_host,
                        String logger_user,

@@ -34,7 +34,7 @@ public class LoggerDeployApplication
 
    /**
     * Helper function to open this as part of another application
-    * 
+    *
     * @param parameters Parameters from application start
     * @param scene      Parent scene
     */
@@ -72,7 +72,9 @@ public class LoggerDeployApplication
       Parent root = loader.load();
 
       LoggerDeployController controller = loader.getController();
-      controller.setDeployScript(new LoggerDeployScript(){});
+      controller.setDeployScript(new LoggerDeployScript()
+      {
+      });
 
       controller.setLoggerDistribution(loggerDist);
 
@@ -80,13 +82,11 @@ public class LoggerDeployApplication
       stage.setTitle("Logger deployment");
       stage.setScene(scene);
       stage.show();
-
    }
 
    private void redirectOutput() throws FileNotFoundException
    {
-      @SuppressWarnings("resource")
-      PrintStream log = new PrintStream(new FileOutputStream("logger-deploy.log", true));
+      @SuppressWarnings("resource") PrintStream log = new PrintStream(new FileOutputStream("logger-deploy.log", true));
 
       TeeStream stdOutStream = new TeeStream(System.out, log);
       TeeStream stdErrStream = new TeeStream(System.err, log);
@@ -118,8 +118,6 @@ public class LoggerDeployApplication
       }
 
       String loggerDist = config.getString("loggerDist");
-
-      
 
       PlatformImpl.startup(new Runnable()
       {
