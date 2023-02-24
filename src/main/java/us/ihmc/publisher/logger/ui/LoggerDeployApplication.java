@@ -35,7 +35,7 @@ public class LoggerDeployApplication
    /**
     * Helper function to open this as part of another application
     *
-    * @param loggerDistribution Parameters from application start
+    * @param parameters Parameters from application start
     * @param scene      Parent scene
     */
    public static void open(String loggerDistribution, LoggerDeployScript deployScript, Scene scene)
@@ -80,6 +80,7 @@ public class LoggerDeployApplication
       stage.setTitle("Logger deployment");
       stage.setScene(scene);
       stage.show();
+
    }
 
    private void redirectOutput() throws FileNotFoundException
@@ -117,6 +118,8 @@ public class LoggerDeployApplication
       }
 
       String loggerDist = config.getString("loggerDist");
+
+
 
       PlatformImpl.startup(new Runnable()
       {
