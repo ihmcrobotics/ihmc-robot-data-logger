@@ -93,7 +93,7 @@
                   <TextField fx:id="logger_dist" GridPane.columnIndex="1" />
                   <Button fx:id="browse_dist" mnemonicParsing="false" text="Browse..." GridPane.columnIndex="2" />
                    <Label fx:id="restart_label" text="Restart daily" GridPane.rowIndex="1" />
-                   <Label fx:id="logger_without_service_label" text="Deploy Without Service" GridPane.rowIndex="2" />
+                   <Label fx:id="logger_without_service_label" text="Deploy Service" GridPane.rowIndex="2" />
                   <CheckBox fx:id="logger_restart_midnight" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                   <CheckBox fx:id="logger_service" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                   <Button mnemonicParsing="false" onAction="#logger_deploy" text="Deploy logger " GridPane.rowIndex="3" />

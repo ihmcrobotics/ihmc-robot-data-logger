@@ -121,7 +121,7 @@ public class LoggerDeployController implements Initializable
       
       prefs.linkToPrefs(restart_on_save, true);
 
-      prefs.linkToPrefs(logger_service, false);
+      prefs.linkToPrefs(logger_service, true);
 
       camera_table.setEditable(true);
 
@@ -370,22 +370,6 @@ public class LoggerDeployController implements Initializable
                                    getStage(),
                                    logger_service.isSelected());
       
-   }
-
-   @FXML
-   void logger_deploy_only(ActionEvent e)
-   {
-
-
-      loggerDeployScript.deploy(logger_host.getText(),
-              logger_user.getText(),
-              logger_pasword.getText(),
-              logger_sudo_password.getText(),
-              logger_dist.getText(),
-              logger_restart_midnight.isSelected(),
-              getStage(),
-              logger_service.isSelected());
-
    }
 
    private Stage getStage()

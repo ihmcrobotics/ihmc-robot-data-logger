@@ -72,7 +72,7 @@ public class LoggerDeployConfiguration
       deploy.addTextFile("CRON_ENTRY", "ihmc-logger-cron", crontab, "/tmp/ihmc-logger-cron", true);
       
       deploy.addVariable("NIGHTLY_RESTART", restartNightly ? "true" : "false");
-      deploy.addVariable("DEPLOY_WITHOUT_SERVICE", logger_service ? "true" : "false");
+      deploy.addVariable("DEPLOY_SERVICE", logger_service ? "true" : "false");
 
       deploy.deploy(deployScript);
    }
