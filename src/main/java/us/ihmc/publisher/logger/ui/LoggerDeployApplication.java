@@ -119,7 +119,7 @@ public class LoggerDeployApplication
 
       String loggerDist = config.getString("loggerDist");
 
-    
+      
 
       PlatformImpl.startup(new Runnable()
       {
