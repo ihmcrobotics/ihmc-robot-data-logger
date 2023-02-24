@@ -2,10 +2,10 @@ package us.ihmc.robotDataLogger.logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.HashSet;
+import java.util.Set;
 
 import com.martiansoftware.jsap.JSAPException;
 
@@ -21,8 +21,6 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 {
    // Used to prevent multiple instances of the Logger running at the same time
    private final File lockFile = new File(System.getProperty("user.home") + File.separator + "loggerDispatcher.lock");
-   private final FileChannel lockFileChannel;
-   private final FileLock preventAccessToFile;
 
    private final DataServerDiscoveryClient discoveryClient;
 
@@ -53,9 +51,11 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       }
 
       lockFile.createNewFile();
-      lockFileChannel = new RandomAccessFile(lockFile.getAbsoluteFile(), "rw").getChannel();
-      preventAccessToFile = lockFileChannel.lock();
-      LogTools.info("Creating Logger lock file");
+      Set<PosixFilePermission> perms = new HashSet<>();
+      perms.add(PosixFilePermission.OWNER_READ);
+      Files.setPosixFilePermissions(lockFile.toPath(), perms);
+
+      LogTools.info("Created Logger lock file");
 
       this.options = options;
       LogTools.info("Starting YoVariableLoggerDispatcher");
@@ -73,22 +73,12 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 
    private void shutDownLockFile()
    {
-      try
-      {
-         preventAccessToFile.release();
-         lockFileChannel.close();
-      }
-      catch (IOException e)
-      {
-         throw new RuntimeException(e);
-
-      }
       lockFile.delete();
 
       LogTools.info("Interrupted by Ctrl+C, deleting lock file");
    }
 
-   public static void main(String[] args) throws JSAPException, IOException
+   public static void main(String[] args) throws JSAPException, IOException, InterruptedException
    {
       YoVariableLoggerOptions options = YoVariableLoggerOptions.parse(args);
       new YoVariableLoggerDispatcher(options);
