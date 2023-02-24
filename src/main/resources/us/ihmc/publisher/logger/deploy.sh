@@ -20,12 +20,11 @@ sudo /bin/chmod a+x /opt/ihmc/logger/bin
 if ${NIGHTLY_RESTART}; then sudo  cp ${CRON_ENTRY} /etc/cron.d/ihmc-logger-cron && echo "Restarting logger at midnight every night."; else sudo rm -f /etc/cron.d/ihmc-logger-cron && echo "Removed automatic restart"; fi
 rm -f ${CRON_ENTRY}
 
-
 # Reloading systemd
 sudo /bin/systemctl daemon-reload && echo "Reloaded systemctl"
 sudo /bin/systemctl enable ihmc-logger.service && echo "Enabled ihmc-logger.service"
 
-# Deploying service
+# Setting up service restart
 if ${DEPLOY_SERVICE}; then sudo /bin/systemctl restart ihmc-logger.service && echo "Restarted ihmc-logger.service"; fi
 
 # Restarting cron

@@ -329,13 +329,11 @@ public class LoggerDeployController implements Initializable
          alert.setHeaderText(ex.getMessage());
          alert.showAndWait();
       }
-
    }
 
    @FXML
    void save(ActionEvent e)
    {
-
       CameraSettings settings = new CameraSettings();
 
       for (CameraBean cameraBean : cameraList)
@@ -355,12 +353,9 @@ public class LoggerDeployController implements Initializable
       loggerDeployScript.saveConfiguration(logger_host.getText(), logger_user.getText(), logger_pasword.getText(), logger_sudo_password.getText(), settings, staticHosts, restart_on_save.isSelected(), getStage());
    }
 
-   
    @FXML
    void logger_deploy(ActionEvent e)
    {
-
-      
          loggerDeployScript.deploy(logger_host.getText(),
                                    logger_user.getText(),
                                    logger_pasword.getText(),
@@ -369,7 +364,6 @@ public class LoggerDeployController implements Initializable
                                    logger_restart_midnight.isSelected(),
                                    getStage(),
                                    logger_service.isSelected());
-      
    }
 
    private Stage getStage()
@@ -379,7 +373,6 @@ public class LoggerDeployController implements Initializable
 
    private void createFileSelection(String name, String argument, TextField textField, Button browseButton, String filter)
    {
-
       if (argument == null)
       {
          FileChooser fileChooser = new FileChooser();
@@ -409,7 +402,6 @@ public class LoggerDeployController implements Initializable
          textField.setDisable(true);
          browseButton.setVisible(false);
       }
-
    }
 
    /**
@@ -419,12 +411,10 @@ public class LoggerDeployController implements Initializable
     */
    public void setLoggerDistribution(String loggerDistribution)
    {
-
       Platform.runLater(() ->
       {
          createFileSelection("Logger distribution", loggerDistribution, logger_dist, browse_dist, "*.tar");
       });
 
    }
-
 }

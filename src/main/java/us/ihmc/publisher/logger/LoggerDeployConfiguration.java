@@ -46,9 +46,7 @@ public class LoggerDeployConfiguration
       SSHDeploy deploy = new SSHDeploy(remote, null);
       String data = deploy.download(getCameraSettingsFile(remote));
 
-      CameraSettings settings = CameraSettingsLoader.load(data);
-
-      return settings;
+      return CameraSettingsLoader.load(data);
    }
 
    public static StaticHostList loadStaticHostList(SSHRemote remote) throws IOException
@@ -65,7 +63,6 @@ public class LoggerDeployConfiguration
       URL deployScript = loader.getResource("deploy.sh");
       URL loggerService = loader.getResource("ihmc-logger.service");
       URL crontab = loader.getResource("ihmc-logger-cron");
-
       
       deploy.addBinaryFile("DIST", dist, "/tmp/logger.tar", false);
       deploy.addTextFile("LOGGER_SERVICE", "ihmc-logger.service", loggerService, "/etc/systemd/system/ihmc-logger.service", true);

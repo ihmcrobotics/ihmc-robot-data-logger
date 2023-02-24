@@ -32,7 +32,7 @@ public interface LoggerDeployScript
                        Stage stage,
                        boolean logger_service)
    {
-      FXConsole deployConsole = new FXConsole((Stage) stage);
+      FXConsole deployConsole = new FXConsole(stage);
       SSHRemote remote = new SSHRemote(logger_host, logger_user, logger_password, logger_sudo_password);
       LoggerDeployConfiguration.deploy(remote, logger_dist, nightly_restart, deployConsole, logger_service);
    }
@@ -51,7 +51,7 @@ public interface LoggerDeployScript
                                   boolean restartonSave,
                                   Stage stage)
    {
-      FXConsole deployConsole = new FXConsole((Stage) stage);
+      FXConsole deployConsole = new FXConsole(stage);
       SSHRemote remote = new SSHRemote(logger_host, logger_user, logger_password, logger_sudo_password);
       
       LoggerDeployConfiguration.saveConfiguration(remote, settings, staticHostList, restartonSave, deployConsole);
@@ -76,5 +76,4 @@ public interface LoggerDeployScript
       SSHRemote remote = new SSHRemote(logger_host, logger_user, logger_password, logger_sudo_password);      
       return LoggerDeployConfiguration.loadStaticHostList(remote);
    }
-
 }
