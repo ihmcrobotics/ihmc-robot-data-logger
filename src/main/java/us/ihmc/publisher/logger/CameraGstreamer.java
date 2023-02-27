@@ -1,12 +1,9 @@
 package us.ihmc.publisher.logger;
 
-import java.awt.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Semaphore;
-import javax.swing.JFrame;
 import org.freedesktop.gstreamer.*;
-import org.freedesktop.gstreamer.elements.AppSink;
-import org.freedesktop.gstreamer.elements.PlayBin;
+import org.freedesktop.gstreamer.event.EOSEvent;
 import us.ihmc.commons.thread.ThreadTools;
 
 public class CameraGstreamer
@@ -26,18 +23,23 @@ public class CameraGstreamer
     {
         Gst.init();
 
-        Bin videoBin = Gst.parseBinFromDescription(
-                "appsink name=videoAppSink",
-                true);
+//        Bin videoBin = Gst.parseBinFromDescription(
+//                "appsink name=videoAppSink",
+//                true);
 
         Pipeline pipe = (Pipeline) Gst.parseLaunch(
-                "decklinkvideosrc device-number=0 connection=sdi mode=auto " +
+                "decklinkvideosrc connection=sdi " +
                 "! videoconvert " +
-                "! jpegenc " +
-                "! avimux " +
-                "! filesink location=/home/nick/decklinkCapture.mov");
+                "! videorate " +
+                "! x264enc " +
+                "! mp4mux " +
+                "! filesink location=/home/nick/xyz.mp4");
 
         pipe.play();
         ThreadTools.sleepSeconds(10);
+        pipe.sendEvent(new EOSEvent());
+        pipe.stop();
+
+        // Doesn't shut down the pipeline properly so the video is lost.
     }
 }
