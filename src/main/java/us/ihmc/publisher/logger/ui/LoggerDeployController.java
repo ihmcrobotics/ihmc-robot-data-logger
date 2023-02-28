@@ -99,9 +99,6 @@ public class LoggerDeployController implements Initializable
    CheckBox restart_on_save;
 
    @FXML
-   Label logger_without_service_label;
-
-   @FXML
    CheckBox logger_service;
    
 
@@ -177,7 +174,6 @@ public class LoggerDeployController implements Initializable
       {
          restart_label.setVisible(false);
          logger_restart_midnight.setVisible(false);
-         logger_without_service_label.setVisible(false);
          logger_service.setVisible(false);
       }
    }
