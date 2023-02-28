@@ -51,7 +51,7 @@ module robotDataLogger{
 		
 	};
 	
-	struct AppearanceDefinitionMessage
+	struct SCS1AppearanceDefinitionMessage
 	{
 		double r;
 		double g;
@@ -60,16 +60,32 @@ module robotDataLogger{
 		double transparency;
 	};
 	
-	struct GraphicObjectMessage
+	struct SCS1YoGraphicObjectMessage
 	{
 		long registrationID;
 		string name;
 		
 		sequence<unsigned short, 1024> yoVariableIndex;
 		sequence<double, 128> constants;
-		AppearanceDefinitionMessage appearance;
+		SCS1AppearanceDefinitionMessage appearance;
 		string listName;
 	};
+
+    struct SCS2PaintDefinitionMessage
+    {
+        string type;
+        sequence<string, 128> fieldNames;
+        sequence<string, 128> fieldValues;
+    }
+
+    struct SCS2YoGraphicDefinitionMessage
+    {
+        string type;
+
+        sequence<SCS2PaintDefinitionMessage, 4> colors;
+        sequence<string, 128> fieldNames;
+        sequence<string, 128> fieldValues;
+    }
 
 	struct ReferenceFrameInformation
 	{
