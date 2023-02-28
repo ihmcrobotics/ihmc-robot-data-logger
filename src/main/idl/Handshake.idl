@@ -74,17 +74,18 @@ module robotDataLogger{
     struct SCS2PaintDefinitionMessage
     {
         string type;
-        sequence<string, 128> fieldNames;
-        sequence<string, 128> fieldValues;
+        sequence<string, 16> fieldNames;
+        sequence<string, 16> fieldValues;
     }
 
     struct SCS2YoGraphicDefinitionMessage
     {
         string type;
+        string name;
 
         sequence<SCS2PaintDefinitionMessage, 4> colors;
-        sequence<string, 128> fieldNames;
-        sequence<string, 128> fieldValues;
+        sequence<string, 64> fieldNames;
+        sequence<string, 64> fieldValues;
     }
 
 	struct ReferenceFrameInformation
@@ -111,8 +112,9 @@ module robotDataLogger{
 		sequence<YoRegistryDefinition, 1024> registries;
 		sequence<YoVariableDefinition, 32767> variables;
 		sequence<JointDefinition, 128> joints;
-		sequence<GraphicObjectMessage, 2048> graphicObjects;
-		sequence<GraphicObjectMessage, 2048> artifacts;
+		sequence<SCS1YoGraphicObjectMessage, 2048> graphicObjects;
+		sequence<SCS1YoGraphicObjectMessage, 2048> artifacts;
+		sequence<SCS2YoGraphicDefinitionMessage, 2048> scs2YoGraphicDefinitions;
 		sequence<EnumType, 1024> enumTypes;
 		ReferenceFrameInformation referenceFrameInformation;
 		Summary summary;

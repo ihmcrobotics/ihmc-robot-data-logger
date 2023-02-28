@@ -1,6 +1,10 @@
 package us.ihmc.robotDataLogger.handshake;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -16,13 +20,13 @@ import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.graphicsDescription.yoGraphics.plotting.ArtifactList;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.AppearanceDefinitionMessage;
 import us.ihmc.robotDataLogger.EnumType;
-import us.ihmc.robotDataLogger.GraphicObjectMessage;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.JointDefinition;
 import us.ihmc.robotDataLogger.LoadStatus;
 import us.ihmc.robotDataLogger.ReferenceFrameInformation;
+import us.ihmc.robotDataLogger.SCS1AppearanceDefinitionMessage;
+import us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessage;
 import us.ihmc.robotDataLogger.YoRegistryDefinition;
 import us.ihmc.robotDataLogger.YoType;
 import us.ihmc.robotDataLogger.YoVariableDefinition;
@@ -71,7 +75,7 @@ public class YoVariableHandShakeBuilder
 
                if (verifyDynamicGraphicObject((RemoteYoGraphic) yoGraphic))
                {
-                  GraphicObjectMessage msg = handshake.getGraphicObjects().add();
+                  SCS1YoGraphicObjectMessage msg = handshake.getGraphicObjects().add();
                   msg.setListName(yoGraphicsList.getLabel());
                   messageFromDynamicGraphicObject((RemoteYoGraphic) yoGraphic, msg);
                }
@@ -101,7 +105,7 @@ public class YoVariableHandShakeBuilder
 
                if (verifyDynamicGraphicObject((RemoteYoGraphic) artifact))
                {
-                  GraphicObjectMessage msg = handshake.getArtifacts().add();
+                  SCS1YoGraphicObjectMessage msg = handshake.getArtifacts().add();
                   messageFromDynamicGraphicObject((RemoteYoGraphic) artifact, msg);
                }
             }
@@ -346,7 +350,7 @@ public class YoVariableHandShakeBuilder
       return true;
    }
 
-   private void messageFromDynamicGraphicObject(RemoteYoGraphic obj, GraphicObjectMessage objectMessage)
+   private void messageFromDynamicGraphicObject(RemoteYoGraphic obj, SCS1YoGraphicObjectMessage objectMessage)
    {
 
       objectMessage.setRegistrationID(yoGraphicFactory.getRegistrationID(obj.getClass()));
@@ -354,7 +358,7 @@ public class YoVariableHandShakeBuilder
 
       try
       {
-         AppearanceDefinitionMessage appearanceMessage = objectMessage.getAppearance();
+         SCS1AppearanceDefinitionMessage appearanceMessage = objectMessage.getAppearance();
          appearanceMessage.setR(obj.getAppearance().getColor().getX());
          appearanceMessage.setG(obj.getAppearance().getColor().getY());
          appearanceMessage.setB(obj.getAppearance().getColor().getZ());

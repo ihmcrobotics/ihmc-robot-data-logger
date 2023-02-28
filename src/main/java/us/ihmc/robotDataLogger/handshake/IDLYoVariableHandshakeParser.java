@@ -29,12 +29,12 @@ import us.ihmc.idl.serializers.extra.AbstractSerializer;
 import us.ihmc.idl.serializers.extra.YAMLSerializer;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.EnumType;
-import us.ihmc.robotDataLogger.GraphicObjectMessage;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.HandshakeFileType;
 import us.ihmc.robotDataLogger.HandshakePubSubType;
 import us.ihmc.robotDataLogger.JointDefinition;
 import us.ihmc.robotDataLogger.ReferenceFrameInformation;
+import us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessage;
 import us.ihmc.robotDataLogger.YoRegistryDefinition;
 import us.ihmc.robotDataLogger.YoType;
 import us.ihmc.robotDataLogger.YoVariableDefinition;
@@ -351,7 +351,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
       yoGraphicsListRegistry.registerArtifactList(artifactList);
    }
 
-   private RemoteYoGraphic getRemoteGraphic(GraphicObjectMessage graphicObjectMessage)
+   private RemoteYoGraphic getRemoteGraphic(SCS1YoGraphicObjectMessage graphicObjectMessage)
    {
       int registrationID = graphicObjectMessage.getRegistrationID();
 
