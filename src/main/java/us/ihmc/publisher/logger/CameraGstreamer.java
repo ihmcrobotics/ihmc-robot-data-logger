@@ -1,15 +1,24 @@
 package us.ihmc.publisher.logger;
 
+import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.GeneralPath;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.nio.IntBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import javafx.scene.paint.Paint;
 import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.event.EOSEvent;
 import us.ihmc.commons.thread.ThreadTools;
 
 public class CameraGstreamer
 {
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 600;
 
     private final static int BUFFER_SIZE = 100;
 
@@ -34,6 +43,7 @@ public class CameraGstreamer
                 "decklinkvideosrc connection=sdi " +
                 "! videoconvert " +
                 "! videorate " +
+                "! identity name=identity " +
                 "! x264enc " +
                 "! mp4mux " +
                 "! filesink location=/home/nick/xyz.mov");
@@ -46,6 +56,10 @@ public class CameraGstreamer
         });
 
         gotEOSPlayBin.drainPermits();
+
+        Element identity = pipe.getElementByName("identity");
+        identity.getStaticPad("sink")
+                .addProbe(PadProbeType.BUFFER, new Renderer(WIDTH, HEIGHT));
 
         pipe.play();
         ThreadTools.sleepSeconds(10);
@@ -71,5 +85,39 @@ public class CameraGstreamer
 //        ThreadTools.sleepSeconds(4);
 
         // Doesn't shut down the pipeline properly so the video is lost.
+    }
+
+    static class Renderer implements Pad.PROBE {
+
+        private final BufferedImage image;
+        private final int[] data;
+        private final Point[] points;
+//        private final Paint fill;
+
+        private Renderer(int width, int height) {
+            image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            data = ((DataBufferInt) (image.getRaster().getDataBuffer())).getData();
+            points = new Point[18];
+            for (int i = 0; i < points.length; i++) {
+                points[i] = new Point();
+            }
+//            fill = new GradientPaint(0, 0, new Color(1.0f, 0.3f, 0.5f, 0.9f),
+//                    60, 20, new Color(0.3f, 1.0f, 0.7f, 0.8f), true);
+        }
+
+        @Override
+        public PadProbeReturn probeCallback(Pad pad, PadProbeInfo info) {
+            Buffer buffer = info.getBuffer();
+            if (buffer.isWritable()) {
+//                IntBuffer ib = buffer.map(true).asIntBuffer();
+//                ib.get(data);
+//                render();
+//                ib.rewind();
+//                ib.put(data);
+//                buffer.unmap();
+                System.out.println("Running + " + System.nanoTime());
+            }
+            return PadProbeReturn.OK;
+        }
     }
 }
