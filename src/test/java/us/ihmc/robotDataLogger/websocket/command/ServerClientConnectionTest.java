@@ -106,7 +106,7 @@ public class ServerClientConnectionTest
       createVariables("Main", variablesPerType, serverRegistry, mainChangingVariables);
 
       // Creates the server and adds the main registry to the server with all the YoVariables, the server is then started
-      yoVariableServer = new YoVariableServer("HelloSlackHowAreYouToday", null, logSettings, dt);
+      yoVariableServer = new YoVariableServer("TestServer", null, logSettings, dt);
       yoVariableServer.setMainRegistry(serverRegistry, null);
       yoVariableServer.start();
 
@@ -117,7 +117,7 @@ public class ServerClientConnectionTest
       // Message to let the user know that the client and server should now both be running
       LogTools.info("Server and Client are started!");
 
-      for (int i = 0; i < 1; i++)
+      for (int i = 0; i < 4; i++)
       {
          LogTools.info("Running updates variables for the (" + i + ") time!");
 

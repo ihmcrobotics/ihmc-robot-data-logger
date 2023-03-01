@@ -8,14 +8,14 @@ buildscript {
 
 plugins {
    id("us.ihmc.ihmc-build")
-   id("us.ihmc.ihmc-ci") version "7.6"
+   id("us.ihmc.ihmc-ci") version "7.7"
    id("us.ihmc.ihmc-cd") version "1.23"
    id("us.ihmc.log-tools-plugin") version "0.6.3"
 }
 
 ihmc {
    group = "us.ihmc"
-   version = "0.25.0"
+   version = "0.26.0"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
@@ -37,7 +37,7 @@ mainDependencies {
    api("org.openjdk.jol:jol-core:0.9")
    api("org.apache.commons:commons-text:1.9")
 
-   api("us.ihmc:euclid:0.19.0")
+   api("us.ihmc:euclid:0.19.1")
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-realtime:1.5.1")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
@@ -45,12 +45,15 @@ mainDependencies {
    api("us.ihmc:ihmc-pub-sub-serializers-extra:0.18.1")
    api("us.ihmc:ihmc-commons:0.32.0")
    api("us.ihmc:ihmc-graphics-description:0.19.8")
-   api("us.ihmc:mecano:17-0.11.5")
+   api("us.ihmc:mecano:17-0.11.6")
    api("com.hierynomus:sshj:0.31.0")
 
    api("org.bytedeco:javacv:1.5.8")
    api("org.bytedeco:javacpp:1.5.8")
    api("org.bytedeco:javacv-platform:1.5.8")
+   api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
+   api("net.java.dev.jna:jna:5.13.0")
+   api("net.java.dev.jna:jna-platform:5.13.0")
 
    var javaFXVersion = "17.0.2"
    api(ihmc.javaFXModule("base", javaFXVersion))

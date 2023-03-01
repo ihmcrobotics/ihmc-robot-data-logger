@@ -9,7 +9,7 @@ import us.ihmc.javadecklink.Capture;
 import java.util.ArrayList;
 
 // There is currently no audio capture in this class
-public class VideoCapture
+public class OldVideoCapture
 {
    private static final boolean VIEW_FRAME = false;
    public static ArrayList<Long> timestampList = new ArrayList<>();
