@@ -3,14 +3,12 @@ package us.ihmc.publisher.logger;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.*;
 import org.bytedeco.javacv.FrameRecorder.Exception;
-import us.ihmc.robotDataLogger.logger.VideoIn;
 
-import java.io.FileInputStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 
 // There is currently no audio capture in this class
-public class WindowsVideoCapture
+public class BytedecoCapture
 {
 
     public static ArrayList<Long> timestampList = new ArrayList<>();
