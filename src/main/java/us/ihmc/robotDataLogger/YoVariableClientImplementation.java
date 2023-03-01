@@ -185,7 +185,10 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
    @Override
    public void disconnect()
    {
-      dataConsumer.disconnectSession();
+      if (dataConsumer != null)
+      {
+         dataConsumer.disconnectSession();
+      }
    }
 
    @Override
