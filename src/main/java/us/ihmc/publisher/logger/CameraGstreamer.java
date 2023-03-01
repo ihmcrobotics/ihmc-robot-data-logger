@@ -1,18 +1,12 @@
 package us.ihmc.publisher.logger;
 
-import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.GeneralPath;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
-import java.nio.IntBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
-import javafx.scene.paint.Paint;
 import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.event.EOSEvent;
+import org.freedesktop.gstreamer.video.VideoTimeCode;
+import org.freedesktop.gstreamer.video.VideoTimeCodeMeta;
 import us.ihmc.commons.thread.ThreadTools;
 
 public class CameraGstreamer
@@ -35,18 +29,15 @@ public class CameraGstreamer
     {
         Gst.init();
 
-//        Bin videoBin = Gst.parseBinFromDescription(
-//                "appsink name=videoAppSink",
-//                true);
-
         Pipeline pipe = (Pipeline) Gst.parseLaunch(
                 "decklinkvideosrc connection=sdi " +
+                "! timeoverlay " +
                 "! videoconvert " +
                 "! videorate " +
                 "! identity name=identity " +
-                "! x264enc " +
-                "! mp4mux " +
-                "! filesink location=/home/nick/xyz.mov");
+                "! jpegenc " +
+                "! .video splitmuxsink muxer=qtmux location=/home/nick/perfectSAVE.mov");// +
+//                "! filesink location=/home/nick/xyz.mov");
 //                "! filesink location=/home/nick/xyz.mp4");
 
         pipe.getBus().connect((Bus.EOS) (source) ->
@@ -59,10 +50,10 @@ public class CameraGstreamer
 
         Element identity = pipe.getElementByName("identity");
         identity.getStaticPad("sink")
-                .addProbe(PadProbeType.BUFFER, new Renderer(WIDTH, HEIGHT));
+                .addProbe(PadProbeType.BUFFER, new Renderer());
 
         pipe.play();
-        ThreadTools.sleepSeconds(10);
+        ThreadTools.sleepSeconds(120);
 
         pipe.sendEvent(new EOSEvent());
         gotEOSPlayBin.acquire(1);
@@ -71,12 +62,7 @@ public class CameraGstreamer
 
         pipe.stop();
 
-
 //        Gst.getExecutor().schedule(Gst::quit, 10, TimeUnit.SECONDS);
-
-
-
-
 //        Gst.main();
 
 //        pipe.sendEvent(new EOSEvent());
@@ -87,35 +73,31 @@ public class CameraGstreamer
         // Doesn't shut down the pipeline properly so the video is lost.
     }
 
-    static class Renderer implements Pad.PROBE {
+    static class Renderer implements Pad.PROBE
+    {
 
-        private final BufferedImage image;
-        private final int[] data;
-        private final Point[] points;
-//        private final Paint fill;
+        int i = 1001;
 
-        private Renderer(int width, int height) {
-            image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-            data = ((DataBufferInt) (image.getRaster().getDataBuffer())).getData();
-            points = new Point[18];
-            for (int i = 0; i < points.length; i++) {
-                points[i] = new Point();
-            }
-//            fill = new GradientPaint(0, 0, new Color(1.0f, 0.3f, 0.5f, 0.9f),
-//                    60, 20, new Color(0.3f, 1.0f, 0.7f, 0.8f), true);
+        private Renderer()
+        {
+            System.out.println("1");
+            System.out.println("60000");
         }
 
         @Override
-        public PadProbeReturn probeCallback(Pad pad, PadProbeInfo info) {
+        public PadProbeReturn probeCallback(Pad pad, PadProbeInfo info)
+        {
             Buffer buffer = info.getBuffer();
-            if (buffer.isWritable()) {
-//                IntBuffer ib = buffer.map(true).asIntBuffer();
-//                ib.get(data);
-//                render();
-//                ib.rewind();
-//                ib.put(data);
-//                buffer.unmap();
-                System.out.println("Running + " + System.nanoTime());
+//            VideoTimeCodeMeta meta = buffer.getMeta(VideoTimeCodeMeta.API);
+//            assertNotNull(meta);
+//            VideoTimeCode timeCode = meta.getTimeCode();
+//            System.out.println(timeCode.getFrames());
+
+            if (buffer.isWritable())
+            {
+                System.out.println(buffer.getPresentationTimestamp() + " " + i);
+//                System.out.println(System.nanoTime() + " " + i);
+                i += 1001;
             }
             return PadProbeReturn.OK;
         }
