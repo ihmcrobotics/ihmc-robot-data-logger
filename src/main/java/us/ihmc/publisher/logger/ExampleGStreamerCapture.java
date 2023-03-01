@@ -10,7 +10,7 @@ import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.event.EOSEvent;
 import us.ihmc.commons.thread.ThreadTools;
 
-public class GStreamerCapture
+public class ExampleGStreamerCapture
 {
     private static final Semaphore gotEOSPlayBin = new Semaphore(1);
     private static final ArrayList<Long> ptsData = new ArrayList<>();

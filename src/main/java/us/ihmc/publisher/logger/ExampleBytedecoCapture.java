@@ -8,7 +8,7 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 
 // There is currently no audio capture in this class
-public class BytedecoCapture
+public class ExampleBytedecoCapture
 {
 
     public static ArrayList<Long> timestampList = new ArrayList<>();
