@@ -40,11 +40,6 @@ public class SCS2YoGraphicDefinitionMessagePubSubType implements us.ihmc.pubsub.
    {
       int initial_alignment = current_alignment;
 
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 4; ++i0)
-      {
-          current_alignment += us.ihmc.robotDataLogger.SCS2PaintDefinitionMessagePubSubType.getMaxCdrSerializedSize(current_alignment);}
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 64; ++i0)
       {
         current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
@@ -66,15 +61,6 @@ public class SCS2YoGraphicDefinitionMessagePubSubType implements us.ihmc.pubsub.
    {
       int initial_alignment = current_alignment;
 
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + data.getType().length() + 1;
-
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + data.getName().length() + 1;
-
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
-      for(int i0 = 0; i0 < data.getColors().size(); ++i0)
-      {
-          current_alignment += us.ihmc.robotDataLogger.SCS2PaintDefinitionMessagePubSubType.getCdrSerializedSize(data.getColors().get(i0), current_alignment);}
-
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
       for(int i0 = 0; i0 < data.getFieldNames().size(); ++i0)
       {
@@ -91,18 +77,6 @@ public class SCS2YoGraphicDefinitionMessagePubSubType implements us.ihmc.pubsub.
 
    public static void write(us.ihmc.robotDataLogger.SCS2YoGraphicDefinitionMessage data, us.ihmc.idl.CDR cdr)
    {
-      if(data.getType().length() <= 255)
-      cdr.write_type_d(data.getType());else
-          throw new RuntimeException("type field exceeds the maximum length");
-
-      if(data.getName().length() <= 255)
-      cdr.write_type_d(data.getName());else
-          throw new RuntimeException("name field exceeds the maximum length");
-
-      if(data.getColors().size() <= 4)
-      cdr.write_type_e(data.getColors());else
-          throw new RuntimeException("colors field exceeds the maximum length");
-
       if(data.getFieldNames().size() <= 64)
       cdr.write_type_e(data.getFieldNames());else
           throw new RuntimeException("fieldNames field exceeds the maximum length");
@@ -115,9 +89,6 @@ public class SCS2YoGraphicDefinitionMessagePubSubType implements us.ihmc.pubsub.
 
    public static void read(us.ihmc.robotDataLogger.SCS2YoGraphicDefinitionMessage data, us.ihmc.idl.CDR cdr)
    {
-      cdr.read_type_d(data.getType());	
-      cdr.read_type_d(data.getName());	
-      cdr.read_type_e(data.getColors());	
       cdr.read_type_e(data.getFieldNames());	
       cdr.read_type_e(data.getFieldValues());	
 
@@ -126,9 +97,6 @@ public class SCS2YoGraphicDefinitionMessagePubSubType implements us.ihmc.pubsub.
    @Override
    public final void serialize(us.ihmc.robotDataLogger.SCS2YoGraphicDefinitionMessage data, us.ihmc.idl.InterchangeSerializer ser)
    {
-      ser.write_type_d("type", data.getType());
-      ser.write_type_d("name", data.getName());
-      ser.write_type_e("colors", data.getColors());
       ser.write_type_e("fieldNames", data.getFieldNames());
       ser.write_type_e("fieldValues", data.getFieldValues());
    }
@@ -136,9 +104,6 @@ public class SCS2YoGraphicDefinitionMessagePubSubType implements us.ihmc.pubsub.
    @Override
    public final void deserialize(us.ihmc.idl.InterchangeSerializer ser, us.ihmc.robotDataLogger.SCS2YoGraphicDefinitionMessage data)
    {
-      ser.read_type_d("type", data.getType());
-      ser.read_type_d("name", data.getName());
-      ser.read_type_e("colors", data.getColors());
       ser.read_type_e("fieldNames", data.getFieldNames());
       ser.read_type_e("fieldValues", data.getFieldValues());
    }

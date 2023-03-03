@@ -27,11 +27,16 @@ import us.ihmc.robotDataLogger.LoadStatus;
 import us.ihmc.robotDataLogger.ReferenceFrameInformation;
 import us.ihmc.robotDataLogger.SCS1AppearanceDefinitionMessage;
 import us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessage;
+import us.ihmc.robotDataLogger.SCS2YoGraphicDefinitionMessage;
 import us.ihmc.robotDataLogger.YoRegistryDefinition;
 import us.ihmc.robotDataLogger.YoType;
 import us.ihmc.robotDataLogger.YoVariableDefinition;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.robotDataLogger.jointState.JointHolder;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition.YoGraphicFieldInfo;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition.YoGraphicFieldsSummary;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
 import us.ihmc.yoVariables.parameters.ParameterLoadStatus;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoEnum;
@@ -57,8 +62,11 @@ public class YoVariableHandShakeBuilder
 
    }
 
-   private void addDynamicGraphicObjects(YoGraphicsListRegistry yoGraphicsListRegistry)
+   private void addSCS1YoGraphicObjects(YoGraphicsListRegistry yoGraphicsListRegistry)
    {
+      if (yoGraphicsListRegistry == null)
+         return;
+
       ArrayList<YoGraphicsList> yoGraphicsLists = new ArrayList<>();
       yoGraphicsListRegistry.getRegisteredYoGraphicsLists(yoGraphicsLists);
       for (YoGraphicsList yoGraphicsList : yoGraphicsLists)
@@ -117,11 +125,28 @@ public class YoVariableHandShakeBuilder
       }
    }
 
+   private void addSCS2YoGraphicDefinition(YoGraphicGroupDefinition rootDefinition)
+   {
+      if (rootDefinition == null)
+         return;
+
+      List<YoGraphicFieldsSummary> treeFieldValueInfo = YoGraphicDefinition.exportSubtreeYoGraphicFieldsSummaryList(rootDefinition);
+
+      for (YoGraphicFieldsSummary yoGraphicFieldsValuesInfo : treeFieldValueInfo)
+      {
+         SCS2YoGraphicDefinitionMessage msg = handshake.getScs2YoGraphicDefinitions().add();
+         for (YoGraphicFieldInfo entry : yoGraphicFieldsValuesInfo)
+         {
+            msg.getFieldNames().add().append(entry.getFieldName());
+            msg.getFieldValues().add().append(entry.getFieldValue());
+         }
+      }
+   }
+
    private void addJointHolders(List<JointHolder> jointHolders)
    {
       for (JointHolder jointHolder : jointHolders)
       {
-
          JointDefinition jointDefinition = handshake.getJoints().add();
          jointDefinition.setName(jointHolder.getName());
          jointDefinition.setType(jointHolder.getJointType());
@@ -142,7 +167,6 @@ public class YoVariableHandShakeBuilder
 
    private void createRootRegistry(String rootRegistryName)
    {
-
       YoRegistryDefinition yoRegistryDescription = handshake.getRegistries().add();
       yoRegistryDescription.setName(rootRegistryName);
       yoRegistryDescription.setParent((short) 0);
@@ -153,11 +177,8 @@ public class YoVariableHandShakeBuilder
       YoRegistry registry = builder.getYoRegistry();
 
       int registryID = addRegistry(0, registry, builder.getVariables(), registry);
-      YoGraphicsListRegistry yoGraphicsListRegistry = builder.getYoGraphicsListRegistry();
-      if (yoGraphicsListRegistry != null)
-      {
-         addDynamicGraphicObjects(yoGraphicsListRegistry);
-      }
+      addSCS1YoGraphicObjects(builder.getSCS1YoGraphics());
+      addSCS2YoGraphicDefinition(builder.getSCS2YoGraphics());
 
       builder.build(registryID);
       List<JointHolder> jointHolders = builder.getJointHolders();
@@ -174,7 +195,6 @@ public class YoVariableHandShakeBuilder
 
    private int addRegistry(int parentID, YoRegistry registry, List<YoVariable> variableListToPack, YoRegistry rootRegistry)
    {
-
       int myID = registryID;
       if (myID > handshake.getRegistries().capacity())
       {
@@ -331,7 +351,6 @@ public class YoVariableHandShakeBuilder
          yoVariableIndices.put(variable, variablesAndRootRegistries.size() - 1);
 
       }
-
    }
 
    private boolean verifyDynamicGraphicObject(RemoteYoGraphic remoteYoGraphic)
@@ -340,9 +359,8 @@ public class YoVariableHandShakeBuilder
       {
          if (!yoVariableIndices.containsKey(yoVariable))
          {
-            LogTools.error("Backing YoRegistry not added for " + remoteYoGraphic.getName()
-                           + ", variable: " + yoVariable
-                           + ". Disabling visualizer for " + remoteYoGraphic.getName());
+            LogTools.error("Backing YoRegistry not added for " + remoteYoGraphic.getName() + ", variable: " + yoVariable + ". Disabling visualizer for "
+                  + remoteYoGraphic.getName());
             return false;
          }
       }
@@ -352,7 +370,6 @@ public class YoVariableHandShakeBuilder
 
    private void messageFromDynamicGraphicObject(RemoteYoGraphic obj, SCS1YoGraphicObjectMessage objectMessage)
    {
-
       objectMessage.setRegistrationID(yoGraphicFactory.getRegistrationID(obj.getClass()));
       objectMessage.setName(obj.getName());
 
@@ -429,7 +446,7 @@ public class YoVariableHandShakeBuilder
          ReferenceFrameInformation referenceFrameInformation = handshake.getReferenceFrameInformation();
          int i = 0;
          int packetSizeLimit = 8192;
-         for (Iterator<ReferenceFrame> iterator = frames.iterator(); iterator.hasNext() && i++ < packetSizeLimit; )
+         for (Iterator<ReferenceFrame> iterator = frames.iterator(); iterator.hasNext() && i++ < packetSizeLimit;)
          {
             ReferenceFrame frame = iterator.next();
             referenceFrameInformation.getFrameNames().add(frame.getName());

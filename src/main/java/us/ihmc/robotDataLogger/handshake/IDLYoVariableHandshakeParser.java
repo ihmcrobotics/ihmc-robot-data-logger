@@ -25,6 +25,7 @@ import us.ihmc.graphicsDescription.yoGraphics.RemoteYoGraphic;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphic;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
 import us.ihmc.graphicsDescription.yoGraphics.plotting.ArtifactList;
+import us.ihmc.idl.IDLSequence.Object;
 import us.ihmc.idl.serializers.extra.AbstractSerializer;
 import us.ihmc.idl.serializers.extra.YAMLSerializer;
 import us.ihmc.log.LogTools;
@@ -35,10 +36,15 @@ import us.ihmc.robotDataLogger.HandshakePubSubType;
 import us.ihmc.robotDataLogger.JointDefinition;
 import us.ihmc.robotDataLogger.ReferenceFrameInformation;
 import us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessage;
+import us.ihmc.robotDataLogger.SCS2YoGraphicDefinitionMessage;
 import us.ihmc.robotDataLogger.YoRegistryDefinition;
 import us.ihmc.robotDataLogger.YoType;
 import us.ihmc.robotDataLogger.YoVariableDefinition;
 import us.ihmc.robotDataLogger.jointState.JointState;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition.YoGraphicFieldInfo;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition.YoGraphicFieldsSummary;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
 import us.ihmc.yoVariables.euclid.referenceFrame.interfaces.FrameIndexMap;
 import us.ihmc.yoVariables.parameters.BooleanParameter;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
@@ -121,6 +127,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
 
       addJointStates(handshake);
       addGraphicObjects(handshake);
+      scs2YoGraphics = parseSCS2YoGraphics(handshake);
       frameIndexMap = parseReferenceFrames(handshake);
 
       numberOfVariables = handshake.getVariables().size();
@@ -333,7 +340,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
 
       for (String list : dgoListMap.keySet())
       {
-         yoGraphicsListRegistry.registerYoGraphicsList(dgoListMap.get(list));
+         scs1YoGraphics.registerYoGraphicsList(dgoListMap.get(list));
       }
 
       ArtifactList artifactList = new ArtifactList("remote");
@@ -348,7 +355,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
             LogTools.error("Got exception: " + e.getClass().getSimpleName() + " when loading a Artifact: " + e.getMessage());
          }
       }
-      yoGraphicsListRegistry.registerArtifactList(artifactList);
+      scs1YoGraphics.registerArtifactList(artifactList);
    }
 
    private RemoteYoGraphic getRemoteGraphic(SCS1YoGraphicObjectMessage graphicObjectMessage)
@@ -368,6 +375,26 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
                                                                  graphicObjectMessage.getAppearance().getTransparency());
 
       return yoGraphicFromMessage(registrationID, name, vars, consts, appearance);
+   }
+
+   private static List<YoGraphicGroupDefinition> parseSCS2YoGraphics(Handshake handshake)
+   {
+      List<YoGraphicFieldsSummary> yoGraphicFieldsSummaryList = new ArrayList<>();
+      Object<SCS2YoGraphicDefinitionMessage> msgList = handshake.getScs2YoGraphicDefinitions();
+
+      for (int i = 0; i < msgList.size(); i++)
+      {
+         SCS2YoGraphicDefinitionMessage msg = msgList.get(i);
+         int fields = msg.getFieldNames().size();
+         YoGraphicFieldsSummary summary = new YoGraphicFieldsSummary();
+         for (int j = 0; j < fields; j++)
+         {
+            summary.add(new YoGraphicFieldInfo(msg.getFieldNames().get(j).toString(), msg.getFieldValues().get(j).toString()));
+         }
+         yoGraphicFieldsSummaryList.add(summary);
+      }
+
+      return YoGraphicDefinition.parseTreeYoGraphicFieldsSummary(yoGraphicFieldsSummaryList);
    }
 
    private static FrameIndexMap parseReferenceFrames(Handshake handshake)

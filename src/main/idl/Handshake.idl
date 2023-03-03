@@ -71,19 +71,8 @@ module robotDataLogger{
 		string listName;
 	};
 
-    struct SCS2PaintDefinitionMessage
-    {
-        string type;
-        sequence<string, 16> fieldNames;
-        sequence<string, 16> fieldValues;
-    }
-
     struct SCS2YoGraphicDefinitionMessage
     {
-        string type;
-        string name;
-
-        sequence<SCS2PaintDefinitionMessage, 4> colors;
         sequence<string, 64> fieldNames;
         sequence<string, 64> fieldValues;
     }
