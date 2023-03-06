@@ -359,8 +359,10 @@ public class YoVariableHandShakeBuilder
       {
          if (!yoVariableIndices.containsKey(yoVariable))
          {
-            LogTools.error("Backing YoRegistry not added for " + remoteYoGraphic.getName() + ", variable: " + yoVariable + ". Disabling visualizer for "
-                  + remoteYoGraphic.getName());
+            LogTools.error("Backing YoRegistry not added for {}, variable: {}. Disabling visualizer for {}.",
+                           remoteYoGraphic.getName(),
+                           yoVariable,
+                           remoteYoGraphic.getName());
             return false;
          }
       }
