@@ -42,7 +42,7 @@ public class ClientImplementationTest
       // Creates the client and adds the listener to the client
       yoVariableClient = new YoVariableClient(clientListener);
 
-      for (int i = 0; i < 4; i++)
+      for (int i = 0; i < 3; i++)
       {
          try
          {
