@@ -53,10 +53,13 @@ public class HandshakePubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
           current_alignment += us.ihmc.robotDataLogger.JointDefinitionPubSubType.getMaxCdrSerializedSize(current_alignment);}
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 2048; ++i0)
       {
-          current_alignment += us.ihmc.robotDataLogger.GraphicObjectMessagePubSubType.getMaxCdrSerializedSize(current_alignment);}
+          current_alignment += us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessagePubSubType.getMaxCdrSerializedSize(current_alignment);}
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 2048; ++i0)
       {
-          current_alignment += us.ihmc.robotDataLogger.GraphicObjectMessagePubSubType.getMaxCdrSerializedSize(current_alignment);}
+          current_alignment += us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessagePubSubType.getMaxCdrSerializedSize(current_alignment);}
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 2048; ++i0)
+      {
+          current_alignment += us.ihmc.robotDataLogger.SCS2YoGraphicDefinitionMessagePubSubType.getMaxCdrSerializedSize(current_alignment);}
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 1024; ++i0)
       {
           current_alignment += us.ihmc.robotDataLogger.EnumTypePubSubType.getMaxCdrSerializedSize(current_alignment);}
@@ -98,12 +101,17 @@ public class HandshakePubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
       for(int i0 = 0; i0 < data.getGraphicObjects().size(); ++i0)
       {
-          current_alignment += us.ihmc.robotDataLogger.GraphicObjectMessagePubSubType.getCdrSerializedSize(data.getGraphicObjects().get(i0), current_alignment);}
+          current_alignment += us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessagePubSubType.getCdrSerializedSize(data.getGraphicObjects().get(i0), current_alignment);}
 
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
       for(int i0 = 0; i0 < data.getArtifacts().size(); ++i0)
       {
-          current_alignment += us.ihmc.robotDataLogger.GraphicObjectMessagePubSubType.getCdrSerializedSize(data.getArtifacts().get(i0), current_alignment);}
+          current_alignment += us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessagePubSubType.getCdrSerializedSize(data.getArtifacts().get(i0), current_alignment);}
+
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+      for(int i0 = 0; i0 < data.getScs2YoGraphicDefinitions().size(); ++i0)
+      {
+          current_alignment += us.ihmc.robotDataLogger.SCS2YoGraphicDefinitionMessagePubSubType.getCdrSerializedSize(data.getScs2YoGraphicDefinitions().get(i0), current_alignment);}
 
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
       for(int i0 = 0; i0 < data.getEnumTypes().size(); ++i0)
@@ -142,6 +150,10 @@ public class HandshakePubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
       cdr.write_type_e(data.getArtifacts());else
           throw new RuntimeException("artifacts field exceeds the maximum length");
 
+      if(data.getScs2YoGraphicDefinitions().size() <= 2048)
+      cdr.write_type_e(data.getScs2YoGraphicDefinitions());else
+          throw new RuntimeException("scs2YoGraphicDefinitions field exceeds the maximum length");
+
       if(data.getEnumTypes().size() <= 1024)
       cdr.write_type_e(data.getEnumTypes());else
           throw new RuntimeException("enumTypes field exceeds the maximum length");
@@ -159,6 +171,7 @@ public class HandshakePubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
       cdr.read_type_e(data.getJoints());	
       cdr.read_type_e(data.getGraphicObjects());	
       cdr.read_type_e(data.getArtifacts());	
+      cdr.read_type_e(data.getScs2YoGraphicDefinitions());	
       cdr.read_type_e(data.getEnumTypes());	
       us.ihmc.robotDataLogger.ReferenceFrameInformationPubSubType.read(data.getReferenceFrameInformation(), cdr);	
       us.ihmc.robotDataLogger.SummaryPubSubType.read(data.getSummary(), cdr);	
@@ -174,6 +187,7 @@ public class HandshakePubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
       ser.write_type_e("joints", data.getJoints());
       ser.write_type_e("graphicObjects", data.getGraphicObjects());
       ser.write_type_e("artifacts", data.getArtifacts());
+      ser.write_type_e("scs2YoGraphicDefinitions", data.getScs2YoGraphicDefinitions());
       ser.write_type_e("enumTypes", data.getEnumTypes());
       ser.write_type_a("referenceFrameInformation", new us.ihmc.robotDataLogger.ReferenceFrameInformationPubSubType(), data.getReferenceFrameInformation());
 
@@ -190,6 +204,7 @@ public class HandshakePubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
       ser.read_type_e("joints", data.getJoints());
       ser.read_type_e("graphicObjects", data.getGraphicObjects());
       ser.read_type_e("artifacts", data.getArtifacts());
+      ser.read_type_e("scs2YoGraphicDefinitions", data.getScs2YoGraphicDefinitions());
       ser.read_type_e("enumTypes", data.getEnumTypes());
       ser.read_type_a("referenceFrameInformation", new us.ihmc.robotDataLogger.ReferenceFrameInformationPubSubType(), data.getReferenceFrameInformation());
 
