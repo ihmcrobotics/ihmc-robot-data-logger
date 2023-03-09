@@ -1,6 +1,7 @@
 package us.ihmc.robotDataLogger.websocket.command;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+@Tag("robot-data-logger-2")
 public class ServerClientConnectionTest
 {
    boolean CHANGEDVARIABLES = false;
