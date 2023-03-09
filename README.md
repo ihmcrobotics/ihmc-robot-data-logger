@@ -1,6 +1,7 @@
 IHMC Robot Data Logger
 ======================
 [ Download ](https://search.maven.org/artifact/us.ihmc/ihmc-robot-data-logger)
+[ ![ihmc-robot-data-logger](https://maven-badges.herokuapp.com/maven-central/us.ihmc/ihmc-robot-data-logger/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/us.ihmc/ihmc-robot-data-logger)
 [ ![buildstatus](https://bamboo.ihmc.us/plugins/servlet/wittified/build-status/LIBS-IHMCROBOTDATALOGGER)](https://bamboo.ihmc.us/plugins/servlet/wittified/build-status/LIBS-IHMCROBOTDATALOGGER)
 
 ## Logger computer system requirements

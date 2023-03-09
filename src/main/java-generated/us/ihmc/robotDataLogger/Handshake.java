@@ -12,8 +12,9 @@ public class Handshake extends Packet<Handshake> implements Settable<Handshake>,
    public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.YoRegistryDefinition>  registries_;
    public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.YoVariableDefinition>  variables_;
    public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.JointDefinition>  joints_;
-   public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.GraphicObjectMessage>  graphicObjects_;
-   public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.GraphicObjectMessage>  artifacts_;
+   public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessage>  graphicObjects_;
+   public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessage>  artifacts_;
+   public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.SCS2YoGraphicDefinitionMessage>  scs2YoGraphicDefinitions_;
    public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.EnumType>  enumTypes_;
    public us.ihmc.robotDataLogger.ReferenceFrameInformation referenceFrameInformation_;
    public us.ihmc.robotDataLogger.Summary summary_;
@@ -23,8 +24,9 @@ public class Handshake extends Packet<Handshake> implements Settable<Handshake>,
       registries_ = new us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.YoRegistryDefinition> (1024, new us.ihmc.robotDataLogger.YoRegistryDefinitionPubSubType());
       variables_ = new us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.YoVariableDefinition> (32767, new us.ihmc.robotDataLogger.YoVariableDefinitionPubSubType());
       joints_ = new us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.JointDefinition> (128, new us.ihmc.robotDataLogger.JointDefinitionPubSubType());
-      graphicObjects_ = new us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.GraphicObjectMessage> (2048, new us.ihmc.robotDataLogger.GraphicObjectMessagePubSubType());
-      artifacts_ = new us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.GraphicObjectMessage> (2048, new us.ihmc.robotDataLogger.GraphicObjectMessagePubSubType());
+      graphicObjects_ = new us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessage> (2048, new us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessagePubSubType());
+      artifacts_ = new us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessage> (2048, new us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessagePubSubType());
+      scs2YoGraphicDefinitions_ = new us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.SCS2YoGraphicDefinitionMessage> (2048, new us.ihmc.robotDataLogger.SCS2YoGraphicDefinitionMessagePubSubType());
       enumTypes_ = new us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.EnumType> (1024, new us.ihmc.robotDataLogger.EnumTypePubSubType());
       referenceFrameInformation_ = new us.ihmc.robotDataLogger.ReferenceFrameInformation();
       summary_ = new us.ihmc.robotDataLogger.Summary();
@@ -46,6 +48,7 @@ public class Handshake extends Packet<Handshake> implements Settable<Handshake>,
       joints_.set(other.joints_);
       graphicObjects_.set(other.graphicObjects_);
       artifacts_.set(other.artifacts_);
+      scs2YoGraphicDefinitions_.set(other.scs2YoGraphicDefinitions_);
       enumTypes_.set(other.enumTypes_);
       us.ihmc.robotDataLogger.ReferenceFrameInformationPubSubType.staticCopy(other.referenceFrameInformation_, referenceFrameInformation_);
       us.ihmc.robotDataLogger.SummaryPubSubType.staticCopy(other.summary_, summary_);
@@ -79,15 +82,21 @@ public class Handshake extends Packet<Handshake> implements Settable<Handshake>,
    }
 
 
-   public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.GraphicObjectMessage>  getGraphicObjects()
+   public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessage>  getGraphicObjects()
    {
       return graphicObjects_;
    }
 
 
-   public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.GraphicObjectMessage>  getArtifacts()
+   public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessage>  getArtifacts()
    {
       return artifacts_;
+   }
+
+
+   public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.SCS2YoGraphicDefinitionMessage>  getScs2YoGraphicDefinitions()
+   {
+      return scs2YoGraphicDefinitions_;
    }
 
 
@@ -163,6 +172,13 @@ public class Handshake extends Packet<Handshake> implements Settable<Handshake>,
          {  if (!this.artifacts_.get(i).epsilonEquals(other.artifacts_.get(i), epsilon)) return false; }
       }
 
+      if (this.scs2YoGraphicDefinitions_.size() != other.scs2YoGraphicDefinitions_.size()) { return false; }
+      else
+      {
+         for (int i = 0; i < this.scs2YoGraphicDefinitions_.size(); i++)
+         {  if (!this.scs2YoGraphicDefinitions_.get(i).epsilonEquals(other.scs2YoGraphicDefinitions_.get(i), epsilon)) return false; }
+      }
+
       if (this.enumTypes_.size() != other.enumTypes_.size()) { return false; }
       else
       {
@@ -192,6 +208,7 @@ public class Handshake extends Packet<Handshake> implements Settable<Handshake>,
       if (!this.joints_.equals(otherMyClass.joints_)) return false;
       if (!this.graphicObjects_.equals(otherMyClass.graphicObjects_)) return false;
       if (!this.artifacts_.equals(otherMyClass.artifacts_)) return false;
+      if (!this.scs2YoGraphicDefinitions_.equals(otherMyClass.scs2YoGraphicDefinitions_)) return false;
       if (!this.enumTypes_.equals(otherMyClass.enumTypes_)) return false;
       if (!this.referenceFrameInformation_.equals(otherMyClass.referenceFrameInformation_)) return false;
       if (!this.summary_.equals(otherMyClass.summary_)) return false;
@@ -217,6 +234,8 @@ public class Handshake extends Packet<Handshake> implements Settable<Handshake>,
       builder.append(this.graphicObjects_);      builder.append(", ");
       builder.append("artifacts=");
       builder.append(this.artifacts_);      builder.append(", ");
+      builder.append("scs2YoGraphicDefinitions=");
+      builder.append(this.scs2YoGraphicDefinitions_);      builder.append(", ");
       builder.append("enumTypes=");
       builder.append(this.enumTypes_);      builder.append(", ");
       builder.append("referenceFrameInformation=");
