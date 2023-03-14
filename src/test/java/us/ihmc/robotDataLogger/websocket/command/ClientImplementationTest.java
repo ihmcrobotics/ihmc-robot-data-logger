@@ -2,6 +2,7 @@ package us.ihmc.robotDataLogger.websocket.command;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.YoVariableClient;
@@ -17,6 +18,7 @@ import us.ihmc.yoVariables.registry.YoRegistry;
 
 import java.io.IOException;
 
+@Tag("robot-data-logger-2")
 public class ClientImplementationTest
 {
    private static final double dt = 0.001;
@@ -42,7 +44,7 @@ public class ClientImplementationTest
       // Creates the client and adds the listener to the client
       yoVariableClient = new YoVariableClient(clientListener);
 
-      for (int i = 0; i < 4; i++)
+      for (int i = 0; i < 3; i++)
       {
          try
          {

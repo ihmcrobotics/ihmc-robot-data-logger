@@ -6,24 +6,24 @@ import us.ihmc.euclid.interfaces.EpsilonComparable;
 import java.util.function.Supplier;
 import us.ihmc.pubsub.TopicDataType;
 
-public class AppearanceDefinitionMessage extends Packet<AppearanceDefinitionMessage> implements Settable<AppearanceDefinitionMessage>, EpsilonComparable<AppearanceDefinitionMessage>
+public class SCS1AppearanceDefinitionMessage extends Packet<SCS1AppearanceDefinitionMessage> implements Settable<SCS1AppearanceDefinitionMessage>, EpsilonComparable<SCS1AppearanceDefinitionMessage>
 {
    public double r_;
    public double g_;
    public double b_;
    public double transparency_;
 
-   public AppearanceDefinitionMessage()
+   public SCS1AppearanceDefinitionMessage()
    {
    }
 
-   public AppearanceDefinitionMessage(AppearanceDefinitionMessage other)
+   public SCS1AppearanceDefinitionMessage(SCS1AppearanceDefinitionMessage other)
    {
       this();
       set(other);
    }
 
-   public void set(AppearanceDefinitionMessage other)
+   public void set(SCS1AppearanceDefinitionMessage other)
    {
       r_ = other.r_;
 
@@ -72,19 +72,19 @@ public class AppearanceDefinitionMessage extends Packet<AppearanceDefinitionMess
    }
 
 
-   public static Supplier<AppearanceDefinitionMessagePubSubType> getPubSubType()
+   public static Supplier<SCS1AppearanceDefinitionMessagePubSubType> getPubSubType()
    {
-      return AppearanceDefinitionMessagePubSubType::new;
+      return SCS1AppearanceDefinitionMessagePubSubType::new;
    }
 
    @Override
    public Supplier<TopicDataType> getPubSubTypePacket()
    {
-      return AppearanceDefinitionMessagePubSubType::new;
+      return SCS1AppearanceDefinitionMessagePubSubType::new;
    }
 
    @Override
-   public boolean epsilonEquals(AppearanceDefinitionMessage other, double epsilon)
+   public boolean epsilonEquals(SCS1AppearanceDefinitionMessage other, double epsilon)
    {
       if(other == null) return false;
       if(other == this) return true;
@@ -106,9 +106,9 @@ public class AppearanceDefinitionMessage extends Packet<AppearanceDefinitionMess
    {
       if(other == null) return false;
       if(other == this) return true;
-      if(!(other instanceof AppearanceDefinitionMessage)) return false;
+      if(!(other instanceof SCS1AppearanceDefinitionMessage)) return false;
 
-      AppearanceDefinitionMessage otherMyClass = (AppearanceDefinitionMessage) other;
+      SCS1AppearanceDefinitionMessage otherMyClass = (SCS1AppearanceDefinitionMessage) other;
 
       if(this.r_ != otherMyClass.r_) return false;
 
@@ -127,7 +127,7 @@ public class AppearanceDefinitionMessage extends Packet<AppearanceDefinitionMess
    {
       StringBuilder builder = new StringBuilder();
 
-      builder.append("AppearanceDefinitionMessage {");
+      builder.append("SCS1AppearanceDefinitionMessage {");
       builder.append("r=");
       builder.append(this.r_);      builder.append(", ");
       builder.append("g=");

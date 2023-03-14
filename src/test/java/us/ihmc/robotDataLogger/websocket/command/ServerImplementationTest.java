@@ -1,6 +1,7 @@
 package us.ihmc.robotDataLogger.websocket.command;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import us.ihmc.commons.time.Stopwatch;
 import us.ihmc.robotDataLogger.YoVariableServer;
@@ -8,6 +9,7 @@ import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
+@Tag("robot-data-logger-2")
 public class ServerImplementationTest
 {
    private static final double dt = 0.001;

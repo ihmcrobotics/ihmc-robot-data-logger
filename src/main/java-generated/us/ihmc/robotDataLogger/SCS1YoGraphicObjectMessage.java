@@ -6,33 +6,33 @@ import us.ihmc.euclid.interfaces.EpsilonComparable;
 import java.util.function.Supplier;
 import us.ihmc.pubsub.TopicDataType;
 
-public class GraphicObjectMessage extends Packet<GraphicObjectMessage> implements Settable<GraphicObjectMessage>, EpsilonComparable<GraphicObjectMessage>
+public class SCS1YoGraphicObjectMessage extends Packet<SCS1YoGraphicObjectMessage> implements Settable<SCS1YoGraphicObjectMessage>, EpsilonComparable<SCS1YoGraphicObjectMessage>
 {
    public int registrationID_;
    public java.lang.StringBuilder name_;
    public us.ihmc.idl.IDLSequence.Integer  yoVariableIndex_;
    public us.ihmc.idl.IDLSequence.Double  constants_;
-   public us.ihmc.robotDataLogger.AppearanceDefinitionMessage appearance_;
+   public us.ihmc.robotDataLogger.SCS1AppearanceDefinitionMessage appearance_;
    public java.lang.StringBuilder listName_;
 
-   public GraphicObjectMessage()
+   public SCS1YoGraphicObjectMessage()
    {
       name_ = new java.lang.StringBuilder(255);
       yoVariableIndex_ = new us.ihmc.idl.IDLSequence.Integer (1024, "type_3");
 
       constants_ = new us.ihmc.idl.IDLSequence.Double (128, "type_6");
 
-      appearance_ = new us.ihmc.robotDataLogger.AppearanceDefinitionMessage();
+      appearance_ = new us.ihmc.robotDataLogger.SCS1AppearanceDefinitionMessage();
       listName_ = new java.lang.StringBuilder(255);
    }
 
-   public GraphicObjectMessage(GraphicObjectMessage other)
+   public SCS1YoGraphicObjectMessage(SCS1YoGraphicObjectMessage other)
    {
       this();
       set(other);
    }
 
-   public void set(GraphicObjectMessage other)
+   public void set(SCS1YoGraphicObjectMessage other)
    {
       registrationID_ = other.registrationID_;
 
@@ -41,7 +41,7 @@ public class GraphicObjectMessage extends Packet<GraphicObjectMessage> implement
 
       yoVariableIndex_.set(other.yoVariableIndex_);
       constants_.set(other.constants_);
-      us.ihmc.robotDataLogger.AppearanceDefinitionMessagePubSubType.staticCopy(other.appearance_, appearance_);
+      us.ihmc.robotDataLogger.SCS1AppearanceDefinitionMessagePubSubType.staticCopy(other.appearance_, appearance_);
       listName_.setLength(0);
       listName_.append(other.listName_);
 
@@ -84,7 +84,7 @@ public class GraphicObjectMessage extends Packet<GraphicObjectMessage> implement
    }
 
 
-   public us.ihmc.robotDataLogger.AppearanceDefinitionMessage getAppearance()
+   public us.ihmc.robotDataLogger.SCS1AppearanceDefinitionMessage getAppearance()
    {
       return appearance_;
    }
@@ -105,19 +105,19 @@ public class GraphicObjectMessage extends Packet<GraphicObjectMessage> implement
    }
 
 
-   public static Supplier<GraphicObjectMessagePubSubType> getPubSubType()
+   public static Supplier<SCS1YoGraphicObjectMessagePubSubType> getPubSubType()
    {
-      return GraphicObjectMessagePubSubType::new;
+      return SCS1YoGraphicObjectMessagePubSubType::new;
    }
 
    @Override
    public Supplier<TopicDataType> getPubSubTypePacket()
    {
-      return GraphicObjectMessagePubSubType::new;
+      return SCS1YoGraphicObjectMessagePubSubType::new;
    }
 
    @Override
-   public boolean epsilonEquals(GraphicObjectMessage other, double epsilon)
+   public boolean epsilonEquals(SCS1YoGraphicObjectMessage other, double epsilon)
    {
       if(other == null) return false;
       if(other == this) return true;
@@ -142,9 +142,9 @@ public class GraphicObjectMessage extends Packet<GraphicObjectMessage> implement
    {
       if(other == null) return false;
       if(other == this) return true;
-      if(!(other instanceof GraphicObjectMessage)) return false;
+      if(!(other instanceof SCS1YoGraphicObjectMessage)) return false;
 
-      GraphicObjectMessage otherMyClass = (GraphicObjectMessage) other;
+      SCS1YoGraphicObjectMessage otherMyClass = (SCS1YoGraphicObjectMessage) other;
 
       if(this.registrationID_ != otherMyClass.registrationID_) return false;
 
@@ -164,7 +164,7 @@ public class GraphicObjectMessage extends Packet<GraphicObjectMessage> implement
    {
       StringBuilder builder = new StringBuilder();
 
-      builder.append("GraphicObjectMessage {");
+      builder.append("SCS1YoGraphicObjectMessage {");
       builder.append("registrationID=");
       builder.append(this.registrationID_);      builder.append(", ");
       builder.append("name=");
