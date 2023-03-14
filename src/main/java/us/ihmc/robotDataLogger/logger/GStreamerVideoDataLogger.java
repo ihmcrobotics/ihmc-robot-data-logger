@@ -22,6 +22,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     private final Semaphore gotEOSPlayBin = new Semaphore(1);
     private static final ArrayList<Long> presentationTimestampData = new ArrayList<>();
     private static final ArrayList<Integer> indexData = new ArrayList<>();
+    private final int decklinkID;
 
     private Pipeline pipeline;
 
@@ -31,6 +32,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     {
         super(logPath, logProperties, name);
 
+        this.decklinkID = decklinkID;
         createCaptureInterface();
     }
 
@@ -49,8 +51,11 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
         LogTools.info("Starting GStreamer Capture...");
         Gst.init();
 
+        String deckLinkIndex = " device-number=" + decklinkID + " ";
+
         pipeline = (Pipeline) Gst.parseLaunch(
-                "decklinkvideosrc connection=sdi " +
+//                "decklinkvideosrc connection=sdi device-number=1 " +
+                "decklinkvideosrc connection=sdi " + deckLinkIndex +
                 "! timeoverlay " +
                 "! videoconvert " +
                 "! videorate " +
