@@ -68,7 +68,7 @@ testDependencies {
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")
 app.entrypoint("TestCapture", "us.ihmc.javadecklink.Capture")
-app.entrypoint("VideoCapture", "us.ihmc.publisher.logger.VideoCapture")
+app.entrypoint("GStreamerCapture", "us.ihmc.publisher.logger.GStreamerCaptureExample")
 
 tasks.register<JavaExec>("deploy") {
 		dependsOn("generateMessages")

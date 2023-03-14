@@ -46,6 +46,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
 
     public void startCapture(File videoCaptureFie)
     {
+        LogTools.info("Starting GStreamer Capture...");
         Gst.init();
 
         pipeline = (Pipeline) Gst.parseLaunch(
