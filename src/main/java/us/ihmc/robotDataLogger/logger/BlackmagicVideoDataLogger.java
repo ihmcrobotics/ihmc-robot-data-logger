@@ -102,15 +102,21 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
     * (non-Javadoc)
     * @see us.ihmc.robotDataLogger.logger.VideoDataLoggerInterface#timestampChanged(long)
     */
-   @Override
-   public void timestampChanged(long newTimestamp)
+   @Override //This is called by the robotstuff, and then it gets the camera timestamp that was saved lasttime, so
+   // the capture.getHardwareTime() gets the last timestamp but isn't runnin on the same machine so it can be called whenever
+   // I may not be able to get a gstreamer timestamp when ever so I may need to map it to System.nanotime() and them map that
+   // to getHardwaretime(), regardless, play around with this and test it out.
+   // getHardwareTime calls the native method that goes and gets the last timestamp
+   public void timestampChanged(long robotTimestamp)
    {
+      // This is called by the robot computers I think and just maps the robot timestamp to the cameratimestamp
       if (capture != null)
       {
-         long hardwareTimestamp = capture.getHardwareTime();
-         if (hardwareTimestamp != -1)
+         long cameraTimestamp = capture.getHardwareTime();
+         if (cameraTimestamp != -1)
          {
-            circularLongMap.insert(hardwareTimestamp, newTimestamp);
+            // This maps the robottimestamp to the camera timestamp, so they are synced
+            circularLongMap.insert(cameraTimestamp, robotTimestamp);
          }
       }
    }
@@ -143,18 +149,22 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
 
    }
 
+   //This is called by the logger, and it writes the timestamp and synces the frame to the timestamp
    @Override
-   public void receivedFrameAtTime(long hardwareTime, long pts, long timeScaleNumerator, long timeScaleDenumerator)
+   public void receivedFrameAtTime(long cameraTimestamp, long pts, long timeScaleNumerator, long timeScaleDenumerator)
    {
       if (circularLongMap.size() > 0)
       {
          if (frame % 600 == 0)
          {
-            double delayInS = Conversions.nanosecondsToSeconds(circularLongMap.getLatestKey() - hardwareTime);
+            double delayInS = Conversions.nanosecondsToSeconds(circularLongMap.getLatestKey() - cameraTimestamp);
             System.out.println("[Decklink " + decklink + "] Received frame " + frame + ". Delay: " + delayInS + "s. pts: " + pts);
          }
 
-         long robotTimestamp = circularLongMap.getValue(true, hardwareTime);
+         //Then we get the actual robot timestamp based on the camera timestamp that was saved.
+         //These are run on different machines so the timeing is going to be different.
+         // This is why the use of mapping is needed because the actual recording timestamp is done by the logger
+         long robotTimestamp = circularLongMap.getValue(true, cameraTimestamp);
 
          try
          {
