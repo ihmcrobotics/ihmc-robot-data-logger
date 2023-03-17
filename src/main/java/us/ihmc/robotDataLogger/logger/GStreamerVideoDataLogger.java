@@ -8,9 +8,11 @@ import java.util.concurrent.Semaphore;
 
 import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.event.EOSEvent;
+import us.ihmc.commons.Conversions;
 import us.ihmc.javadecklink.CaptureHandler;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.LogProperties;
+import us.ihmc.tools.maps.CircularLongMap;
 
 public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
 {
@@ -23,7 +25,13 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     private static final ArrayList<Long> presentationTimestampData = new ArrayList<>();
     private static final ArrayList<Integer> indexData = new ArrayList<>();
 
+    private static final CircularLongMap frameToNano = new CircularLongMap(10000);
+    private final CircularLongMap nanoToHardware = new CircularLongMap(10000);
+
     private Pipeline pipeline;
+
+    private int frame;
+    private volatile long lastFrameTimestamp = 0;
 
     private static FileWriter timestampWriter;
 
@@ -50,7 +58,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
         Gst.init();
 
         pipeline = (Pipeline) Gst.parseLaunch(
-                "decklinkvideosrc connection=sdi " +
+                "decklinkvideosrc connection=hdmi " +
                 "! timeoverlay " +
                 "! videoconvert " +
                 "! videorate " +
@@ -92,6 +100,14 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     @Override
     public void timestampChanged(long newTimestamp)
     {
+        if (pipeline != null)
+        {
+            long hardwareTimestamp = getNanoTime();
+            if (hardwareTimestamp != -1)
+            {
+                nanoToHardware.insert(hardwareTimestamp, newTimestamp);
+            }
+        }
     }
 
     /*
@@ -109,11 +125,11 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
             gotEOSPlayBin.acquire(1);
             pipeline.stop();
 
-            if (!WRITTEN_TO_TIMESTAMP)
-            {
-                LogTools.info("Writing Timestamp");
-                writingToTimestamp();
-            }
+//            if (!WRITTEN_TO_TIMESTAMP)
+//            {
+//                LogTools.info("Writing Timestamp");
+//                writingToTimestamp();
+//            }
 
             LogTools.info("Closing writer.");
             timestampWriter.close();
@@ -146,12 +162,42 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     @Override
     public void receivedFrameAtTime(long hardwareTime, long pts, long timeScaleNumerator, long timeScaleDenumerator)
     {
+        System.out.println("*");
+        if (nanoToHardware.size() > 0)
+        {
+            System.out.println("------------------");
+            if (frame % 600 == 0)
+            {
+                double delayInS = Conversions.nanosecondsToSeconds(nanoToHardware.getLatestKey() - hardwareTime);
+                System.out.println("[Decklink] Received frame " + frame + ". Delay: " + delayInS + "s. pts: " + pts);
+            }
+
+            long robotTimestamp = nanoToHardware.getValue(true, hardwareTime);
+
+            try
+            {
+                if (frame == 0)
+                {
+                    timestampWriter.write(timeScaleNumerator + "\n");
+                    timestampWriter.write(timeScaleDenumerator + "\n");
+                }
+                timestampWriter.write(robotTimestamp + " " + pts + "\n");
+
+                lastFrameTimestamp = System.nanoTime();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+            ++frame;
+        }
+
     }
 
     @Override
     public long getLastFrameReceivedTimestamp()
     {
-        return 0;
+        return lastFrameTimestamp;
     }
 
 
@@ -166,6 +212,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
 
             if (buffer.isWritable())
             {
+                frameToNano.insert(System.nanoTime(), buffer.getPresentationTimestamp());
                 presentationTimestampData.add(buffer.getPresentationTimestamp());
                 indexData.add(i);
                 i += 1001;
@@ -173,5 +220,10 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
 
             return PadProbeReturn.OK;
         }
+    }
+
+    private long getNanoTime()
+    {
+        return frameToNano.getValue(true, System.nanoTime());
     }
 }

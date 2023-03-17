@@ -32,7 +32,7 @@ public class GStreamerCaptureExample
 
         // How the data will be parsed through the pipeline when its playing
         Pipeline pipe = (Pipeline) Gst.parseLaunch(
-                "decklinkvideosrc connection=sdi " +
+                "decklinkvideosrc connection=hdmi " +
                 "! timeoverlay " +
                 "! videoconvert " +
                 "! videorate " +
@@ -73,7 +73,7 @@ public class GStreamerCaptureExample
     private static void writeTimestampFile() throws IOException
     {
         timestampWriter.write("1\n");
-        timestampWriter.write("60000\n");
+        timestampWriter.write("50000\n");
 
         for (int i = 0; i < presentationTimestampData.size(); i++)
         {
@@ -86,7 +86,7 @@ public class GStreamerCaptureExample
 
     static class TimestampProbe implements Pad.PROBE
     {
-        int i = 1001;
+        int i = 0;
 
         @Override
         public PadProbeReturn probeCallback(Pad pad, PadProbeInfo info)
@@ -98,7 +98,7 @@ public class GStreamerCaptureExample
             {
                 presentationTimestampData.add(buffer.getPresentationTimestamp());
                 indexData.add(i);
-                i += 1001;
+                i += 100;
             }
 
             return PadProbeReturn.OK;
