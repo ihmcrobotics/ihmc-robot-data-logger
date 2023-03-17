@@ -22,6 +22,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     private final Semaphore gotEOSPlayBin = new Semaphore(1);
     private static final ArrayList<Long> presentationTimestampData = new ArrayList<>();
     private static final ArrayList<Integer> indexData = new ArrayList<>();
+    private final int decklinkID;
 
     private Pipeline pipeline;
 
@@ -31,6 +32,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     {
         super(logPath, logProperties, name);
 
+        this.decklinkID = decklinkID;
         createCaptureInterface();
     }
 
@@ -46,10 +48,14 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
 
     public void startCapture(File videoCaptureFie)
     {
+        LogTools.info("Starting Gstreamer with camera index: " + decklinkID);
         Gst.init();
 
+        String deckLinkIndex = " device-number=" + decklinkID + " ";
+
         pipeline = (Pipeline) Gst.parseLaunch(
-                "decklinkvideosrc connection=sdi " +
+//                "decklinkvideosrc connection=sdi device-number=1 " +
+                "decklinkvideosrc connection=hdmi " + deckLinkIndex +
                 "! timeoverlay " +
                 "! videoconvert " +
                 "! videorate " +
@@ -156,7 +162,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
 
     static class TimestampProbe implements Pad.PROBE
     {
-        int i = 1001;
+        int i = 0;
 
         @Override
         public PadProbeReturn probeCallback(Pad pad, PadProbeInfo info)
@@ -167,7 +173,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
             {
                 presentationTimestampData.add(buffer.getPresentationTimestamp());
                 indexData.add(i);
-                i += 1001;
+                i += 100;
             }
 
             return PadProbeReturn.OK;

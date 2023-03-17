@@ -12,6 +12,7 @@ import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.HandshakeFileType;
 import us.ihmc.robotDataLogger.jointState.JointState;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
 import us.ihmc.yoVariables.euclid.referenceFrame.interfaces.FrameIndexMap;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -48,7 +49,8 @@ public abstract class YoVariableHandshakeParser
       return parser.getNumberOfStates();
    }
 
-   protected final YoGraphicsListRegistry yoGraphicsListRegistry = new YoGraphicsListRegistry();
+   protected final YoGraphicsListRegistry scs1YoGraphics = new YoGraphicsListRegistry();
+   protected List<YoGraphicGroupDefinition> scs2YoGraphics;
    protected final ArrayList<JointState> jointStates = new ArrayList<>();
    protected double dt;
    protected int stateVariables;
@@ -91,9 +93,14 @@ public abstract class YoVariableHandshakeParser
       return Collections.unmodifiableList(variables);
    }
 
-   public YoGraphicsListRegistry getYoGraphicsListRegistry()
+   public YoGraphicsListRegistry getSCS1YoGraphics()
    {
-      return yoGraphicsListRegistry;
+      return scs1YoGraphics;
+   }
+
+   public List<YoGraphicGroupDefinition> getSCS2YoGraphics()
+   {
+      return scs2YoGraphics;
    }
 
    public double getDt()

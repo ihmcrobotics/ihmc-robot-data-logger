@@ -15,7 +15,7 @@ plugins {
 
 ihmc {
    group = "us.ihmc"
-   version = "0.26.0"
+   version = "0.27.1"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
@@ -44,9 +44,10 @@ mainDependencies {
    api("us.ihmc:ihmc-pub-sub:0.18.1")
    api("us.ihmc:ihmc-pub-sub-serializers-extra:0.18.1")
    api("us.ihmc:ihmc-commons:0.32.0")
-   api("us.ihmc:ihmc-graphics-description:0.19.8")
+   api("us.ihmc:ihmc-graphics-description:0.20.0")
    api("us.ihmc:mecano:17-0.11.6")
    api("com.hierynomus:sshj:0.31.0")
+   api("us.ihmc:scs2-definition:17-0.13.2")
 
    api("org.bytedeco:javacv:1.5.8")
    api("org.bytedeco:javacpp:1.5.8")
@@ -68,7 +69,7 @@ testDependencies {
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")
 app.entrypoint("TestCapture", "us.ihmc.javadecklink.Capture")
-app.entrypoint("VideoCapture", "us.ihmc.publisher.logger.VideoCapture")
+app.entrypoint("GStreamerCapture", "us.ihmc.publisher.logger.GStreamerCaptureExample")
 
 tasks.register<JavaExec>("deploy") {
 		dependsOn("generateMessages")
