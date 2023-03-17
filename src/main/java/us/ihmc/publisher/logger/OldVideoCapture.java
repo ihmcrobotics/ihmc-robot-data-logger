@@ -100,11 +100,14 @@ public class OldVideoCapture
       final int captureHeight = config.getInt("frameHeight");
 
       System.out.println("Entering grabber try catch");
-      try (OpenCVFrameGrabber grabber = new OpenCVFrameGrabber("/dev/blackmagic/io" + Integer.toString(firstId)))
+      try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber("/dev/blackmagic/io0"))// + Integer.toString(firstId)))
       {
          System.out.println("INSIDE grabber try catch");
-         grabber.setImageWidth(captureWidth);
-         grabber.setImageHeight(captureHeight);
+//         grabber.setImageWidth(captureWidth);
+//         grabber.setImageHeight(captureHeight);
+//         grabber.setFormat("H264");
+         grabber.setTimeout(1);
+         System.out.println("Starting stupid thing");
          grabber.start();
 
 //         String filename = "C:/Users/nadiaocu/eclipse-java-17-ws/repository-group/ihmc-video-codecs/src/test/resources/recordedVideo.mov";
