@@ -106,7 +106,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     public void timestampChanged(long newTimestamp)
     {
         if (pipeline != null)
-        {
+        {// Progably a good idea to print the Blackmagic keys and such to see what we are working with
             long hardwareTimestamp = getNanoTime();
             if (hardwareTimestamp != -1)
             {
