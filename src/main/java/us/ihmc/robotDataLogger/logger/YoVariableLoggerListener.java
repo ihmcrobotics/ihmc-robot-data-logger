@@ -483,7 +483,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                   switch (camera.getType())
                   {
                      case CAPTURE_CARD:
-                        videoDataLoggers.add(new BlackmagicVideoDataLogger(camera.getNameAsString(),
+                        videoDataLoggers.add(new GStreamerVideoDataLogger(camera.getNameAsString(),
                                                                            tempDirectory,
                                                                            logProperties,
                                                                            Byte.parseByte(camera.getIdentifierAsString()),

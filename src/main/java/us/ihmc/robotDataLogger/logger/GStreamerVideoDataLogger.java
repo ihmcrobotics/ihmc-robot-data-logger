@@ -3,18 +3,15 @@ package us.ihmc.robotDataLogger.logger;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
 import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.event.EOSEvent;
-import us.ihmc.commons.Conversions;
 import us.ihmc.javadecklink.CaptureHandler;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.LogProperties;
-import us.ihmc.tools.maps.CircularLongMap;
 
-public class GStreamerVideoDataLogger extends VideoDataLoggerInterface
+public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
 {
     /**
      * Make sure to set a progressive mode, otherwise the timestamps will be all wrong!
@@ -22,18 +19,11 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface
     private static boolean WRITTEN_TO_TIMESTAMP = false;
     private static long lastestRobotTimestamp;
 
-
     private final Semaphore gotEOSPlayBin = new Semaphore(1);
-    private static final ArrayList<Long> presentationTimestampData = new ArrayList<>();
-    private static final ArrayList<Integer> indexData = new ArrayList<>();
     private final int decklinkID;
-
-    private static final CircularLongMap frameToNano = new CircularLongMap(10000);
-    private static final CircularLongMap nanoToHardware = new CircularLongMap(10000);
 
     private Pipeline pipeline;
 
-    private static int frame;
     private static volatile long lastFrameTimestamp = 0;
 
     private static FileWriter timestampWriter;
@@ -65,7 +55,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface
 
         pipeline = (Pipeline) Gst.parseLaunch(
 //                "decklinkvideosrc connection=sdi device-number=1 " +
-                "decklinkvideosrc connection=hdmi " + deckLinkIndex +
+                "decklinkvideosrc connection=sdi " + deckLinkIndex +
                 "! timeoverlay " +
                 "! videoconvert " +
                 "! videorate " +
@@ -108,13 +98,10 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface
     public void timestampChanged(long newTimestamp)
     {
         if (pipeline != null)
-        {// Progably a good idea to print the Blackmagic keys and such to see what we are working with
-            long hardwareTimestamp = getNanoTime();
-            if (hardwareTimestamp != -1)
-            {
-                lastestRobotTimestamp = newTimestamp;
-//                nanoToHardware.insert(hardwareTimestamp, newTimestamp);
-            }
+        {
+            System.out.println("Saving newRobotTimeStamp");
+            lastestRobotTimestamp = newTimestamp;
+//            nanoToHardware.insert(hardwareTimestamp, newTimestamp);
         }
     }
 
@@ -133,12 +120,6 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface
             gotEOSPlayBin.acquire(1);
             pipeline.stop();
 
-//            if (!WRITTEN_TO_TIMESTAMP)
-//            {
-//                LogTools.info("Writing Timestamp");
-//                writingToTimestamp();
-//            }
-
             LogTools.info("Closing writer.");
             timestampWriter.close();
 
@@ -152,54 +133,35 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface
         timestampWriter = null;
     }
 
-    public static void writingToTimestamp() throws IOException
+    @Override
+    public void receivedFrameAtTime(long hardwareTime, long pts, long timeScaleNumerator, long timeScaleDenumerator)
     {
-        timestampWriter.write("1\n");
-        timestampWriter.write("60000\n");
-
-        for (int i = 0; i < presentationTimestampData.size(); i++)
-        {
-            timestampWriter.write(presentationTimestampData.get(i) + " " + indexData.get(i) + "\n");
-        }
-
-        timestampWriter.close();
-
-        WRITTEN_TO_TIMESTAMP = true;
-    }
-
-    public static void receivedFrameAtTime(long hardwareTime, long pts, long timeScaleNumerator, long timeScaleDenumerator)
-    {
-//        System.out.println("*");
-        if (nanoToHardware.size() > 0)
-        {
-//            System.out.println("------------------");
-            if (frame % 600 == 0)
-            {
-                double delayInS = Conversions.nanosecondsToSeconds(nanoToHardware.getLatestKey() - hardwareTime);
-                System.out.println("[Decklink] Received frame " + frame + ". Delay: " + delayInS + "s. pts: " + pts);
-            }
+//        if (frame % 600 == 0)
+//        {
+//            double delayInS = Conversions.nanosecondsToSeconds(nanoToHardware.getLatestKey() - hardwareTime);
+//            System.out.println("[Decklink] Received frame " + frame + ". Delay: " + delayInS + "s. pts: " + pts);
+//        }
 
 //            long robotTimestamp = nanoToHardware.getValue(true, hardwareTime);
-            long robotTimestamp = hardwareTime;
+        long robotTimestamp = hardwareTime;
 
-            try
+        try
+        {
+            if (!WRITTEN_TO_TIMESTAMP)
             {
-                if (frame == 0)
-                {
-                    timestampWriter.write(timeScaleNumerator + "\n");
-                    timestampWriter.write(timeScaleDenumerator + "\n");
-                }
-                timestampWriter.write(robotTimestamp + " " + pts + "\n");
+                System.out.println("Writing Stuffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+                timestampWriter.write(timeScaleNumerator + "\n");
+                timestampWriter.write(timeScaleDenumerator + "\n");
+                WRITTEN_TO_TIMESTAMP = true;
+            }
+            timestampWriter.write(robotTimestamp + " " + pts + "\n");
 
-                lastFrameTimestamp = System.nanoTime();
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-            ++frame;
+            lastFrameTimestamp = System.nanoTime();
         }
-
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -209,30 +171,21 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface
     }
 
 
-    static class TimestampProbe implements Pad.PROBE
+    class TimestampProbe implements Pad.PROBE
     {
-        int i = 0;
-
         @Override
         public PadProbeReturn probeCallback(Pad pad, PadProbeInfo info)
         {
+            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^6()()()");
             Buffer buffer = info.getBuffer();
 
             if (buffer.isWritable())
             {
                 receivedFrameAtTime(lastestRobotTimestamp, buffer.getPresentationTimestamp(), 1, 60000);
-                frameToNano.insert(System.nanoTime(), buffer.getPresentationTimestamp());
-                presentationTimestampData.add(buffer.getPresentationTimestamp());
-                indexData.add(i);
-                i += 100;
+//                presentationTimestampData.add(buffer.getPresentationTimestamp());
             }
 
             return PadProbeReturn.OK;
         }
-    }
-
-    private long getNanoTime()
-    {
-        return frameToNano.getValue(true, System.nanoTime());
     }
 }

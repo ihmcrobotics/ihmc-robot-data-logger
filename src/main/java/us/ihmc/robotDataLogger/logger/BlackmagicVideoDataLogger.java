@@ -116,7 +116,7 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
          long cameraTimestamp = capture.getHardwareTime();
          if (cameraTimestamp != -1)
          {
-            System.out.println("Set to latest");
+            System.out.println("New method");
             latestRobotTimestamp = robotTimestamp;
             // This maps the robottimestamp to the camera timestamp, so they are synced
             circularLongMap.insert(cameraTimestamp, robotTimestamp);
@@ -167,8 +167,8 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
          //Then we get the actual robot timestamp based on the camera timestamp that was saved.
          //These are run on different machines so the timeing is going to be different.
          // This is why the use of mapping is needed because the actual recording timestamp is done by the logger
-         long robotTimestamp = circularLongMap.getValue(true, cameraTimestamp);
-//         long robotTimestamp = latestRobotTimestamp;
+//         long robotTimestamp = circularLongMap.getValue(true, cameraTimestamp);
+         long robotTimestamp = latestRobotTimestamp;
 
          try
          {
