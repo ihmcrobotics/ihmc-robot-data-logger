@@ -97,12 +97,9 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     @Override
     public void timestampChanged(long newTimestamp)
     {
-        if (pipeline != null)
-        {
             System.out.println("Saving newRobotTimeStamp");
             lastestRobotTimestamp = newTimestamp;
 //            nanoToHardware.insert(hardwareTimestamp, newTimestamp);
-        }
     }
 
     /*
@@ -149,11 +146,13 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
         {
             if (!WRITTEN_TO_TIMESTAMP)
             {
-                System.out.println("Writing Stuffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
                 timestampWriter.write(timeScaleNumerator + "\n");
                 timestampWriter.write(timeScaleDenumerator + "\n");
                 WRITTEN_TO_TIMESTAMP = true;
             }
+
+//            System.out.println("Writing Stuffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+
             timestampWriter.write(robotTimestamp + " " + pts + "\n");
 
             lastFrameTimestamp = System.nanoTime();
@@ -176,11 +175,11 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
         @Override
         public PadProbeReturn probeCallback(Pad pad, PadProbeInfo info)
         {
-            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^6()()()");
             Buffer buffer = info.getBuffer();
 
             if (buffer.isWritable())
             {
+//                System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^6()()()");
                 receivedFrameAtTime(lastestRobotTimestamp, buffer.getPresentationTimestamp(), 1, 60000);
 //                presentationTimestampData.add(buffer.getPresentationTimestamp());
             }
