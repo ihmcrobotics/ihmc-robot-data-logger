@@ -29,6 +29,7 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
 
    private int frame;
 
+   private long latestRobotTimestamp;
    private volatile long lastFrameTimestamp = 0;
 
    public BlackmagicVideoDataLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
@@ -115,6 +116,8 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
          long cameraTimestamp = capture.getHardwareTime();
          if (cameraTimestamp != -1)
          {
+            System.out.println("Set to latest");
+            latestRobotTimestamp = robotTimestamp;
             // This maps the robottimestamp to the camera timestamp, so they are synced
             circularLongMap.insert(cameraTimestamp, robotTimestamp);
          }
@@ -165,11 +168,13 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
          //These are run on different machines so the timeing is going to be different.
          // This is why the use of mapping is needed because the actual recording timestamp is done by the logger
          long robotTimestamp = circularLongMap.getValue(true, cameraTimestamp);
+//         long robotTimestamp = latestRobotTimestamp;
 
          try
          {
             if (frame == 0)
             {
+               System.out.println("Writing to file again");
                timestampWriter.write(timeScaleNumerator + "\n");
                timestampWriter.write(timeScaleDenumerator + "\n");
             }

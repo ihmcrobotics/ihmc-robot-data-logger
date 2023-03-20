@@ -14,12 +14,14 @@ import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.LogProperties;
 import us.ihmc.tools.maps.CircularLongMap;
 
-public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
+public class GStreamerVideoDataLogger extends VideoDataLoggerInterface
 {
     /**
      * Make sure to set a progressive mode, otherwise the timestamps will be all wrong!
      */
     private static boolean WRITTEN_TO_TIMESTAMP = false;
+    private static long lastestRobotTimestamp;
+
 
     private final Semaphore gotEOSPlayBin = new Semaphore(1);
     private static final ArrayList<Long> presentationTimestampData = new ArrayList<>();
@@ -27,12 +29,12 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     private final int decklinkID;
 
     private static final CircularLongMap frameToNano = new CircularLongMap(10000);
-    private final CircularLongMap nanoToHardware = new CircularLongMap(10000);
+    private static final CircularLongMap nanoToHardware = new CircularLongMap(10000);
 
     private Pipeline pipeline;
 
-    private int frame;
-    private volatile long lastFrameTimestamp = 0;
+    private static int frame;
+    private static volatile long lastFrameTimestamp = 0;
 
     private static FileWriter timestampWriter;
 
@@ -110,7 +112,8 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
             long hardwareTimestamp = getNanoTime();
             if (hardwareTimestamp != -1)
             {
-                nanoToHardware.insert(hardwareTimestamp, newTimestamp);
+                lastestRobotTimestamp = newTimestamp;
+//                nanoToHardware.insert(hardwareTimestamp, newTimestamp);
             }
         }
     }
@@ -164,20 +167,20 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
         WRITTEN_TO_TIMESTAMP = true;
     }
 
-    @Override
-    public void receivedFrameAtTime(long hardwareTime, long pts, long timeScaleNumerator, long timeScaleDenumerator)
+    public static void receivedFrameAtTime(long hardwareTime, long pts, long timeScaleNumerator, long timeScaleDenumerator)
     {
-        System.out.println("*");
+//        System.out.println("*");
         if (nanoToHardware.size() > 0)
         {
-            System.out.println("------------------");
+//            System.out.println("------------------");
             if (frame % 600 == 0)
             {
                 double delayInS = Conversions.nanosecondsToSeconds(nanoToHardware.getLatestKey() - hardwareTime);
                 System.out.println("[Decklink] Received frame " + frame + ". Delay: " + delayInS + "s. pts: " + pts);
             }
 
-            long robotTimestamp = nanoToHardware.getValue(true, hardwareTime);
+//            long robotTimestamp = nanoToHardware.getValue(true, hardwareTime);
+            long robotTimestamp = hardwareTime;
 
             try
             {
@@ -217,6 +220,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
 
             if (buffer.isWritable())
             {
+                receivedFrameAtTime(lastestRobotTimestamp, buffer.getPresentationTimestamp(), 1, 60000);
                 frameToNano.insert(System.nanoTime(), buffer.getPresentationTimestamp());
                 presentationTimestampData.add(buffer.getPresentationTimestamp());
                 indexData.add(i);
