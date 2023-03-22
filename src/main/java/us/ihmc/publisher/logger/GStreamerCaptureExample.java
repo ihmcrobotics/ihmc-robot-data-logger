@@ -3,7 +3,6 @@ package us.ihmc.publisher.logger;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
 import org.freedesktop.gstreamer.*;
@@ -12,11 +11,12 @@ import us.ihmc.commons.thread.ThreadTools;
 
 public class GStreamerCaptureExample
 {
+    private static boolean WRITTEN_TO_TIMESTAMP = false;
     private static final Semaphore gotEOSPlayBin = new Semaphore(1);
-    private static final ArrayList<Long> presentationTimestampData = new ArrayList<>(); // Often written as (pts)
-    private static final ArrayList<Integer> indexData = new ArrayList<>();
     private static FileWriter timestampWriter;
 
+    private static volatile long lastFrameTimestamp = 0;
+    private static long lastestRobotTimestamp;
 
 
     public static void main(String[] args) throws InterruptedException, IOException
@@ -35,6 +35,7 @@ public class GStreamerCaptureExample
                 "decklinkvideosrc connection=hdmi " +
                         "! timeoverlay " +
                         "! videoconvert " +
+                            // Set the framerate here
                         "! videorate ! video/x-raw,framerate=60/1 " +
                         "! identity name=identity " +
                         "! jpegenc " +
@@ -66,28 +67,43 @@ public class GStreamerCaptureExample
         System.out.println("Stopped Capture");
 
         // Writes timestamp data to file
-        writeTimestampFile();
-
-    }
-
-    private static void writeTimestampFile() throws IOException
-    {
-        timestampWriter.write("1\n");
-        timestampWriter.write("60000\n");
-
-        for (int i = 0; i < presentationTimestampData.size(); i++)
-        {
-            timestampWriter.write(presentationTimestampData.get(i) + " " + indexData.get(i) + "\n");
-        }
-
         timestampWriter.close();
+
     }
 
+    //This is used for the logger robottimestamps, here for testing
+    public void timestampChanged(long newTimestamp)
+    {
+        System.out.println("Saving newRobotTimeStamp");
+        lastestRobotTimestamp = newTimestamp;
+//            nanoToHardware.insert(hardwareTimestamp, newTimestamp);
+    }
+
+    public static void receivedFrameAtTime(long hardwareTime, long pts, long timeScaleNumerator, long timeScaleDenumerator)
+    {
+        long robotTimestamp = hardwareTime;
+
+        try
+        {
+            if (!WRITTEN_TO_TIMESTAMP)
+            {
+                timestampWriter.write(timeScaleNumerator + "\n");
+                timestampWriter.write(timeScaleDenumerator + "\n");
+                WRITTEN_TO_TIMESTAMP = true;
+            }
+
+            timestampWriter.write(robotTimestamp + " " + pts + "\n");
+
+            lastFrameTimestamp = System.nanoTime();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
 
     static class TimestampProbe implements Pad.PROBE
     {
-        int i = 1001;
-
         @Override
         public PadProbeReturn probeCallback(Pad pad, PadProbeInfo info)
         {
@@ -96,9 +112,7 @@ public class GStreamerCaptureExample
             // If buffer has a frame, record the timestamp and index from it
             if (buffer.isWritable())
             {
-                presentationTimestampData.add(System.nanoTime());
-                indexData.add((int) buffer.getPresentationTimestamp());
-                i += 1001;
+                receivedFrameAtTime(lastestRobotTimestamp, buffer.getPresentationTimestamp(), 1, 60000);
             }
 
             return PadProbeReturn.OK;
