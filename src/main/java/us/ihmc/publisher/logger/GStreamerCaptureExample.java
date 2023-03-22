@@ -35,7 +35,7 @@ public class GStreamerCaptureExample
                 "decklinkvideosrc connection=hdmi " +
                         "! timeoverlay " +
                         "! videoconvert " +
-                        "! videorate " +
+                        "! videorate ! video/x-raw,framerate=60/1 " +
                         "! identity name=identity " +
                         "! jpegenc " +
                         "! .video splitmuxsink muxer=qtmux location=" + videoCaptureFile);

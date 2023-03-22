@@ -57,7 +57,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
 //                "decklinkvideosrc connection=sdi device-number=1 " +
                 "decklinkvideosrc connection=sdi " + deckLinkIndex +
                 "! timeoverlay " +
-                "! videoconvert " +
+                "! videorate ! video/x-raw,framerate=60/1 " +
                 "! videorate " +
                 "! identity name=identity " +
                 "! jpegenc " +
