@@ -54,8 +54,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
         String deckLinkIndex = " device-number=" + decklinkID + " ";
 
         pipeline = (Pipeline) Gst.parseLaunch(
-//                "decklinkvideosrc connection=sdi device-number=1 " +
-                "decklinkvideosrc connection=sdi " + deckLinkIndex +
+                "decklinkvideosrc connection=hdmi " + deckLinkIndex +
                 "! timeoverlay " +
                 "! videorate ! video/x-raw,framerate=60/1 " +
                 "! videorate " +
@@ -65,7 +64,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
 
         pipeline.getBus().connect((Bus.EOS) (source) ->
         {
-            System.out.println("Recieved the EOS on the pipeline!!!");
+            System.out.println("Recieved the EOS on the pipeline!");
             gotEOSPlayBin.release();
         });
 
@@ -133,12 +132,6 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     @Override
     public void receivedFrameAtTime(long hardwareTime, long pts, long timeScaleNumerator, long timeScaleDenumerator)
     {
-//        if (frame % 600 == 0)
-//        {
-//            double delayInS = Conversions.nanosecondsToSeconds(nanoToHardware.getLatestKey() - hardwareTime);
-//            System.out.println("[Decklink] Received frame " + frame + ". Delay: " + delayInS + "s. pts: " + pts);
-//        }
-
 //            long robotTimestamp = nanoToHardware.getValue(true, hardwareTime);
         long robotTimestamp = hardwareTime;
 
@@ -153,7 +146,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
 
 //            System.out.println("Writing Stuffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 
-            timestampWriter.write(robotTimestamp + " " + pts + "\n");
+            timestampWriter.write(0 + " " + pts + "\n");
 
             lastFrameTimestamp = System.nanoTime();
         }
