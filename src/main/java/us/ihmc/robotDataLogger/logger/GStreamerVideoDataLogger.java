@@ -7,22 +7,28 @@ import java.util.concurrent.Semaphore;
 
 import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.event.EOSEvent;
+import us.ihmc.commons.Conversions;
 import us.ihmc.javadecklink.CaptureHandler;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.LogProperties;
+import us.ihmc.tools.maps.CircularLongMap;
 
 public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
 {
     /**
      * Make sure to set a progressive mode, otherwise the timestamps will be all wrong!
      */
+
     private static boolean WRITTEN_TO_TIMESTAMP = false;
     private static long lastestRobotTimestamp;
 
     private final Semaphore gotEOSPlayBin = new Semaphore(1);
     private final int decklinkID;
 
+    private final CircularLongMap circularLongMap = new CircularLongMap(10000);
+
     private Pipeline pipeline;
+    private int frameNumber;
 
     private static volatile long lastFrameTimestamp = 0;
 
@@ -96,9 +102,12 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     @Override
     public void timestampChanged(long newTimestamp)
     {
-            System.out.println("Saving newRobotTimeStamp");
+        if (pipeline != null)
+        {
+            System.out.println("@@@@@@@@@@");
             lastestRobotTimestamp = newTimestamp;
-//            nanoToHardware.insert(hardwareTimestamp, newTimestamp);
+//            circularLongMap.insert(System.currentTimeMillis(), newTimestamp);
+        }
     }
 
     /*
@@ -132,27 +141,37 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     @Override
     public void receivedFrameAtTime(long hardwareTime, long pts, long timeScaleNumerator, long timeScaleDenumerator)
     {
-//            long robotTimestamp = nanoToHardware.getValue(true, hardwareTime);
-        long robotTimestamp = hardwareTime;
 
-        try
+        if (circularLongMap.size() > 0)
         {
-            if (!WRITTEN_TO_TIMESTAMP)
+//            long robotTimestamp = circularLongMap.getValue(true, hardwareTime);
+            long robotTimestamp = 0;
+
+            if (frameNumber % 420 == 0)
             {
-                timestampWriter.write(timeScaleNumerator + "\n");
-                timestampWriter.write(timeScaleDenumerator + "\n");
-                WRITTEN_TO_TIMESTAMP = true;
+                double delayInSeconds = Conversions.nanosecondsToSeconds(circularLongMap.getLatestKey() - hardwareTime);
+                System.out.println("Delay in Seconds: " + delayInSeconds + " / PresentationTimeStamp: " + pts);
             }
 
-//            System.out.println("Writing Stuffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+            try
+            {
+                if (!WRITTEN_TO_TIMESTAMP)
+                {
+                    timestampWriter.write(timeScaleNumerator + "\n");
+                    timestampWriter.write(timeScaleDenumerator + "\n");
+                    WRITTEN_TO_TIMESTAMP = true;
+                }
 
-            timestampWriter.write(0 + " " + pts + "\n");
+                timestampWriter.write(robotTimestamp + " " + pts + "\n");
 
-            lastFrameTimestamp = System.nanoTime();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
+                lastFrameTimestamp = System.nanoTime();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+
+            ++frameNumber;
         }
     }
 
@@ -172,9 +191,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
 
             if (buffer.isWritable())
             {
-//                System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^6()()()");
                 receivedFrameAtTime(lastestRobotTimestamp, buffer.getPresentationTimestamp(), 1, 60000);
-//                presentationTimestampData.add(buffer.getPresentationTimestamp());
             }
 
             return PadProbeReturn.OK;
