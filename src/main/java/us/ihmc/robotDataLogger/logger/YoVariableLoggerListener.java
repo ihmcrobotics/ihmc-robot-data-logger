@@ -417,7 +417,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       Future<?> future = executor.submit(() -> videoDataLogger.close());
       try
       {
-         future.get(5, TimeUnit.SECONDS);
+         future.get(25, TimeUnit.SECONDS);
       }
       catch (InterruptedException | ExecutionException e)
       {

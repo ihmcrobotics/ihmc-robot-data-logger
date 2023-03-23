@@ -20,19 +20,17 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
      */
 
     private static boolean WRITTEN_TO_TIMESTAMP = false;
-    private static long lastestRobotTimestamp;
-
-    private final Semaphore gotEOSPlayBin = new Semaphore(1);
-    private final int decklinkID;
-
-    private final CircularLongMap circularLongMap = new CircularLongMap(10000);
-
-    private Pipeline pipeline;
-    private int frameNumber;
-
-    private static volatile long lastFrameTimestamp = 0;
+    private static long latestHardwareTimestamp;
 
     private static FileWriter timestampWriter;
+    private final Semaphore gotEOSPlayBin = new Semaphore(1);
+    private final CircularLongMap circularLongMap = new CircularLongMap(10000);
+    private Pipeline pipeline;
+
+    private int frameNumber;
+    private final int decklinkID;
+    private static volatile long lastFrameTimestamp = 0;
+
 
     public GStreamerVideoDataLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
     {
@@ -104,9 +102,11 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     {
         if (pipeline != null)
         {
-            System.out.println("@@@@@@@@@@");
-            lastestRobotTimestamp = newTimestamp;
-//            circularLongMap.insert(System.currentTimeMillis(), newTimestamp);
+            if (latestHardwareTimestamp != System.currentTimeMillis())
+            {
+                circularLongMap.insert(System.currentTimeMillis(), newTimestamp);
+                latestHardwareTimestamp = System.currentTimeMillis();
+            }
         }
     }
 
@@ -144,8 +144,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
 
         if (circularLongMap.size() > 0)
         {
-//            long robotTimestamp = circularLongMap.getValue(true, hardwareTime);
-            long robotTimestamp = 0;
+            long robotTimestamp = circularLongMap.getValue(true, hardwareTime);
 
             if (frameNumber % 420 == 0)
             {
@@ -191,7 +190,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
 
             if (buffer.isWritable())
             {
-                receivedFrameAtTime(lastestRobotTimestamp, buffer.getPresentationTimestamp(), 1, 60000);
+                receivedFrameAtTime(latestHardwareTimestamp, buffer.getPresentationTimestamp(), 1, 60000);
             }
 
             return PadProbeReturn.OK;
