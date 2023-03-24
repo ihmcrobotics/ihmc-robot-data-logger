@@ -22,7 +22,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     private static boolean WRITTEN_TO_TIMESTAMP = false;
     private static long latestHardwareTimestamp;
 
-    private static FileWriter timestampWriter;
+    private FileWriter timestampWriter;
     private final Semaphore gotEOSPlayBin = new Semaphore(1);
     private final CircularLongMap circularLongMap = new CircularLongMap(10000);
     private Pipeline pipeline;
