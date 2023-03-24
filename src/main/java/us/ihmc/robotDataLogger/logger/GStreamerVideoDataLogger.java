@@ -30,6 +30,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
     private int frameNumber;
     private final int decklinkID;
     private static volatile long lastFrameTimestamp = 0;
+    private static int i = 0;
 
 
     public GStreamerVideoDataLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
@@ -61,7 +62,6 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
                 "decklinkvideosrc connection=hdmi " + deckLinkIndex +
                 "! timeoverlay " +
                 "! videorate ! video/x-raw,framerate=60/1 " +
-                "! videorate " +
                 "! identity name=identity " +
                 "! jpegenc " +
                 "! .video splitmuxsink muxer=qtmux location=" + videoCaptureFie);
@@ -190,7 +190,10 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
 
             if (buffer.isWritable())
             {
-                receivedFrameAtTime(latestHardwareTimestamp, buffer.getPresentationTimestamp(), 1, 60000);
+                //One will work with SCS2Visualizer, the other works with VideoDataPlayer
+//                receivedFrameAtTime(System.currentTimeMillis(), buffer.getPresentationTimestamp(), 1, 60000);
+                receivedFrameAtTime(System.currentTimeMillis(), i, 1, 60000);
+                i += 1001;
             }
 
             return PadProbeReturn.OK;
