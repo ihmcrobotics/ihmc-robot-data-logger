@@ -192,7 +192,10 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
             {
                 //One will work with SCS2Visualizer, the other works with VideoDataPlayer
 //                receivedFrameAtTime(System.currentTimeMillis(), buffer.getPresentationTimestamp(), 1, 60000);
-                receivedFrameAtTime(System.currentTimeMillis(), i, 1, 60000);
+                receivedFrameAtTime(System.currentTimeMillis(), i, 1, 90000);
+                // Val setup Timestamps
+                i += 3001;
+                // Nothing setup Timestamps
                 i += 1001;
             }
 
