@@ -2,12 +2,10 @@ package us.ihmc.robotDataLogger;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
-import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
@@ -60,6 +58,6 @@ public interface RobotVisualizer
 
    static List<? extends JointBasics> collectJoints(RigidBodyBasics rootBody)
    {
-      return rootBody == null ? Collections.emptyList() : SubtreeStreams.fromChildren(JointBasics.class, rootBody).collect(Collectors.toList());
+      return rootBody == null ? Collections.emptyList() : rootBody.subtreeJointList(JointBasics.class);
    }
 }
