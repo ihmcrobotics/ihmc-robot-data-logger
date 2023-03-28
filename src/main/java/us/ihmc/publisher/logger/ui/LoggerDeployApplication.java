@@ -7,7 +7,14 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.util.Date;
 
-import javafx.application.Application;
+import com.martiansoftware.jsap.FlaggedOption;
+import com.martiansoftware.jsap.JSAP;
+import com.martiansoftware.jsap.JSAPException;
+import com.martiansoftware.jsap.JSAPResult;
+import com.martiansoftware.jsap.Parameter;
+import com.martiansoftware.jsap.SimpleJSAP;
+import com.sun.javafx.application.PlatformImpl;
+
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -15,9 +22,15 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import us.ihmc.publisher.logger.utils.TeeStream;
 
-public class LoggerDeployApplication extends Application
+public class LoggerDeployApplication
 {
    private static final URL uiDescription = LoggerDeployApplication.class.getResource("LoggerSetup.fxml");
+   private String loggerDist;
+
+   public LoggerDeployApplication(String loggerDist)
+   {
+      this.loggerDist = loggerDist;
+   }
 
    /**
     * Helper function to open this as part of another application
@@ -31,11 +44,11 @@ public class LoggerDeployApplication extends Application
       {
          FXMLLoader loader = new FXMLLoader(uiDescription);
          Parent root = loader.load();
-         
+
          LoggerDeployController controller = loader.getController();
          controller.setLoggerDistribution(loggerDistribution);
          controller.setDeployScript(deployScript);
-         
+
          Stage stage = new Stage();
          stage.setTitle("Logger deployment");
          stage.initOwner(scene.getWindow());
@@ -50,7 +63,6 @@ public class LoggerDeployApplication extends Application
       }
    }
 
-   @Override
    public void start(Stage stage) throws IOException
    {
 
@@ -62,8 +74,7 @@ public class LoggerDeployApplication extends Application
       LoggerDeployController controller = loader.getController();
       controller.setDeployScript(new LoggerDeployScript(){});
 
-      
-      controller.setLoggerDistribution(getParameters().getNamed().get("logger-dist"));
+      controller.setLoggerDistribution(loggerDist);
 
       Scene scene = new Scene(root, 1280, 900);
       stage.setTitle("Logger deployment");
@@ -86,8 +97,45 @@ public class LoggerDeployApplication extends Application
       System.out.println("--- " + new Date().toString() + " ---");
    }
 
-   public static void main(String[] args)
+   public static void main(String[] args) throws JSAPException
    {
-      launch(args);
+      SimpleJSAP jsap = new SimpleJSAP(LoggerDeployApplication.class.getSimpleName(),
+                                       "Logger deploy application",
+                                       new Parameter[] {new FlaggedOption("loggerDist",
+                                                                          JSAP.STRING_PARSER,
+                                                                          null,
+                                                                          JSAP.REQUIRED,
+                                                                          'd',
+                                                                          "logger-dist",
+                                                                          "Path to deployed distribution")});
+      JSAPResult config = jsap.parse(args);
+
+      if (jsap.messagePrinted())
+      {
+         System.out.println(jsap.getUsage());
+         System.out.println(jsap.getHelp());
+         System.exit(-1);
+      }
+
+      String loggerDist = config.getString("loggerDist");
+
+      
+
+      PlatformImpl.startup(new Runnable()
+      {
+         @Override
+         public void run()
+         {
+            LoggerDeployApplication app = new LoggerDeployApplication(loggerDist);
+            try
+            {
+               app.start(new Stage());
+            }
+            catch (IOException e)
+            {
+               e.printStackTrace();
+            }
+         }
+      });
    }
 }

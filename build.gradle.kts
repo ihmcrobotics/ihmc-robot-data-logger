@@ -2,7 +2,7 @@ import us.ihmc.idl.generator.IDLGenerator
 
 buildscript {
    dependencies {
-      classpath("us.ihmc:ihmc-pub-sub-generator:0.16.2")
+      classpath("us.ihmc:ihmc-pub-sub-generator:0.18.1")
    }
 }
 
@@ -15,7 +15,7 @@ plugins {
 
 ihmc {
    group = "us.ihmc"
-   version = "0.26.0-halodi5"
+   version = "0.26.0-halodi6"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
@@ -37,21 +37,26 @@ mainDependencies {
    api("org.openjdk.jol:jol-core:0.9")
    api("org.apache.commons:commons-text:1.9")
 
-   api("us.ihmc:euclid:0.17.2")
+   api("us.ihmc:euclid:0.19.1")
    api("us.ihmc:ihmc-video-codecs:2.1.6")
-   api("us.ihmc:ihmc-realtime:1.5.0")
+   api("us.ihmc:ihmc-realtime:1.5.1")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
-   api("us.ihmc:ihmc-pub-sub:0.16.2")
-   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.16.2")
-   api("us.ihmc:ihmc-commons:0.30.6")
-   api("us.ihmc:ihmc-graphics-description:0.19.6")
-   api("us.ihmc:mecano:0.11.1")
+   api("us.ihmc:ihmc-pub-sub:0.18.1")
+   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.18.1")
+   api("us.ihmc:ihmc-commons:0.32.0")
+   api("us.ihmc:ihmc-graphics-description:0.19.8")
+   api("us.ihmc:mecano:17-0.11.5")
    api("com.hierynomus:sshj:0.31.0")
-   
+
+   var javaFXVersion = "17.0.2"
+   api(ihmc.javaFXModule("base", javaFXVersion))
+   api(ihmc.javaFXModule("controls", javaFXVersion))
+   api(ihmc.javaFXModule("graphics", javaFXVersion))
+   api(ihmc.javaFXModule("fxml", javaFXVersion))
 }
 
 testDependencies {
-   api("us.ihmc:ihmc-commons-testing:0.30.6")
+   api("us.ihmc:ihmc-commons-testing:0.32.0")
 }
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")

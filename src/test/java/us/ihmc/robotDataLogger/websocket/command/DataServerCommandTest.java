@@ -13,6 +13,14 @@ import io.netty.util.CharsetUtil;
 public class DataServerCommandTest
 {
    @Test
+   public void testMaxArgumentSize()
+   {
+      for (int i = 0; i < 4; i++)
+      {
+         assertTrue(DataServerCommand.MaxCommandSize() < DataServerCommand.getMaximumArgumentValue());
+      }
+   }
+   @Test
    public void testStartsWith()
    {
       ByteBuf str = Unpooled.copiedBuffer("CLEAR_LOG", CharsetUtil.UTF_8);

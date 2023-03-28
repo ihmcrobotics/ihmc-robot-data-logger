@@ -98,7 +98,6 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
     * Create a YoVariable server with mainClazz.getSimpleName(). For example, see other constructor.
     *
     * @param mainClazz
-    * @param schedulerFactory
     * @param logModelProvider
     * @param dataServerSettings
     * @param dt
@@ -142,7 +141,6 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
     * </pre>
     *
     * @param mainClazz
-    * @param schedulerFactory
     * @param logModelProvider
     * @param dataServerSettings
     * @param dt
@@ -243,6 +241,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
       {
          throw new RuntimeException(e);
       }
+
       started = true;
    }
 
@@ -251,12 +250,14 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
       for(int i = 0; i < registryHolders.size(); i++)
       {
          RegistryHolder registryHolder = registryHolders.get(i);
+
          if(registryHolder.registry == registry)
          {
             return registryHolder;
          }
       }
-      throw new RuntimeException("Registry " + registry.getName() + " not registed with addRegistry() or setMainRegistry()");
+
+      throw new RuntimeException("Registry " + registry.getName() + " not registered with addRegistry() or setMainRegistry()");
    }
    
    @Override
@@ -280,7 +281,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
    /**
     * Update main buffer data. Note: If the timestamp is not increasing between updates(), no data
-    * might be send to clients.
+    * might be sent to clients.
     *
     * @param timestamp timestamp to send to logger
     */
@@ -292,7 +293,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
    /**
     * Update registry data Note: If the timestamp is not increasing between updates(), no data might be
-    * send to clients.
+    * sent to clients.
     *
     * @param timestamp timestamp to send to the logger
     * @param registry  Top level registry to update
@@ -323,10 +324,12 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
       ConcurrentRingBuffer<VariableChangedMessage> buffer = rootRegistry.variableChangeData;
       buffer.poll();
       VariableChangedMessage msg;
+
       while ((msg = buffer.read()) != null)
       {
          msg.getVariable().setValueFromDouble(msg.getVal());
       }
+
       buffer.flush();
    }
 
@@ -397,6 +400,17 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    }
 
    @Override
+   public long getLatestTimestamp()
+   {
+      return latestTimestamp;
+   }
+
+   public boolean isLogging()
+   {
+      return logWatcher.isLogging();
+   }
+
+   @Override
    public void changeVariable(int id, double newValue)
    {
       VariableChangedMessage message;
@@ -415,18 +429,6 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
          message.setVal(newValue);
          buffer.commit();
       }
-
-   }
-
-   @Override
-   public long getLatestTimestamp()
-   {
-      return latestTimestamp;
-   }
-
-   public boolean isLogging()
-   {
-      return logWatcher.isLogging();
    }
 
    private class RegistryHolder

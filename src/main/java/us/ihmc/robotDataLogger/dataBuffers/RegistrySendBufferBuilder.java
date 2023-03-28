@@ -105,11 +105,6 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
       return new RegistrySendBuffer(registryID, variables, jointHolders);
    }
 
-   public int getRegistryID()
-   {
-      return registryID;
-   }
-
    public int getNumberOfJointStates()
    {
       return getNumberOfJointStates(jointHolders);
