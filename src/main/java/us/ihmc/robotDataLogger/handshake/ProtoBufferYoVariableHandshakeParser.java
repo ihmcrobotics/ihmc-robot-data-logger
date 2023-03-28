@@ -224,7 +224,7 @@ public class ProtoBufferYoVariableHandshakeParser extends YoVariableHandshakePar
 
       for (String list : dgoListMap.keySet())
       {
-         yoGraphicsListRegistry.registerYoGraphicsList(dgoListMap.get(list));
+         scs1YoGraphics.registerYoGraphicsList(dgoListMap.get(list));
       }
 
       ArtifactList artifactList = new ArtifactList("remote");
@@ -239,7 +239,7 @@ public class ProtoBufferYoVariableHandshakeParser extends YoVariableHandshakePar
             PrintTools.error(this, "Got exception: " + e.getClass().getSimpleName() + " when loading a Artifact.");
          }
       }
-      yoGraphicsListRegistry.registerArtifactList(artifactList);
+      scs1YoGraphics.registerArtifactList(artifactList);
    }
 
    private RemoteYoGraphic getRemoteGraphic(DynamicGraphicMessage msg)

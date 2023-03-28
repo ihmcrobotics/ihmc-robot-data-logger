@@ -3,14 +3,14 @@ package us.ihmc.robotDataLogger.dataBuffers;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
-import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
+import us.ihmc.robotDataLogger.RobotVisualizer;
 import us.ihmc.robotDataLogger.jointState.JointHolder;
 import us.ihmc.robotDataLogger.jointState.JointHolderFactory;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -24,7 +24,8 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
 
    private final LoggerDebugRegistry loggerDebugRegistry;
 
-   private final YoGraphicsListRegistry graphics;
+   private final YoGraphicsListRegistry scs1Graphics;
+   private final YoGraphicGroupDefinition scs2Graphics;
 
    private int registryID = -1;
 
@@ -33,22 +34,40 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
       this(registry, Collections.emptyList(), null);
    }
 
-   public RegistrySendBufferBuilder(YoRegistry registry, YoGraphicsListRegistry graphics)
+   public RegistrySendBufferBuilder(YoRegistry registry, YoGraphicsListRegistry scs1Graphics)
    {
-      this(registry, Collections.emptyList(), graphics);
+      this(registry, Collections.emptyList(), scs1Graphics);
    }
 
-   public RegistrySendBufferBuilder(YoRegistry registry, RigidBodyBasics rootBody, YoGraphicsListRegistry graphics)
+   public RegistrySendBufferBuilder(YoRegistry registry, YoGraphicsListRegistry scs1Graphics, YoGraphicGroupDefinition scs2Graphics)
    {
-      this(registry, rootBody == null ? Collections.emptyList() : SubtreeStreams.fromChildren(JointBasics.class, rootBody).collect(Collectors.toList()),
-           graphics);
+      this(registry, Collections.emptyList(), scs1Graphics, scs2Graphics);
    }
 
-   public RegistrySendBufferBuilder(YoRegistry registry, List<? extends JointBasics> jointsToPublish, YoGraphicsListRegistry graphics)
+   public RegistrySendBufferBuilder(YoRegistry registry, RigidBodyBasics rootBody, YoGraphicsListRegistry scs1Graphics)
+   {
+      this(registry, RobotVisualizer.collectJoints(rootBody), scs1Graphics);
+   }
+
+   public RegistrySendBufferBuilder(YoRegistry registry, RigidBodyBasics rootBody, YoGraphicsListRegistry scs1Graphics, YoGraphicGroupDefinition scs2Graphics)
+   {
+      this(registry, RobotVisualizer.collectJoints(rootBody), scs1Graphics, scs2Graphics);
+   }
+
+   public RegistrySendBufferBuilder(YoRegistry registry, List<? extends JointBasics> jointsToPublish, YoGraphicsListRegistry scs1Graphics)
+   {
+      this(registry, jointsToPublish, scs1Graphics, null);
+   }
+
+   public RegistrySendBufferBuilder(YoRegistry registry,
+                                    List<? extends JointBasics> jointsToPublish,
+                                    YoGraphicsListRegistry scs1Graphics,
+                                    YoGraphicGroupDefinition scs2Graphics)
    {
       this.registry = registry;
       this.jointsToPublish = jointsToPublish;
-      this.graphics = graphics;
+      this.scs1Graphics = scs1Graphics;
+      this.scs2Graphics = scs2Graphics;
 
       loggerDebugRegistry = new LoggerDebugRegistry(registry);
    }
@@ -74,9 +93,7 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
             JointHolder jointHolder = JointHolderFactory.getJointHolder(joint);
             jointHolders.add(jointHolder);
          }
-
       }
-
    }
 
    public List<JointHolder> getJointHolders()
@@ -84,9 +101,14 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
       return jointHolders;
    }
 
-   public YoGraphicsListRegistry getYoGraphicsListRegistry()
+   public YoGraphicsListRegistry getSCS1YoGraphics()
    {
-      return graphics;
+      return scs1Graphics;
+   }
+
+   public YoGraphicGroupDefinition getSCS2YoGraphics()
+   {
+      return scs2Graphics;
    }
 
    @Override

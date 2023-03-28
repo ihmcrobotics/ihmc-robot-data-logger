@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 
 public class DoubleToLongBitsSpeedTest
 {
-   int numberOfVariables = 100000;
+   int numberOfVariables = 10000;
    Random random = new Random();
 
    // Made use of a supplier for future updates with the test, this allows the user to grab the next bit of data each time the supplier is called

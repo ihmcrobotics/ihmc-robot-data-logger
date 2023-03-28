@@ -1,7 +1,11 @@
 package us.ihmc.robotDataLogger.logger;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.HashSet;
+import java.util.Set;
 
 import com.martiansoftware.jsap.JSAPException;
 
@@ -15,6 +19,9 @@ import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnecti
 
 public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 {
+   // Used to prevent multiple instances of the Logger running at the same time
+   private final File lockFile = new File(System.getProperty("user.home") + File.separator + "loggerDispatcher.lock");
+
    private final DataServerDiscoveryClient discoveryClient;
 
    private final Object lock = new Object();
@@ -36,6 +43,20 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
     */
    public YoVariableLoggerDispatcher(YoVariableLoggerOptions options) throws IOException
    {
+      if (lockFile.exists())
+      {
+         LogTools.info("Maybe if you weren't so full of yourself you would have checked if the logger was already running");
+         LogTools.info("Check the file: " + lockFile.getAbsolutePath() + " or run (ps aux | grep java)");
+         System.exit(0);
+      }
+
+      lockFile.createNewFile();
+      Set<PosixFilePermission> perms = new HashSet<>();
+      perms.add(PosixFilePermission.OWNER_READ);
+      Files.setPosixFilePermissions(lockFile.toPath(), perms);
+
+      LogTools.info("Created Logger lock file");
+
       this.options = options;
       LogTools.info("Starting YoVariableLoggerDispatcher");
 
@@ -44,11 +65,20 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       discoveryClient.addHosts(StaticHostListLoader.load());
 
       LogTools.info("Client started, waiting for data server sessions");
-      
+
+      Runtime.getRuntime().addShutdownHook(new Thread(this::shutDownLockFile, "ShutdownThread"));
+
       ThreadTools.sleepForever();
    }
 
-   public static void main(String[] args) throws JSAPException, IOException
+   private void shutDownLockFile()
+   {
+      lockFile.delete();
+
+      LogTools.info("Interrupted by Ctrl+C, deleting lock file");
+   }
+
+   public static void main(String[] args) throws JSAPException, IOException, InterruptedException
    {
       YoVariableLoggerOptions options = YoVariableLoggerOptions.parse(args);
       new YoVariableLoggerDispatcher(options);

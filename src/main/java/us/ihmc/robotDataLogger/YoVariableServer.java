@@ -23,6 +23,7 @@ import us.ihmc.robotDataLogger.listeners.VariableChangedListener;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.websocket.server.DataServerServerContent;
 import us.ihmc.robotDataLogger.websocket.server.WebsocketDataProducer;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
 import us.ihmc.util.PeriodicThreadSchedulerFactory;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -41,9 +42,9 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
    private YoRegistry mainRegistry = null;
    private final ArrayList<RegistrySendBufferBuilder> registeredBuffers = new ArrayList<>();
-   
+
    private final ArrayList<RegistryHolder> registryHolders = new ArrayList<>();
-   
+
    // State
    private boolean started = false;
    private boolean stopped = false;
@@ -71,8 +72,11 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
     * @param dataServerSettings
     * @param dt
     */
-   public YoVariableServer(Class<?> mainClazz, PeriodicThreadSchedulerFactory schedulerFactory, LogModelProvider logModelProvider,
-                           DataServerSettings dataServerSettings, double dt)
+   public YoVariableServer(Class<?> mainClazz,
+                           PeriodicThreadSchedulerFactory schedulerFactory,
+                           LogModelProvider logModelProvider,
+                           DataServerSettings dataServerSettings,
+                           double dt)
    {
       this(mainClazz, logModelProvider, dataServerSettings, dt);
    }
@@ -88,8 +92,11 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
     * @param dataServerSettings
     * @param dt
     */
-   public YoVariableServer(String mainClazz, PeriodicThreadSchedulerFactory schedulerFactory, LogModelProvider logModelProvider,
-                           DataServerSettings dataServerSettings, double dt)
+   public YoVariableServer(String mainClazz,
+                           PeriodicThreadSchedulerFactory schedulerFactory,
+                           LogModelProvider logModelProvider,
+                           DataServerSettings dataServerSettings,
+                           double dt)
    {
       this(mainClazz, logModelProvider, dataServerSettings, dt);
    }
@@ -209,20 +216,21 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
          {
             RegistrySendBufferBuilder builder = registeredBuffers.get(i);
             YoRegistry registry = builder.getYoRegistry();
-            
+
             try
             {
                ConcurrentRingBuffer<VariableChangedMessage> variableChangeData = new ConcurrentRingBuffer<>(new VariableChangedMessage.Builder(), CHANGED_BUFFER_CAPACITY);
                RegistryPublisher publisher = dataProducer.createRegistryPublisher(builder, bufferListener);
+
                registryHolders.add(new RegistryHolder(registry, publisher, variableChangeData));
-               
+
                publisher.start();
             }
             catch (IOException e)
             {
                throw new RuntimeException(e);
             }
-            
+
          }
          
          DataServerServerContent content = new DataServerServerContent(name, handshakeBuilder.getHandShake(), logModelProvider, dataServerSettings);
@@ -247,11 +255,11 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
    public RegistryHolder getRegistryHolder(YoRegistry registry)
    {
-      for(int i = 0; i < registryHolders.size(); i++)
+      for (int i = 0; i < registryHolders.size(); i++)
       {
          RegistryHolder registryHolder = registryHolders.get(i);
 
-         if(registryHolder.registry == registry)
+         if (registryHolder.registry == registry)
          {
             return registryHolder;
          }
@@ -259,7 +267,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
       throw new RuntimeException("Registry " + registry.getName() + " not registered with addRegistry() or setMainRegistry()");
    }
-   
+
    @Override
    public synchronized void close()
    {
@@ -334,24 +342,27 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    }
 
    @Override
-   public void addRegistry(YoRegistry registry, YoGraphicsListRegistry yoGraphicsListRegistry)
+   public void addRegistry(YoRegistry registry, YoGraphicsListRegistry scs1YoGraphics, YoGraphicGroupDefinition scs2YoGraphics)
    {
       if (mainRegistry == null)
       {
          throw new RuntimeException("Main registry is not set. Set main registry first");
       }
 
-      registeredBuffers.add(new RegistrySendBufferBuilder(registry, yoGraphicsListRegistry));
+      registeredBuffers.add(new RegistrySendBufferBuilder(registry, scs1YoGraphics, scs2YoGraphics));
    }
 
    @Override
-   public void setMainRegistry(YoRegistry registry, List<? extends JointBasics> jointsToPublish, YoGraphicsListRegistry yoGraphicsListRegistry)
+   public void setMainRegistry(YoRegistry registry,
+                               List<? extends JointBasics> jointsToPublish,
+                               YoGraphicsListRegistry scs1YoGraphics,
+                               YoGraphicGroupDefinition scs2YoGraphics)
    {
       if (mainRegistry != null)
       {
          throw new RuntimeException("Main registry is already set");
       }
-      registeredBuffers.add(new RegistrySendBufferBuilder(registry, jointsToPublish, yoGraphicsListRegistry));
+      registeredBuffers.add(new RegistrySendBufferBuilder(registry, jointsToPublish, scs1YoGraphics, scs2YoGraphics));
       mainRegistry = registry;
    }
 
@@ -443,6 +454,6 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
          this.publisher = publisher;
          this.variableChangeData = variableChangeData;
       }
-      
+
    }
 }

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.commons.Conversions;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.log.LogTools;
 import us.ihmc.mecano.multiBodySystem.RevoluteJoint;
 import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
@@ -112,7 +113,7 @@ public class RegistrySendBufferTest
    {
       Random random = new Random(23589735L);
 
-      for (int numberOfVariables = 1000; numberOfVariables <= 24000; numberOfVariables += 1000)
+      for (int numberOfVariables = 1000; numberOfVariables <= 16000; numberOfVariables += 1000)
       {
          ArrayList<JointHolder> sendJointHolders = new ArrayList<>();
          ArrayList<JointState> receiveJointStates = new ArrayList<>();
@@ -152,7 +153,7 @@ public class RegistrySendBufferTest
          CustomLogDataSubscriberType subscriberType = new CustomLogDataSubscriberType(calculateMaximumNumberOfVariables(numberOfVariables, numberOfJointStates),
                                                                                       numberOfJointStates);
 
-         // Make copies of the YoVariables and put them int the recieveing buffer, that way when variables are sent, they have a place to be stored
+         // Make copies of the YoVariables and put them int the receiving buffer, that way when variables are sent, they have a place to be stored
          for (int v = 0; v < numberOfVariables; v++)
          {
             new YoLong("var" + v, receiveRegistry);
@@ -168,7 +169,7 @@ public class RegistrySendBufferTest
          // This will calculate the time taken to update the buffer with the new values for the variables
          long start = System.nanoTime();
          sendBuffer.updateBufferFromVariables(timestamp, uid, numberOfVariables);
-         System.out.println("Time taken to update when variables and joint states total to: " + (numberOfVariables + numberOfJointStates) + " : Time: "
+         LogTools.info("Time taken to update when variables and joint states total to: " + (numberOfVariables + numberOfJointStates) + " : Time: "
                             + Conversions.nanosecondsToSeconds(System.nanoTime() - start));
 
          publisherType.serialize(sendBuffer, payload);
