@@ -3,6 +3,7 @@ package us.ihmc.robotDataLogger.rtps;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.eprosima.xmlschemas.fastrtps_profiles.ReliabilityQosKindType;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.commons.thread.ThreadTools;
@@ -10,7 +11,6 @@ import us.ihmc.pubsub.Domain;
 import us.ihmc.pubsub.DomainFactory;
 import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
 import us.ihmc.pubsub.attributes.ParticipantAttributes;
-import us.ihmc.pubsub.attributes.ReliabilityKind;
 import us.ihmc.pubsub.common.LogLevel;
 import us.ihmc.pubsub.common.MatchingInfo;
 import us.ihmc.pubsub.common.SampleInfo;
@@ -76,12 +76,12 @@ public class VariableChangeRequestTest
       Publisher publisher = domain.createPublisher(participant, domain.createPublisherAttributes(participant,
                                                                                                  type,
                                                                                                  "testTopic",
-                                                                                                 ReliabilityKind.RELIABLE.toQosKind(),
+                                                                                                 ReliabilityQosKindType.RELIABLE,
                                                                                                  "us.ihmc"));
       domain.createSubscriber(participant, domain.createSubscriberAttributes(participant,
                                                                              type,
                                                                              "testTopic",
-                                                                             ReliabilityKind.RELIABLE.toQosKind(),
+                                                                             ReliabilityQosKindType.RELIABLE,
                                                                              "us.ihmc"), listener);
 
       ThreadTools.sleep(1000);
@@ -158,24 +158,24 @@ public class VariableChangeRequestTest
       Publisher publisher1 = domain.createPublisher(participant, domain.createPublisherAttributes(participant,
                                                                                                   type,
                                                                                                   "testTopic",
-                                                                                                  ReliabilityKind.RELIABLE.toQosKind(),
+                                                                                                  ReliabilityQosKindType.RELIABLE,
                                                                                                   "us/ihmc"));
       Publisher publisher2 = domain.createPublisher(participant, domain.createPublisherAttributes(participant,
                                                                                                   type,
                                                                                                   "testTopic",
-                                                                                                  ReliabilityKind.RELIABLE.toQosKind(),
+                                                                                                  ReliabilityQosKindType.RELIABLE,
                                                                                                   "us/ihmc"));
 
       Publisher publisher3 = domain.createPublisher(participant, domain.createPublisherAttributes(participant,
                                                                                                   type,
                                                                                                   "testTopic",
-                                                                                                  ReliabilityKind.RELIABLE.toQosKind(),
+                                                                                                  ReliabilityQosKindType.RELIABLE,
                                                                                                   "us/ihmc"));
 
       domain.createSubscriber(participant, domain.createSubscriberAttributes(participant,
                                                                              type,
                                                                              "testTopic",
-                                                                             ReliabilityKind.RELIABLE.toQosKind(),
+                                                                             ReliabilityQosKindType.RELIABLE,
                                                                              "us/ihmc"), listener);
 
       ThreadTools.sleep(1000);
