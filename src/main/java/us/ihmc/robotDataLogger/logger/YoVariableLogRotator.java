@@ -36,10 +36,27 @@ public class YoVariableLogRotator
 
       public LogAndTimestamp(Path directory)
       {
-         LogPropertiesReader reader = new LogPropertiesReader(directory.resolve(YoVariableLoggerListener.propertyFile).toFile());
 
          this.directory = directory;
-         this.timestamp = LocalDateTime.parse(reader.getTimestampAsString(), timestampFormat);
+
+         LocalDateTime timestamp = LocalDateTime.MIN;
+         try
+         {
+            LogPropertiesReader reader = new LogPropertiesReader(directory.resolve(YoVariableLoggerListener.propertyFile).toFile());
+            if (reader.getTimestampAsString().trim().isEmpty())
+            {
+               LogTools.warn("Empty timestamp for log in " + directory + ", assuming LocalDateTime.MIN");
+            }
+            else
+            {
+               timestamp = LocalDateTime.parse(reader.getTimestampAsString(), timestampFormat);
+            }
+         }
+         catch (Exception e)
+         {
+            LogTools.warn("Could not parse timestamp for log in " + directory + ", assuming LocalDateTime.MIN");
+         }
+         this.timestamp = timestamp;
       }
 
       public void delete()

@@ -55,7 +55,7 @@ public class JVMStatisticsGenerator
 
    public JVMStatisticsGenerator(RobotVisualizer visualizer)
    {
-      this(visualizer, new PeriodicNonRealtimeThreadSchedulerFactory());
+      this(visualizer, new PeriodicGCFreeNonRealtimeThreadSchedulerFactory());
    }
 
    public JVMStatisticsGenerator(RobotVisualizer visualizer, PeriodicThreadSchedulerFactory schedulerFactory)
@@ -87,6 +87,11 @@ public class JVMStatisticsGenerator
    public void start()
    {
       scheduler.schedule(jvmStatisticsGeneratorThread, 1, TimeUnit.SECONDS);
+   }
+   
+   public void stop()
+   {
+      scheduler.shutdown();
    }
 
    public void runManual()

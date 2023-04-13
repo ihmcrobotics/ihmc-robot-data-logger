@@ -29,7 +29,7 @@ public class YoVariableSummarizer
          LogTools.error("No trigger variable found. Summarizing all data points.");
       }
       this.triggerVariable = yoVariables.get(trigger);
-      LogTools.info("Creating summary of variables.\nTrigger Variable = " + this.triggerVariable.getName());
+      LogTools.debug("Creating summary of variables.\nTrigger Variable = " + this.triggerVariable.getName());
 
       ArrayList<YoVariableSummarizerData> summaryVariables = new ArrayList<>();
       for (String variable : variables)

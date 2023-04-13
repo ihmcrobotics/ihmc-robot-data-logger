@@ -16,10 +16,12 @@ import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataPublisherType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.robotDataLogger.handshake.SummaryProvider;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandShakeBuilder;
+import us.ihmc.robotDataLogger.interfaces.BufferListenerInterface;
 import us.ihmc.robotDataLogger.interfaces.DataProducer;
 import us.ihmc.robotDataLogger.interfaces.RegistryPublisher;
 import us.ihmc.robotDataLogger.listeners.VariableChangedListener;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
+import us.ihmc.robotDataLogger.websocket.server.DataServerServerContent;
 import us.ihmc.robotDataLogger.websocket.server.WebsocketDataProducer;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
 import us.ihmc.util.PeriodicThreadSchedulerFactory;
@@ -31,6 +33,10 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    private static final int CHANGED_BUFFER_CAPACITY = 128;
 
    private final double dt;
+   
+   private final String name;
+   private final LogModelProvider logModelProvider;
+   private final DataServerSettings dataServerSettings;
 
    private String rootRegistryName = "main";
 
@@ -52,6 +58,8 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    private final SummaryProvider summaryProvider = new SummaryProvider();
 
    private final LogWatcher logWatcher = new LogWatcher();
+   
+   private BufferListenerInterface bufferListener = null;
 
    @Deprecated
    /**
@@ -147,13 +155,34 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    public YoVariableServer(String mainClazz, LogModelProvider logModelProvider, DataServerSettings dataServerSettings, double dt)
    {
       this.dt = dt;
-      dataProducer = new WebsocketDataProducer(mainClazz, logModelProvider, this, logWatcher, dataServerSettings);
+      this.name = mainClazz;
+      this.logModelProvider = logModelProvider;
+      this.dataServerSettings = dataServerSettings;
+      
+      dataProducer = new WebsocketDataProducer(this, logWatcher, dataServerSettings);
 
    }
 
    public void setRootRegistryName(String name)
    {
       rootRegistryName = name;
+   }
+   
+   /**
+    * Add a listener for new buffer data
+    * 
+    * This could be used to implement, for example, a in-memory logger
+    * 
+    * @param bufferListener
+    */
+   public synchronized void addBufferListener(BufferListenerInterface bufferListener)
+   {
+      if (started)
+      {
+         throw new RuntimeException("Server already started");
+      }
+      
+      this.bufferListener = bufferListener;
    }
 
    public synchronized void start()
@@ -169,29 +198,20 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
       handshakeBuilder = new YoVariableHandShakeBuilder(rootRegistryName, dt);
       handshakeBuilder.setFrames(ReferenceFrame.getWorldFrame());
-      int maxVariables = 0;
-      int maxStates = 0;
+      handshakeBuilder.setSummaryProvider(summaryProvider);
+      
       for (int i = 0; i < registeredBuffers.size(); i++)
       {
          RegistrySendBufferBuilder builder = registeredBuffers.get(i);
          handshakeBuilder.addRegistryBuffer(builder);
-
-         if (builder.getNumberOfVariables() > maxVariables)
-         {
-            maxVariables = builder.getNumberOfVariables();
-         }
-         if (builder.getNumberOfJointStates() > maxStates)
-         {
-            maxStates = builder.getNumberOfJointStates();
-         }
-
       }
-
-      CustomLogDataPublisherType type = new CustomLogDataPublisherType(maxVariables, maxStates);
-      handshakeBuilder.setSummaryProvider(summaryProvider);
-
+     
       try
       {
+         if(bufferListener != null)
+         {
+            bufferListener.allocateBuffers(registeredBuffers.size());
+         }
          for (int i = 0; i < registeredBuffers.size(); i++)
          {
             RegistrySendBufferBuilder builder = registeredBuffers.get(i);
@@ -199,9 +219,9 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
             try
             {
-               ConcurrentRingBuffer<VariableChangedMessage> variableChangeData = new ConcurrentRingBuffer<>(new VariableChangedMessage.Builder(),
-                                                                                                            CHANGED_BUFFER_CAPACITY);
-               RegistryPublisher publisher = dataProducer.createRegistryPublisher(type, builder);
+               ConcurrentRingBuffer<VariableChangedMessage> variableChangeData = new ConcurrentRingBuffer<>(new VariableChangedMessage.Builder(), CHANGED_BUFFER_CAPACITY);
+               RegistryPublisher publisher = dataProducer.createRegistryPublisher(builder, bufferListener);
+
                registryHolders.add(new RegistryHolder(registry, publisher, variableChangeData));
 
                publisher.start();
@@ -212,8 +232,16 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
             }
 
          }
+         
+         DataServerServerContent content = new DataServerServerContent(name, handshakeBuilder.getHandShake(), logModelProvider, dataServerSettings);
+               
+         if(bufferListener != null)
+         {
+            bufferListener.setContent(content);
+            bufferListener.start();
+         }
 
-         dataProducer.setHandshake(handshakeBuilder.getHandShake());
+         dataProducer.setDataServerContent(content);
          dataProducer.announce();
 
       }
@@ -251,7 +279,11 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
             registryHolders.get(i).publisher.stop();
          }
          dataProducer.remove();
-
+         
+         if (bufferListener != null)
+         {
+            bufferListener.close();
+         }
       }
    }
 
