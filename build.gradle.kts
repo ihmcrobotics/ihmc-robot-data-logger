@@ -94,4 +94,3 @@ fun generateMessages()
       IDLGenerator.execute(idl, packagePrefix, targetDirectory, listOf(file(".")))
    }
 }
-
