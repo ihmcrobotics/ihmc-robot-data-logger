@@ -12,6 +12,9 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -41,7 +44,7 @@ import static io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFa
 
 public class WebsocketDataServerClient
 {
-   private final EventLoopGroup group = new NioEventLoopGroup();
+   private final EventLoopGroup group = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
    private final RegistryConsumer consumer;
 
    private final VariableChangeRequestPubSubType variableChangeRequestType = new VariableChangeRequestPubSubType();
@@ -85,7 +88,7 @@ public class WebsocketDataServerClient
                                                                                             type);
 
       Bootstrap b = new Bootstrap();
-      b.group(group).channel(NioSocketChannel.class).handler(new ChannelInitializer<SocketChannel>()
+      b.group(group).channel(Epoll.isAvailable() ? EpollSocketChannel.class : NioSocketChannel.class).handler(new ChannelInitializer<SocketChannel>()
       {
          @Override
          protected void initChannel(SocketChannel ch)

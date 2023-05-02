@@ -16,6 +16,9 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -42,7 +45,7 @@ public class HTTPDataServerConnection
 {
    private static final int TIMEOUT_MS = 1000;
 
-   private final EventLoopGroup group = new NioEventLoopGroup();
+   private final EventLoopGroup group = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
    private final HTTPDataServerDescription target;
    private final HTTPDataServerConnectionListener listener;
    private final Announcement announcement = new Announcement();
@@ -167,7 +170,7 @@ public class HTTPDataServerConnection
       this.listener = listener;
 
       Bootstrap b = new Bootstrap();
-      b.group(group).channel(NioSocketChannel.class).handler(new HttpSnoopClientInitializer());
+      b.group(group).channel(Epoll.isAvailable() ? EpollSocketChannel.class : NioSocketChannel.class).handler(new HttpSnoopClientInitializer());
       b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, TIMEOUT_MS);
 
       ChannelFuture connectFuture = b.connect(target.getHost(), target.getPort());
