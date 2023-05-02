@@ -15,7 +15,7 @@ plugins {
 
 ihmc {
    group = "us.ihmc"
-   version = "0.28.0"
+   version = "0.28.1"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
@@ -44,10 +44,10 @@ mainDependencies {
    api("us.ihmc:ihmc-pub-sub:0.18.4")
    api("us.ihmc:ihmc-pub-sub-serializers-extra:0.18.4")
    api("us.ihmc:ihmc-commons:0.32.0")
-   api("us.ihmc:ihmc-graphics-description:0.20.2")
+   api("us.ihmc:ihmc-graphics-description:0.20.3")
    api("us.ihmc:mecano:17-0.12.1")
    api("com.hierynomus:sshj:0.31.0")
-   api("us.ihmc:scs2-definition:17-0.14.1")
+   api("us.ihmc:scs2-definition:17-0.14.3")
 
    var javaFXVersion = "17.0.2"
    api(ihmc.javaFXModule("base", javaFXVersion))
