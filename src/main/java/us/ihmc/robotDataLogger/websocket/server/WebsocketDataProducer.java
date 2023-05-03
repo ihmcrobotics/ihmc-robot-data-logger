@@ -6,13 +6,10 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.ResourceLeakDetector;
 import io.netty.util.ResourceLeakDetector.Level;
-import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataPublisherType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.robotDataLogger.interfaces.BufferListenerInterface;
 import us.ihmc.robotDataLogger.interfaces.DataProducer;
@@ -20,6 +17,7 @@ import us.ihmc.robotDataLogger.interfaces.RegistryPublisher;
 import us.ihmc.robotDataLogger.listeners.VariableChangedListener;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.logger.LogAliveListener;
+import us.ihmc.robotDataLogger.util.NettyUtils;
 import us.ihmc.robotDataLogger.websocket.server.discovery.DataServerLocationBroadcastSender;
 
 /**
@@ -44,14 +42,14 @@ public class WebsocketDataProducer implements DataProducer
    private final Object lock = new Object();
    private Channel channel = null;
 
-   private final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+   private final EventLoopGroup bossGroup = NettyUtils.createEventGroundLoop(1);
 
    /**
     * Create a single worker. If "writeAndFlush" is called in the eventloop of the outbound channel, no
     * extra objects will be created. The registryPublisher is scheduled on the main eventloop to avoid
     * having extra threads and delay.
     */
-   private final EventLoopGroup workerGroup = new NioEventLoopGroup(1);
+   private final EventLoopGroup workerGroup = NettyUtils.createEventGroundLoop(1);
 
    private DataServerLocationBroadcastSender broadcastSender;
 
@@ -127,7 +125,8 @@ public class WebsocketDataProducer implements DataProducer
          {
             int numberOfRegistryBuffers = nextBufferID; // Next buffer ID is incremented the last time a registry was added
             ServerBootstrap serverBootstrap = new ServerBootstrap();
-            serverBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class).handler(new LoggingHandler(LogLevel.INFO))
+            serverBootstrap.group(bossGroup, workerGroup).channel(NettyUtils.getServerSocketChannelClass())
+                           .handler(new LoggingHandler(LogLevel.INFO))
                            .childHandler(new WebsocketDataServerInitializer(dataServerContent,
                                                                             broadcaster,
                                                                             variableChangedListener,
