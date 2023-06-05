@@ -47,7 +47,7 @@ mainDependencies {
    api("us.ihmc:ihmc-graphics-description:0.20.3")
    api("us.ihmc:mecano:17-0.12.3")
    api("com.hierynomus:sshj:0.31.0")
-   api("us.ihmc:scs2-definition:17-0.14.6")
+   api("us.ihmc:scs2-definition:17-0.14.7")
 
    var javaFXVersion = "17.0.2"
    api(ihmc.javaFXModule("base", javaFXVersion))
