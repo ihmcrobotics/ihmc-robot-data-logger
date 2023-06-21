@@ -3,6 +3,7 @@ package us.ihmc.robotDataLogger.logger;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.javadecklink.Capture;
@@ -26,6 +27,8 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
    private final CircularLongMap circularLongMap = new CircularLongMap(10000);
 
    private FileWriter timestampWriter;
+
+   private ArrayList<String> timestampDataArray = new ArrayList<>();
 
    private int frame;
 
@@ -127,6 +130,8 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
       {
          try
          {
+            writeTimestampData();
+
             LogTools.info("Stopping capture.");
             capture.stopCapture();
             LogTools.info("Closing writer.");
@@ -156,24 +161,37 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
 
          long robotTimestamp = circularLongMap.getValue(true, hardwareTime);
 
-         try
+         if (frame == 0)
          {
-            if (frame == 0)
-            {
-               timestampWriter.write(timeScaleNumerator + "\n");
-               timestampWriter.write(timeScaleDenumerator + "\n");
-            }
-            timestampWriter.write(robotTimestamp + " " + pts + "\n");
+            timestampDataArray.add(timeScaleNumerator + "\n");
+            timestampDataArray.add(timeScaleDenumerator + "\n");
 
-            lastFrameTimestamp = System.nanoTime();
+//               timestampWriter.write(timeScaleNumerator + "\n");
+//               timestampWriter.write(timeScaleDenumerator + "\n");
          }
-         catch (IOException e)
-         {
-            e.printStackTrace();
-         }
+
+         timestampDataArray.add(robotTimestamp + " " + pts + "\n");
+         //            timestampWriter.write(robotTimestamp + " " + pts + "\n");
+
+         lastFrameTimestamp = System.nanoTime();
          ++frame;
       }
 
+   }
+
+   public void writeTimestampData()
+   {
+      try
+      {
+         for (String s : timestampDataArray)
+         {
+            timestampWriter.write(s);
+         }
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
    }
 
    @Override
