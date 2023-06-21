@@ -65,17 +65,17 @@ app.entrypoint("TestCapture", "us.ihmc.javadecklink.Capture")
 
 
 tasks.register<JavaExec>("deploy") {
-		dependsOn("generateMessages")
-		dependsOn("distTar")
-		group = "Deploy"
-		description = "Deploy logger"
-		classpath = sourceSets.main.get().runtimeClasspath
-		main = "us.ihmc.publisher.logger.ui.LoggerDeployApplication"
-		
-		var p =   projectDir.toPath().resolve("build/distributions/" + project.name + "-" + project.version + ".tar").normalize()
-		
-		args("--logger-dist=" + p)
-}	
+   dependsOn("generateMessages")
+   dependsOn("distTar")
+   group = "Deploy"
+   description = "Deploy logger"
+   classpath = sourceSets.main.get().runtimeClasspath
+   setMain("us.ihmc.publisher.logger.ui.LoggerDeployApplication")
+
+   var p =   projectDir.toPath().resolve("build/distributions/" + project.name + "-" + project.version + ".tar").normalize()
+
+   args("--logger-dist=" + p)
+}
 
 tasks.create("generateMessages") {
    doLast {
