@@ -130,6 +130,7 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
       {
          try
          {
+            System.out.println("Wringing timestamp file data, this is the new version...");
             writeTimestampData();
 
             LogTools.info("Stopping capture.");
