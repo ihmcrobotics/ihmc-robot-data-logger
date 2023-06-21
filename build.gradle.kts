@@ -70,7 +70,7 @@ tasks.register<JavaExec>("deploy") {
    group = "Deploy"
    description = "Deploy logger"
    classpath = sourceSets.main.get().runtimeClasspath
-   setMain("us.ihmc.publisher.logger.ui.LoggerDeployApplication")
+   mainClass.set("us.ihmc.publisher.logger.ui.LoggerDeployApplication")
 
    var p =   projectDir.toPath().resolve("build/distributions/" + project.name + "-" + project.version + ".tar").normalize()
 
