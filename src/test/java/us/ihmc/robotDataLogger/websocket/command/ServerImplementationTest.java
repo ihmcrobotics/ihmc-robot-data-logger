@@ -21,7 +21,7 @@ public class ServerImplementationTest
    @BeforeEach
    public void setupServer()
    {
-      // Sets the main registry for the server, and adds a JVMStatisticsGenerator to the server
+      // Sets the main registry for the server
       yoVariableServer = new YoVariableServer("TestServer", null, logSettings, dt);
    }
 
@@ -57,7 +57,7 @@ public class ServerImplementationTest
       yoVariableServer.setMainRegistry(serverRegistry, null);
       yoVariableServer.start();
 
-      // This test is intentionally start the server after its already been started, checking if the exception  will trigger
+      // This test is intentionally starting the server after its already been started, should throw an exception
       for (int i = 0; i < 6; i++)
       {
          Throwable thrown = assertThrows(RuntimeException.class, () ->

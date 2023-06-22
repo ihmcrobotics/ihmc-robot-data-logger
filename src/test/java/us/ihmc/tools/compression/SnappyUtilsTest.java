@@ -16,7 +16,6 @@ public class SnappyUtilsTest
    // Checks to ensure that if the compressed data buffer is to small that an error will be thrown and nothing will be compressed
    public void testIllegalArgumentException()
    {
-      boolean failure = false;
       int elements = 1024;
 
       ByteBuffer data = ByteBuffer.allocate(elements);

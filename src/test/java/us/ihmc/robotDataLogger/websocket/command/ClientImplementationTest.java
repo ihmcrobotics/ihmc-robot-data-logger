@@ -41,6 +41,7 @@ public class ClientImplementationTest
    {
       //Need to stop server otherwise next test will fail when trying to start server
       yoVariableServer.close();
+      LogTools.info("Shutting down server successfully");
    }
 
    @Test
@@ -60,8 +61,6 @@ public class ClientImplementationTest
 
          assertEquals("java.io.IOException: java.util.concurrent.ExecutionException: java.io.IOException: Connection refused", thrown.getMessage());
       }
-
-      LogTools.info("Closing down server and client successfully");
    }
 
    @Test
@@ -87,11 +86,9 @@ public class ClientImplementationTest
 
          yoVariableClient.stop();
       }
-
-      LogTools.info("Closing down server and client successfully, test passed");
    }
 
-//   @Disabled
+   @Disabled
    @Test
    // This test requires manual input in order for the client to connect with the server, so when running on Bamboo it should be disabled
    // In order for this test to work correctly the user must select the same server for both clients, this is testing the failure conditions
@@ -112,8 +109,6 @@ public class ClientImplementationTest
 
       thrown = assertThrows(RuntimeException.class, () -> yoVariableClientShouldFail.startWithHostSelector());
       assertEquals("Client already started", thrown.getMessage());
-
-      LogTools.info("Closing down server and client successfully");
 
       // These are both useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
       yoVariableClient.stop();
