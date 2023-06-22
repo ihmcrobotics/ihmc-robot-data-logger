@@ -1,13 +1,12 @@
 package us.ihmc.tools.compression;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SnappyUtilsTest
 {
@@ -34,16 +33,8 @@ public class SnappyUtilsTest
 
          data.flip();
 
-         try
-         {
-            SnappyUtils.compress(data, dataCompressed);
-
-         } catch (Exception e)
-         {
-            failure = true;
-         }
-
-         assertTrue(failure);
+         Throwable thrown = assertThrows(IllegalArgumentException.class, () -> SnappyUtils.compress(data, dataCompressed));
+         assertEquals("Cannot compress to output buffer, buffer size is: 1225, need 1226", thrown.getMessage());
       }
    }
 

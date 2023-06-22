@@ -28,7 +28,7 @@ public class ServerImplementationTest
    @AfterEach
    public void shutdownServer()
    {
-      //Need to stop server otherwise next test will fail when trying to start server, the sleep is used because it takes a minute for the server to close
+      //Need to stop server otherwise next test will fail when trying to start server
       yoVariableServer.close();
    }
 

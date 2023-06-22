@@ -1,9 +1,6 @@
 package us.ihmc.robotDataLogger.websocket.command;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.YoVariableClient;
 import us.ihmc.robotDataLogger.YoVariableClientInterface;
@@ -18,6 +15,8 @@ import us.ihmc.yoVariables.registry.YoRegistry;
 
 import java.io.IOException;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 @Tag("robot-data-logger-2")
 public class ClientImplementationTest
 {
@@ -30,97 +29,74 @@ public class ClientImplementationTest
    private final YoRegistry clientListenerRegistry = new YoRegistry("ListenerRegistry");
    private final ClientUpdatedListener clientListener = new ClientUpdatedListener(clientListenerRegistry);
 
+   @BeforeEach
+   public void setupServer()
+   {
+      // Sets the main registry for the server, and adds a JVMStatisticsGenerator to the server
+      yoVariableServer = new YoVariableServer("TestServer", null, logSettings, dt);
+   }
+
+   @AfterEach
+   public void shutdownServer()
+   {
+      //Need to stop server otherwise next test will fail when trying to start server
+      yoVariableServer.close();
+   }
+
    @Test
    public void testClientBadHostException()
    {
-      boolean failure = false;
-
-      // Creates the server and adds the main registry to the server with all the YoVariables, the server is then started
-      yoVariableServer = new YoVariableServer("TestServer", null, logSettings, dt);
+      // Adds the main registry to the server with all the YoVariables, the server is then started
       yoVariableServer.setMainRegistry(serverRegistry, null);
       yoVariableServer.start();
-
 
       // Creates the client and adds the listener to the client
       yoVariableClient = new YoVariableClient(clientListener);
 
       for (int i = 0; i < 3; i++)
       {
-         try
-         {
-            yoVariableClient.start("1.1.1.1.1.1.1", 9009);
-         } catch (Exception e)
-         {
-            failure = true;
-         }
+         Throwable thrown = assertThrows(RuntimeException.class, () ->
+               yoVariableClient.start("1.1.1.1.1.1", 9009));
 
-         Assertions.assertTrue(failure);
+         assertEquals("java.io.IOException: java.util.concurrent.ExecutionException: java.io.IOException: Connection refused", thrown.getMessage());
       }
 
       LogTools.info("Closing down server and client successfully");
-
-      // These are both useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
-      yoVariableServer.close();
    }
 
    @Test
-   public void testClientBadConnectionException()
+   public void testClientBadConnectionException() throws IOException
    {
-      boolean failure;
-
-      // Creates the server and adds the main registry to the server with all the YoVariables, the server is then started
-      yoVariableServer = new YoVariableServer("TestServer", null, logSettings, dt);
+      // Adds the main registry to the server with all the YoVariables, the server is then started
       yoVariableServer.setMainRegistry(serverRegistry, null);
       yoVariableServer.start();
-
 
       // Creates the client and adds the listener to the client
       yoVariableClient = new YoVariableClient(clientListener);
 
-      for (int i = 0; i < 4; i++)
+      for (int i = 0; i < 2; i++)
       {
-         failure = startWithSetModelTrue("localhost", 8008, yoVariableClient);
+         HTTPDataServerConnection connection = HTTPDataServerConnection.connect("localhost", 8008);
+         // Setting this to true will try to connect a model file which is good to test because this should fail
+         connection.getAnnouncement().getModelFileDescription().setHasModel(true);
+
+         Throwable thrown = assertThrows(IOException.class, () ->
+               yoVariableClient.start(25000, connection));
+
+         assertEquals("java.util.concurrent.ExecutionException: java.io.IOException: Invalid response received 404 Not Found", thrown.getMessage());
 
          yoVariableClient.stop();
-
-         Assertions.assertTrue(failure);
       }
 
       LogTools.info("Closing down server and client successfully, test passed");
-
-      // This is useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
-      yoVariableServer.close();
    }
 
-   // The purpose of this function is to set the connection announcement model to true, this will run different parts of the code in the test
-   public boolean startWithSetModelTrue(String host, int port, YoVariableClient yoVariableClient)
-   {
-      try
-      {
-         HTTPDataServerConnection connection = HTTPDataServerConnection.connect(host, port);
-
-         // Setting this to true will try to connect a model file which is good to test because this should fail
-         connection.getAnnouncement().getModelFileDescription().setHasModel(true);
-         yoVariableClient.start(25000, connection);
-      }
-      catch (IOException e)
-      {
-         return true;
-      }
-
-      return false;
-   }
-
-
-
-   @Disabled
+//   @Disabled
    @Test
    // This test requires manual input in order for the client to connect with the server, so when running on Bamboo it should be disabled
    // In order for this test to work correctly the user must select the same server for both clients, this is testing the failure conditions
    public void testDuplicateClientException()
    {
-      boolean failure = false;
-
       // Creates the server and adds the main registry to the server with all the YoVariables, the server is then started
       yoVariableServer = new YoVariableServer("TestServer", null, logSettings, dt);
       yoVariableServer.setMainRegistry(serverRegistry, null);
@@ -131,25 +107,16 @@ public class ClientImplementationTest
       yoVariableClientShouldFail = new YoVariableClient(clientListener);
       yoVariableClient.startWithHostSelector();
 
-      for (int i = 0; i < 2; i++)
-      {
-         try
-         {
-            // This client should fail if the user connects it to the same port as the other client, checks to make sure the failure conditions hold
-            yoVariableClientShouldFail.startWithHostSelector();
-         } catch (Exception e)
-         {
-            failure = true;
-         }
+      Throwable thrown = assertThrows(RuntimeException.class, () -> yoVariableClientShouldFail.startWithHostSelector());
+      assertEquals("Name collision for new child: testservercontainer. Parent name space = ListenerRegistry", thrown.getMessage());
 
-         Assertions.assertTrue(failure);
-      }
+      thrown = assertThrows(RuntimeException.class, () -> yoVariableClientShouldFail.startWithHostSelector());
+      assertEquals("Client already started", thrown.getMessage());
 
       LogTools.info("Closing down server and client successfully");
 
       // These are both useful when multiple tests are going to be run because multiple servers will try to connect to the same address and throw a bug
       yoVariableClient.stop();
-      yoVariableServer.close();
    }
 
    /** Class that implements the YoVariableUpdatedListener to connect with the client */
@@ -186,7 +153,6 @@ public class ClientImplementationTest
                         YoVariableHandshakeParser handshakeParser,
                         DebugRegistry debugRegistry)
       {
-
          YoRegistry clientRootRegistry = handshakeParser.getRootRegistry();
          YoRegistry serverRegistry = new YoRegistry(yoVariableClientInterface.getServerName() + "Container");
          serverRegistry.addChild(clientRootRegistry);
