@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 @Tag("robot-data-logger-2")
 public class ServerClientConnectionTest
 {
@@ -75,7 +77,7 @@ public class ServerClientConnectionTest
 
          // Needs to sleep for a bit to let the client shutdown properly, otherwise the test will fail
          ThreadTools.sleepSeconds(1);
-         Assertions.assertFalse(yoVariableClient.isConnected());
+         assertFalse(yoVariableClient.isConnected());
 
          yoVariableClient.reconnect();
          Assertions.assertTrue(yoVariableClient.isConnected());
@@ -85,7 +87,7 @@ public class ServerClientConnectionTest
       }
 
       yoVariableClient.stop();
-      Assertions.assertFalse(yoVariableClient.isConnected());
+      assertFalse(yoVariableClient.isConnected());
 
       // Prevents bug when creating more than one server across multiple tests because the servers by default go to the same address
       yoVariableServer.close();
@@ -140,7 +142,7 @@ public class ServerClientConnectionTest
 
          for (int j = 0; j < serverVariables.size(); j++)
          {
-            Assertions.assertEquals(serverVariables.get(j).getValueAsString(), clientVariables.get(j).getValueAsString(),
+            assertEquals(serverVariables.get(j).getValueAsString(), clientVariables.get(j).getValueAsString(),
                                     "The server variable: " + serverVariables.get(j) + ", the client variable: "
                                     + clientVariables.get(j));
          }
