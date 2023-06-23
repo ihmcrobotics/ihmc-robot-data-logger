@@ -56,9 +56,7 @@ public class ClientImplementationTest
 
       for (int i = 0; i < 3; i++)
       {
-         Throwable thrown = assertThrows(RuntimeException.class, () ->
-               yoVariableClient.start("1.1.1.1.1.1", 9009));
-
+         Throwable thrown = assertThrows(RuntimeException.class, () -> yoVariableClient.start("1.1.1.1.1.1", 9009));
          assertEquals("java.io.IOException: java.util.concurrent.ExecutionException: java.io.IOException: Connection refused", thrown.getMessage());
       }
    }
@@ -79,9 +77,7 @@ public class ClientImplementationTest
          // Setting this to true will try to connect a model file which is good to test because this should fail
          connection.getAnnouncement().getModelFileDescription().setHasModel(true);
 
-         Throwable thrown = assertThrows(IOException.class, () ->
-               yoVariableClient.start(25000, connection));
-
+         Throwable thrown = assertThrows(IOException.class, () -> yoVariableClient.start(25000, connection));
          assertEquals("java.util.concurrent.ExecutionException: java.io.IOException: Invalid response received 404 Not Found", thrown.getMessage());
 
          yoVariableClient.stop();

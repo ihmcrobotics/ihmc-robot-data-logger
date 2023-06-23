@@ -17,7 +17,6 @@ public class SnappyUtilsTest
    public void testIllegalArgumentException()
    {
       int elements = 1024;
-
       ByteBuffer data = ByteBuffer.allocate(elements);
 
       // This will cause the intended error because the size of the compressed data is too small, should throw exception
