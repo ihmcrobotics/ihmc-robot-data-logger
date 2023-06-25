@@ -26,10 +26,13 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
    private final CircularLongMap circularLongMap = new CircularLongMap(10000);
 
    private FileWriter timestampWriter;
+   private FileWriter controllerWriter;
 
    private int frame;
 
    private volatile long lastFrameTimestamp = 0;
+   
+   private long previousTimestamp = 0;
 
    public BlackmagicVideoDataLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
    {
@@ -43,6 +46,7 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
    private void createCaptureInterface()
    {
       File timestampFile = new File(timestampData);
+      File controllerFile = new File(timestampData + "CONTROLLER");
 
       switch (options.getVideoCodec())
       {
@@ -64,6 +68,7 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
       try
       {
          timestampWriter = new FileWriter(timestampFile);
+         controllerWriter = new FileWriter(controllerFile);
          capture.startCapture(videoFile, decklink);
       }
       catch (IOException e)
@@ -74,13 +79,16 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
             try
             {
                timestampWriter.close();
+               controllerWriter.close();
                timestampFile.delete();
+               controllerFile.delete();
             }
             catch (IOException e1)
             {
             }
          }
          timestampWriter = null;
+         controllerWriter = null;
          LogTools.info("Cannot start capture interface");
          e.printStackTrace();
       }
@@ -111,6 +119,16 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
          if (hardwareTimestamp != -1)
          {
             circularLongMap.insert(hardwareTimestamp, newTimestamp);
+//            System.out.println(newTimestamp + " controller timestamp");
+
+            try
+            {
+               controllerWriter.write(newTimestamp + "\n");
+            }
+            catch (IOException e)
+            {
+               e.printStackTrace();
+            }
          }
       }
    }
@@ -131,6 +149,7 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
             capture.stopCapture();
             LogTools.info("Closing writer.");
             timestampWriter.close();
+            controllerWriter.close();
             LogTools.info("Done.");
          }
          catch (IOException e)
@@ -139,6 +158,7 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
          }
          capture = null;
          timestampWriter = null;
+         controllerWriter = null;
       }
 
    }
@@ -155,6 +175,13 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
          }
 
          long robotTimestamp = circularLongMap.getValue(true, hardwareTime);
+         
+         if (previousTimestamp == robotTimestamp)
+         {
+            LogTools.info(robotTimestamp + " current robotTimestamp");
+            LogTools.info(previousTimestamp + " previous robotTimestamp");
+            System.out.println("We have duplicates.....");
+         }
 
          try
          {
@@ -164,6 +191,8 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
                timestampWriter.write(timeScaleDenumerator + "\n");
             }
             timestampWriter.write(robotTimestamp + " " + pts + "\n");
+
+            previousTimestamp = robotTimestamp;
 
             lastFrameTimestamp = System.nanoTime();
          }
