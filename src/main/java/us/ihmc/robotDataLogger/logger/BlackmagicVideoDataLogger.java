@@ -123,7 +123,7 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
 
             try
             {
-               controllerWriter.write(newTimestamp + "\n");
+               controllerWriter.write(newTimestamp + " " + System.nanoTime() + "\n");
             }
             catch (IOException e)
             {
