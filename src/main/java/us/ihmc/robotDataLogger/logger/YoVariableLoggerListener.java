@@ -148,18 +148,25 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       {
          CameraSettings cameras = CameraSettingsLoader.load();
 
-         for (int i = 0; i < target.getCameraList().size(); i++)
+         if (target.getCameraList() != null)
          {
-            byte camera_id = target.getCameraList().get(i);
-
-            for (CameraConfiguration camera : cameras.getCameras())
+            for (int i = 0; i < target.getCameraList().size(); i++)
             {
-               if (camera.getCameraId() == camera_id)
+               byte camera_id = target.getCameraList().get(i);
+
+               for (CameraConfiguration camera : cameras.getCameras())
                {
-                  LogTools.info("Adding camera " + camera.toString());
-                  this.cameras.add(camera);
+                  if (camera.getCameraId() == camera_id)
+                  {
+                     LogTools.info("Adding camera " + camera.toString());
+                     this.cameras.add(camera);
+                  }
                }
             }
+         }
+         else
+         {
+            LogTools.warn("The control session has no host in the IHMCControllerParameters file, so no camera's are recording... nice work genius");
          }
       }
       else if (options != null)
