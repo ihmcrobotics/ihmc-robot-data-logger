@@ -192,6 +192,11 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
          throw new RuntimeException("Server already started");
       }
 
+      if (stopped)
+      {
+         throw new RuntimeException("Cannot restart a YoVariable server");
+      }
+
       handshakeBuilder = new YoVariableHandShakeBuilder(rootRegistryName, dt);
       handshakeBuilder.setFrames(ReferenceFrame.getWorldFrame());
       handshakeBuilder.setSummaryProvider(summaryProvider);
@@ -269,6 +274,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    {
       if (started && !stopped)
       {
+         started = false;
          stopped = true;
          for (int i = 0; i < registryHolders.size(); i++)
          {

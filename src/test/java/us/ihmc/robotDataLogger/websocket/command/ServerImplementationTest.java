@@ -76,6 +76,16 @@ public class ServerImplementationTest
          Throwable thrown = assertThrows(RuntimeException.class, () -> yoVariableServer.start());
          assertEquals("Server already started", thrown.getMessage());
       }
+
+      // Close the server here to test different exception
+      yoVariableServer.close();
+
+      // Does a similar thing to the loop above but checks to make sure the exception for a stopped server will trigger
+      for (int i = 0; i < 3; i++)
+      {
+         Throwable thrown = assertThrows(RuntimeException.class, () -> yoVariableServer.start());
+         assertEquals("Cannot restart a YoVariable server", thrown.getMessage());
+      }
    }
 
    @Test
