@@ -511,7 +511,8 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                                                                            tempDirectory,
                                                                            logProperties,
                                                                            Byte.parseByte(camera.getIdentifierAsString()),
-                                                                           options));
+                                                                           options,
+                                                                           false));
                         break;
                      case NETWORK_STREAM:
                         videoDataLoggers.add(new NetworkStreamVideoDataLogger(tempDirectory,

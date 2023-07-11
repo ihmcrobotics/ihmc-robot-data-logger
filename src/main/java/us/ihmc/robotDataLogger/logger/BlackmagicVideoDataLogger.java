@@ -3,6 +3,7 @@ package us.ihmc.robotDataLogger.logger;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.javadecklink.Capture;
@@ -31,13 +32,18 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
 
    private volatile long lastFrameTimestamp = 0;
 
-   public BlackmagicVideoDataLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
+   public TimestampSynchronizer timestampSynchronizer;
+
+   public BlackmagicVideoDataLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options, boolean testing) throws IOException
    {
       super(logPath, logProperties, name);
       decklink = decklinkID;
       this.options = options;
 
-      createCaptureInterface();
+      timestampSynchronizer = new TimestampSynchronizer();
+
+      if (!testing)
+         createCaptureInterface();
    }
 
    private void createCaptureInterface()
@@ -111,6 +117,7 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
          if (hardwareTimestamp != -1)
          {
             circularLongMap.insert(hardwareTimestamp, newTimestamp);
+            timestampSynchronizer.store(newTimestamp);
          }
       }
    }
@@ -182,4 +189,25 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
       return lastFrameTimestamp;
    }
 
+   public class TimestampSynchronizer
+   {
+      public ArrayList<Long> storage = new ArrayList<>();
+
+      public TimestampSynchronizer()
+      {
+
+      }
+
+      public void store(long robotTimestamp)
+      {
+         storage.add(robotTimestamp);
+      }
+
+      public ArrayList<Long> getTimestamps()
+      {
+         return storage;
+      }
+
+
+   }
 }
