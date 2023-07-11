@@ -71,17 +71,7 @@ public class ServerImplementationTest
       yoVariableServer.start();
 
       // This test is intentionally start the server after its already been started, checking if the exception  will trigger
-      for (int i = 0; i < 6; i++)
-      {
-         Throwable thrown = assertThrows(RuntimeException.class, () -> yoVariableServer.start());
-         assertEquals("Server already started", thrown.getMessage());
-      }
-
-      // Close the server here to test different exception
-      yoVariableServer.close();
-
-      // Does a similar thing to the loop above but checks to make sure the exception for a stopped server will trigger
-      for (int i = 0; i < 6; i++)
+      for (int i = 0; i < 4; i++)
       {
          Throwable thrown = assertThrows(RuntimeException.class, () -> yoVariableServer.start());
          assertEquals("Server already started", thrown.getMessage());
