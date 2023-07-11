@@ -9,6 +9,8 @@ import java.io.*;
 import java.net.URISyntaxException;
 import java.util.Objects;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 public class TimestampSynchronizerTest
 {
 
@@ -34,7 +36,6 @@ public class TimestampSynchronizerTest
       File timestampFile = new File(TimestampSynchronizerTest.class.getClassLoader().getResource("us.ihmc.robotDataLogger/logging/ControllerTimestamps.dat").toURI());
 
       parseTimestampData(timestampFile);
-
    }
 
    private void parseTimestampData(File timestampFile) throws IOException
@@ -89,4 +90,12 @@ public class TimestampSynchronizerTest
       }
    }
 
+
+   @Test
+   public void testDiffBetweenComputers()
+   {
+
+      //Not using the timestampchanged method at all, need to figure that out...
+      assertTrue(blackmagicVideoDataLogger.timestampSynchronizer.getDiffBetweenControllerAndLogger() > 0);
+   }
 }
