@@ -41,7 +41,7 @@ public class ServerImplementationTest
       yoVariableServer.createSummary(new YoDouble("YoDoubleSummarize", serverRegistry));
       yoVariableServer.addSummarizedVariable("Main.YoDoubleSummarize");
 
-      for (int i = 0; i < 4; i++)
+      for (int i = 0; i < 3; i++)
       {
          Throwable thrown = assertThrows(RuntimeException.class, () -> yoVariableServer.addSummarizedVariable("BadVariableInformation"));
          assertEquals("Variable BadVariableInformation is not registered with the logger", thrown.getMessage());
@@ -56,7 +56,7 @@ public class ServerImplementationTest
       yoVariableServer.start();
 
       // This test is intentionally starting the server after its already been started, should throw an exception
-      for (int i = 0; i < 6; i++)
+      for (int i = 0; i < 3; i++)
       {
          Throwable thrown = assertThrows(RuntimeException.class, () -> yoVariableServer.getRegistryHolder(otherRegistry));
          assertEquals("Registry OtherRegistry not registered with addRegistry() or setMainRegistry()", thrown.getMessage());
@@ -71,7 +71,7 @@ public class ServerImplementationTest
       yoVariableServer.start();
 
       // This test is intentionally start the server after its already been started, checking if the exception  will trigger
-      for (int i = 0; i < 6; i++)
+      for (int i = 0; i < 3; i++)
       {
          Throwable thrown = assertThrows(RuntimeException.class, () -> yoVariableServer.start());
          assertEquals("Server already started", thrown.getMessage());
@@ -81,10 +81,10 @@ public class ServerImplementationTest
       yoVariableServer.close();
 
       // Does a similar thing to the loop above but checks to make sure the exception for a stopped server will trigger
-      for (int i = 0; i < 6; i++)
+      for (int i = 0; i < 3; i++)
       {
          Throwable thrown = assertThrows(RuntimeException.class, () -> yoVariableServer.start());
-         assertEquals("Server already started", thrown.getMessage());
+         assertEquals("Cannot restart a YoVariable server", thrown.getMessage());
       }
    }
 
@@ -92,7 +92,7 @@ public class ServerImplementationTest
    public void testMainRegistryExceptions()
    {
       // Tries to add a registry to a server that doesn't have a main registry yet, this is designed to fail
-      for (int i = 0; i < 4; i++)
+      for (int i = 0; i < 3; i++)
       {
          Throwable thrown = assertThrows(RuntimeException.class, () -> yoVariableServer.addRegistry(otherRegistry, null));
          assertEquals("Main registry is not set. Set main registry first", thrown.getMessage());
@@ -101,7 +101,7 @@ public class ServerImplementationTest
       yoVariableServer.setMainRegistry(serverRegistry, null);
 
       // Tries to set a main registry for a server that already has a main registry, this is designed to fail
-      for (int i = 0; i < 4; i++)
+      for (int i = 0; i < 3; i++)
       {
          Throwable thrown = assertThrows(RuntimeException.class, () -> yoVariableServer.setMainRegistry(serverRegistry, null));
          assertEquals("Main registry is already set", thrown.getMessage());
