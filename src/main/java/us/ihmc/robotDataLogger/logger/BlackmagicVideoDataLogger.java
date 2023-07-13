@@ -3,7 +3,6 @@ package us.ihmc.robotDataLogger.logger;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.javadecklink.Capture;
@@ -19,28 +18,26 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface
     * Make sure to set a progressive mode, otherwise the timestamps will be all wrong!
     */
 
-   private final int decklink;
+   private static int decklink;
    private final YoVariableLoggerOptions options;
    private Capture capture;
 
-   private FileWriter timestampWriter;
+   private static FileWriter timestampWriter;
 
-   private int frame;
+   private static int frame;
 
-   private volatile long lastFrameTimestamp = 0;
+   private static volatile long lastFrameTimestamp = 0;
 
-   public TimestampSynchronizer timestampSynchronizer;
+   public final TimestampAdjuster timestampAdjuster;
 
-   public BlackmagicVideoDataLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options, boolean testing) throws IOException
+   public BlackmagicVideoDataLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
    {
       super(logPath, logProperties, name);
       decklink = decklinkID;
       this.options = options;
 
-      timestampSynchronizer = new TimestampSynchronizer();
-
-      if (!testing)
-         createCaptureInterface();
+      createCaptureInterface();
+      timestampAdjuster = new TimestampAdjuster();
    }
 
    private void createCaptureInterface()
@@ -49,19 +46,20 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface
 
       switch (options.getVideoCodec())
       {
-         case AV_CODEC_ID_H264:
-            capture = new Capture(timestampSynchronizer, CodecID.AV_CODEC_ID_H264);
+         case AV_CODEC_ID_H264 ->
+         {
+            capture = new Capture(timestampAdjuster, CodecID.AV_CODEC_ID_H264);
             capture.setOption("g", "1");
             capture.setOption("crf", String.valueOf(options.getCrf()));
             capture.setOption("profile", "high");
             capture.setOption("coder", "vlc");
-            break;
-         case AV_CODEC_ID_MJPEG:
-            capture = new Capture(timestampSynchronizer, CodecID.AV_CODEC_ID_MJPEG);
+         }
+         case AV_CODEC_ID_MJPEG ->
+         {
+            capture = new Capture(timestampAdjuster, CodecID.AV_CODEC_ID_MJPEG);
             capture.setMJPEGQuality(options.getVideoQuality());
-            break;
-         default:
-            throw new RuntimeException();
+         }
+         default -> throw new RuntimeException();
       }
 
       try
@@ -81,6 +79,7 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface
             }
             catch (IOException e1)
             {
+               LogTools.info("Could not delete timestamp files");
             }
          }
          timestampWriter = null;
@@ -106,15 +105,14 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface
     * @see us.ihmc.robotDataLogger.logger.VideoDataLoggerInterface#timestampChanged(long)
     */
    @Override
-   public void timestampChanged(long newTimestamp)
+   public void timestampChanged(long controllerTimestamp)
    {
       if (capture != null)
       {
          long hardwareTimestamp = capture.getHardwareTime();
          if (hardwareTimestamp != -1)
          {
-            long adjustedNewTimestamp = timestampSynchronizer.adjustTimestampForDelay(newTimestamp);
-            timestampSynchronizer.addToCircularMap(hardwareTimestamp, adjustedNewTimestamp);
+            timestampAdjuster.addToCircularMap(hardwareTimestamp, controllerTimestamp);
          }
       }
    }
@@ -144,7 +142,6 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface
          capture = null;
          timestampWriter = null;
       }
-
    }
 
    @Override
@@ -153,44 +150,33 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface
       return lastFrameTimestamp;
    }
 
-   public class TimestampSynchronizer implements CaptureHandler
+   public static class TimestampAdjuster implements CaptureHandler
    {
       private final CircularLongMap circularLongMap = new CircularLongMap(10000);
-      public ArrayList<Long> storage = new ArrayList<>();
 
-      private long diffBetweenControllerAndLogger;
-      private boolean firstTimestamp = true;
+      private long previousControllerTimestamp = 0;
 
-      public TimestampSynchronizer()
+      private long previousRobotTimestamp = 0;
+      private long averageDelay;
+      private long totalDelay = 0;
+      private long missedFrames = 1;
+
+      public TimestampAdjuster()
+      {}
+
+      public void addToCircularMap(long hardwareTimestamp, long controllerTimestamp)
       {
+         circularLongMap.insert(hardwareTimestamp, controllerTimestamp);
+         calculateExpectedDelay(controllerTimestamp);
       }
 
-      public long adjustTimestampForDelay(long newTimestamp)
+      private void calculateExpectedDelay(long controllerTimestamp)
       {
-         if (firstTimestamp)
-         {
-            diffBetweenControllerAndLogger = Math.abs(newTimestamp - System.nanoTime());
-            System.out.println(diffBetweenControllerAndLogger);
-            firstTimestamp = false;
-         }
+         long currentDelay = Math.abs(previousControllerTimestamp - controllerTimestamp);
 
-         return newTimestamp;
-      }
-
-      public void addToCircularMap(long hardwareTimestamp, long newTimestamp)
-      {
-         circularLongMap.insert(hardwareTimestamp, newTimestamp);
-         storage.add(newTimestamp);
-      }
-
-      public long getDiffBetweenControllerAndLogger()
-      {
-         return diffBetweenControllerAndLogger;
-      }
-
-      public ArrayList<Long> getTimestamps()
-      {
-         return storage;
+         totalDelay += currentDelay;
+         averageDelay = totalDelay / circularLongMap.size();
+         previousControllerTimestamp = controllerTimestamp;
       }
 
       @Override
@@ -204,7 +190,19 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface
                System.out.println("[Decklink " + decklink + "] Received frame " + frame + ". Delay: " + delayInS + "s. pts: " + pts);
             }
 
-            long robotTimestamp = circularLongMap.getValue(true, hardwareTime);
+            long currentRobotTimestamp = circularLongMap.getValue(true, hardwareTime);
+
+            // Checks if we have gotten a duplicate out of the circularLongMap
+            if (previousRobotTimestamp == currentRobotTimestamp)
+            {
+               currentRobotTimestamp += averageDelay * missedFrames;
+               missedFrames++;
+            }
+            else
+            {
+               previousRobotTimestamp = currentRobotTimestamp;
+               missedFrames = 1;
+            }
 
             try
             {
@@ -213,7 +211,9 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface
                   timestampWriter.write(timeScaleNumerator + "\n");
                   timestampWriter.write(timeScaleDenumerator + "\n");
                }
-               timestampWriter.write(robotTimestamp + " " + pts + "\n");
+
+               if (missedFrames < 100)
+                  timestampWriter.write(currentRobotTimestamp + " " + pts + "\n");
 
                lastFrameTimestamp = System.nanoTime();
             }
