@@ -25,6 +25,7 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
    final private static int FRAME_RATE = 60;
    final int captureWidth = 1280;
    final int captureHeight = 720;
+
 //   String filename;// = "C:/Users/nkitchel/robotLogs/BytedecoVideos/bytedecoLogVideo.mov";
    OpenCVFrameGrabber grabber;
 //   CanvasFrame cFrame;
@@ -47,6 +48,7 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
    {
       super(logPath, logProperties, name);
       decklink = decklinkID;
+      System.out.println(decklinkID);
       this.options = options;
 //      this.filename = name + "_Video.mov";
 
@@ -112,6 +114,8 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
       }
    }
 
+   private int loop = 0;
+
    public void startCapture() throws FFmpegFrameRecorder.Exception, FrameGrabber.Exception
    {
       long startTime = 0;
@@ -140,12 +144,13 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
 
             long videoTS = 1000 * (System.currentTimeMillis() - startTime);
 
-            if (videoTS > recorder.getTimestamp())
+            if (videoTS > recorder.getTimestamp() && loop % 1000 == 0)
             {
                System.out.println("Lip-flap correction: " + videoTS + " : " + recorder.getTimestamp() + " -> " + (videoTS - recorder.getTimestamp()));
 
                // We tell the recorder to write this frame at this timestamp
                recorder.setTimestamp(videoTS);
+               loop++;
             }
 
             recordTimestampToArray(System.nanoTime(), i + 1);
