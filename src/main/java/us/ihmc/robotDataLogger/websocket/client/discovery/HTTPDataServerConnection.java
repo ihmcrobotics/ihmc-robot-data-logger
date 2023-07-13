@@ -16,9 +16,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpContent;
@@ -36,13 +34,14 @@ import io.netty.util.CharsetUtil;
 import us.ihmc.idl.serializers.extra.JSONSerializer;
 import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.AnnouncementPubSubType;
+import us.ihmc.robotDataLogger.util.NettyUtils;
 import us.ihmc.robotDataLogger.websocket.HTTPDataServerPaths;
 
 public class HTTPDataServerConnection
 {
    private static final int TIMEOUT_MS = 1000;
 
-   private final EventLoopGroup group = new NioEventLoopGroup();
+   private final EventLoopGroup group = NettyUtils.createEventGroundLoop();
    private final HTTPDataServerDescription target;
    private final HTTPDataServerConnectionListener listener;
    private final Announcement announcement = new Announcement();
@@ -167,7 +166,7 @@ public class HTTPDataServerConnection
       this.listener = listener;
 
       Bootstrap b = new Bootstrap();
-      b.group(group).channel(NioSocketChannel.class).handler(new HttpSnoopClientInitializer());
+      b.group(group).channel(NettyUtils.getSocketChannelClass()).handler(new HttpSnoopClientInitializer());
       b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, TIMEOUT_MS);
 
       ChannelFuture connectFuture = b.connect(target.getHost(), target.getPort());

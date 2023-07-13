@@ -5,10 +5,10 @@ import java.io.IOException;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataPublisherType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
+import us.ihmc.robotDataLogger.websocket.server.DataServerServerContent;
 
 public interface DataProducer
 {
-
    /**
     * Deactivate the data producer. After calling this function, the producer cannot be reactivated
     */
@@ -19,7 +19,7 @@ public interface DataProducer
     *
     * @param handshake
     */
-   void setHandshake(Handshake handshake);
+   void setDataServerContent(DataServerServerContent dataServerServerContent);
 
    /**
     * Activate the producer. This will publish the model, handshake and logger announcement to the
@@ -37,6 +37,5 @@ public interface DataProducer
     */
    void publishTimestamp(long timestamp);
 
-   RegistryPublisher createRegistryPublisher(CustomLogDataPublisherType type, RegistrySendBufferBuilder builder) throws IOException;
-
+   RegistryPublisher createRegistryPublisher(RegistrySendBufferBuilder builder, BufferListenerInterface bufferListener) throws IOException;
 }

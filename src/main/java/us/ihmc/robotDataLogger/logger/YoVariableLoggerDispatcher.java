@@ -91,7 +91,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       {
          Announcement announcement = connection.getAnnouncement();
          HashAnnouncement hashAnnouncement = new HashAnnouncement(announcement);
-         LogTools.warn("New control session came online\n" + connection.getTarget() + " (" + announcement.getHostNameAsString() + ")");
+         LogTools.warn("New control session came online: ( {} ({}))", connection.getTarget(), announcement.getHostNameAsString());
          if (activeLogSessions.contains(hashAnnouncement))
          {
             LogTools.warn("A logging sessions for " + announcement.getNameAsString() + " is already started.");

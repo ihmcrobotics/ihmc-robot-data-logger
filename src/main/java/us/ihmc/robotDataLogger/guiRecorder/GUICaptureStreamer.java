@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 
 import javax.swing.JFrame;
 
+import com.eprosima.xmlschemas.fastrtps_profiles.ReliabilityQosKindType;
 import us.ihmc.codecs.generated.RGBPicture;
 import us.ihmc.codecs.generated.YUVPicture;
 import us.ihmc.codecs.generated.YUVPicture.YUVSubsamplingType;
@@ -25,7 +26,6 @@ import us.ihmc.pubsub.DomainFactory;
 import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
 import us.ihmc.pubsub.attributes.ParticipantAttributes;
 import us.ihmc.pubsub.attributes.PublisherAttributes;
-import us.ihmc.pubsub.attributes.ReliabilityKind;
 import us.ihmc.pubsub.participant.Participant;
 import us.ihmc.pubsub.publisher.Publisher;
 import us.ihmc.pubsub.types.ByteBufferPubSubType;
@@ -83,7 +83,7 @@ public class GUICaptureStreamer
          future.cancel(false);
       }
       ByteBufferPubSubType pubSubType = new ByteBufferPubSubType(topicType, MAXIMUM_IMAGE_DATA_SIZE);
-      PublisherAttributes attributes = domain.createPublisherAttributes(participant, pubSubType, topicName, ReliabilityKind.BEST_EFFORT, partition);
+      PublisherAttributes attributes = domain.createPublisherAttributes(participant, pubSubType, topicName, ReliabilityQosKindType.BEST_EFFORT, partition);
       try
       {
          publisher = domain.createPublisher(participant, attributes);

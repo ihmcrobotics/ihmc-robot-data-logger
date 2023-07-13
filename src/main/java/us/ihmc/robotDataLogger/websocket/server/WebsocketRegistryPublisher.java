@@ -1,5 +1,6 @@
 package us.ihmc.robotDataLogger.websocket.server;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.netty.channel.EventLoopGroup;
@@ -10,6 +11,7 @@ import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataPublisherType;
 import us.ihmc.robotDataLogger.dataBuffers.LoggerDebugRegistry;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBuffer;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
+import us.ihmc.robotDataLogger.interfaces.BufferListenerInterface;
 import us.ihmc.robotDataLogger.interfaces.RegistryPublisher;
 
 /**
@@ -20,7 +22,6 @@ import us.ihmc.robotDataLogger.interfaces.RegistryPublisher;
  */
 class WebsocketRegistryPublisher implements RegistryPublisher
 {
-
    private static final int BUFFER_CAPACITY = 128;
 
    private long uid = 0;
@@ -41,8 +42,10 @@ class WebsocketRegistryPublisher implements RegistryPublisher
    private final int numberOfVariables;
 
    private final int bufferID;
+   
+   private final BufferListenerInterface bufferListener;
 
-   public WebsocketRegistryPublisher(EventLoopGroup workerGroup, RegistrySendBufferBuilder builder, WebsocketDataBroadcaster broadcaster, int bufferID)
+   public WebsocketRegistryPublisher(EventLoopGroup workerGroup, RegistrySendBufferBuilder builder, WebsocketDataBroadcaster broadcaster, int bufferID, BufferListenerInterface bufferListener)
    {
       this.broadcaster = broadcaster;
 
@@ -57,7 +60,13 @@ class WebsocketRegistryPublisher implements RegistryPublisher
       publisherType = new CustomLogDataPublisherType(builder.getNumberOfVariables(), builder.getNumberOfJointStates());
 
       serializedPayload = new SerializedPayload(publisherType.getMaximumTypeSize());
-
+      
+      this.bufferListener = bufferListener;
+      
+      if(bufferListener != null)
+      {
+         bufferListener.addBuffer(bufferID, builder);
+      }
    }
 
    public int getMaximumBufferSize()
@@ -87,7 +96,6 @@ class WebsocketRegistryPublisher implements RegistryPublisher
       {
          e.printStackTrace();
       }
-
    }
 
    @Override
@@ -127,7 +135,6 @@ class WebsocketRegistryPublisher implements RegistryPublisher
 
                if ((buffer = ringBuffer.read()) != null)
                {
-
                   serializedPayload.getData().clear();
                   publisherType.serialize(buffer, serializedPayload);
                   broadcaster.write(bufferID, buffer.getTimestamp(), serializedPayload.getData());
@@ -140,6 +147,19 @@ class WebsocketRegistryPublisher implements RegistryPublisher
                      }
                   }
                   previousUid = buffer.getUid();
+                  
+                  if (bufferListener != null)
+                  {
+                     bufferListener.updateBuffer(bufferID, buffer);
+                  }
+               }
+               
+               if (bufferListener != null)
+               {
+                  while ((buffer = ringBuffer.read()) != null)
+                  {
+                     bufferListener.updateBuffer(bufferID, buffer);
+                  }
                }
                ringBuffer.flush();
             }
@@ -149,9 +169,6 @@ class WebsocketRegistryPublisher implements RegistryPublisher
          {
             e.printStackTrace();
          }
-
       }
-
    }
-
 }

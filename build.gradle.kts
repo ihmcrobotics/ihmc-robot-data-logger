@@ -2,20 +2,20 @@ import us.ihmc.idl.generator.IDLGenerator
 
 buildscript {
    dependencies {
-      classpath("us.ihmc:ihmc-pub-sub-generator:0.18.1")
+      classpath("us.ihmc:ihmc-pub-sub-generator:0.18.5")
    }
 }
 
 plugins {
    id("us.ihmc.ihmc-build")
-   id("us.ihmc.ihmc-ci") version "7.7"
-   id("us.ihmc.ihmc-cd") version "1.23"
+   id("us.ihmc.ihmc-ci") version "8.3"
+   id("us.ihmc.ihmc-cd") version "1.24"
    id("us.ihmc.log-tools-plugin") version "0.6.3"
 }
 
 ihmc {
    group = "us.ihmc"
-   version = "0.27.1"
+   version = "0.28.3"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
@@ -37,17 +37,17 @@ mainDependencies {
    api("org.openjdk.jol:jol-core:0.9")
    api("org.apache.commons:commons-text:1.9")
 
-   api("us.ihmc:euclid:0.19.1")
+   api("us.ihmc:euclid:0.20.0")
    api("us.ihmc:ihmc-video-codecs:2.1.6")
-   api("us.ihmc:ihmc-realtime:1.5.1")
+   api("us.ihmc:ihmc-realtime:1.6.0")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
-   api("us.ihmc:ihmc-pub-sub:0.18.1")
-   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.18.1")
+   api("us.ihmc:ihmc-pub-sub:0.18.5")
+   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.18.5")
    api("us.ihmc:ihmc-commons:0.32.0")
-   api("us.ihmc:ihmc-graphics-description:0.20.0")
-   api("us.ihmc:mecano:17-0.11.6")
+   api("us.ihmc:ihmc-graphics-description:0.20.5")
+   api("us.ihmc:mecano:17-0.12.3")
    api("com.hierynomus:sshj:0.31.0")
-   api("us.ihmc:scs2-definition:17-0.13.2")
+   api("us.ihmc:scs2-definition:17-0.15.1")
 
    api("org.bytedeco:javacv:1.5.8")
    api("org.bytedeco:javacpp:1.5.8")
@@ -72,17 +72,17 @@ app.entrypoint("TestCapture", "us.ihmc.javadecklink.Capture")
 app.entrypoint("GStreamerCapture", "us.ihmc.publisher.logger.GStreamerCaptureExample")
 
 tasks.register<JavaExec>("deploy") {
-		dependsOn("generateMessages")
-		dependsOn("distTar")
-		group = "Deploy"
-		description = "Deploy logger"
-		classpath = sourceSets.main.get().runtimeClasspath
-		main = "us.ihmc.publisher.logger.ui.LoggerDeployApplication"
-		
-		var p =   projectDir.toPath().resolve("build/distributions/" + project.name + "-" + project.version + ".tar").normalize()
-		
-		args("--logger-dist=" + p)
-}	
+   dependsOn("generateMessages")
+   dependsOn("distTar")
+   group = "Deploy"
+   description = "Deploy logger"
+   classpath = sourceSets.main.get().runtimeClasspath
+   mainClass.set("us.ihmc.publisher.logger.ui.LoggerDeployApplication")
+
+   var p =   projectDir.toPath().resolve("build/distributions/" + project.name + "-" + project.version + ".tar").normalize()
+
+   args("--logger-dist=" + p)
+}
 
 tasks.create("generateMessages") {
    doLast {
@@ -101,4 +101,3 @@ fun generateMessages()
       IDLGenerator.execute(idl, packagePrefix, targetDirectory, listOf(file(".")))
    }
 }
-
