@@ -49,9 +49,9 @@ mainDependencies {
    api("com.hierynomus:sshj:0.31.0")
    api("us.ihmc:scs2-definition:17-0.15.1")
 
-   api("org.bytedeco:javacv:1.5.8")
-   api("org.bytedeco:javacpp:1.5.8")
-   api("org.bytedeco:javacv-platform:1.5.8")
+   api("org.bytedeco:javacv:1.5.9")
+   api("org.bytedeco:javacpp:1.5.9")
+   api("org.bytedeco:javacv-platform:1.5.9")
    api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
    api("net.java.dev.jna:jna:5.13.0")
    api("net.java.dev.jna:jna-platform:5.13.0")

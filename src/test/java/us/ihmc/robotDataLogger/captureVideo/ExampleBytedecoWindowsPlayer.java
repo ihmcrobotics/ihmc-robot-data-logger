@@ -1,17 +1,32 @@
-package us.ihmc.publisher.logger;
+package us.ihmc.robotDataLogger.captureVideo;
 
 import gnu.trove.list.array.TLongArrayList;
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
-import us.ihmc.commons.thread.ThreadTools;
+
 
 import java.io.*;
 
+/**
+ * This example class plays back a video recorded with Bytedeco from a decklink capture card
+ * Doesn't matter if the video was recorded with SDI or HDMI this will work for either
+ * It's important to note that the playback for the video has to use the same method that was done when
+ * recording the original video or playback will be messed up.
+ * TODO: For some reason the play back frames are way brighter then the video, figure out why
+ */
 public class ExampleBytedecoWindowsPlayer
 {
-   public static String videoPath = "ihmc-robot-data-logger/out/windowsBytedecoVideo.mov";
-   public static final String timestampPath = "ihmc-robot-data-logger/out/windowsBytedecoTimestamps.dat";
+//   public static String videoPath = "ihmc-robot-data-logger/out/windowsBytedeco_Video.mov";
+//   public static String timestampPath = "ihmc-robot-data-logger/out/windowsBytedeco_Timestamps.dat";
+
+   private static final String windowsBytedeco = "/windowsBytedeco";
+   private static final String directoryPath = "C:/Users/robot/robotLogs/";
+   private static final String logName = "20230714_170820_TestServer";
+
+   // For testing things recorded from the logger
+   public static String videoPath;
+   public static String timestampPath;
 
    private static final TLongArrayList robotTimestamps = new TLongArrayList();
    private static final TLongArrayList ptsTimestamps = new TLongArrayList();
@@ -21,6 +36,9 @@ public class ExampleBytedecoWindowsPlayer
 
    public static void main(String[] args) throws IOException
    {
+      videoPath =  directoryPath + logName + windowsBytedeco + "_Video.mov";
+      timestampPath = directoryPath + logName + windowsBytedeco + "_Timestamps.dat";
+
       // Read the timestamp file
       BufferedReader reader = new BufferedReader(new FileReader(timestampPath));
 
@@ -44,14 +62,11 @@ public class ExampleBytedecoWindowsPlayer
 
          for (int i = 0; i < robotTimestamps.size() - 1; i++)
          {
-            ThreadTools.sleepSeconds(0.01);
             grabber.setTimestamp(ptsTimestamps.get(i));
             Frame frame = grabber.grabFrame();
 
             if (cFrame.isVisible())
-            {
                cFrame.showImage(frame);
-            }
          }
 
          grabber.stop();

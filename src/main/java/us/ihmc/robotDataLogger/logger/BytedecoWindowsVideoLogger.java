@@ -3,7 +3,6 @@ package us.ihmc.robotDataLogger.logger;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
@@ -14,69 +13,53 @@ import us.ihmc.tools.maps.CircularLongMap;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.*;
 
-public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
+public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface implements CaptureHandler
 {
-
-   /**
-    * Make sure to set a progressive mode, otherwise the timestamps will be all wrong!
-    */
-   private static boolean WRITTEN_TO_TIMESTAMP = false;
-
-   final private static int FRAME_RATE = 60;
-   final int captureWidth = 1280;
-   final int captureHeight = 720;
-
-//   String filename;// = "C:/Users/nkitchel/robotLogs/BytedecoVideos/bytedecoLogVideo.mov";
-   OpenCVFrameGrabber grabber;
-//   CanvasFrame cFrame;
-
-   public static ArrayList<Long> timestampList = new ArrayList<>();
-
-   private final int decklink;
-   private final YoVariableLoggerOptions options;
-   private FFmpegFrameRecorder recorder;
-
+   private int frame;
    private final CircularLongMap circularLongMap = new CircularLongMap(10000);
-
    private static FileWriter timestampWriter;
 
-   private int frame;
+   private final int deviceNumber;
+   private final YoVariableLoggerOptions options;
+   private OpenCVFrameGrabber grabber;
+   private FFmpegFrameRecorder recorder;
 
    private volatile long lastFrameTimestamp = 0;
 
-   public BytedecoVideoDataLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
+   public BytedecoWindowsVideoLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
    {
       super(logPath, logProperties, name);
-      decklink = decklinkID;
-      System.out.println(decklinkID);
+      deviceNumber = decklinkID;
       this.options = options;
-//      this.filename = name + "_Video.mov";
 
       createCaptureInterface();
    }
 
-   private void createCaptureInterface() throws FrameGrabber.Exception
+   private void createCaptureInterface()
    {
       File timestampFile = new File(timestampData);
       File videoCaptureFile = new File(videoFile);
 
-      switch (options.getVideoCodec())
-      {
-         case AV_CODEC_ID_H264:
-         case AV_CODEC_ID_MJPEG:
-            grabber = new OpenCVFrameGrabber(decklink);
-//            cFrame = new CanvasFrame("Capture Preview", CanvasFrame.getDefaultGamma() / grabber.getGamma());
+      // This is the resolution of the video, overrides camera
+      int captureWidth = 1920;
+      int captureHeight = 1080;
+
+      switch (options.getVideoCodec()) {
+         case AV_CODEC_ID_H264, AV_CODEC_ID_MJPEG ->
+         {
+            grabber = new OpenCVFrameGrabber(deviceNumber);
             grabber.setImageWidth(captureWidth);
             grabber.setImageHeight(captureHeight);
+
             recorder = new FFmpegFrameRecorder(videoCaptureFile, captureWidth, captureHeight);
-            recorder.setVideoOption("crf", "1");
+
+            // Trying these settings for now (H264 is a bad setting because of slicing)
             recorder.setVideoOption("tune", "zerolatency");
-            recorder.setVideoCodec(avcodec.AV_CODEC_ID_MJPEG);
+            recorder.setVideoCodec(avcodec.AV_CODEC_ID_MPEG4);
             recorder.setFormat("mov");
-            recorder.setFrameRate(120);
-            break;
-         default:
-            throw new RuntimeException();
+            recorder.setFrameRate(60);
+         }
+         default -> throw new RuntimeException();
       }
 
       try
@@ -88,15 +71,18 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
             try
             {
                startCapture();
-            } catch (FFmpegFrameRecorder.Exception | FrameGrabber.Exception e)
-            {
-               throw new RuntimeException(e);
             }
-         }, "Capture");
+            catch (FFmpegFrameRecorder.Exception | FrameGrabber.Exception e)
+            {
+               LogTools.info("Last frame is bad, shutting down normally becaus of threading");
+//               throw new RuntimeException(e);
+            }
+         }, "BytedecoWindowsCapture");
       }
       catch (IOException e)
       {
          recorder = null;
+
          if (timestampWriter != null)
          {
             try
@@ -108,71 +94,47 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
             {
             }
          }
+
          timestampWriter = null;
          LogTools.info("Cannot start capture interface");
          e.printStackTrace();
       }
    }
 
-   private int loop = 0;
-
    public void startCapture() throws FFmpegFrameRecorder.Exception, FrameGrabber.Exception
    {
-      long startTime = 0;
       grabber.start();
       recorder.start();
 
-      int i = 0;
+      long startTime = 0;
       while (recorder != null)
       {
-
          Frame capturedFrame;
 
          if ((capturedFrame = grabber.grab()) != null)
          {
-            LogTools.info(i);
-
-//            if (cFrame.isVisible())
-//            {
-//               cFrame.showImage(capturedFrame);
-//            }
-
             if (startTime == 0)
-            {
                startTime = System.currentTimeMillis();
-            }
 
             long videoTS = 1000 * (System.currentTimeMillis() - startTime);
 
-            if (videoTS > recorder.getTimestamp() && loop % 1000 == 0)
+            if (videoTS > recorder.getTimestamp())
             {
-               System.out.println("Lip-flap correction: " + videoTS + " : " + recorder.getTimestamp() + " -> " + (videoTS - recorder.getTimestamp()));
-
                // We tell the recorder to write this frame at this timestamp
                recorder.setTimestamp(videoTS);
-               loop++;
             }
 
-            recordTimestampToArray(System.nanoTime(), i + 1);
-
             recorder.record(capturedFrame);
-            receivedFrameAtTime(getHardwareTimestamp(), recorder.getTimestamp(), 1, Math.round(1.0 / recorder.getFrameRate()));
+            // System.nanoTime() represents the controllerTimestamp in this example since its fake
+            receivedFrameAtTime(System.nanoTime(), recorder.getTimestamp(), 1, 60000);
          }
          else
          {
             LogTools.info("Captured frame is null");
          }
-
-         i++;
       }
 
       ThreadTools.join();
-   }
-
-   public static void recordTimestampToArray(long robotTimestamp, int index)
-   {
-      timestampList.add(robotTimestamp);
-      timestampList.add(index * 1001L);
    }
 
    /*
@@ -208,7 +170,9 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
 
    private long getHardwareTimestamp()
    {
-      return Math.round(recorder.getFrameNumber() * 1000000000L / recorder.getFrameRate());
+
+      return System.nanoTime();
+//      return Math.round(recorder.getFrameNumber() * 1000000000L / recorder.getFrameRate());
    }
 
    /*
@@ -224,15 +188,10 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
          try
          {
             LogTools.info("Stopping capture.");
-//            cFrame.dispose();
             recorder.flush();
             recorder.stop();
             grabber.stop();
-            LogTools.info("Writing Timestamp");
-            if (!WRITTEN_TO_TIMESTAMP)
-            {
-               writingToTimestamp();
-            }
+
             LogTools.info("Closing writer.");
             timestampWriter.close();
             LogTools.info("Done.");
@@ -247,18 +206,6 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
 
    }
 
-   public static void writingToTimestamp() throws IOException
-   {
-      timestampWriter.write("1\n");
-      timestampWriter.write("60000\n");
-      for (int i = 0; i < timestampList.size() - 1; i++)
-      {
-         timestampWriter.write(timestampList.get(i) + " " + timestampList.get(i + 1) + "\n");
-         i++;
-      }
-      WRITTEN_TO_TIMESTAMP = true;
-   }
-
    @Override
    public void receivedFrameAtTime(long hardwareTime, long pts, long timeScaleNumerator, long timeScaleDenumerator)
    {
@@ -267,29 +214,28 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
          if (frame % 600 == 0)
          {
             double delayInS = Conversions.nanosecondsToSeconds(circularLongMap.getLatestKey() - hardwareTime);
-            System.out.println("[Decklink " + decklink + "] Received frame " + frame + ". Delay: " + delayInS + "s. pts: " + pts);
+            System.out.println("[Decklink " + deviceNumber + "] Received frame " + frame + ". Delay: " + delayInS + "s. pts: " + pts);
          }
 
          long robotTimestamp = circularLongMap.getValue(true, hardwareTime);
 
-//         try
-//         {
-//            if (frame == 0)
-//            {
-//               timestampWriter.write(timeScaleNumerator + "\n");
-//               timestampWriter.write(timeScaleDenumerator + "\n");
-//            }
-//            timestampWriter.write(robotTimestamp + " " + pts + "\n");
-//
-//            lastFrameTimestamp = System.nanoTime();
-//         }
-//         catch (IOException e)
-//         {
-//            e.printStackTrace();
-//         }
+         try
+         {
+            if (frame == 0)
+            {
+               timestampWriter.write(timeScaleNumerator + "\n");
+               timestampWriter.write(timeScaleDenumerator + "\n");
+            }
+            timestampWriter.write(robotTimestamp + " " + pts + "\n");
+
+            lastFrameTimestamp = System.nanoTime();
+         }
+         catch (IOException e)
+         {
+            e.printStackTrace();
+         }
          ++frame;
       }
-
    }
 
    @Override
@@ -297,5 +243,4 @@ public class BytedecoVideoDataLogger extends VideoDataLoggerInterface implements
    {
       return lastFrameTimestamp;
    }
-
 }

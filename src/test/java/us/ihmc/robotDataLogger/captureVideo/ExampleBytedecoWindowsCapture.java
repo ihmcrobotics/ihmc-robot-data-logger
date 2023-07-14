@@ -1,37 +1,43 @@
-package us.ihmc.publisher.logger;
+package us.ihmc.robotDataLogger.captureVideo;
 
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.*;
-import org.bytedeco.javacv.FrameRecorder.Exception;
 import us.ihmc.log.LogTools;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.MalformedURLException;
 
 /**
  * This example class provides the basics for capturing a video using the ByteDeco JavaCV bindings
- * You need a decklink capture card, and a camera attacked on the other end for this to work
- * The camera settings get overridden so it doesn't matter waht video mode or FPS its set too
- * This only works on Windows software and has been optimized for Windows 11
+ * You need a decklink capture card, and a camera attached on the other end for this to work
+ * The camera settings get overridden, so it doesn't matter what video mode or FPS its set too.
+ * This only works on Windows software (Windows 11 and 10 have been tested)
+ * This example works with either SDI or HDMI as the camera cable
  */
 
 public class ExampleBytedecoWindowsCapture
 {
     private static final int WEBCAM_DEVICE_INDEX = 0;
-
     private static long startTime = 0;
 
-    public static String videoPath = "ihmc-robot-data-logger/out/windowsBytedecoVideo.mov";
-    public static final String timestampPath = "ihmc-robot-data-logger/out/windowsBytedecoTimestamps.dat";
+    private static final String windowsBytedeco = "windowsBytedeco";
+
+    public static String videoPath;
+    public static String timestampPath;
     private static FileWriter timestampWriter;
 
-    public static File videoFile = new File(videoPath);
-    public static File timestampFile = new File(timestampPath);
+    public static File videoFile;
+    public static File timestampFile;
 
-    public static void main(String[] args) throws Exception, org.bytedeco.javacv.FrameGrabber.Exception, InterruptedException, MalformedURLException
+    public static void main(String[] args) throws InterruptedException
     {
+        videoPath  =  "ihmc-robot-data-logger/out/" + windowsBytedeco + "_Video.mov";
+        timestampPath = "ihmc-robot-data-logger/out/" + windowsBytedeco + "_Timestamps.dat";
+
+        videoFile = new File(videoPath);
+        timestampFile = new File(timestampPath);
+
         // This is the resolution of the video, overrides camera
         final int captureWidth = 1920;
         final int captureHeight = 1080;
@@ -48,7 +54,7 @@ public class ExampleBytedecoWindowsCapture
             // RTMP url to an FMS / Wowza server
             try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(videoFile, captureWidth, captureHeight))
             {
-                //Trying these settings for now (H264 is a bad setting because of slicing)
+                // Trying these settings for now (H264 is a bad setting because of slicing)
                 recorder.setVideoOption("tune", "zerolatency");
                 recorder.setVideoCodec(avcodec.AV_CODEC_ID_MPEG4);
                 recorder.setFormat("mov");
@@ -87,14 +93,13 @@ public class ExampleBytedecoWindowsCapture
                         recorder.setTimestamp(videoTS);
                     }
 
-                    // Send the frame to the org.bytedeco.javacv.FFmpegFrameRecorder
                     recorder.record(capturedFrame);
+                    // System.nanoTime() represents the controllerTimestamp in this example since its fake
                     writeTimestampToFile(System.nanoTime(), recorder.getTimestamp());
 
                     timer++;
                 }
 
-                Thread.sleep(2000);
                 cFrame.dispose();
                 recorder.flush();
                 recorder.stop();
@@ -127,11 +132,15 @@ public class ExampleBytedecoWindowsCapture
         }
     }
 
-    public static void writeTimestampToFile(long robotTimestamp, long pts) throws IOException
+    /**
+     * Write the timestamp sent from the controller, and then we get the timestamp of the camera, and write both
+     * of those to a file.
+     */
+    public static void writeTimestampToFile(long controllerTimestamp, long pts)
     {
         try
         {
-            timestampWriter.write(robotTimestamp + " " + pts + "\n");
+            timestampWriter.write(controllerTimestamp + " " + pts + "\n");
         }
         catch (IOException e)
         {

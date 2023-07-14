@@ -441,7 +441,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       Future<?> future = executor.submit(() -> videoDataLogger.close());
       try
       {
-         future.get(25, TimeUnit.SECONDS);
+         future.get(5, TimeUnit.SECONDS);
       }
       catch (InterruptedException | ExecutionException e)
       {
@@ -507,7 +507,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                   switch (camera.getType())
                   {
                      case CAPTURE_CARD:
-                        videoDataLoggers.add(new BytedecoVideoDataLogger(camera.getNameAsString(),
+                        videoDataLoggers.add(new BytedecoWindowsVideoLogger(camera.getNameAsString(),
                                                                            tempDirectory,
                                                                            logProperties,
                                                                            Byte.parseByte(camera.getIdentifierAsString()),

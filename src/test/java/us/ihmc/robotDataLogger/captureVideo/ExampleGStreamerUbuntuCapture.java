@@ -1,4 +1,4 @@
-package us.ihmc.publisher.logger;
+package us.ihmc.robotDataLogger.captureVideo;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -8,38 +8,52 @@ import java.util.concurrent.Semaphore;
 import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.event.EOSEvent;
 import us.ihmc.commons.thread.ThreadTools;
+import us.ihmc.log.LogTools;
 
-public class GStreamerCaptureExample
+/**
+ * This example class provides the basics for capturing a video using GStreamer java bindings
+ * You need a decklink capture card, and a camera attached on the other end for this to work.
+ *The camera settings get overridden, so it doesn't matter what video mode or FPS its set too.
+ * This only works on Ubuntu Software
+ * This example works with either SDI or HDMI as the camera cable
+ */
+public class ExampleGStreamerUbuntuCapture
 {
-    private static boolean WRITTEN_TO_TIMESTAMP = false;
     private static final Semaphore gotEOSPlayBin = new Semaphore(1);
+
+    private static final String ubuntuGStreamer = "ubuntuGStreamer";
+
+    public static String videoPath;
+    public static String timestampPath;
     private static FileWriter timestampWriter;
 
-    private static volatile long lastFrameTimestamp = 0;
-    private static long lastestRobotTimestamp;
-
+    public static File videoFile;
+    public static File timestampFile;
 
     public static void main(String[] args) throws InterruptedException, IOException
     {
-        // Creates files for video and timestamps
-        File timestampFile = new File(System.getProperty("user.home") + File.separator + "gstreamerTimestamps.dat");
-        File videoCaptureFile = new File(System.getProperty("user.home") + File.separator + "gstreamerCapture.mov");
-        timestampFile.createNewFile();
-        timestampWriter = new FileWriter(timestampFile);
+        videoPath  =  "ihmc-robot-data-logger/out/" + ubuntuGStreamer + "_Video.mov";
+        timestampPath = "ihmc-robot-data-logger/out/" + ubuntuGStreamer + "_Timestamps.dat";
+
+        videoFile = new File(videoPath);
+        timestampFile = new File(timestampPath);
+
+        // Creates files for video
+        setupTimestampWriter();
 
         // Ensures GStreamer is set up correctly
         Gst.init();
 
         // How the data will be parsed through the pipeline when its playing
         Pipeline pipeline = (Pipeline) Gst.parseLaunch(
-                "decklinkvideosrc connection=hdmi " +
+                "decklinkvideosrc connection=sdi " +
                         "! timeoverlay " +
                         "! videoconvert " +
                             // Set the framerate here
                         "! videorate ! video/x-raw,framerate=60/1 " +
                         "! identity name=identity " +
                         "! jpegenc " +
-                        "! .video splitmuxsink muxer=qtmux location=" + videoCaptureFile);
+                        "! .video splitmuxsink muxer=qtmux location=" + videoFile);
 
         // Allows for correctly shutting down when it detects the pipeline has ended
         pipeline.getBus().connect((Bus.EOS) (source) ->
@@ -71,30 +85,29 @@ public class GStreamerCaptureExample
 
     }
 
-    //This is used for the logger robottimestamps, here for testing
-    public void timestampChanged(long newTimestamp)
+    public static void setupTimestampWriter()
     {
-        System.out.println("Saving newRobotTimeStamp");
-        lastestRobotTimestamp = newTimestamp;
-//            nanoToHardware.insert(hardwareTimestamp, newTimestamp);
-    }
-
-    public static void receivedFrameAtTime(long hardwareTime, long pts, long timeScaleNumerator, long timeScaleDenumerator)
-    {
-        long robotTimestamp = hardwareTime;
-
         try
         {
-            if (!WRITTEN_TO_TIMESTAMP)
-            {
-                timestampWriter.write(timeScaleNumerator + "\n");
-                timestampWriter.write(timeScaleDenumerator + "\n");
-                WRITTEN_TO_TIMESTAMP = true;
-            }
+            timestampWriter = new FileWriter(timestampFile);
+            timestampWriter.write(1 + "\n");
+            timestampWriter.write(60000 + "\n");
+        }
+        catch (IOException e)
+        {
+            LogTools.info("Didn't setup the timestamp file correctly");
+        }
+    }
 
-            timestampWriter.write(robotTimestamp + " " + pts + "\n");
-
-            lastFrameTimestamp = System.nanoTime();
+    /**
+     * Write the timestamp sent from the controller, and then we get the timestamp of the camera, and write both
+     * of those to a file.
+     */
+    public static void writeTimestampToFile(long controllerTimestamp, long pts)
+    {
+        try
+        {
+            timestampWriter.write(controllerTimestamp + " " + pts + "\n");
         }
         catch (IOException e)
         {
@@ -112,7 +125,7 @@ public class GStreamerCaptureExample
             // If buffer has a frame, record the timestamp and index from it
             if (buffer.isWritable())
             {
-                receivedFrameAtTime(lastestRobotTimestamp, buffer.getPresentationTimestamp(), 1, 60000);
+                writeTimestampToFile(System.nanoTime(), buffer.getPresentationTimestamp());
             }
 
             return PadProbeReturn.OK;
