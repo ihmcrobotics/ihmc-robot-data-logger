@@ -74,7 +74,7 @@ public class TimestampSynchronizerTest
    {
       for (int i = 0; i < controllerTimestamps.length; i++)
       {
-         timestampAdjuster.addToCircularMap(System.nanoTime(), controllerTimestamps[i]);
+         timestampAdjuster.computeDifferenceInMachineTimes(System.nanoTime(), controllerTimestamps[i]);
          // capture is null so we can't get the hardwareTime, this is a problem
          // could use system.nanoTime() as my hardware time, from the local computer
 //         blackmagicVideoDataLogger.timestampChanged(robotTimestamps[i]);

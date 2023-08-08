@@ -112,7 +112,7 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface
          long hardwareTimestamp = capture.getHardwareTime();
          if (hardwareTimestamp != -1)
          {
-            timestampAdjuster.addToCircularMap(hardwareTimestamp, controllerTimestamp);
+            timestampAdjuster.computeDifferenceInMachineTimes(hardwareTimestamp, controllerTimestamp);
          }
       }
    }
@@ -154,29 +154,24 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface
    {
       private final CircularLongMap circularLongMap = new CircularLongMap(10000);
 
-      private long previousControllerTimestamp = 0;
-
       private long previousRobotTimestamp = 0;
-      private long averageDelay;
-      private long totalDelay = 0;
-      private long missedFrames = 1;
+      private long totalDifference = 0;
+      private long differenceInMachineTime;
 
       public TimestampAdjuster()
       {}
 
-      public void addToCircularMap(long hardwareTimestamp, long controllerTimestamp)
+      public void computeDifferenceInMachineTimes(long hardwareTimestamp, long controllerTimestamp)
       {
+         // It doesn't matter when we get a frame, we just need the difference in machine times and when we get a frame, we can subtract the difference
          circularLongMap.insert(hardwareTimestamp, controllerTimestamp);
-         calculateExpectedDelay(controllerTimestamp);
-      }
 
-      private void calculateExpectedDelay(long controllerTimestamp)
-      {
-         long currentDelay = Math.abs(previousControllerTimestamp - controllerTimestamp);
+         long loggerTime = System.nanoTime();
+         long currentDifferenceInMachineTime = Math.abs(loggerTime - controllerTimestamp);
 
-         totalDelay += currentDelay;
-         averageDelay = totalDelay / circularLongMap.size();
-         previousControllerTimestamp = controllerTimestamp;
+         totalDifference += currentDifferenceInMachineTime;
+
+         differenceInMachineTime = totalDifference / circularLongMap.size();
       }
 
       @Override
@@ -184,24 +179,28 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface
       {
          if (circularLongMap.size() > 0)
          {
-            if (frame % 600 == 0)
+            if (frame % 100 == 0)
             {
                double delayInS = Conversions.nanosecondsToSeconds(circularLongMap.getLatestKey() - hardwareTime);
-               System.out.println("[Decklink " + decklink + "] Received frame " + frame + ". Delay: " + delayInS + "s. pts: " + pts);
+//               System.out.println("[Decklink " + decklink + "] Received frame " + frame + ". Delay: " + delayInS + "s. pts: " + pts);
+               System.out.println("[Decklink " + decklink + "] Received frame " + frame + ". Delay: " + differenceInMachineTime + "s. pts: " + pts);
             }
 
-            long currentRobotTimestamp = circularLongMap.getValue(true, hardwareTime);
+            // If we assume there is no delay on the first timestamp sent from the controller
+            long currentRobotTimestamp;
+            long currentLoggerTime = System.nanoTime();
+//            if (differenceInMachineTime > currentLoggerTime)
+//               currentRobotTimestamp = differenceInMachineTime - currentLoggerTime;
+//            else
+//               currentRobotTimestamp = currentLoggerTime - differenceInMachineTime;
 
-            // Checks if we have gotten a duplicate out of the circularLongMap
+            currentRobotTimestamp = currentLoggerTime - differenceInMachineTime;
+//            long currentRobotTimestamp = circularLongMap.getValue(true, hardwareTime);
+
+            // Checks if we have gotten a duplicate out of the circularLongMap, the previousRobotTimestamp is the one written before this
             if (previousRobotTimestamp == currentRobotTimestamp)
             {
-               currentRobotTimestamp += averageDelay * missedFrames;
-               missedFrames++;
-            }
-            else
-            {
-               previousRobotTimestamp = currentRobotTimestamp;
-               missedFrames = 1;
+               System.out.println("We got a dupicate, this is bad... oops");
             }
 
             try
@@ -212,8 +211,8 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface
                   timestampWriter.write(timeScaleDenumerator + "\n");
                }
 
-               if (missedFrames < 100)
-                  timestampWriter.write(currentRobotTimestamp + " " + pts + "\n");
+               timestampWriter.write(currentRobotTimestamp + " " + pts + "\n");
+               previousRobotTimestamp = currentRobotTimestamp;
 
                lastFrameTimestamp = System.nanoTime();
             }
