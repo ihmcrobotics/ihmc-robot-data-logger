@@ -62,7 +62,8 @@ public class YoVariableLogger
       }
       if (!tempDirectory.mkdir())
       {
-         throw new IOException("Cannot create directory " + finalDirectory.getAbsolutePath());
+         throw new IOException("Cannot create directory " + finalDirectory.getAbsolutePath()
+                               + "\nThis is likely due to the fact your Logger storage is full... maybe get some better funding and buy some more storage hot shot");
       }
 
       YoVariableLoggerListener logger = new YoVariableLoggerListener(tempDirectory, finalDirectory, timestamp, request, connection.getTarget(), options, doneListener);
