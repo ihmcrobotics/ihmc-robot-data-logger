@@ -45,7 +45,7 @@ mainDependencies {
    api("us.ihmc:ihmc-pub-sub-serializers-extra:0.19.0")
    api("us.ihmc:ihmc-commons:0.32.0")
    api("us.ihmc:ihmc-graphics-description:0.20.7")
-   api("us.ihmc:mecano:17-0.14.0")
+   api("us.ihmc:mecano:17-0.15.0")
    api("com.hierynomus:sshj:0.31.0")
    api("us.ihmc:scs2-definition:17-0.17.0")
 
