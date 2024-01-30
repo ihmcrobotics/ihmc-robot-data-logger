@@ -18,7 +18,17 @@ public final class LinuxSystemUptime
 
       if (operatingSystemMXBean.getName().equals("Linux"))
       {
+         /*
+            /proc/uptime
+
+            Example output:
+            713907.21 16441853.59
+
+            The first value represents the total number of seconds the system has been up.
+            The second value is the sum of how much time each core has spent idle, in seconds.
+          */
          File unixUptime = new File("/proc/uptime");
+
          if (unixUptime.exists())
          {
             try
