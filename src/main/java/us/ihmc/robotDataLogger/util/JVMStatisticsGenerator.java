@@ -143,9 +143,7 @@ public class JVMStatisticsGenerator
          }
 
          systemLoadAverage.set(operatingSystemMXBean.getSystemLoadAverage());
-
-         long jvmUptimeSeconds = runtimeMXBean.getUptime() / 1000;
-         systemUptime.set(LinuxSystemUptime.getSystemUptimeAtJVMStartInSeconds() + jvmUptimeSeconds);
+         systemUptime.set(LinuxSystemUptime.getSystemUptime());
 
          if (visualizer != null)
          {

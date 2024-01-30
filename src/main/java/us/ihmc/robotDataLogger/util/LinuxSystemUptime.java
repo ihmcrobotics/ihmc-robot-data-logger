@@ -6,17 +6,25 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
-import java.lang.management.RuntimeMXBean;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * A utility class for retrieving the current system uptime on a Linux system.
+ */
 public final class LinuxSystemUptime
 {
-   private static long systemUptimeAtJVMStartInSeconds;
+   /**
+    * The result parsed from /proc/uptime
+    */
+   private static long systemUptimeQueryResult;
+   /**
+    * The time in milliseconds that /proc/uptime was queried
+    */
+   private static long systemUptimeQueryTimeMillis;
 
    static
    {
       OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
-      RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
 
       if (operatingSystemMXBean.getName().equals("Linux"))
       {
@@ -36,8 +44,8 @@ public final class LinuxSystemUptime
             try
             {
                String systemUptimeSecondsString = FileUtils.readFileToString(unixUptime, StandardCharsets.UTF_8).split("\\.")[0];
-               long currentSystemUptimeSeconds = Long.parseLong(systemUptimeSecondsString);
-               systemUptimeAtJVMStartInSeconds = currentSystemUptimeSeconds - runtimeMXBean.getUptime();
+               systemUptimeQueryResult = Long.parseLong(systemUptimeSecondsString);
+               systemUptimeQueryTimeMillis = System.currentTimeMillis();
             }
             catch (NumberFormatException | IOException e)
             {
@@ -47,8 +55,19 @@ public final class LinuxSystemUptime
       }
    }
 
-   public static long getSystemUptimeAtJVMStartInSeconds()
+   /**
+    * Retrieve the current uptime of a Linux system
+    *
+    * @return the amount of seconds the Linux system has been online.
+    * Equivalent to:
+    * <pre>
+    *    $ cat /proc/uptime | awk -F. '{print $1}'
+    * </pre>
+    */
+   public static long getSystemUptime()
    {
-      return systemUptimeAtJVMStartInSeconds;
+      long now = System.currentTimeMillis();
+      long durationSinceLastQuery = now - systemUptimeQueryTimeMillis;
+      return systemUptimeQueryResult + (durationSinceLastQuery / 1000);
    }
 }
