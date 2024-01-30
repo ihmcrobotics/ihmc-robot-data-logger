@@ -1,15 +1,5 @@
 package us.ihmc.robotDataLogger.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.management.*;
-import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.io.FileUtils;
 import us.ihmc.robotDataLogger.RobotVisualizer;
 import us.ihmc.robotDataLogger.YoVariableServer;
 import us.ihmc.util.PeriodicNonRealtimeThreadScheduler;
@@ -21,6 +11,12 @@ import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.yoVariables.variable.YoVariable;
+
+import java.lang.management.*;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class JVMStatisticsGenerator
 {
@@ -147,8 +143,9 @@ public class JVMStatisticsGenerator
          }
 
          systemLoadAverage.set(operatingSystemMXBean.getSystemLoadAverage());
+
          long jvmUptimeSeconds = runtimeMXBean.getUptime() / 1000;
-         systemUptime.set(LinuxSystemUptime.getSystemUptimeSecondsAtJVMStart() + jvmUptimeSeconds);
+         systemUptime.set(LinuxSystemUptime.getSystemUptimeAtJVMStartInSeconds() + jvmUptimeSeconds);
 
          if (visualizer != null)
          {

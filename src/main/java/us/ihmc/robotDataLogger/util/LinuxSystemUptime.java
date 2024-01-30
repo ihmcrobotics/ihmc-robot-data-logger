@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 public final class LinuxSystemUptime
 {
-   private static long systemUptimeSecondsAtJVMStart;
+   private static long systemUptimeAtJVMStartInSeconds;
 
    static
    {
@@ -24,7 +24,7 @@ public final class LinuxSystemUptime
             try
             {
                String systemUptimeSecondsString = FileUtils.readFileToString(unixUptime, StandardCharsets.UTF_8).split("\\.")[0];
-               systemUptimeSecondsAtJVMStart = Long.parseLong(systemUptimeSecondsString);
+               systemUptimeAtJVMStartInSeconds = Long.parseLong(systemUptimeSecondsString);
             }
             catch (NumberFormatException | IOException e)
             {
@@ -34,8 +34,8 @@ public final class LinuxSystemUptime
       }
    }
 
-   public static long getSystemUptimeSecondsAtJVMStart()
+   public static long getSystemUptimeAtJVMStartInSeconds()
    {
-      return systemUptimeSecondsAtJVMStart;
+      return systemUptimeAtJVMStartInSeconds;
    }
 }
