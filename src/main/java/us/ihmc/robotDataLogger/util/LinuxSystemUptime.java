@@ -58,7 +58,7 @@ public final class LinuxSystemUptime
    /**
     * Retrieve the current uptime of a Linux system
     *
-    * @return the amount of seconds the Linux system has been online.
+    * @return the amount of seconds the Linux system has been online; -1 if the uptime query failed.
     * Equivalent to:
     * <pre>
     *    $ cat /proc/uptime | awk -F. '{print $1}'
@@ -66,8 +66,15 @@ public final class LinuxSystemUptime
     */
    public static long getSystemUptime()
    {
-      long now = System.currentTimeMillis();
-      long durationSinceLastQuery = now - systemUptimeQueryTimeMillis;
-      return systemUptimeQueryResult + (durationSinceLastQuery / 1000);
+      if (systemUptimeQueryTimeMillis == 0)
+      {
+         return -1;
+      }
+      else
+      {
+         long now = System.currentTimeMillis();
+         long durationSinceLastQuery = now - systemUptimeQueryTimeMillis;
+         return systemUptimeQueryResult + (durationSinceLastQuery / 1000);
+      }
    }
 }
