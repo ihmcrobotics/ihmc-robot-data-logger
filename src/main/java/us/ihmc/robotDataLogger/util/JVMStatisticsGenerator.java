@@ -48,7 +48,6 @@ public class JVMStatisticsGenerator
    private final ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
    private final CompilationMXBean compilationMXBean = ManagementFactory.getCompilationMXBean();
    private final OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
-   private final RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
 
    public JVMStatisticsGenerator(RobotVisualizer visualizer)
    {
