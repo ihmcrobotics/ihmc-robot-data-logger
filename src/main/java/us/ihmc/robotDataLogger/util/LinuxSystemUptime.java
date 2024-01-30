@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
+import java.lang.management.RuntimeMXBean;
 import java.nio.charset.StandardCharsets;
 
 public final class LinuxSystemUptime
@@ -15,6 +16,7 @@ public final class LinuxSystemUptime
    static
    {
       OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
+      RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
 
       if (operatingSystemMXBean.getName().equals("Linux"))
       {
@@ -34,7 +36,8 @@ public final class LinuxSystemUptime
             try
             {
                String systemUptimeSecondsString = FileUtils.readFileToString(unixUptime, StandardCharsets.UTF_8).split("\\.")[0];
-               systemUptimeAtJVMStartInSeconds = Long.parseLong(systemUptimeSecondsString);
+               long currentSystemUptimeSeconds = Long.parseLong(systemUptimeSecondsString);
+               systemUptimeAtJVMStartInSeconds = currentSystemUptimeSeconds - runtimeMXBean.getUptime();
             }
             catch (NumberFormatException | IOException e)
             {
