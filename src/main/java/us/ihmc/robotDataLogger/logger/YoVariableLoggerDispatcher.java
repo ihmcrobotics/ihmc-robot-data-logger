@@ -9,6 +9,7 @@ import java.util.Set;
 
 import com.martiansoftware.jsap.JSAPException;
 
+import org.apache.commons.lang3.SystemUtils;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
@@ -52,8 +53,11 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 
       lockFile.createNewFile();
       Set<PosixFilePermission> perms = new HashSet<>();
-      perms.add(PosixFilePermission.OWNER_READ);
-      Files.setPosixFilePermissions(lockFile.toPath(), perms);
+      if (!SystemUtils.OS_NAME.contains("Windows"))
+      {
+         perms.add(PosixFilePermission.OWNER_READ);
+         Files.setPosixFilePermissions(lockFile.toPath(), perms);
+      }
 
       LogTools.info("Created Logger lock file");
 
