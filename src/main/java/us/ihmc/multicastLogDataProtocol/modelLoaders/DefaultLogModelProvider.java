@@ -54,6 +54,7 @@ public class DefaultLogModelProvider<T> implements LogModelProvider
       {
          // Online directories matched in this regular expression will be logged
          Pattern zipInclude = Pattern.compile("models\\\\nadia_V17_description\\\\.*");
+         LogTools.info("Getting models: " + zipInclude);
          ResourceLoaderTools.createZipBundle(os, zipInclude, topLevelResourceDirectories);
       }
       catch (IOException e)
