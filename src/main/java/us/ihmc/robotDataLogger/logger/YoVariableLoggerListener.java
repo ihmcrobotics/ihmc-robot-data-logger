@@ -350,7 +350,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    public void disconnected()
    {
       LogTools.info("Finalizing log from host: " + request.getHostNameAsString());
-      LogTools.info("Log is saved as: ({})" + finalDirectory);
+      LogTools.info("Log is saved as: " + finalDirectory);
 
       try
       {

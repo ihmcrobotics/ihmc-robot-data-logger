@@ -144,7 +144,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
          ThreadTools.sleep(2000);
          HashAnnouncement hashRequest = new HashAnnouncement(request);
          activeLogSessions.remove(hashRequest);
-         LogTools.fatal("Logging session for " + request.getNameAsString() + " has finished.\n");
+         LogTools.info("Logging session for " + request.getNameAsString() + " has finished.\n");
       }
    }
 
