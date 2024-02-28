@@ -6,7 +6,7 @@ public interface LogModelProvider
 
    public String getModelName();
 
-   public String[] getResourceDirectories();
+   public String[] getTopLevelResourceDirectories();
 
    public byte[] getResourceZip();
 

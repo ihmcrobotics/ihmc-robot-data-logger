@@ -117,7 +117,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
             }
             else
             {
-               LogTools.info("Not logging.");
+               LogTools.warn("Not logging the above session");
             }
          }
       }
@@ -137,16 +137,14 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
     */
    private void finishedLog(Announcement request)
    {
-      LogTools.info("Finishing Log.");
       synchronized (lock)
       {
-         //pause a bit to ensure everything is closed before removing the active log session
+         // Pause a bit to ensure everything is closed before removing the active log session
+         // Then remove this session from the list of active log sessions
          ThreadTools.sleep(2000);
-         LogTools.info("Removing log session.");
          HashAnnouncement hashRequest = new HashAnnouncement(request);
          activeLogSessions.remove(hashRequest);
-         LogTools.info("Logging session for " + request.getNameAsString() + " has finished.");
-
+         LogTools.info("Logging session for " + request.getNameAsString() + " has finished.\n");
       }
    }
 
