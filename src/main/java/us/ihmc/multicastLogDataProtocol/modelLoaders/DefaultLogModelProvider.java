@@ -7,16 +7,17 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 
-import us.ihmc.tools.ClassLoaderTools;
+import us.ihmc.log.LogTools;
+import us.ihmc.tools.ResourceLoaderTools;
 
 public class DefaultLogModelProvider<T> implements LogModelProvider
 {
    private final String sdfModelName;
    private final byte[] model;
-   private final String[] resourceDirectories;
+   private final String[] topLevelResourceDirectories;
    private final Class<T> modelLoader;
 
-   public DefaultLogModelProvider(Class<T> modelLoader, String modelName, InputStream modelFileAsStream, String[] resourceDirectories)
+   public DefaultLogModelProvider(Class<T> modelLoader, String modelName, InputStream modelFileAsStream, String[] topLevelResourceDirectories)
    {
       this.modelLoader = modelLoader;
       this.sdfModelName = modelName;
@@ -29,9 +30,8 @@ public class DefaultLogModelProvider<T> implements LogModelProvider
       {
          throw new RuntimeException(e);
       }
-
-      this.resourceDirectories = new String[resourceDirectories.length];
-      System.arraycopy(resourceDirectories, 0, this.resourceDirectories, 0, resourceDirectories.length);
+      this.topLevelResourceDirectories = new String[topLevelResourceDirectories.length];
+      System.arraycopy(topLevelResourceDirectories, 0, this.topLevelResourceDirectories, 0, topLevelResourceDirectories.length);
    }
 
    @Override
@@ -41,9 +41,9 @@ public class DefaultLogModelProvider<T> implements LogModelProvider
    }
 
    @Override
-   public String[] getResourceDirectories()
+   public String[] getTopLevelResourceDirectories()
    {
-      return resourceDirectories;
+      return topLevelResourceDirectories;
    }
 
    @Override
@@ -52,8 +52,9 @@ public class DefaultLogModelProvider<T> implements LogModelProvider
       ByteArrayOutputStream os = new ByteArrayOutputStream();
       try
       {
-         Pattern zipExclude = null; //Pattern.compile(".*\\.(?i)(zip)$");
-         ClassLoaderTools.createZipBundle(os, zipExclude, resourceDirectories);
+         // Online directories matched in this regular expression will be logged
+         Pattern zipInclude = Pattern.compile("models\\\\nadia_V17_description\\\\.*");
+         ResourceLoaderTools.createZipBundle(os, zipInclude, topLevelResourceDirectories);
       }
       catch (IOException e)
       {
