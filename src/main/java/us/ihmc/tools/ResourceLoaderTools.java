@@ -23,7 +23,7 @@ public class ResourceLoaderTools
     * Works only for classpaths pointing to the file system or .jar files
     *
     * @param os Outputstream to write zip file to
-    * @param include Exclude files that match the given pattern
+    * @param filter Include models that match the given filter. If null grab all models
     * @param topLevelDirectories Directories (packages) to copy on the classPath
     * @throws IOException If the files cannot be written to the zip file.
     */
@@ -39,7 +39,7 @@ public class ResourceLoaderTools
          @Override
          public void handleResource(String resourcePath) throws IOException
          {
-            // If the filter is null, grab everything
+            // If the filter is null, grab everything. Otherwise, only grab resources in the list
             if (filter == null || filter.test(resourcePath))
             {
                ZipEntry entry = new ZipEntry(resourcePath);
