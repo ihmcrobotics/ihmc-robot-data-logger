@@ -8,6 +8,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -26,7 +27,8 @@ public class ResourceLoaderTools
     * @param topLevelDirectories Directories (packages) to copy on the classPath
     * @throws IOException If the files cannot be written to the zip file.
     */
-   public static void createZipBundle(OutputStream os, final Pattern include, String... topLevelDirectories) throws IOException
+   // Pass in a Predicate<String> filter
+   public static void createZipBundle(OutputStream os, final Predicate<String> filter, String... topLevelDirectories) throws IOException
    {
       final ZipOutputStream stream = new ZipOutputStream(os);
 
@@ -37,21 +39,19 @@ public class ResourceLoaderTools
          @Override
          public void handleResource(String resourcePath) throws IOException
          {
-            // Only include resources that have been specified
-            if (!include.matcher(resourcePath).matches())
+            // If the filter is null, grab everything
+            if (filter == null || filter.test(resourcePath))
             {
-               return;
-            }
+               ZipEntry entry = new ZipEntry(resourcePath);
 
-            ZipEntry entry = new ZipEntry(resourcePath);
-
-            if (names.add(entry.getName()))
-            {
-               InputStream resource = ResourceLoaderTools.class.getClassLoader().getResourceAsStream(resourcePath);
-               stream.putNextEntry(entry);
-               copyStream(resource, stream);
-               stream.closeEntry();
-               resource.close();
+               if (names.add(entry.getName()))
+               {
+                  InputStream resource = ResourceLoaderTools.class.getClassLoader().getResourceAsStream(resourcePath);
+                  stream.putNextEntry(entry);
+                  copyStream(resource, stream);
+                  stream.closeEntry();
+                  resource.close();
+               }
             }
          }
       }, topLevelDirectories);

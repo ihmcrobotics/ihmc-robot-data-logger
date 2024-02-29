@@ -3,6 +3,7 @@ package us.ihmc.multicastLogDataProtocol.modelLoaders;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
@@ -12,15 +13,20 @@ import us.ihmc.tools.ResourceLoaderTools;
 
 public class DefaultLogModelProvider<T> implements LogModelProvider
 {
-   private final String sdfModelName;
-   private final byte[] model;
-   private final String[] topLevelResourceDirectories;
    private final Class<T> modelLoader;
+   private final String modelName;
+   private final byte[] model;
+   private final Predicate<String> filter;
+   private final String[] topLevelResourceDirectories;
 
-   public DefaultLogModelProvider(Class<T> modelLoader, String modelName, InputStream modelFileAsStream, String[] topLevelResourceDirectories)
+   public DefaultLogModelProvider(Class<T> modelLoader,
+                                  String modelName,
+                                  InputStream modelFileAsStream,
+                                  Predicate<String> filter,
+                                  String[] topLevelResourceDirectories)
    {
       this.modelLoader = modelLoader;
-      this.sdfModelName = modelName;
+      this.modelName = modelName;
 
       try
       {
@@ -30,6 +36,8 @@ public class DefaultLogModelProvider<T> implements LogModelProvider
       {
          throw new RuntimeException(e);
       }
+
+      this.filter = filter;
       this.topLevelResourceDirectories = new String[topLevelResourceDirectories.length];
       System.arraycopy(topLevelResourceDirectories, 0, this.topLevelResourceDirectories, 0, topLevelResourceDirectories.length);
    }
@@ -52,10 +60,7 @@ public class DefaultLogModelProvider<T> implements LogModelProvider
       ByteArrayOutputStream os = new ByteArrayOutputStream();
       try
       {
-         // Online directories matched in this regular expression will be logged
-         Pattern zipInclude = Pattern.compile("models\\\\nadia_V17_description\\\\.*");
-         LogTools.info("Getting models: " + zipInclude);
-         ResourceLoaderTools.createZipBundle(os, zipInclude, topLevelResourceDirectories);
+         ResourceLoaderTools.createZipBundle(os, filter, topLevelResourceDirectories);
       }
       catch (IOException e)
       {
@@ -73,6 +78,6 @@ public class DefaultLogModelProvider<T> implements LogModelProvider
    @Override
    public String getModelName()
    {
-      return sdfModelName;
+      return modelName;
    }
 }
