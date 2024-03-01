@@ -22,12 +22,11 @@ public class ResourceLoaderTools
     * Copies all files on the classpath in the given topLevelDirectories (packages) to the output stream in zip format
     * Works only for classpaths pointing to the file system or .jar files
     *
-    * @param os Outputstream to write zip file to
+    * @param os Output stream to write zip file to
     * @param filter Include models that match the given filter. If null grab all models
     * @param topLevelDirectories Directories (packages) to copy on the classPath
     * @throws IOException If the files cannot be written to the zip file.
     */
-   // Pass in a Predicate<String> filter
    public static void createZipBundle(OutputStream os, final Predicate<String> filter, String... topLevelDirectories) throws IOException
    {
       final ZipOutputStream stream = new ZipOutputStream(os);
