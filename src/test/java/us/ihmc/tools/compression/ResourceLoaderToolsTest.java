@@ -39,7 +39,7 @@ public class ResourceLoaderToolsTest
    {
       try
       {
-         ResourceLoaderTools.createZipBundle(os, include, resourceDirectories);
+         ResourceLoaderTools.createZipBundle(os, null, resourceDirectories);
       }
       catch (IOException e)
       {
