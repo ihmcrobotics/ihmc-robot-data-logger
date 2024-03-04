@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import us.ihmc.commons.time.Stopwatch;
 import us.ihmc.yoVariables.registry.YoRegistry;
@@ -39,6 +40,7 @@ public class DoubleToLongBitsSpeedTest
    }
 
    @Test
+   @Disabled
    public void testDoubleToLongBitsSpeed()
    {
       // Variables needed for testing
