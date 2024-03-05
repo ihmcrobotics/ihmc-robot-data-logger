@@ -6,7 +6,7 @@ import us.ihmc.tools.ResourceLoaderTools;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.regex.Pattern;
+import java.util.function.Predicate;
 
 public class ResourceLoaderToolsTest
 {
@@ -21,29 +21,29 @@ public class ResourceLoaderToolsTest
       System.arraycopy(topLevelResourceDirectories, 0, resourceDirectories, 0, resourceDirectories.length);
    }
 
+   // These tests don't really serve any purpose other than to see what code is being run when using a test coverage tool
    @Test
-   public void testCreatingZipBundleWithOutModels()
+   public void testCreatingZipBundleWithAllModels() throws IOException
    {
-      createZipBundle(os, null, resourceDirectories);
+      ResourceLoaderTools.createZipBundle(os, null, resourceDirectories);
    }
 
+   // These tests don't really serve any purpose other than to see what code is being run when using a test coverage tool
    @Test
-   public void testCreatingZipWithModels()
+   public void testCreatingZipBundleWithFilteredModels() throws IOException
    {
       // This should include the directory your_mom from the zip bundle
-      Pattern include = Pattern.compile("models\\\\your_mom\\\\.*");
-      createZipBundle(os, include, resourceDirectories);
-   }
+      String[] resourceModelsToBeLogged = {"models\\nadia_V17"};
+      Predicate<String> filter = resourcePath ->
+      {
+         for (String model : resourceModelsToBeLogged)
+         {
+            if(resourcePath.startsWith(model))
+               return true;
+         }
 
-   public void createZipBundle(ByteArrayOutputStream os, Pattern include, String[] resourceDirectories)
-   {
-      try
-      {
-         ResourceLoaderTools.createZipBundle(os, null, resourceDirectories);
-      }
-      catch (IOException e)
-      {
-         throw new RuntimeException(e);
-      }
+         return false;
+      };
+      ResourceLoaderTools.createZipBundle(os, filter, resourceDirectories);
    }
 }
