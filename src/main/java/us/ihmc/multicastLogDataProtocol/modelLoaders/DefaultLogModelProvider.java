@@ -3,12 +3,12 @@ package us.ihmc.multicastLogDataProtocol.modelLoaders;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.SequenceInputStream;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
-
-import us.ihmc.log.LogTools;
 import us.ihmc.tools.ResourceLoaderTools;
 
 public class DefaultLogModelProvider<T> implements LogModelProvider
@@ -21,7 +21,7 @@ public class DefaultLogModelProvider<T> implements LogModelProvider
 
    public DefaultLogModelProvider(Class<T> modelLoader,
                                   String modelName,
-                                  InputStream modelFileAsStream,
+                                  Collection<InputStream> modelsAsStreams,
                                   Predicate<String> filter,
                                   String[] topLevelResourceDirectories)
    {
@@ -30,7 +30,7 @@ public class DefaultLogModelProvider<T> implements LogModelProvider
 
       try
       {
-         this.model = IOUtils.toByteArray(modelFileAsStream);
+         this.model = packModels(modelsAsStreams);
       }
       catch (IOException e)
       {
@@ -40,6 +40,41 @@ public class DefaultLogModelProvider<T> implements LogModelProvider
       this.filter = filter;
       this.topLevelResourceDirectories = new String[topLevelResourceDirectories.length];
       System.arraycopy(topLevelResourceDirectories, 0, this.topLevelResourceDirectories, 0, topLevelResourceDirectories.length);
+   }
+
+   /**
+    * Returns the byte array of the combined InputStreams to be sent over the network
+    * @param models the collection of InputStream's that will be combined and sent over the network
+    * @return the combined byte array of InputStreams with metadata that allows for getting the original InputStreams back
+    */
+   private static byte[] packModels(Collection<InputStream> models) throws IOException
+   {
+      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+      for (InputStream model : models)
+      {
+         // We need to get the length of data to write to set the metadata correct so that on the client side it knows how long each model is.
+         // So we go through each stream to get the length to add that to the metadata
+         ByteArrayOutputStream temp = new ByteArrayOutputStream();
+         byte[] buffer = new byte[4096];
+         int bytesRead;
+         while ((bytesRead = model.read(buffer)) != -1)
+         {
+            temp.write(buffer, 0, bytesRead);
+         }
+         long length = temp.size();
+         byte[] data = temp.toByteArray();
+
+         // Write the length as a 4-byte integer (32 bits)
+         outputStream.write((int) (length >> 24));
+         outputStream.write((int) (length >> 16));
+         outputStream.write((int) (length >> 8));
+         outputStream.write((int) length);
+         // Write the data after the meta data
+         outputStream.write(data);
+      }
+
+      return outputStream.toByteArray();
    }
 
    @Override
