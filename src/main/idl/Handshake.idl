@@ -75,7 +75,7 @@ module robotDataLogger{
     {
         sequence<string, 64> fieldNames;
         sequence<string, 64> fieldValues;
-    }
+    };
 
 	struct ReferenceFrameInformation
 	{
