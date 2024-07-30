@@ -1,6 +1,7 @@
 package us.ihmc.robotDataLogger.captureVideo;
 
 import org.bytedeco.ffmpeg.global.avcodec;
+import org.bytedeco.ffmpeg.global.avutil;
 import org.bytedeco.javacv.*;
 import us.ihmc.log.LogTools;
 
@@ -56,9 +57,12 @@ public class ExampleBytedecoWindowsCapture
             {
                 // Trying these settings for now (H264 is a bad setting because of slicing)
                 recorder.setVideoOption("tune", "zerolatency");
-                recorder.setVideoCodec(avcodec.AV_CODEC_ID_MPEG4);
                 recorder.setFormat("mov");
+                recorder.setVideoCodec(avcodec.AV_CODEC_ID_MJPEG);
+                recorder.setPixelFormat(avutil.AV_PIX_FMT_YUV420P);
                 recorder.setFrameRate(60);
+
+                recorder.setVideoOption("strict", "-2");
 
                 // Start the recording piece of equipment, webcam and decklink work
                 recorder.start();

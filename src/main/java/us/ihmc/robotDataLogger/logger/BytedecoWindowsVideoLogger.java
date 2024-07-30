@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.bytedeco.ffmpeg.global.avutil;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.javadecklink.CaptureHandler;
@@ -25,6 +26,7 @@ public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface impleme
    private FFmpegFrameRecorder recorder;
 
    private volatile long lastFrameTimestamp = 0;
+   private int timestampCounter;
 
    public BytedecoWindowsVideoLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
    {
@@ -55,9 +57,14 @@ public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface impleme
 
             // Trying these settings for now (H264 is a bad setting because of slicing)
             recorder.setVideoOption("tune", "zerolatency");
-            recorder.setVideoCodec(avcodec.AV_CODEC_ID_MPEG4);
             recorder.setFormat("mov");
+            // This video codec is deprecated, so in order to use it without errors we have to set the pixel format and strictly allow FFMPEG to use it
+            recorder.setVideoCodec(avcodec.AV_CODEC_ID_MJPEG);
+            recorder.setPixelFormat(avutil.AV_PIX_FMT_YUV420P);
+            recorder.setVideoOption("strict", "-2");
+            // Frame rate of video recordings
             recorder.setFrameRate(60);
+
          }
          default -> throw new RuntimeException();
       }
@@ -74,8 +81,7 @@ public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface impleme
             }
             catch (FFmpegFrameRecorder.Exception | FrameGrabber.Exception e)
             {
-               LogTools.info("Last frame is bad, shutting down normally becaus of threading");
-//               throw new RuntimeException(e);
+               LogTools.error("Last frame is bad, shutting down gracefully because of threading");
             }
          }, "BytedecoWindowsCapture");
       }
@@ -107,7 +113,7 @@ public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface impleme
       recorder.start();
 
       long startTime = 0;
-      while (recorder != null)
+      while (!recorder.isCloseOutputStream())
       {
          Frame capturedFrame;
 
@@ -162,7 +168,13 @@ public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface impleme
 
          if (hardwareTimestamp > 0)
          {
-            LogTools.info("hardwareTimestamp={}, newTimestamp={}", hardwareTimestamp, newTimestamp);
+            if (timestampCounter == 500)
+            {
+               timestampCounter = 0;
+               LogTools.info("hardwareTimestamp={}, newTimestamp={}", hardwareTimestamp, newTimestamp);
+            }
+
+            timestampCounter++;
             circularLongMap.insert(hardwareTimestamp, newTimestamp);
          }
       }
@@ -188,6 +200,7 @@ public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface impleme
          try
          {
             LogTools.info("Stopping capture.");
+            recorder.setCloseOutputStream(true);
             recorder.flush();
             recorder.stop();
             grabber.stop();
