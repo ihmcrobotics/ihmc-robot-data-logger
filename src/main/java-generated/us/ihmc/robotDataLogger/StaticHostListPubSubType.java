@@ -11,6 +11,18 @@ package us.ihmc.robotDataLogger;
 public class StaticHostListPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robotDataLogger.StaticHostList>
 {
    public static final java.lang.String name = "us::ihmc::robotDataLogger::StaticHostList";
+   
+   @Override
+   public final java.lang.String getDefinitionChecksum()
+   {
+   		return "baf103896d3dc56cbce60810b7ce0bc2a8f722478377da362963af4f50e85a63";
+   }
+   
+   @Override
+   public final java.lang.String getDefinitionVersion()
+   {
+   		return "local";
+   }
 
    private final us.ihmc.idl.CDR serializeCDR = new us.ihmc.idl.CDR();
    private final us.ihmc.idl.CDR deserializeCDR = new us.ihmc.idl.CDR();

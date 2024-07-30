@@ -14,20 +14,20 @@ import org.bytedeco.javacv.*;
 
 public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
 {
-   private int frame;
    private static FileWriter timestampWriter;
-
-   private final int deviceNumber;
    private final YoVariableLoggerOptions options;
+
    private OpenCVFrameGrabber grabber;
    private FFmpegFrameRecorder recorder;
 
-    private volatile long latestTimeStampFromController = 0;
-   private int timestampCounter;
+   private int framesReceivedFromCameraCounter;
+   private int timeStampFromControllerCounter;
+   private final int deviceNumber;
+   private volatile long latestTimeStampFromController = 0;
 
-   public MagewellVideoDataLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
+   public MagewellVideoDataLogger(String name, String captureType, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
    {
-      super(logPath, logProperties, name);
+      super(logPath, captureType, logProperties, name);
       deviceNumber = decklinkID;
       this.options = options;
 
@@ -43,7 +43,8 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
       int captureWidth = 1920;
       int captureHeight = 1080;
 
-      switch (options.getVideoCodec()) {
+      switch (options.getVideoCodec())
+      {
          case AV_CODEC_ID_H264, AV_CODEC_ID_MJPEG ->
          {
             grabber = new OpenCVFrameGrabber(deviceNumber);
@@ -61,7 +62,6 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
             recorder.setVideoOption("strict", "-2");
             // Frame rate of video recordings
             recorder.setFrameRate(60);
-
          }
          default -> throw new RuntimeException();
       }
@@ -71,16 +71,16 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
          timestampWriter = new FileWriter(timestampFile);
 
          ThreadTools.startAThread(() ->
-         {
-            try
-            {
-               startCapture();
-            }
-            catch (FFmpegFrameRecorder.Exception | FrameGrabber.Exception e)
-            {
-               LogTools.error("Last frame is bad but who cares, shutting down gracefully because of threading");
-            }
-         }, "BytedecoWindowsCapture");
+                                  {
+                                     try
+                                     {
+                                        startCapture();
+                                     }
+                                     catch (FFmpegFrameRecorder.Exception | FrameGrabber.Exception e)
+                                     {
+                                        LogTools.error("Last frame is bad but who cares, shutting down gracefully because of threading");
+                                     }
+                                  }, "MagewellCapture");
       }
       catch (IOException e)
       {
@@ -150,8 +150,10 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
    }
 
    /**
-    * This receives a new timestamp from the controller. When we receive a new frame, we want to get the latest timestamp from the controller and store it with the timestamp for the frame.
+    * This receives a new timestamp from the controller. When we receive a new frame, we want to get the latest timestamp from the controller and store it with
+    * the timestamp for the frame.
     * This way when looking at the log we have each camera frame (timestamp) synced to the latest controller timestamp, so they match.
+    *
     * @param latestTimeStampFromController is the latest timestamp from the controller
     */
    @Override
@@ -162,13 +164,13 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
          // Update the latest timestamp from the controller
          // Note: we don't always get the timestamps on time, because of networking and such, we need to account for that when saving the frame
          this.latestTimeStampFromController = latestTimeStampFromController;
-            if (timestampCounter == 1000)
-            {
-               timestampCounter = 0;
-               LogTools.warn("From Controller (latestTimeStampFromController)={}", this.latestTimeStampFromController);
-            }
+         if (timeStampFromControllerCounter == 1000)
+         {
+            timeStampFromControllerCounter = 0;
+            LogTools.warn("From Controller (latestTimeStampFromController)={}", this.latestTimeStampFromController);
+         }
 
-            timestampCounter++;
+         timeStampFromControllerCounter++;
       }
    }
 
@@ -191,7 +193,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
             grabber.stop();
 
             timestampWriter.close();
-            LogTools.info("Whew we did it! Done");
+            System.out.println("Whew we did it! Done");
          }
          catch (IOException e)
          {
@@ -200,7 +202,6 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
          recorder = null;
          timestampWriter = null;
       }
-
    }
 
    @Override
@@ -214,21 +215,26 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
          // TODO check for duplicate timestamps from the controller, and interpolate to a reasonable guess of what the controller time might be
          // Could check the last values from controller and see on average how much time goes in between them, and then add that to get the expected
          // that we want to record with.
-         if (frame % 500 == 0) {
+         if (framesReceivedFromCameraCounter % 500 == 0)
+         {
             LogTools.info("----- Saving the current frame at the current controller timestamp -----");
-            LogTools.info("Camera Device Number: {}, at Frame: {},", deviceNumber, frame);
+            LogTools.info("Camera Device Number: {}, at Frame: {},", deviceNumber, framesReceivedFromCameraCounter);
             LogTools.info("latestTimeStampFromController={}, recorderTimeStamp={}", controllerTimeStamp, recorderTimeStamp);
          }
-         try {
-            if (frame == 0) {
+         try
+         {
+            if (framesReceivedFromCameraCounter == 0)
+            {
                timestampWriter.write(timeScaleNumerator + "\n");
                timestampWriter.write(timeScaleDenumerator + "\n");
             }
             timestampWriter.write(controllerTimeStamp + " " + recorderTimeStamp + "\n");
-         } catch (IOException e) {
+         }
+         catch (IOException e)
+         {
             e.printStackTrace();
          }
-         ++frame;
+         ++framesReceivedFromCameraCounter;
       }
    }
 

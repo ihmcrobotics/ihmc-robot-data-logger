@@ -35,7 +35,7 @@ public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implement
 
     public GStreamerVideoDataLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
     {
-        super(logPath, logProperties, name);
+        super(logPath, null, logProperties, name);
 
         this.decklinkID = decklinkID;
         createCaptureInterface();
