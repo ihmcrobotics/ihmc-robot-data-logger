@@ -84,7 +84,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
       dataConsumer = new WebsocketDataConsumer(connection, timeout);
       serverName = connection.getAnnouncement().getNameAsString();
 
-      LogTools.info("Requesting handshake from {}", connection.getAnnouncement().getHostNameAsString());
+      LogTools.info("Requesting handshake, model, and resource bundle from some stuff...");
       Handshake handshake = dataConsumer.getHandshake();
 
       IDLYoVariableHandshakeParser handshakeParser = new IDLYoVariableHandshakeParser(HandshakeFileType.IDL_CDR);
@@ -96,16 +96,16 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
       {
          String modelName = announcement.getModelFileDescription().getNameAsString();
          logHandshake.setModelName(modelName);
-         LogTools.info("Requesting model file from " + modelName);
+         // Requesting model file
          logHandshake.setModel(dataConsumer.getModelFile());
          logHandshake.setModelLoaderClass(announcement.getModelFileDescription().getModelLoaderClassAsString());
          logHandshake.setResourceDirectories(announcement.getModelFileDescription().getResourceDirectories().toStringArray());
          if (announcement.getModelFileDescription().getHasResourceZip())
          {
-            LogTools.info("Requesting resource bundle");
+            // Requesting resource bundle
             logHandshake.setResourceZip(dataConsumer.getResourceZip());
          }
-         LogTools.info("Received model");
+         LogTools.info("Received model, resource bundle, and the works");
 
       }
 

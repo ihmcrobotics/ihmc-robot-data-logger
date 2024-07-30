@@ -349,7 +349,8 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    @Override
    public void disconnected()
    {
-      LogTools.info("Finalizing log from " + request.getHostNameAsString());
+      LogTools.info("Finalizing log from host: " + request.getHostNameAsString());
+      LogTools.info("Log is saved as: " + finalDirectory);
 
       try
       {

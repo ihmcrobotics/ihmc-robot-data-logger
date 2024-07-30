@@ -18,7 +18,6 @@ import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.AnnouncementPubSubType;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.HandshakePubSubType;
-import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.util.HandshakeHashCalculator;
 
@@ -61,7 +60,7 @@ public class DataServerServerContent
             announcement.getModelFileDescription().setName(logModelProvider.getModelName());
             announcement.getModelFileDescription().setModelLoaderClass(logModelProvider.getLoader().getCanonicalName());
             announcement.getModelFileDescription().setModelFileSize(model.length);
-            for (String resourceDirectory : logModelProvider.getResourceDirectories())
+            for (String resourceDirectory : logModelProvider.getTopLevelResourceDirectories())
             {
                announcement.getModelFileDescription().getResourceDirectories().add(resourceDirectory);
             }

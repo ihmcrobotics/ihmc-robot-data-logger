@@ -2,20 +2,20 @@ import us.ihmc.idl.generator.IDLGenerator
 
 buildscript {
    dependencies {
-      classpath("us.ihmc:ihmc-pub-sub-generator:0.18.5")
+      classpath("us.ihmc:ihmc-pub-sub-generator:0.19.0")
    }
 }
 
 plugins {
    id("us.ihmc.ihmc-build")
    id("us.ihmc.ihmc-ci") version "8.3"
-   id("us.ihmc.ihmc-cd") version "1.24"
+   id("us.ihmc.ihmc-cd") version "1.26"
    id("us.ihmc.log-tools-plugin") version "0.6.3"
 }
 
 ihmc {
    group = "us.ihmc"
-   version = "0.28.3"
+   version = "0.29.0"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
@@ -37,17 +37,17 @@ mainDependencies {
    api("org.openjdk.jol:jol-core:0.9")
    api("org.apache.commons:commons-text:1.9")
 
-   api("us.ihmc:euclid:0.20.0")
+   api("us.ihmc:euclid:0.21.0")
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-realtime:1.6.0")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
-   api("us.ihmc:ihmc-pub-sub:0.18.5")
-   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.18.5")
+   api("us.ihmc:ihmc-pub-sub:0.19.0")
+   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.19.0")
    api("us.ihmc:ihmc-commons:0.32.0")
-   api("us.ihmc:ihmc-graphics-description:0.20.5")
-   api("us.ihmc:mecano:17-0.12.3")
+   api("us.ihmc:ihmc-graphics-description:0.25.1")
+   api("us.ihmc:mecano:17-0.18.1")
    api("com.hierynomus:sshj:0.31.0")
-   api("us.ihmc:scs2-definition:17-0.15.1")
+   api("us.ihmc:scs2-definition:17-0.26.0")
 
    api("org.bytedeco:javacv:1.5.10")
    api("org.bytedeco:javacpp:1.5.10")
