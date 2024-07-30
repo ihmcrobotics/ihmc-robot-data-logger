@@ -350,7 +350,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    public void disconnected()
    {
       LogTools.info("Finalizing log from host: " + request.getHostNameAsString());
-      LogTools.info("Log is saved as: " + finalDirectory);
 
       try
       {
@@ -369,7 +368,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       if (!connected)
       {
-         LogTools.error("Never started logging, cleaning up");
+         LogTools.error("Never started logging, cleaning up from host: ", request.getHostNameAsString());
          for (VideoDataLoggerInterface videoDataLogger : videoDataLoggers)
          {
             videoDataLogger.removeLogFiles();
@@ -430,6 +429,9 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          }
 
          tempDirectory.renameTo(finalDirectory);
+
+         // This gets printed here because it's been successful and is the final location of the log directory
+         LogTools.info("Log is saved as: " + finalDirectory);
 
          doneListener.accept(request);
       }
@@ -508,7 +510,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                   switch (camera.getType())
                   {
                      case CAPTURE_CARD:
-                        videoDataLoggers.add(new BytedecoWindowsVideoLogger(camera.getNameAsString(),
+                        videoDataLoggers.add(new MagewellVideoDataLogger(camera.getNameAsString(),
                                                                            tempDirectory,
                                                                            logProperties,
                                                                            Byte.parseByte(camera.getIdentifierAsString()),

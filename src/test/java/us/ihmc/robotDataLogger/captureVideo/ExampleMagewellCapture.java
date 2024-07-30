@@ -17,7 +17,7 @@ import java.io.IOException;
  * This example works with either SDI or HDMI as the camera cable
  */
 
-public class ExampleBytedecoWindowsCapture
+public class ExampleMagewellCapture
 {
     private static final int WEBCAM_DEVICE_INDEX = 0;
     private static long startTime = 0;

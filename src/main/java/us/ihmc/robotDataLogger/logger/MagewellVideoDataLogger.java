@@ -5,19 +5,16 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import org.bytedeco.ffmpeg.global.avutil;
-import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.javadecklink.CaptureHandler;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.LogProperties;
-import us.ihmc.tools.maps.CircularLongMap;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.*;
 
-public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface implements CaptureHandler
+public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
 {
    private int frame;
-   private final CircularLongMap circularLongMap = new CircularLongMap(10000);
    private static FileWriter timestampWriter;
 
    private final int deviceNumber;
@@ -25,10 +22,10 @@ public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface impleme
    private OpenCVFrameGrabber grabber;
    private FFmpegFrameRecorder recorder;
 
-   private volatile long lastFrameTimestamp = 0;
+    private volatile long latestTimeStampFromController = 0;
    private int timestampCounter;
 
-   public BytedecoWindowsVideoLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
+   public MagewellVideoDataLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
    {
       super(logPath, logProperties, name);
       deviceNumber = decklinkID;
@@ -81,7 +78,7 @@ public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface impleme
             }
             catch (FFmpegFrameRecorder.Exception | FrameGrabber.Exception e)
             {
-               LogTools.error("Last frame is bad, shutting down gracefully because of threading");
+               LogTools.error("Last frame is bad but who cares, shutting down gracefully because of threading");
             }
          }, "BytedecoWindowsCapture");
       }
@@ -102,7 +99,7 @@ public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface impleme
          }
 
          timestampWriter = null;
-         LogTools.info("Cannot start capture interface");
+         LogTools.info("Cannot start capture interface, timestamp file might already exist");
          e.printStackTrace();
       }
    }
@@ -112,31 +109,28 @@ public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface impleme
       grabber.start();
       recorder.start();
 
-      long startTime = 0;
+      long startTime = System.currentTimeMillis();
       while (!recorder.isCloseOutputStream())
       {
          Frame capturedFrame;
 
          if ((capturedFrame = grabber.grab()) != null)
          {
-            if (startTime == 0)
-               startTime = System.currentTimeMillis();
-
+            // Ensure the video timestamp is ahead of the record's current timestamp
             long videoTS = 1000 * (System.currentTimeMillis() - startTime);
-
             if (videoTS > recorder.getTimestamp())
             {
                // We tell the recorder to write this frame at this timestamp
                recorder.setTimestamp(videoTS);
             }
 
+            // This is where a frame is record, and we then need to store the timestamps, so they are synced
             recorder.record(capturedFrame);
-            // System.nanoTime() represents the controllerTimestamp in this example since its fake
             receivedFrameAtTime(System.nanoTime(), recorder.getTimestamp(), 1, 60000);
          }
          else
          {
-            LogTools.info("Captured frame is null");
+            LogTools.warn("Captured frame is null, rest in peace");
          }
       }
 
@@ -155,36 +149,27 @@ public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface impleme
       createCaptureInterface();
    }
 
-   /*
-    * (non-Javadoc)
-    * @see us.ihmc.robotDataLogger.logger.VideoDataLoggerInterface#timestampChanged(long)
+   /**
+    * This receives a new timestamp from the controller. When we receive a new frame, we want to get the latest timestamp from the controller and store it with the timestamp for the frame.
+    * This way when looking at the log we have each camera frame (timestamp) synced to the latest controller timestamp, so they match.
+    * @param latestTimeStampFromController is the latest timestamp from the controller
     */
    @Override
-   public void timestampChanged(long newTimestamp)
+   public void timestampChanged(long latestTimeStampFromController)
    {
       if (recorder != null)
       {
-         long hardwareTimestamp = getHardwareTimestamp();
-
-         if (hardwareTimestamp > 0)
-         {
-            if (timestampCounter == 500)
+         // Update the latest timestamp from the controller
+         // Note: we don't always get the timestamps on time, because of networking and such, we need to account for that when saving the frame
+         this.latestTimeStampFromController = latestTimeStampFromController;
+            if (timestampCounter == 1000)
             {
                timestampCounter = 0;
-               LogTools.info("hardwareTimestamp={}, newTimestamp={}", hardwareTimestamp, newTimestamp);
+               LogTools.warn("From Controller (latestTimeStampFromController)={}", this.latestTimeStampFromController);
             }
 
             timestampCounter++;
-            circularLongMap.insert(hardwareTimestamp, newTimestamp);
-         }
       }
-   }
-
-   private long getHardwareTimestamp()
-   {
-
-      return System.nanoTime();
-//      return Math.round(recorder.getFrameNumber() * 1000000000L / recorder.getFrameRate());
    }
 
    /*
@@ -194,20 +179,19 @@ public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface impleme
    @Override
    public void close()
    {
-      LogTools.info("Signalling recorder to shut down.");
+      LogTools.info("Attempting to Stop video...");
       if (recorder != null)
       {
          try
          {
-            LogTools.info("Stopping capture.");
+            LogTools.info("Stopping capture, closing output stream of recorder, closing timestamp file... (Don't panic)");
             recorder.setCloseOutputStream(true);
             recorder.flush();
             recorder.stop();
             grabber.stop();
 
-            LogTools.info("Closing writer.");
             timestampWriter.close();
-            LogTools.info("Done.");
+            LogTools.info("Whew we did it! Done");
          }
          catch (IOException e)
          {
@@ -220,31 +204,28 @@ public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface impleme
    }
 
    @Override
-   public void receivedFrameAtTime(long hardwareTime, long pts, long timeScaleNumerator, long timeScaleDenumerator)
+   public void receivedFrameAtTime(long hardwareTime, long recorderTimeStamp, long timeScaleNumerator, long timeScaleDenumerator)
    {
-      if (circularLongMap.size() > 0)
+      // This prevents us from logging frames at the beginning of a log when things are just starting up
+      if (latestTimeStampFromController != 0)
       {
-         if (frame % 600 == 0)
-         {
-            double delayInS = Conversions.nanosecondsToSeconds(circularLongMap.getLatestKey() - hardwareTime);
-            System.out.println("[Decklink " + deviceNumber + "] Received frame " + frame + ". Delay: " + delayInS + "s. pts: " + pts);
+         long controllerTimeStamp = this.latestTimeStampFromController;
+
+         // TODO check for duplicate timestamps from the controller, and interpolate to a reasonable guess of what the controller time might be
+         // Could check the last values from controller and see on average how much time goes in between them, and then add that to get the expected
+         // that we want to record with.
+         if (frame % 500 == 0) {
+            LogTools.info("----- Saving the current frame at the current controller timestamp -----");
+            LogTools.info("Camera Device Number: {}, at Frame: {},", deviceNumber, frame);
+            LogTools.info("latestTimeStampFromController={}, recorderTimeStamp={}", controllerTimeStamp, recorderTimeStamp);
          }
-
-         long robotTimestamp = circularLongMap.getValue(true, hardwareTime);
-
-         try
-         {
-            if (frame == 0)
-            {
+         try {
+            if (frame == 0) {
                timestampWriter.write(timeScaleNumerator + "\n");
                timestampWriter.write(timeScaleDenumerator + "\n");
             }
-            timestampWriter.write(robotTimestamp + " " + pts + "\n");
-
-            lastFrameTimestamp = System.nanoTime();
-         }
-         catch (IOException e)
-         {
+            timestampWriter.write(controllerTimeStamp + " " + recorderTimeStamp + "\n");
+         } catch (IOException e) {
             e.printStackTrace();
          }
          ++frame;
@@ -254,6 +235,6 @@ public class BytedecoWindowsVideoLogger extends VideoDataLoggerInterface impleme
    @Override
    public long getLastFrameReceivedTimestamp()
    {
-      return lastFrameTimestamp;
+      return recorder.getTimestamp();
    }
 }
