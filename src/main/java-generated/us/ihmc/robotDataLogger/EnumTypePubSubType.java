@@ -11,6 +11,18 @@ package us.ihmc.robotDataLogger;
 public class EnumTypePubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robotDataLogger.EnumType>
 {
    public static final java.lang.String name = "us::ihmc::robotDataLogger::EnumType";
+   
+   @Override
+   public final java.lang.String getDefinitionChecksum()
+   {
+   		return "80e80cd3d776326ea346e58b62baf63b391b44f4d9d346f21c105f4dcb93c7e9";
+   }
+   
+   @Override
+   public final java.lang.String getDefinitionVersion()
+   {
+   		return "local";
+   }
 
    private final us.ihmc.idl.CDR serializeCDR = new us.ihmc.idl.CDR();
    private final us.ihmc.idl.CDR deserializeCDR = new us.ihmc.idl.CDR();

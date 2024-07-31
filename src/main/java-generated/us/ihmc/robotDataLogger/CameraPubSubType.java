@@ -11,6 +11,18 @@ package us.ihmc.robotDataLogger;
 public class CameraPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robotDataLogger.Camera>
 {
    public static final java.lang.String name = "us::ihmc::robotDataLogger::Camera";
+   
+   @Override
+   public final java.lang.String getDefinitionChecksum()
+   {
+   		return "6d7fe7d3d8b07e957ab466dc84e2d5f653d3e2cceab5599496e96b3271adb0ea";
+   }
+   
+   @Override
+   public final java.lang.String getDefinitionVersion()
+   {
+   		return "local";
+   }
 
    private final us.ihmc.idl.CDR serializeCDR = new us.ihmc.idl.CDR();
    private final us.ihmc.idl.CDR deserializeCDR = new us.ihmc.idl.CDR();
@@ -41,6 +53,7 @@ public class CameraPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.ro
       int initial_alignment = current_alignment;
 
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
 
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
@@ -58,6 +71,8 @@ public class CameraPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.ro
    {
       int initial_alignment = current_alignment;
 
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + data.getType().length() + 1;
+
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + data.getName().length() + 1;
 
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
@@ -73,6 +88,10 @@ public class CameraPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.ro
 
    public static void write(us.ihmc.robotDataLogger.Camera data, us.ihmc.idl.CDR cdr)
    {
+      if(data.getType().length() <= 255)
+      cdr.write_type_d(data.getType());else
+          throw new RuntimeException("type field exceeds the maximum length");
+
       if(data.getName().length() <= 255)
       cdr.write_type_d(data.getName());else
           throw new RuntimeException("name field exceeds the maximum length");
@@ -91,6 +110,7 @@ public class CameraPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.ro
 
    public static void read(us.ihmc.robotDataLogger.Camera data, us.ihmc.idl.CDR cdr)
    {
+      cdr.read_type_d(data.getType());	
       cdr.read_type_d(data.getName());	
       data.setInterlaced(cdr.read_type_7());
       	
@@ -102,6 +122,7 @@ public class CameraPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.ro
    @Override
    public final void serialize(us.ihmc.robotDataLogger.Camera data, us.ihmc.idl.InterchangeSerializer ser)
    {
+      ser.write_type_d("type", data.getType());
       ser.write_type_d("name", data.getName());
       ser.write_type_7("interlaced", data.getInterlaced());
       ser.write_type_d("videoFile", data.getVideoFile());
@@ -111,6 +132,7 @@ public class CameraPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.ro
    @Override
    public final void deserialize(us.ihmc.idl.InterchangeSerializer ser, us.ihmc.robotDataLogger.Camera data)
    {
+      ser.read_type_d("type", data.getType());
       ser.read_type_d("name", data.getName());
       data.setInterlaced(ser.read_type_7("interlaced"));
       ser.read_type_d("videoFile", data.getVideoFile());

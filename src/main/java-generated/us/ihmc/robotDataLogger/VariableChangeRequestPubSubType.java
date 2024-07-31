@@ -11,6 +11,18 @@ package us.ihmc.robotDataLogger;
 public class VariableChangeRequestPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robotDataLogger.VariableChangeRequest>
 {
    public static final java.lang.String name = "us::ihmc::robotDataLogger::VariableChangeRequest";
+   
+   @Override
+   public final java.lang.String getDefinitionChecksum()
+   {
+   		return "b76f61025c9b74d06b6b77226d10514630007bf6557e051852b9dcdc4e7793ba";
+   }
+   
+   @Override
+   public final java.lang.String getDefinitionVersion()
+   {
+   		return "local";
+   }
 
    private final us.ihmc.idl.CDR serializeCDR = new us.ihmc.idl.CDR();
    private final us.ihmc.idl.CDR deserializeCDR = new us.ihmc.idl.CDR();
