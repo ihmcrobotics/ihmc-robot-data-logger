@@ -9,6 +9,7 @@ import us.ihmc.pubsub.TopicDataType;
 public class Camera extends Packet<Camera> implements Settable<Camera>, EpsilonComparable<Camera>
 {
    // Camera definition
+   public java.lang.StringBuilder type_;
    public java.lang.StringBuilder name_;
    // Human readable camera name
    public boolean interlaced_;
@@ -19,6 +20,7 @@ public class Camera extends Packet<Camera> implements Settable<Camera>, EpsilonC
 
    public Camera()
    {
+      type_ = new java.lang.StringBuilder(255);
       name_ = new java.lang.StringBuilder(255);
       videoFile_ = new java.lang.StringBuilder(255);
       timestampFile_ = new java.lang.StringBuilder(255);
@@ -32,6 +34,9 @@ public class Camera extends Packet<Camera> implements Settable<Camera>, EpsilonC
 
    public void set(Camera other)
    {
+      type_.setLength(0);
+      type_.append(other.type_);
+
       name_.setLength(0);
       name_.append(other.name_);
 
@@ -46,18 +51,33 @@ public class Camera extends Packet<Camera> implements Settable<Camera>, EpsilonC
    }
 
    // Camera definition
+   public void setType(java.lang.String type)
+   {
+      type_.setLength(0);
+      type_.append(type);
+   }
+
+   // Camera definition
+   public java.lang.String getTypeAsString()
+   {
+      return getType().toString();
+   }
+   // Camera definition
+   public java.lang.StringBuilder getType()
+   {
+      return type_;
+   }
+
    public void setName(java.lang.String name)
    {
       name_.setLength(0);
       name_.append(name);
    }
 
-   // Camera definition
    public java.lang.String getNameAsString()
    {
       return getName().toString();
    }
-   // Camera definition
    public java.lang.StringBuilder getName()
    {
       return name_;
@@ -128,6 +148,8 @@ public class Camera extends Packet<Camera> implements Settable<Camera>, EpsilonC
       if(other == null) return false;
       if(other == this) return true;
 
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsStringBuilder(this.type_, other.type_, epsilon)) return false;
+
       if (!us.ihmc.idl.IDLTools.epsilonEqualsStringBuilder(this.name_, other.name_, epsilon)) return false;
 
       if (!us.ihmc.idl.IDLTools.epsilonEqualsBoolean(this.interlaced_, other.interlaced_, epsilon)) return false;
@@ -149,6 +171,8 @@ public class Camera extends Packet<Camera> implements Settable<Camera>, EpsilonC
 
       Camera otherMyClass = (Camera) other;
 
+      if (!us.ihmc.idl.IDLTools.equals(this.type_, otherMyClass.type_)) return false;
+
       if (!us.ihmc.idl.IDLTools.equals(this.name_, otherMyClass.name_)) return false;
 
       if(this.interlaced_ != otherMyClass.interlaced_) return false;
@@ -167,6 +191,8 @@ public class Camera extends Packet<Camera> implements Settable<Camera>, EpsilonC
       StringBuilder builder = new StringBuilder();
 
       builder.append("Camera {");
+      builder.append("type=");
+      builder.append(this.type_);      builder.append(", ");
       builder.append("name=");
       builder.append(this.name_);      builder.append(", ");
       builder.append("interlaced=");

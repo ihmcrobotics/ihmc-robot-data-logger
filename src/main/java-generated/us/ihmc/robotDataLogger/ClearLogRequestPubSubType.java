@@ -11,6 +11,18 @@ package us.ihmc.robotDataLogger;
 public class ClearLogRequestPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robotDataLogger.ClearLogRequest>
 {
    public static final java.lang.String name = "us::ihmc::robotDataLogger::ClearLogRequest";
+   
+   @Override
+   public final java.lang.String getDefinitionChecksum()
+   {
+   		return "a8884f5c6d27c0aca20011f680b6d9de1dfb33464e6a527d63a8202455a8cc98";
+   }
+   
+   @Override
+   public final java.lang.String getDefinitionVersion()
+   {
+   		return "local";
+   }
 
    private final us.ihmc.idl.CDR serializeCDR = new us.ihmc.idl.CDR();
    private final us.ihmc.idl.CDR deserializeCDR = new us.ihmc.idl.CDR();

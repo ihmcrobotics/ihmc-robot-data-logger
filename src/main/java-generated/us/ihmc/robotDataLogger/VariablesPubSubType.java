@@ -11,6 +11,18 @@ package us.ihmc.robotDataLogger;
 public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robotDataLogger.Variables>
 {
    public static final java.lang.String name = "us::ihmc::robotDataLogger::Variables";
+   
+   @Override
+   public final java.lang.String getDefinitionChecksum()
+   {
+   		return "6d7fe7d3d8b07e957ab466dc84e2d5f653d3e2cceab5599496e96b3271adb0ea";
+   }
+   
+   @Override
+   public final java.lang.String getDefinitionVersion()
+   {
+   		return "local";
+   }
 
    private final us.ihmc.idl.CDR serializeCDR = new us.ihmc.idl.CDR();
    private final us.ihmc.idl.CDR deserializeCDR = new us.ihmc.idl.CDR();
