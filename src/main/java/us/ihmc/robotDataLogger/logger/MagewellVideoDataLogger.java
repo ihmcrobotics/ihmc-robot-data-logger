@@ -14,11 +14,11 @@ import org.bytedeco.javacv.*;
 
 public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
 {
-   private static FileWriter timestampWriter;
    private final YoVariableLoggerOptions options;
 
    private OpenCVFrameGrabber grabber;
    private FFmpegFrameRecorder recorder;
+   private FileWriter timestampWriter;
 
    private int framesReceivedFromCameraCounter;
    private int timeStampFromControllerCounter;
@@ -53,7 +53,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
 
             recorder = new FFmpegFrameRecorder(videoCaptureFile, captureWidth, captureHeight);
 
-            // Trying these settings for now (H264 is a bad setting because of slicing)
+            // These settings have the best performance (H264 is a bad setting because of slicing)
             recorder.setVideoOption("tune", "zerolatency");
             recorder.setFormat("mov");
             // This video codec is deprecated, so in order to use it without errors we have to set the pixel format and strictly allow FFMPEG to use it
@@ -78,7 +78,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
                                      }
                                      catch (FFmpegFrameRecorder.Exception | FrameGrabber.Exception e)
                                      {
-                                        LogTools.error("Last frame is bad but who cares, shutting down gracefully because of threading");
+                                        LogTools.error("Last frame is bad for {} but who cares, shutting down gracefully because of threading", deviceNumber);
                                      }
                                   }, "MagewellCapture");
       }
@@ -164,10 +164,10 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
          // Update the latest timestamp from the controller
          // Note: we don't always get the timestamps on time, because of networking and such, we need to account for that when saving the frame
          this.latestTimeStampFromController = latestTimeStampFromController;
-         if (timeStampFromControllerCounter == 1000)
+         if (timeStampFromControllerCounter == 5000)
          {
             timeStampFromControllerCounter = 0;
-            LogTools.warn("From Controller (latestTimeStampFromController)={}", this.latestTimeStampFromController);
+            LogTools.warn("For Device: {} From Controller (latestTimeStampFromController)={}", this.deviceNumber, this.latestTimeStampFromController);
          }
 
          timeStampFromControllerCounter++;
