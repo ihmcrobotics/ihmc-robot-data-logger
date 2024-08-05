@@ -25,10 +25,11 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
    private final int deviceNumber;
    private volatile long latestTimeStampFromController = 0;
 
-   public MagewellVideoDataLogger(String name, String captureType, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
+   public MagewellVideoDataLogger(String name, String captureType, File logPath, LogProperties logProperties, int deviceNumber, YoVariableLoggerOptions options)
+         throws IOException
    {
       super(logPath, captureType, logProperties, name);
-      deviceNumber = decklinkID;
+      this.deviceNumber = deviceNumber;
       this.options = options;
 
       createCaptureInterface();
@@ -186,7 +187,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
       {
          try
          {
-            LogTools.info("Stopping capture, closing output stream of recorder, closing timestamp file... (Don't panic)");
+            LogTools.info("Stopping capture for {}, closing output stream of recorder, closing timestamp file... (Don't panic)", deviceNumber);
             recorder.setCloseOutputStream(true);
             recorder.flush();
             recorder.stop();

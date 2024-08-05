@@ -11,9 +11,9 @@ import java.io.IOException;
 
 /**
  * This example class provides the basics for capturing a video using the ByteDeco JavaCV bindings
- * You need a decklink capture card, and a camera attached on the other end for this to work
- * The camera settings get overridden, so it doesn't matter what video mode or FPS its set too.
- * This only works on Windows software (Windows 11 and 10 have been tested)
+ * You need a Magewell capture card, and a camera attached on the other end for this to work
+ * The camera settings get used for the framerate and the cable type.
+ * This works on Ubuntu 22.04
  * This example works with either SDI or HDMI as the camera cable
  */
 
@@ -22,7 +22,7 @@ public class ExampleMagewellCapture
     private static final int WEBCAM_DEVICE_INDEX = 0;
     private static long startTime = 0;
 
-    private static final String windowsBytedeco = "windowsBytedeco";
+    private static final String ubuntuMagewell = "ubuntuMagewell";
 
     public static String videoPath;
     public static String timestampPath;
@@ -33,8 +33,8 @@ public class ExampleMagewellCapture
 
     public static void main(String[] args) throws InterruptedException
     {
-        videoPath  =  "ihmc-robot-data-logger/out/" + windowsBytedeco + "_Video.mov";
-        timestampPath = "ihmc-robot-data-logger/out/" + windowsBytedeco + "_Timestamps.dat";
+        videoPath  = "ihmc-robot-data-logger/out/" + ubuntuMagewell + "_Video.mov";
+        timestampPath = "ihmc-robot-data-logger/out/" + ubuntuMagewell + "_Timestamps.dat";
 
         videoFile = new File(videoPath);
         timestampFile = new File(timestampPath);
@@ -55,16 +55,17 @@ public class ExampleMagewellCapture
             // RTMP url to an FMS / Wowza server
             try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(videoFile, captureWidth, captureHeight))
             {
-                // Trying these settings for now (H264 is a bad setting because of slicing)
+                // These settings have the best performance (H264 is a bad setting because of slicing)
                 recorder.setVideoOption("tune", "zerolatency");
                 recorder.setFormat("mov");
+                // This video codec is deprecated, so in order to use it without errors we have to set the pixel format and strictly allow FFMPEG to use it
                 recorder.setVideoCodec(avcodec.AV_CODEC_ID_MJPEG);
                 recorder.setPixelFormat(avutil.AV_PIX_FMT_YUV420P);
+                recorder.setVideoOption("strict", "-2");
+                // Frame rate of video recordings
                 recorder.setFrameRate(60);
 
-                recorder.setVideoOption("strict", "-2");
-
-                // Start the recording piece of equipment, webcam and decklink work
+                // Start the recording piece of equipment (likely to be a capture card)
                 recorder.start();
 
                 // A really nice hardware accelerated component for our preview...
