@@ -10,6 +10,7 @@ public class Camera extends Packet<Camera> implements Settable<Camera>, EpsilonC
 {
    // Camera definition
    public java.lang.StringBuilder type_;
+   // Type of capture method used
    public java.lang.StringBuilder name_;
    // Human readable camera name
    public boolean interlaced_;
@@ -68,16 +69,19 @@ public class Camera extends Packet<Camera> implements Settable<Camera>, EpsilonC
       return type_;
    }
 
+   // Type of capture method used
    public void setName(java.lang.String name)
    {
       name_.setLength(0);
       name_.append(name);
    }
 
+   // Type of capture method used
    public java.lang.String getNameAsString()
    {
       return getName().toString();
    }
+   // Type of capture method used
    public java.lang.StringBuilder getName()
    {
       return name_;
