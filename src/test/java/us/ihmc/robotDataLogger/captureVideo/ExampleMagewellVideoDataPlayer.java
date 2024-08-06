@@ -16,34 +16,24 @@ import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
 import gnu.trove.list.array.TLongArrayList;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelReader;
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.WritableImage;
 import org.bytedeco.javacv.Frame;
-import org.bytedeco.javacv.JavaFXFrameConverter;
+import org.bytedeco.javacv.Java2DFrameConverter;
 import us.ihmc.codecs.generated.YUVPicture;
+import us.ihmc.codecs.generated.YUVPicture.YUVSubsamplingType;
 import us.ihmc.codecs.yuv.YUVPictureConverter;
 import us.ihmc.robotDataLogger.Camera;
 import us.ihmc.robotDataLogger.logger.MagewellDemuxer;
-import us.ihmc.robotDataLogger.logger.MagewellMuxer;
 
 public class ExampleMagewellVideoDataPlayer
 {
-   private final boolean hasTimebase;
    private final boolean interlaced;
 
    private long[] robotTimestamps;
    private long[] videoTimestamps;
 
-   private long bmdTimeBaseNum;
-   private long bmdTimeBaseDen;
-
    private final MagewellDemuxer magewellDemuxer;
-   private final ImageView viewer = new ImageView();
 
-//   private final HideableMediaFrame viewer;
+   private final HideableMediaFrame viewer;
 
    private final YUVPictureConverter converter = new YUVPictureConverter();
 
@@ -54,25 +44,22 @@ public class ExampleMagewellVideoDataPlayer
    public ExampleMagewellVideoDataPlayer(Camera camera, File dataDirectory, boolean hasTimeBase) throws IOException
    {
       this.interlaced = camera.getInterlaced();
-      this.hasTimebase = hasTimeBase;
 
-      if (!hasTimebase)
+      if (!hasTimeBase)
       {
          System.err.println("Video data is using timestamps instead of frame numbers. Falling back to seeking based on timestamp.");
       }
 
-      File videoFile = new File(dataDirectory, camera.getVideoFileAsString());
-
-      if (!videoFile.exists())
+      if (!dataDirectory.exists())
       {
-         throw new IOException("Cannot find video: " + videoFile);
+         throw new IOException("Cannot find video: " + dataDirectory);
       }
 
       File timestampFile = new File(dataDirectory, camera.getTimestampFileAsString());
 
       parseTimestampData(timestampFile);
 
-      magewellDemuxer = new MagewellDemuxer(videoFile, camera);
+      magewellDemuxer = new MagewellDemuxer(dataDirectory, camera);
 
       viewer = new HideableMediaFrame(camera.getNameAsString(), magewellDemuxer.getImageWidth(), magewellDemuxer.getImageHeight());
    }
@@ -112,51 +99,24 @@ public class ExampleMagewellVideoDataPlayer
          return;
       }
 
-      try
-      {
-         magewellDemuxer.seekToPTS(videoTimestamp);
-         Frame nextFrame = magewellDemuxer.getNextFrame();
-         viewer.update(convertFrameToWritableImage(nextFrame));
-      }
-      catch (IOException e)
-      {
-         // TODO Auto-generated catch block
-         e.printStackTrace();
-      }
+      magewellDemuxer.seekToPTS(videoTimestamp);
+      Frame nextFrame = magewellDemuxer.getNextFrame();
+      viewer.update(convertFrameToYUVPicture(nextFrame));
    }
 
-   /**
-    * This class converts a {@link Frame} to a {@link WritableImage} in order to be displayed correctly in JavaFX.
-    *
-    * @param frameToConvert is the next frame we want to visualize so we convert it to be compatible with JavaFX
-    * @return {@link WritableImage}
-    */
-   public WritableImage convertFrameToWritableImage(Frame frameToConvert)
+   private YUVPictureConverter convertedYUVPicture;
+   private Java2DFrameConverter frameConverter;
+
+   public YUVPicture convertFrameToYUVPicture(Frame frame)
    {
-      Image currentImage;
-
-      if (frameToConvert == null)
+      if (convertedYUVPicture == null)
       {
-         return null;
+         convertedYUVPicture = new YUVPictureConverter();
+         frameConverter = new Java2DFrameConverter();
       }
 
-      try (JavaFXFrameConverter frameConverter = new JavaFXFrameConverter())
-      {
-         currentImage = frameConverter.convert(frameToConvert);
-      }
-      WritableImage writableImage = new WritableImage((int) currentImage.getWidth(), (int) currentImage.getHeight());
-      PixelReader pixelReader = currentImage.getPixelReader();
-      PixelWriter pixelWriter = writableImage.getPixelWriter();
-
-      for (int y = 0; y < currentImage.getHeight(); y++)
-      {
-         for (int x = 0; x < currentImage.getWidth(); x++)
-         {
-            pixelWriter.setArgb(x, y, pixelReader.getArgb(x, y));
-         }
-      }
-
-      return writableImage;
+      BufferedImage bufferedImage = frameConverter.getBufferedImage(frame);
+      return convertedYUVPicture.fromBufferedImage(bufferedImage, YUVSubsamplingType.YUV420);
    }
 
    public void setVisible(boolean visible)
@@ -187,14 +147,7 @@ public class ExampleMagewellVideoDataPlayer
          currentlyShowingIndex = robotTimestamps.length - 1;
       currentlyShowingRobottimestamp = robotTimestamps[currentlyShowingIndex];
 
-      long videoTimestamp = videoTimestamps[currentlyShowingIndex];
-
-//      if (hasTimebase)
-//      {
-//         videoTimestamp = (videoTimestamp * bmdTimeBaseNum * demuxer.getTimescale()) / (bmdTimeBaseDen);
-//      }
-
-      return videoTimestamp;
+      return videoTimestamps[currentlyShowingIndex];
    }
 
    private void parseTimestampData(File timestampFile) throws IOException
@@ -203,25 +156,22 @@ public class ExampleMagewellVideoDataPlayer
       {
 
          String line;
-         if (hasTimebase)
+         if ((reader.readLine()) != null)
          {
-            if ((line = reader.readLine()) != null)
-            {
-               bmdTimeBaseNum = Long.parseLong(line);
-            }
-            else
-            {
-               throw new IOException("Cannot read numerator");
-            }
+           // Reading first line of file
+         }
+         else
+         {
+            throw new IOException("Cannot read numerator");
+         }
 
-            if ((line = reader.readLine()) != null)
-            {
-               bmdTimeBaseDen = Long.parseLong(line);
-            }
-            else
-            {
-               throw new IOException("Cannot read denumerator");
-            }
+         if ((reader.readLine()) != null)
+         {
+            // Reading second line of file
+         }
+         else
+         {
+            throw new IOException("Cannot read denumerator");
          }
 
          TLongArrayList robotTimestamps = new TLongArrayList();
@@ -299,10 +249,8 @@ public class ExampleMagewellVideoDataPlayer
       camera.setTimestampFile(videoName + "_Timestamps.dat");
       camera.setVideoFile(videoName + "_Video.mov");
 
+      File dataDirectory = new File("/home/ketchup/Videos/bloke/ExactCopyAt2800OfLogIAMTHEORIGINAL/");
       //      File dataDirectory = new File("/home/ketchup/workspaces/logger/repository-group/ihmc-robot-data-logger/out/");
-      File dataDirectory = new File("/home/ketchup/robotLogs/12/");
-      //      File dataDirectory = new File("C:/Users/nkitchel/Workspaces/Security-Camera/repository-group/ihmc-robot-data-logger/src/test/resources");
-      //      File dataDirectory = new File("C:/Users/nkitchel/Documents/security-camera/repository-group/ihmc-video-codecs/src/test/resources/");
 
       ExampleMagewellVideoDataPlayer player = new ExampleMagewellVideoDataPlayer(camera, dataDirectory, true);
 
