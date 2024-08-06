@@ -35,7 +35,7 @@ public class MagewellMuxer
    /**
     * This method only works if {@link MagewellMuxer#start()} has been called first
     * @param capturedFrame the frame we want to save to the video
-    * @param startTime is the time when the video started
+    * @param videoTimestamp is the timestamp in which to set the frame at
     * @return the timestamp of the frame we just recorded
     */
    public long recordFrame(Frame capturedFrame, long videoTimestamp)
