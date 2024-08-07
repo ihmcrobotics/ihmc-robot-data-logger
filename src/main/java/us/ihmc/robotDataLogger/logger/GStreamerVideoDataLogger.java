@@ -13,6 +13,11 @@ import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.LogProperties;
 import us.ihmc.tools.maps.CircularLongMap;
 
+/**
+ * This class does not work properly yet, it still needs more testing to make sure everything works as expected
+ * In order to prevent usage without more testing this class is deprecated since it's still got bugs in it
+ */
+@Deprecated
 public class GStreamerVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
 {
     /**

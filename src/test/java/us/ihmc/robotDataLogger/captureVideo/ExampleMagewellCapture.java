@@ -19,7 +19,7 @@ import java.io.IOException;
 
 public class ExampleMagewellCapture
 {
-    private static final int WEBCAM_DEVICE_INDEX = 0;
+    private static final int DEVICE_INDEX = 0;
     private static long startTime = 0;
 
     private static final String ubuntuMagewell = "ubuntuMagewell";
@@ -44,7 +44,7 @@ public class ExampleMagewellCapture
         final int captureHeight = 1080;
 
         // Can try VideoInputFrameGrabber as well to see how that one works
-        try (OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(WEBCAM_DEVICE_INDEX))
+        try (OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(DEVICE_INDEX))
         {
             grabber.setImageWidth(captureWidth);
             grabber.setImageHeight(captureHeight);

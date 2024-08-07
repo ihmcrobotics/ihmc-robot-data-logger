@@ -27,20 +27,20 @@ import us.ihmc.robotDataLogger.logger.MagewellDemuxer;
 public class ExampleMagewellVideoDataPlayer
 {
    private final boolean interlaced;
-
    private long[] robotTimestamps;
    private long[] videoTimestamps;
 
    private final MagewellDemuxer magewellDemuxer;
-
    private final HideableMediaFrame viewer;
-
    private final YUVPictureConverter converter = new YUVPictureConverter();
 
-   private int currentlyShowingIndex = 0;
-   private long currentlyShowingRobottimestamp = 0;
-   private long upcomingRobottimestamp = 0;
+   private long upcomingRobotTimestamp = 0;
+   private int currentIndex = 0;
+   private long currentRobotTimestamp = 0;
 
+   /**
+    * This class plays back a video recorded with Magewell, this is helpful for debugging information about the video.
+    */
    public ExampleMagewellVideoDataPlayer(Camera camera, File dataDirectory, boolean hasTimeBase) throws IOException
    {
       this.interlaced = camera.getInterlaced();
@@ -55,43 +55,44 @@ public class ExampleMagewellVideoDataPlayer
          throw new IOException("Cannot find video: " + dataDirectory);
       }
 
+      File videoFile = new File(dataDirectory, camera.getVideoFileAsString());
       File timestampFile = new File(dataDirectory, camera.getTimestampFileAsString());
 
       parseTimestampData(timestampFile);
 
-      magewellDemuxer = new MagewellDemuxer(dataDirectory, camera);
+      magewellDemuxer = new MagewellDemuxer(videoFile);
 
       viewer = new HideableMediaFrame(camera.getNameAsString(), magewellDemuxer.getImageWidth(), magewellDemuxer.getImageHeight());
    }
 
    public synchronized void showVideoFrame(long timestamp)
    {
-      if (timestamp >= currentlyShowingRobottimestamp && timestamp < upcomingRobottimestamp)
+      if (timestamp >= currentRobotTimestamp && timestamp < upcomingRobotTimestamp)
       {
          return;
       }
 
-      long previousTimestamp = videoTimestamps[currentlyShowingIndex];
+      long previousTimestamp = videoTimestamps[currentIndex];
 
       long videoTimestamp;
-      if (robotTimestamps.length > currentlyShowingIndex + 1 && robotTimestamps[currentlyShowingIndex + 1] == timestamp)
+      if (robotTimestamps.length > currentIndex + 1 && robotTimestamps[currentIndex + 1] == timestamp)
       {
-         currentlyShowingIndex++;
-         videoTimestamp = videoTimestamps[currentlyShowingIndex];
-         currentlyShowingRobottimestamp = robotTimestamps[currentlyShowingIndex];
+         currentIndex++;
+         videoTimestamp = videoTimestamps[currentIndex];
+         currentRobotTimestamp = robotTimestamps[currentIndex];
       }
       else
       {
-         videoTimestamp = getVideoTimestamp(timestamp);
+         videoTimestamp = getVideoTimestampFromRobotTimestamp(timestamp);
       }
 
-      if (currentlyShowingIndex + 1 < robotTimestamps.length)
+      if (currentIndex + 1 < robotTimestamps.length)
       {
-         upcomingRobottimestamp = robotTimestamps[currentlyShowingIndex + 1];
+         upcomingRobotTimestamp = robotTimestamps[currentIndex + 1];
       }
       else
       {
-         upcomingRobottimestamp = currentlyShowingRobottimestamp;
+         upcomingRobotTimestamp = currentRobotTimestamp;
       }
 
       if (previousTimestamp == videoTimestamp)
@@ -124,30 +125,39 @@ public class ExampleMagewellVideoDataPlayer
       viewer.setVisible(visible);
    }
 
-   private long getVideoTimestamp(long timestamp)
+   /**
+    * Searches the list of robotTimestamps for the value closest to queryRobotTimestamp and returns that index. Then sets videoTimestamp to
+    * that index in oder to display the right frame.
+    *
+    * @param queryRobotTimestamp the value sent from the robot data in which we want to find the closest robotTimestamp in the instant file.
+    * @return the videoTimestamp that matches the index of the closest robotTimestamp in our instant file.
+    */
+   public long getVideoTimestampFromRobotTimestamp(long queryRobotTimestamp)
    {
-      currentlyShowingIndex = Arrays.binarySearch(robotTimestamps, timestamp);
+      currentIndex = searchRobotTimestampsForIndex(queryRobotTimestamp);
+      long videoTimestamp = videoTimestamps[currentIndex];
+      currentRobotTimestamp = robotTimestamps[currentIndex];
 
-      if (currentlyShowingIndex < 0)
+      return videoTimestamp;
+   }
+
+   private int searchRobotTimestampsForIndex(long queryRobotTimestamp)
+   {
+      if (queryRobotTimestamp <= robotTimestamps[0])
+         return 0;
+
+      if (queryRobotTimestamp >= robotTimestamps[robotTimestamps.length - 1])
+         return robotTimestamps.length - 1;
+
+      int index = Arrays.binarySearch(robotTimestamps, queryRobotTimestamp);
+
+      if (index < 0)
       {
-         int nextIndex = -currentlyShowingIndex + 1;
-         if ((nextIndex < robotTimestamps.length) && (Math.abs(robotTimestamps[-currentlyShowingIndex] - timestamp) > Math.abs(robotTimestamps[nextIndex])))
-         {
-            currentlyShowingIndex = nextIndex;
-         }
-         else
-         {
-            currentlyShowingIndex = -currentlyShowingIndex;
-         }
+         int nextIndex = -index - 1; // insertionPoint
+         index = nextIndex;
       }
 
-      if (currentlyShowingIndex < 0)
-         currentlyShowingIndex = 0;
-      if (currentlyShowingIndex >= robotTimestamps.length)
-         currentlyShowingIndex = robotTimestamps.length - 1;
-      currentlyShowingRobottimestamp = robotTimestamps[currentlyShowingIndex];
-
-      return videoTimestamps[currentlyShowingIndex];
+      return index;
    }
 
    private void parseTimestampData(File timestampFile) throws IOException
@@ -245,11 +255,11 @@ public class ExampleMagewellVideoDataPlayer
       Camera camera = new Camera();
       camera.setName("test");
       camera.setInterlaced(false);
-      String videoName = "GroundCamera";
+      String videoName = "PoleCamera";
       camera.setTimestampFile(videoName + "_Timestamps.dat");
       camera.setVideoFile(videoName + "_Video.mov");
 
-      File dataDirectory = new File("/home/ketchup/Videos/bloke/ExactCopyAt2800OfLogIAMTHEORIGINAL/");
+      File dataDirectory = new File("/home/ketchup/robotLogs/Copy me hehe/20240806_145159_NadiaControllerFactory/");
       //      File dataDirectory = new File("/home/ketchup/workspaces/logger/repository-group/ihmc-robot-data-logger/out/");
 
       ExampleMagewellVideoDataPlayer player = new ExampleMagewellVideoDataPlayer(camera, dataDirectory, true);

@@ -53,8 +53,6 @@ mainDependencies {
    api("org.bytedeco:javacpp:1.5.10")
    api("org.bytedeco:javacv-platform:1.5.10")
    api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
-   api("net.java.dev.jna:jna:5.13.0")
-   api("net.java.dev.jna:jna-platform:5.13.0")
 
    var javaFXVersion = "17.0.2"
    api(ihmc.javaFXModule("base", javaFXVersion))
@@ -68,8 +66,7 @@ testDependencies {
 }
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")
-app.entrypoint("TestCapture", "us.ihmc.javadecklink.Capture")
-app.entrypoint("GStreamerCapture", "us.ihmc.publisher.logger.GStreamerCaptureExample")
+app.entrypoint("BlackMagicCapture", "us.ihmc.javadecklink.Capture")
 
 tasks.register<JavaExec>("deploy") {
    dependsOn("generateMessages")

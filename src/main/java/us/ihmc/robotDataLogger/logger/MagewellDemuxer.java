@@ -3,25 +3,22 @@ package us.ihmc.robotDataLogger.logger;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
-import us.ihmc.robotDataLogger.Camera;
 
 import java.io.File;
 
+/**
+ * This class takes a video file and returns given information about its frames when requested
+ */
 public class MagewellDemuxer
 {
-    public String videoPath;
-    public String timestampPath;
-
+    private static final String MAGEWELL_DEMUXER = "MageWell Demuxer";
     private final FFmpegFrameGrabber grabber;
 
-    public MagewellDemuxer(File dataDirectory, Camera camera)
+    public MagewellDemuxer(File videoFile)
     {
-        videoPath = dataDirectory.getAbsolutePath() + "/" + camera.getVideoFile();
-        timestampPath = dataDirectory.getAbsolutePath() + "/" + camera.getTimestampFile();
-
         try
         {
-            grabber = new FFmpegFrameGrabber(videoPath);
+            grabber = new FFmpegFrameGrabber(videoFile);
             grabber.start();
         }
         catch (FrameGrabber.Exception e)
@@ -32,7 +29,7 @@ public class MagewellDemuxer
 
     public String getName()
     {
-        return "MageWell Demuxer";
+        return MAGEWELL_DEMUXER;
     }
 
     public int getImageHeight()
