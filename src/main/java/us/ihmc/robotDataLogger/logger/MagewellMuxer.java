@@ -40,9 +40,12 @@ public class MagewellMuxer
     */
    public long recordFrame(Frame capturedFrame, long videoTimestamp)
    {
-      // We tell the recorder to write this frame at this timestamp
-      // Note: if the videoTimestamp isn't a large enough different from the previous frame, you will have exceptions
-      recorder.setTimestamp((videoTimestamp));
+      // Ensure the video timestamp is ahead of the record's current timestamp
+      if (videoTimestamp > recorder.getTimestamp())
+      {
+         // We tell the recorder to write this frame at this timestamp
+         recorder.setTimestamp(videoTimestamp);
+      }
 
       // This is where a frame is record, and we then need to store the timestamps, so they are synced
       try
