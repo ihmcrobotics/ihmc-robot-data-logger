@@ -14,18 +14,13 @@ public class MagewellDemuxerFrameExistsTest
 {
    public static void main(String[] args)
    {
-      File videoFolder = new File("/home/ketchup/robotLogs/Copy me hehe/20240806_145159_NadiaControllerFactory/");
-      Camera camera = new Camera();
-      camera.setName("test");
-      camera.setInterlaced(false);
-      camera.setTimestampFile("GroundCamera_Timestamps.dat");
-      camera.setVideoFile("GroundCamera_Video.mov");
+      File videoFolder = new File("/home/ketchup/robotLogs/20240807_154005_NadiaControllerFactory/");
 
       try
       {
          File videoFile = new File(videoFolder, "PoleCamera_Video.mov");
          MagewellDemuxer demuxer = new MagewellDemuxer(videoFile);
-         demuxer.seekToPTS(16983333); // Seek to start
+         demuxer.seekToPTS(89350000); // Seek to start
          Frame frame = demuxer.getNextFrame();
 
          if (frame != null)

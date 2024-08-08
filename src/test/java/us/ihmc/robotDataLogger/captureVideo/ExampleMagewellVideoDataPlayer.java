@@ -34,10 +34,6 @@ public class ExampleMagewellVideoDataPlayer
    private final HideableMediaFrame viewer;
    private final YUVPictureConverter converter = new YUVPictureConverter();
 
-   private long upcomingRobotTimestamp = 0;
-   private int currentIndex = 0;
-   private long currentRobotTimestamp = 0;
-
    /**
     * This class plays back a video recorded with Magewell, this is helpful for debugging information about the video.
     */
@@ -67,42 +63,14 @@ public class ExampleMagewellVideoDataPlayer
 
    public synchronized void showVideoFrame(long timestamp)
    {
-      if (timestamp >= currentRobotTimestamp && timestamp < upcomingRobotTimestamp)
-      {
-         return;
-      }
-
-      long previousTimestamp = videoTimestamps[currentIndex];
-
-      long videoTimestamp;
-      if (robotTimestamps.length > currentIndex + 1 && robotTimestamps[currentIndex + 1] == timestamp)
-      {
-         currentIndex++;
-         videoTimestamp = videoTimestamps[currentIndex];
-         currentRobotTimestamp = robotTimestamps[currentIndex];
-      }
-      else
-      {
-         videoTimestamp = getVideoTimestampFromRobotTimestamp(timestamp);
-      }
-
-      if (currentIndex + 1 < robotTimestamps.length)
-      {
-         upcomingRobotTimestamp = robotTimestamps[currentIndex + 1];
-      }
-      else
-      {
-         upcomingRobotTimestamp = currentRobotTimestamp;
-      }
-
-      if (previousTimestamp == videoTimestamp)
-      {
-         return;
-      }
+      long videoTimestamp = getVideoTimestampFromRobotTimestamp(timestamp);
 
       magewellDemuxer.seekToPTS(videoTimestamp);
       Frame nextFrame = magewellDemuxer.getNextFrame();
-      viewer.update(convertFrameToYUVPicture(nextFrame));
+      if (nextFrame != null)
+      {
+         viewer.update(convertFrameToYUVPicture(nextFrame));
+      }
    }
 
    private YUVPictureConverter convertedYUVPicture;
@@ -134,11 +102,8 @@ public class ExampleMagewellVideoDataPlayer
     */
    public long getVideoTimestampFromRobotTimestamp(long queryRobotTimestamp)
    {
-      currentIndex = searchRobotTimestampsForIndex(queryRobotTimestamp);
-      long videoTimestamp = videoTimestamps[currentIndex];
-      currentRobotTimestamp = robotTimestamps[currentIndex];
-
-      return videoTimestamp;
+      int currentIndex = searchRobotTimestampsForIndex(queryRobotTimestamp);
+      return videoTimestamps[currentIndex];
    }
 
    private int searchRobotTimestampsForIndex(long queryRobotTimestamp)
@@ -259,24 +224,10 @@ public class ExampleMagewellVideoDataPlayer
       camera.setTimestampFile(videoName + "_Timestamps.dat");
       camera.setVideoFile(videoName + "_Video.mov");
 
-      File dataDirectory = new File("/home/ketchup/robotLogs/Copy me hehe/20240806_145159_NadiaControllerFactory/");
+      File dataDirectory = new File("/home/ketchup/robotLogs/20240808_093303_SCS2AvatarSimulationFactory/");
       //      File dataDirectory = new File("/home/ketchup/workspaces/logger/repository-group/ihmc-robot-data-logger/out/");
 
       ExampleMagewellVideoDataPlayer player = new ExampleMagewellVideoDataPlayer(camera, dataDirectory, true);
-
-      for (int i = 1; i < player.robotTimestamps.length; i++)
-      {
-         if (player.robotTimestamps[i - 1] > player.robotTimestamps[i])
-         {
-            System.out.println("Non-monotonic robot timestamps");
-            System.out.println(player.robotTimestamps[i - 1]);
-         }
-         if (player.videoTimestamps[i - 1] >= player.videoTimestamps[i])
-         {
-            System.out.println("Non-monotonic video timestamps");
-            System.out.println(player.videoTimestamps[i - 1]);
-         }
-      }
 
       player.viewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       player.setVisible(true);
@@ -284,10 +235,8 @@ public class ExampleMagewellVideoDataPlayer
       for (int i = 1; i < player.robotTimestamps.length; i++)
       {
          player.showVideoFrame(player.robotTimestamps[i]);
-         System.out.println(player.robotTimestamps[i]);
-         // Play with the sleep to get things more realtime
-         Thread.sleep(50);
       }
+
       System.out.println(player.robotTimestamps.length);
    }
 }

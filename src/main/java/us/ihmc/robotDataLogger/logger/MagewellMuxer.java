@@ -16,9 +16,14 @@ public class MagewellMuxer
    {
       recorder = new FFmpegFrameRecorder(videoCaptureFile, captureWidth, captureHeight);
 
-      // These settings have the best performance (H264 is a bad setting because of slicing)
-      recorder.setVideoOption("tune", "zerolatency");
+      recorder.setVideoOption("tune", "zerolatency"); // https://trac.ffmpeg.org/wiki/StreamingGuide
       recorder.setFormat("mov");
+
+      // For information about these settings visit https://trac.ffmpeg.org/wiki/Encode/H.264
+      recorder.setVideoOption("preset", "ultrafast");
+      recorder.setVideoOption("crf", "27");
+      recorder.setVideoBitrate(60000000); // 6000 kb/s
+
       // This video codec is deprecated, so in order to use it without errors we have to set the pixel format and strictly allow FFMPEG to use it
       recorder.setVideoCodec(avcodec.AV_CODEC_ID_MJPEG);
       recorder.setPixelFormat(avutil.AV_PIX_FMT_YUV420P);
@@ -34,11 +39,11 @@ public class MagewellMuxer
 
    /**
     * This method only works if {@link MagewellMuxer#start()} has been called first
-    * @param capturedFrame the frame we want to save to the video
+    *
+    * @param capturedFrame  the frame we want to save to the video
     * @param videoTimestamp is the timestamp in which to set the frame at
-    * @return the timestamp of the frame we just recorded
     */
-   public long recordFrame(Frame capturedFrame, long videoTimestamp)
+   public void recordFrame(Frame capturedFrame, long videoTimestamp)
    {
       // Ensure the video timestamp is ahead of the record's current timestamp
       if (videoTimestamp > recorder.getTimestamp())
@@ -50,14 +55,15 @@ public class MagewellMuxer
       // This is where a frame is record, and we then need to store the timestamps, so they are synced
       try
       {
-         recorder.record(capturedFrame);
+         if (!recorder.isCloseOutputStream())
+         {
+            recorder.record(capturedFrame);
+         }
       }
       catch (Exception e)
       {
          throw new RuntimeException(e);
       }
-
-      return recorder.getTimestamp();
    }
 
    public boolean isCloseOutputStream()

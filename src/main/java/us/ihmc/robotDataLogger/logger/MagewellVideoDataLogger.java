@@ -39,8 +39,8 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
       File videoCaptureFile = new File(videoFile);
 
       // This is the resolution of the video, overrides camera
-      int captureWidth = 1920;
-      int captureHeight = 1080;
+      int captureWidth = 1280;
+      int captureHeight = 720;
 
       switch (options.getVideoCodec())
       {
@@ -49,6 +49,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
             grabber = new OpenCVFrameGrabber(deviceNumber);
             grabber.setImageWidth(captureWidth);
             grabber.setImageHeight(captureHeight);
+            grabber.setFrameRate(60);
 
             magewellMuxer = new MagewellMuxer(videoCaptureFile, captureWidth, captureHeight);
          }
@@ -65,7 +66,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
                                      {
                                         startCapture();
                                      }
-                                     catch (FFmpegFrameRecorder.Exception | FrameGrabber.Exception e)
+                                     catch (InterruptedException | IOException e)
                                      {
                                         LogTools.error("Last frame is bad for {} but who cares, shutting down gracefully because of threading", deviceNumber);
                                      }
@@ -93,26 +94,21 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
       }
    }
 
-   public void startCapture() throws FFmpegFrameRecorder.Exception, FrameGrabber.Exception
+   public void startCapture() throws IOException, InterruptedException
    {
       grabber.start();
       magewellMuxer.start();
 
-      long startTime = System.currentTimeMillis();
-      while (!magewellMuxer.isCloseOutputStream())
-      {
-         Frame capturedFrame;
+      timestampWriter.write(1 + "\n");
+      timestampWriter.write(60 + "\n");
 
-         if ((capturedFrame = grabber.grab()) != null)
-         {
-            long videoTimestamp = 1000 * (System.currentTimeMillis() - startTime);
-            long cameraTimeStamp = magewellMuxer.recordFrame(capturedFrame, videoTimestamp);
-            receivedFrameAtTime(System.nanoTime(), cameraTimeStamp, 1, 60000);
-         }
-         else
-         {
-            LogTools.warn("Captured frame is null, rest in peace");
-         }
+      long startTime = System.currentTimeMillis();
+      Frame capturedFrame;
+      while (!magewellMuxer.isCloseOutputStream() && ((capturedFrame = grabber.grabAtFrameRate()) != null))
+      {
+         long videoTimestamp = 1000 * (System.currentTimeMillis() - startTime);
+         magewellMuxer.recordFrame(capturedFrame, videoTimestamp);
+         receivedFrameAtTime(System.nanoTime(), magewellMuxer.getTimeStamp(), 1, 60000);
       }
 
       ThreadTools.join();
@@ -186,34 +182,25 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
    @Override
    public void receivedFrameAtTime(long hardwareTime, long recorderTimeStamp, long timeScaleNumerator, long timeScaleDenumerator)
    {
-      // This prevents us from logging frames at the beginning of a log when things are just starting up
-      if (latestTimeStampFromController != 0)
-      {
-         long controllerTimeStamp = this.latestTimeStampFromController;
+      ++framesReceivedFromCameraCounter;
 
-         // TODO check for duplicate timestamps from the controller, and interpolate to a reasonable guess of what the controller time might be
-         // Could check the last values from controller and see on average how much time goes in between them, and then add that to get the expected
-         // that we want to record with.
-         if (framesReceivedFromCameraCounter % 500 == 0)
-         {
-            LogTools.info("----- Saving the current frame at the current controller timestamp -----");
-            LogTools.info("Camera Device Number: {}, at Frame: {},", deviceNumber, framesReceivedFromCameraCounter);
-            LogTools.info("latestTimeStampFromController={}, recorderTimeStamp={}", controllerTimeStamp, recorderTimeStamp);
-         }
-         try
-         {
-            if (framesReceivedFromCameraCounter == 0)
-            {
-               timestampWriter.write(timeScaleNumerator + "\n");
-               timestampWriter.write(timeScaleDenumerator + "\n");
-            }
-            timestampWriter.write(controllerTimeStamp + " " + recorderTimeStamp + "\n");
-         }
-         catch (IOException e)
-         {
-            e.printStackTrace();
-         }
-         ++framesReceivedFromCameraCounter;
+      // TODO check for duplicate timestamps from the controller, and interpolate to a reasonable guess of what the controller time might be
+      // Could check the last values from controller and see on average how much time goes in between them, and then add that to get the expected
+      // that we want to record with.
+      if (framesReceivedFromCameraCounter % 500 == 0) // This should be printing every 5ish seconds if recording at 60 fps
+      {
+         LogTools.info("----- Saving the current frame at the current controller timestamp -----");
+         LogTools.info("Camera Device Number: {}, at Frame: {},", deviceNumber, framesReceivedFromCameraCounter);
+         LogTools.info("latestTimeStampFromController={}, recorderTimeStamp={}", latestTimeStampFromController, recorderTimeStamp);
+      }
+
+      try
+      {
+         timestampWriter.write(latestTimeStampFromController + " " + recorderTimeStamp + "\n");
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
       }
    }
 
