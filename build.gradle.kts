@@ -49,6 +49,11 @@ mainDependencies {
    api("com.hierynomus:sshj:0.31.0")
    api("us.ihmc:scs2-definition:17-0.26.0")
 
+   api("org.bytedeco:javacv:1.5.10")
+   api("org.bytedeco:javacpp:1.5.10")
+   api("org.bytedeco:javacv-platform:1.5.10")
+   api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
+
    var javaFXVersion = "17.0.2"
    api(ihmc.javaFXModule("base", javaFXVersion))
    api(ihmc.javaFXModule("controls", javaFXVersion))
