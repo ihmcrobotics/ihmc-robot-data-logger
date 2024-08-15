@@ -12,8 +12,8 @@ import us.ihmc.robotDataLogger.StaticHostList;
 public interface LoggerDeployScript
 {
    /**
-    * Called when clicking "Deploy logger" in the application 
-    * 
+    * Called when clicking "Deploy logger" in the application
+    *
     * @param logger_host
     * @param logger_user
     * @param logger_password
@@ -30,11 +30,12 @@ public interface LoggerDeployScript
                        String logger_dist,
                        boolean nightly_restart,
                        Stage stage,
-                       boolean logger_service)
+                       boolean logger_service,
+                       boolean deploy_with_lock_file)
    {
       FXConsole deployConsole = new FXConsole(stage);
       SSHRemote remote = new SSHRemote(logger_host, logger_user, logger_password, logger_sudo_password);
-      LoggerDeployConfiguration.deploy(remote, logger_dist, nightly_restart, deployConsole, logger_service);
+      LoggerDeployConfiguration.deploy(remote, logger_dist, nightly_restart, deployConsole, logger_service, deploy_with_lock_file);
    }
 
    default boolean implementsAutoRestart()
@@ -53,27 +54,21 @@ public interface LoggerDeployScript
    {
       FXConsole deployConsole = new FXConsole(stage);
       SSHRemote remote = new SSHRemote(logger_host, logger_user, logger_password, logger_sudo_password);
-      
+
       LoggerDeployConfiguration.saveConfiguration(remote, settings, staticHostList, restartonSave, deployConsole);
    }
-   
-   default CameraSettings loadCameraConfiguration(String logger_host,
-                                  String logger_user,
-                                  String logger_password,
-                                  String logger_sudo_password,
-                                  Stage stage) throws IOException
+
+   default CameraSettings loadCameraConfiguration(String logger_host, String logger_user, String logger_password, String logger_sudo_password, Stage stage)
+         throws IOException
    {
-      SSHRemote remote = new SSHRemote(logger_host, logger_user, logger_password, logger_sudo_password);      
+      SSHRemote remote = new SSHRemote(logger_host, logger_user, logger_password, logger_sudo_password);
       return LoggerDeployConfiguration.loadCameraConfiguration(remote);
    }
-   
-   default StaticHostList loadStaticHostList(String logger_host,
-                                                  String logger_user,
-                                                  String logger_password,
-                                                  String logger_sudo_password,
-                                                  Stage stage) throws IOException
+
+   default StaticHostList loadStaticHostList(String logger_host, String logger_user, String logger_password, String logger_sudo_password, Stage stage)
+         throws IOException
    {
-      SSHRemote remote = new SSHRemote(logger_host, logger_user, logger_password, logger_sudo_password);      
+      SSHRemote remote = new SSHRemote(logger_host, logger_user, logger_password, logger_sudo_password);
       return LoggerDeployConfiguration.loadStaticHostList(remote);
    }
 }

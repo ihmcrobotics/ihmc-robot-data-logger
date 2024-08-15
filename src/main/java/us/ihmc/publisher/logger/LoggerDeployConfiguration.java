@@ -23,7 +23,8 @@ public class LoggerDeployConfiguration
          deploy.addVariable("RESTART_LOGGER", restartonSave ? "true" : "false");
          deploy.addTextFile("CAMERA_SETTINGS", "CameraSettings.yaml", CameraSettingsLoader.toString(settings), getCameraSettingsFile(remote), false);
          deploy.addTextFile("STATIC_HOST_LIST", "ControllerHosts.yaml", StaticHostListLoader.toString(staticHostList), getHostsFile(remote), false);
-         deploy.deploy("if ${RESTART_LOGGER}; then sudo /bin/systemctl restart ihmc-logger.service; echo \"Restarted logger\"; else echo \"Skipped logger restart\"; fi");
+         deploy.deploy(
+               "if ${RESTART_LOGGER}; then sudo /bin/systemctl restart ihmc-logger.service; echo \"Restarted logger\"; else echo \"Skipped logger restart\"; fi");
       }
       catch (IOException e)
       {
@@ -57,19 +58,25 @@ public class LoggerDeployConfiguration
       return StaticHostListLoader.loadHostList(data);
    }
 
-   public static void deploy(SSHRemote remote, String dist, boolean restartNightly, FXConsole deployConsole, boolean logger_service)
+   public static void deploy(SSHRemote remote,
+                             String dist,
+                             boolean restartNightly,
+                             FXConsole deployConsole,
+                             boolean logger_service,
+                             boolean deploy_with_lock_file)
    {
       SSHDeploy deploy = new SSHDeploy(remote, deployConsole);
       URL deployScript = loader.getResource("deploy.sh");
       URL loggerService = loader.getResource("ihmc-logger.service");
       URL crontab = loader.getResource("ihmc-logger-cron");
-      
+
       deploy.addBinaryFile("DIST", dist, "/tmp/logger.tar", false);
       deploy.addTextFile("LOGGER_SERVICE", "ihmc-logger.service", loggerService, "/etc/systemd/system/ihmc-logger.service", true);
       deploy.addTextFile("CRON_ENTRY", "ihmc-logger-cron", crontab, "/tmp/ihmc-logger-cron", true);
-      
+
       deploy.addVariable("NIGHTLY_RESTART", restartNightly ? "true" : "false");
       deploy.addVariable("DEPLOY_SERVICE", logger_service ? "true" : "false");
+      deploy.addVariable("DEPLOY_WITH_LOCK_FILE", deploy_with_lock_file ? "true" : "false");
 
       deploy.deploy(deployScript);
    }

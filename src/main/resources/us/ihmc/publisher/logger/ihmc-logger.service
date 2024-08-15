@@ -4,7 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/opt/ihmc/logger/bin/IHMCLogger
+ExecStart=/opt/ihmc/logger/bin/IHMCLogger -l ${DEPLOY_WITH_LOCK_FILE}
 User=${USER}
 Group=${USER}
 Restart=always

@@ -12,6 +12,7 @@ import us.ihmc.javadecklink.Capture.CodecID;
 
 public class YoVariableLoggerOptions
 {
+   private static boolean deployWithLockFile = true;
    public final static String defaultLogDirectory = System.getProperty("user.home") + "/robotLogs";
 
    public final static CodecID defaultCodec = CodecID.AV_CODEC_ID_MJPEG;
@@ -39,46 +40,53 @@ public class YoVariableLoggerOptions
       SimpleJSAP jsap = new SimpleJSAP("YoVariabeLogger",
                                        "Logs YoVariables and video from a robot",
                                        new Parameter[] {new Switch("disableVideo", 'n', "noVideo", "Disable video recording"),
-                                             new FlaggedOption("logDirectory",
-                                                               JSAP.STRING_PARSER,
-                                                               YoVariableLoggerOptions.defaultLogDirectory,
-                                                               JSAP.NOT_REQUIRED,
-                                                               'd',
-                                                               "directory",
-                                                               "Directory where to save log files"),
-                                             new FlaggedOption("videoQuality",
-                                                               JSAP.DOUBLE_PARSER,
-                                                               String.valueOf(YoVariableLoggerOptions.defaultVideoQuality),
-                                                               JSAP.NOT_REQUIRED,
-                                                               'q',
-                                                               "quality",
-                                                               "Video quality for MJPEG"),
-                                             new FlaggedOption("videoCodec",
-                                                               JSAP.STRING_PARSER,
-                                                               String.valueOf(defaultCodec),
-                                                               JSAP.NOT_REQUIRED,
-                                                               'c',
-                                                               "codec",
-                                                               "Desired video codec. AV_CODEC_ID_H264 or AV_CODEC_ID_MJPEG"),
-                                             new FlaggedOption("crf",
-                                                               JSAP.INTEGER_PARSER,
-                                                               String.valueOf(defaultCRF),
-                                                               JSAP.NOT_REQUIRED,
-                                                               'r',
-                                                               "crf",
-                                                               "CRF (Constant rate factor) for H264. 0-51, 0 is lossless. Sane values are 18 to 28."),
-                                             new FlaggedOption("rotate",
-                                                               JSAP.INTEGER_PARSER,
-                                                               "0",
-                                                               JSAP.NOT_REQUIRED,
-                                                               'o',
-                                                               "rotate",
-                                                               "Rotate logs in incoming folder, keep n logs. Set to zero to keep all logs."),
-                                             new Switch("flushAggressivelyToDisk",
-                                                        's',
-                                                        "sync",
-                                                        "Aggressively flush data to disk. Reduces change of data loss but doesn't work on slow platters."),
-                                             new Switch("disableAutoDiscovery", 'a', "noDiscovery", "Disable autodiscovery of clients.")});
+                                                        new FlaggedOption("deployWithoutLockFile",
+                                                                          JSAP.BOOLEAN_PARSER,
+                                                                          String.valueOf(YoVariableLoggerOptions.deployWithLockFile),
+                                                                          JSAP.NOT_REQUIRED,
+                                                                          'l',
+                                                                          "lockFile",
+                                                                          "Deploy with lock file"),
+                                                        new FlaggedOption("logDirectory",
+                                                                          JSAP.STRING_PARSER,
+                                                                          YoVariableLoggerOptions.defaultLogDirectory,
+                                                                          JSAP.NOT_REQUIRED,
+                                                                          'd',
+                                                                          "directory",
+                                                                          "Directory where to save log files"),
+                                                        new FlaggedOption("videoQuality",
+                                                                          JSAP.DOUBLE_PARSER,
+                                                                          String.valueOf(YoVariableLoggerOptions.defaultVideoQuality),
+                                                                          JSAP.NOT_REQUIRED,
+                                                                          'q',
+                                                                          "quality",
+                                                                          "Video quality for MJPEG"),
+                                                        new FlaggedOption("videoCodec",
+                                                                          JSAP.STRING_PARSER,
+                                                                          String.valueOf(defaultCodec),
+                                                                          JSAP.NOT_REQUIRED,
+                                                                          'c',
+                                                                          "codec",
+                                                                          "Desired video codec. AV_CODEC_ID_H264 or AV_CODEC_ID_MJPEG"),
+                                                        new FlaggedOption("crf",
+                                                                          JSAP.INTEGER_PARSER,
+                                                                          String.valueOf(defaultCRF),
+                                                                          JSAP.NOT_REQUIRED,
+                                                                          'r',
+                                                                          "crf",
+                                                                          "CRF (Constant rate factor) for H264. 0-51, 0 is lossless. Sane values are 18 to 28."),
+                                                        new FlaggedOption("rotate",
+                                                                          JSAP.INTEGER_PARSER,
+                                                                          "0",
+                                                                          JSAP.NOT_REQUIRED,
+                                                                          'o',
+                                                                          "rotate",
+                                                                          "Rotate logs in incoming folder, keep n logs. Set to zero to keep all logs."),
+                                                        new Switch("flushAggressivelyToDisk",
+                                                                   's',
+                                                                   "sync",
+                                                                   "Aggressively flush data to disk. Reduces change of data loss but doesn't work on slow platters."),
+                                                        new Switch("disableAutoDiscovery", 'a', "noDiscovery", "Disable autodiscovery of clients.")});
       JSAPResult config = jsap.parse(args);
       if (jsap.messagePrinted())
       {
@@ -88,6 +96,7 @@ public class YoVariableLoggerOptions
       }
 
       YoVariableLoggerOptions options = new YoVariableLoggerOptions();
+      options.setDeployWithLockFile(config.getBoolean("deployWithoutLockFile"));
       options.setLogDirectory(config.getString("logDirectory"));
       options.setVideoQuality(config.getDouble("videoQuality"));
       options.setDisableVideo(config.getBoolean("disableVideo"));
@@ -195,4 +204,13 @@ public class YoVariableLoggerOptions
       this.disableAutoDiscovery = disableAutoDiscovery;
    }
 
+   public void setDeployWithLockFile(boolean deployWithoutLockFile)
+   {
+      YoVariableLoggerOptions.deployWithLockFile = deployWithoutLockFile;
+   }
+
+   public boolean getDeployWithLockFile()
+   {
+      return deployWithLockFile;
+   }
 }

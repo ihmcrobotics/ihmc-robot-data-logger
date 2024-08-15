@@ -20,6 +20,8 @@ import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnecti
 
 public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 {
+   private static final boolean DEPLOY_WITHOUT_LOCK_FILE = false;
+
    // Used to prevent multiple instances of the Logger running at the same time
    private final File lockFile = new File(System.getProperty("user.home") + File.separator + "loggerDispatcher.lock");
 
@@ -44,22 +46,29 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
     */
    public YoVariableLoggerDispatcher(YoVariableLoggerOptions options) throws IOException
    {
-      if (lockFile.exists())
+      if (options.getDeployWithLockFile())
       {
-         LogTools.info("Maybe if you weren't so full of yourself you would have checked if the logger was already running");
-         LogTools.info("Check the file: " + lockFile.getAbsolutePath() + " or run (ps aux | grep java)");
-         System.exit(0);
-      }
+         if (lockFile.exists())
+         {
+            LogTools.info("Maybe if you weren't so full of yourself you would have checked if the logger was already running");
+            LogTools.info("Check the file: " + lockFile.getAbsolutePath() + " or run (ps aux | grep java)");
+            System.exit(0);
+         }
 
-      lockFile.createNewFile();
-      Set<PosixFilePermission> perms = new HashSet<>();
-      if (!SystemUtils.OS_NAME.contains("Windows"))
+         lockFile.createNewFile();
+         Set<PosixFilePermission> perms = new HashSet<>();
+         if (!SystemUtils.OS_NAME.contains("Windows"))
+         {
+            perms.add(PosixFilePermission.OWNER_READ);
+            Files.setPosixFilePermissions(lockFile.toPath(), perms);
+         }
+
+         LogTools.info("Created Logger lock file");
+      }
+      else
       {
-         perms.add(PosixFilePermission.OWNER_READ);
-         Files.setPosixFilePermissions(lockFile.toPath(), perms);
+         LogTools.info("Whoa whoa whoa, logger is starting without Lock File, be careful to make sure you only run one logger at a time");
       }
-
-      LogTools.info("Created Logger lock file");
 
       this.options = options;
       LogTools.info("Starting YoVariableLoggerDispatcher");
