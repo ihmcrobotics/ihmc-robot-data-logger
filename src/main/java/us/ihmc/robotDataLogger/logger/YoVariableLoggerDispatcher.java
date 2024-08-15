@@ -20,8 +20,6 @@ import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnecti
 
 public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 {
-   private static final boolean DEPLOY_WITHOUT_LOCK_FILE = false;
-
    // Used to prevent multiple instances of the Logger running at the same time
    private final File lockFile = new File(System.getProperty("user.home") + File.separator + "loggerDispatcher.lock");
 
@@ -38,7 +36,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
    private final YoVariableLoggerOptions options;
 
    /**
-    * Create a new YovariableLoggerDispatcher. For every log that comes online, a YoVariableLogger is
+    * Create a new YoVariableLoggerDispatcher. For every log that comes online, a YoVariableLogger is
     * created.
     *
     * @param options
@@ -64,6 +62,8 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
          }
 
          LogTools.info("Created Logger lock file");
+
+         Runtime.getRuntime().addShutdownHook(new Thread(this::shutDownLockFile, "ShutdownThread"));
       }
       else
       {
@@ -79,16 +79,21 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 
       LogTools.info("Client started, waiting for data server sessions");
 
-      Runtime.getRuntime().addShutdownHook(new Thread(this::shutDownLockFile, "ShutdownThread"));
-
       ThreadTools.sleepForever();
    }
 
    private void shutDownLockFile()
    {
-      lockFile.delete();
+      boolean shutdownProperly = lockFile.delete();
 
-      LogTools.info("Interrupted by Ctrl+C, deleting lock file");
+      if (!shutdownProperly)
+      {
+         LogTools.error("Could not delete lock file: " + lockFile.getAbsolutePath());
+      }
+      else
+      {
+         LogTools.info("Interrupted by Ctrl+C, deleted lock file successfully");
+      }
    }
 
    public static void main(String[] args) throws JSAPException, IOException, InterruptedException
@@ -115,7 +120,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
             {
                try
                {
-                  new YoVariableLogger(connection, options, (request) -> finishedLog(request));
+                  new YoVariableLogger(connection, options, this::finishedLog);
                   activeLogSessions.add(hashAnnouncement);
                   LogTools.info("Logging session started for " + announcement.getNameAsString());
                }
