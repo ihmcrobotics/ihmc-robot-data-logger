@@ -1,5 +1,14 @@
 package us.ihmc.robotDataLogger.websocket;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import us.ihmc.log.LogTools;
+import us.ihmc.robotDataLogger.Host;
+import us.ihmc.robotDataLogger.StaticHostList;
+import us.ihmc.robotDataLogger.util.SocketUtils;
+
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -8,15 +17,6 @@ import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.Host;
-import us.ihmc.robotDataLogger.StaticHostList;
 
 /**
  * Common functions for the DataServerLocationBroadcast client and sender
@@ -86,6 +86,11 @@ public abstract class DataServerLocationBroadcast
       List<MulticastSocket> sockets = new ArrayList<>();
       for (NetworkInterface iface : Collections.list(NetworkInterface.getNetworkInterfaces()))
       {
+         if (!iface.isLoopback() && bindPort != 0 && SocketUtils.isUDPPortInUse(iface, bindPort))
+         {
+            throw new IOException("Port " + bindPort + " is in use by another socket.");
+         }
+
          try
          {
             if (iface.isUp() && !iface.isLoopback() && iface.supportsMulticast() && !iface.isVirtual())

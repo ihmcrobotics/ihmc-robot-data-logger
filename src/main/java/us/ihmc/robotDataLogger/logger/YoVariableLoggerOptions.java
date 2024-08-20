@@ -32,6 +32,8 @@ public class YoVariableLoggerOptions
 
    private boolean rotateLogs = false;
 
+   private boolean allowManyInstances = false;
+
    private int numberOfLogsToKeep = Integer.MAX_VALUE;
 
    public static YoVariableLoggerOptions parse(String[] args) throws JSAPException
@@ -74,6 +76,13 @@ public class YoVariableLoggerOptions
                                                                'o',
                                                                "rotate",
                                                                "Rotate logs in incoming folder, keep n logs. Set to zero to keep all logs."),
+                                             new FlaggedOption("allowManyInstances",
+                                                              JSAP.BOOLEAN_PARSER,
+                                                               "false",
+                                                              JSAP.NOT_REQUIRED,
+                                                              'm',
+                                                              "allowManyInstances",
+                                                              "Allow more than one instance of the logger at once."),
                                              new Switch("flushAggressivelyToDisk",
                                                         's',
                                                         "sync",
@@ -93,6 +102,7 @@ public class YoVariableLoggerOptions
       options.setDisableVideo(config.getBoolean("disableVideo"));
       options.setVideoCodec(CodecID.valueOf(config.getString("videoCodec")));
       options.setRotateLogs(config.getInt("rotate"));
+      options.setAllowManyInstances(config.getBoolean("allowManyInstances"));
       options.setCrf(config.getInt("crf"));
 
       options.setFlushAggressivelyToDisk(config.getBoolean("flushAggressivelyToDisk"));
@@ -178,6 +188,16 @@ public class YoVariableLoggerOptions
    public boolean isRotateLogs()
    {
       return rotateLogs;
+   }
+
+   public boolean isAllowManyInstances()
+   {
+      return allowManyInstances;
+   }
+
+   public void setAllowManyInstances(boolean allowManyInstances)
+   {
+      this.allowManyInstances = allowManyInstances;
    }
 
    public int getNumberOfLogsToKeep()

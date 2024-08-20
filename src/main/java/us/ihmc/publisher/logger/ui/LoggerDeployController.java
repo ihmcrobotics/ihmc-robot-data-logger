@@ -100,6 +100,9 @@ public class LoggerDeployController implements Initializable
 
    @FXML
    CheckBox logger_service;
+
+   @FXML
+   CheckBox allow_many_instances;
    
 
    @Override
@@ -119,6 +122,8 @@ public class LoggerDeployController implements Initializable
       prefs.linkToPrefs(restart_on_save, true);
 
       prefs.linkToPrefs(logger_service, true);
+
+      prefs.linkToPrefs(allow_many_instances, false);
 
       camera_table.setEditable(true);
 
@@ -359,7 +364,8 @@ public class LoggerDeployController implements Initializable
                                    logger_dist.getText(),
                                    logger_restart_midnight.isSelected(),
                                    getStage(),
-                                   logger_service.isSelected());
+                                   logger_service.isSelected(),
+                                   allow_many_instances.isSelected());
    }
 
    private Stage getStage()
