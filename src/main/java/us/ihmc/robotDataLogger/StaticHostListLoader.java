@@ -87,7 +87,7 @@ public class StaticHostListLoader
          
          if(description.getCameraList() != null)
          {
-            host.getCameras().addAll(description.getCameraList());
+            host.getCameras().add(description.getCameraList().getBuffer().array());
          }
       }
 
