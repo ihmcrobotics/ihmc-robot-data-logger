@@ -1,4 +1,4 @@
-package us.ihmc.robotDataLogger.websocket.command;
+package us.ihmc.robotDataLogger;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
@@ -7,14 +7,11 @@ import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.commons.time.Stopwatch;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.YoVariableClient;
-import us.ihmc.robotDataLogger.YoVariableClientInterface;
-import us.ihmc.robotDataLogger.YoVariableServer;
-import us.ihmc.robotDataLogger.YoVariablesUpdatedListener;
 import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
+import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.*;
 
