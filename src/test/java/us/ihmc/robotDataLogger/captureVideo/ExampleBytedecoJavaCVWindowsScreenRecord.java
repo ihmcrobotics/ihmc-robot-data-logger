@@ -3,6 +3,7 @@ package us.ihmc.robotDataLogger.captureVideo;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.*;
 import us.ihmc.log.LogTools;
+import us.ihmc.tools.CaptureTimeTools;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -51,7 +52,7 @@ public class ExampleBytedecoJavaCVWindowsScreenRecord
                if (startTime == 0)
                   startTime = System.currentTimeMillis();
 
-               long videoTS = 1000 * (System.currentTimeMillis() - startTime);
+               long videoTS = CaptureTimeTools.timeSinceStartedCaptureInSeconds(System.currentTimeMillis(), startTime);
 
                if (videoTS > recorder.getTimestamp())
                {

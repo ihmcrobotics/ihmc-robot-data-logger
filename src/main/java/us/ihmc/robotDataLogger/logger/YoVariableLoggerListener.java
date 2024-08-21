@@ -506,7 +506,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                {
                   switch (camera.getType())
                   {
-                     case MAGEWELL_CAPTURE:
+                     case CAPTURE_CARD_MAGEWELL:
                         videoDataLoggers.add(new MagewellVideoDataLogger(camera.getNameAsString(),
                                                                          camera.getType().name(),
                                                                          tempDirectory,

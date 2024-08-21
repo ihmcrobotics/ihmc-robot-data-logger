@@ -9,6 +9,7 @@ import us.ihmc.javadecklink.CaptureHandler;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.LogProperties;
 import org.bytedeco.javacv.*;
+import us.ihmc.tools.CaptureTimeTools;
 
 public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
 {
@@ -106,7 +107,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
       Frame capturedFrame;
       while (!magewellMuxer.isCloseOutputStream() && ((capturedFrame = grabber.grabAtFrameRate()) != null))
       {
-         long videoTimestamp = 1000 * (System.currentTimeMillis() - startTime);
+         long videoTimestamp = CaptureTimeTools.timeSinceStartedCaptureInSeconds(System.currentTimeMillis(), startTime);
          magewellMuxer.recordFrame(capturedFrame, videoTimestamp);
          receivedFrameAtTime(System.nanoTime(), magewellMuxer.getTimeStamp(), 1, 60000);
       }
@@ -141,7 +142,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
          // Update the latest timestamp from the controller
          // Note: we don't always get the timestamps on time, because of networking and such, we need to account for that when saving the frame
          this.latestTimeStampFromController = latestTimeStampFromController;
-         if (timeStampFromControllerCounter == 5000)
+         if (timeStampFromControllerCounter == 5000) // This only prints once every 5000 timestamps to not blow up the terminal
          {
             timeStampFromControllerCounter = 0;
             LogTools.warn("For Device: {} From Controller (latestTimeStampFromController)={}", this.deviceNumber, this.latestTimeStampFromController);
@@ -187,7 +188,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
       // TODO check for duplicate timestamps from the controller, and interpolate to a reasonable guess of what the controller time might be
       // Could check the last values from controller and see on average how much time goes in between them, and then add that to get the expected
       // that we want to record with.
-      if (framesReceivedFromCameraCounter % 500 == 0) // This should be printing every 5ish seconds if recording at 60 fps
+      if (framesReceivedFromCameraCounter % 500 == 0) // This only prints once every 500 frames to not blow up the terminal
       {
          LogTools.info("----- Saving the current frame at the current controller timestamp -----");
          LogTools.info("Camera Device Number: {}, at Frame: {},", deviceNumber, framesReceivedFromCameraCounter);

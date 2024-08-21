@@ -173,7 +173,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
 
    /**
     * Callback from the timestamp topic. Gets called immediately when a new timestamp has arrived from
-    * the controller.
+    * the server.
     *
     * @param timestamp
     */

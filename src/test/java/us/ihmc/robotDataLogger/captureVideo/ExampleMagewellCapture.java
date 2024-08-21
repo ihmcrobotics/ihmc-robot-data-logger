@@ -4,6 +4,7 @@ import org.bytedeco.javacv.*;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.logger.MagewellMuxer;
+import us.ihmc.tools.CaptureTimeTools;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -75,7 +76,7 @@ public class ExampleMagewellCapture
          LogTools.info("Starting capture");
          while (!magewellMuxer.isCloseOutputStream() && ((capturedFrame = grabber.grabAtFrameRate()) != null))
          {
-            long videoTimestamp = 1000 * (System.currentTimeMillis() - startTime);
+            long videoTimestamp = CaptureTimeTools.timeSinceStartedCaptureInSeconds(System.currentTimeMillis(), startTime);
             magewellMuxer.recordFrame(capturedFrame, videoTimestamp);
 
             // Shows the captured frame its currently recording
