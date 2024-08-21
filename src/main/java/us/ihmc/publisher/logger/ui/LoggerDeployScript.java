@@ -30,11 +30,12 @@ public interface LoggerDeployScript
                        String logger_dist,
                        boolean nightly_restart,
                        Stage stage,
-                       boolean logger_service)
+                       boolean logger_service,
+                       boolean allow_many_instances)
    {
       FXConsole deployConsole = new FXConsole(stage);
       SSHRemote remote = new SSHRemote(logger_host, logger_user, logger_password, logger_sudo_password);
-      LoggerDeployConfiguration.deploy(remote, logger_dist, nightly_restart, deployConsole, logger_service);
+      LoggerDeployConfiguration.deploy(remote, logger_dist, nightly_restart, deployConsole, logger_service, allow_many_instances);
    }
 
    default boolean implementsAutoRestart()

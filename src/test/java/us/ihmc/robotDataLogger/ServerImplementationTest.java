@@ -1,7 +1,6 @@
-package us.ihmc.robotDataLogger.websocket.command;
+package us.ihmc.robotDataLogger;
 
 import org.junit.jupiter.api.*;
-import us.ihmc.robotDataLogger.YoVariableServer;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;

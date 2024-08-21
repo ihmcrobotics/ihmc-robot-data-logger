@@ -57,7 +57,7 @@ public class LoggerDeployConfiguration
       return StaticHostListLoader.loadHostList(data);
    }
 
-   public static void deploy(SSHRemote remote, String dist, boolean restartNightly, FXConsole deployConsole, boolean logger_service)
+   public static void deploy(SSHRemote remote, String dist, boolean restartNightly, FXConsole deployConsole, boolean logger_service, boolean allowManyInstances)
    {
       SSHDeploy deploy = new SSHDeploy(remote, deployConsole);
       URL deployScript = loader.getResource("deploy.sh");
@@ -70,6 +70,7 @@ public class LoggerDeployConfiguration
       
       deploy.addVariable("NIGHTLY_RESTART", restartNightly ? "true" : "false");
       deploy.addVariable("DEPLOY_SERVICE", logger_service ? "true" : "false");
+      deploy.addVariable("ALLOW_MANY_INSTANCES", allowManyInstances ? "true" : "false");
 
       deploy.deploy(deployScript);
    }

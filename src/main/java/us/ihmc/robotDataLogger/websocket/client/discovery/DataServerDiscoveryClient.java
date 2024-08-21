@@ -1,5 +1,10 @@
 package us.ihmc.robotDataLogger.websocket.client.discovery;
 
+import us.ihmc.log.LogTools;
+import us.ihmc.robotDataLogger.interfaces.DataServerDiscoveryListener;
+import us.ihmc.robotDataLogger.util.DaemonThreadFactory;
+import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection.HTTPDataServerConnectionListener;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,11 +15,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-
-import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.interfaces.DataServerDiscoveryListener;
-import us.ihmc.robotDataLogger.util.DaemonThreadFactory;
-import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection.HTTPDataServerConnectionListener;
 
 /**
  * Client to discover active logging sessions. This client will take a list of hardcoded hosts and
@@ -42,6 +42,8 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
 
    private final DataServerLocationBroadcastReceiver broadcastReceiver;
 
+   private IOException bindException;
+
    public DataServerDiscoveryClient(DataServerDiscoveryListener listener, boolean enableAutoDiscovery)
    {
       this.listener = listener;
@@ -56,12 +58,17 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
          }
          catch (IOException e)
          {
-            LogTools.warn("Cannot start broadcast receiver. " + e.getMessage());
             broadcastReceiver = null;
+            bindException = e;
          }
       }
       this.broadcastReceiver = broadcastReceiver;
 
+   }
+
+   public IOException getBindException()
+   {
+      return bindException;
    }
 
    public void addHosts(List<HTTPDataServerDescription> descriptions)

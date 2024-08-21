@@ -1,14 +1,14 @@
 package us.ihmc.robotDataLogger.captureVideo;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.concurrent.Semaphore;
-
 import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.event.EOSEvent;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.concurrent.Semaphore;
 
 /**
  * This example class provides the basics for capturing a video using GStreamer java bindings

@@ -1,28 +1,21 @@
 package us.ihmc.robotDataLogger.logger;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.attribute.PosixFilePermission;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.martiansoftware.jsap.JSAPException;
-
-import org.apache.commons.lang3.SystemUtils;
+import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.StaticHostListLoader;
 import us.ihmc.robotDataLogger.interfaces.DataServerDiscoveryListener;
+import us.ihmc.robotDataLogger.websocket.DataServerLocationBroadcast;
 import us.ihmc.robotDataLogger.websocket.client.discovery.DataServerDiscoveryClient;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 
+import java.io.IOException;
+import java.util.HashSet;
+
 public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 {
-   // Used to prevent multiple instances of the Logger running at the same time
-   private final File lockFile = new File(System.getProperty("user.home") + File.separator + "loggerDispatcher.lock");
-
    private final DataServerDiscoveryClient discoveryClient;
 
    private final Object lock = new Object();
@@ -44,23 +37,6 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
     */
    public YoVariableLoggerDispatcher(YoVariableLoggerOptions options) throws IOException
    {
-      if (lockFile.exists())
-      {
-         LogTools.info("Maybe if you weren't so full of yourself you would have checked if the logger was already running");
-         LogTools.info("Check the file: " + lockFile.getAbsolutePath() + " or run (ps aux | grep java)");
-         System.exit(0);
-      }
-
-      lockFile.createNewFile();
-      Set<PosixFilePermission> perms = new HashSet<>();
-      if (!SystemUtils.OS_NAME.contains("Windows"))
-      {
-         perms.add(PosixFilePermission.OWNER_READ);
-         Files.setPosixFilePermissions(lockFile.toPath(), perms);
-      }
-
-      LogTools.info("Created Logger lock file");
-
       this.options = options;
       LogTools.info("Starting YoVariableLoggerDispatcher");
 
@@ -68,18 +44,18 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       discoveryClient = new DataServerDiscoveryClient(this, enableAutoDiscovery);
       discoveryClient.addHosts(StaticHostListLoader.load());
 
+      // We allow for multiple instances of the logger to be run on the same machine
+      if (!options.isAllowManyInstances() && discoveryClient.getBindException() != null)
+      {
+         LogTools.error("The bind multicast port (" + DataServerLocationBroadcast.announcePort + ") is in use. Is there another logger running?");
+         ThreadTools.sleep((long) Conversions.secondsToMilliseconds(3));
+         LogTools.error("Shutting down...");
+         System.exit(0);
+      }
+
       LogTools.info("Client started, waiting for data server sessions");
 
-      Runtime.getRuntime().addShutdownHook(new Thread(this::shutDownLockFile, "ShutdownThread"));
-
       ThreadTools.sleepForever();
-   }
-
-   private void shutDownLockFile()
-   {
-      lockFile.delete();
-
-      LogTools.info("Interrupted by Ctrl+C, deleting lock file");
    }
 
    public static void main(String[] args) throws JSAPException, IOException, InterruptedException

@@ -15,7 +15,7 @@ public class JointDefinitionPubSubType implements us.ihmc.pubsub.TopicDataType<u
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "80e80cd3d776326ea346e58b62baf63b391b44f4d9d346f21c105f4dcb93c7e9";
+   		return "47788074ef85fc4d41967bc5006da101900e00ccaa28e8af31c5da7ecd907d3e";
    }
    
    @Override

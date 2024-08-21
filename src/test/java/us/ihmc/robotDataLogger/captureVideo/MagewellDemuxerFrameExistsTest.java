@@ -1,7 +1,6 @@
 package us.ihmc.robotDataLogger.captureVideo;
 
 import org.bytedeco.javacv.Frame;
-import us.ihmc.robotDataLogger.Camera;
 import us.ihmc.robotDataLogger.logger.MagewellDemuxer;
 
 import java.io.File;
