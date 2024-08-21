@@ -12,7 +12,7 @@ import java.io.IOException;
 /**
  * This example class records the screen and saves it to file, this can be played back with Bytedeco as well
  */
-public class ExampleBytedecoJavaCVWindowsScreenRecord
+public class ExampleBytedecoWindowsScreenRecord
 {
    private static long startTime = 0;
 

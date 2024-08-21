@@ -15,7 +15,7 @@ public abstract class VideoDataLoggerInterface
    protected final String videoFile;
    protected final String timestampData;
 
-   public VideoDataLoggerInterface(File logPath, LogProperties logProperties, String description)
+   public VideoDataLoggerInterface(File logPath, String captureType, LogProperties logProperties, String description)
    {
       Camera newCamera = logProperties.getCameras().add();
 
@@ -26,6 +26,7 @@ public abstract class VideoDataLoggerInterface
       String timestampDataFilename = description + timestampDataPostfix;
       newCamera.setTimestampFile(timestampDataFilename);
       newCamera.setName(description);
+      newCamera.setType(captureType);
 
       timestampData = logPath.getAbsolutePath() + File.separator + timestampDataFilename;
       videoFile = logPath.getAbsolutePath() + File.separator + videoFilename;

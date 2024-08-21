@@ -54,6 +54,7 @@ public class LogPropertiesReader extends LogProperties
                if (cameraNode != null)
                {
                   Camera camera = data.getCameras().add();
+                  camera.setType(cameraNode.get("type").asText());
                   camera.setName(video);
                   camera.setTimestampFile(cameraNode.path("timestamps").asText());
                   camera.setVideoFile(cameraNode.path("video").asText());
