@@ -15,7 +15,7 @@ public class CameraConfigurationPubSubType implements us.ihmc.pubsub.TopicDataTy
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "a06c116af64b0b07091a114bbc31b6d35e4e4b59e3b0189411cdbab97365c9e3";
+   		return "b17cf095dd34f50a65f2d4089c1236c304021dfc99d8f1583fd0bc86cd86a1d7";
    }
    
    @Override
