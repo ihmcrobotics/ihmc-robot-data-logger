@@ -30,6 +30,7 @@ public class JVMStatisticsGenerator
    private final YoRegistry registry = new YoRegistry("JVMStatistics");
    private final RobotVisualizer visualizer;
 
+   private final YoLong totalChangesInFreeMemory = new YoLong("totalChangesInFreeMemory", registry);
    private final YoLong freeMemory = new YoLong("freeMemoryInBytes", registry);
    private final YoLong maxMemory = new YoLong("maxMemoryInBytes", registry);
    private final YoLong usedMemory = new YoLong("usedMemoryInBytes", registry);
@@ -102,7 +103,7 @@ public class JVMStatisticsGenerator
    public void createGCBeanHolders()
    {
       List<GarbageCollectorMXBean> gcbeans = java.lang.management.ManagementFactory.getGarbageCollectorMXBeans();
-      //Install a notifcation handler for each bean
+      //Install a notification handler for each bean
       for (int i = 0; i < gcbeans.size(); i++)
       {
          GarbageCollectorMXBean gcbean = gcbeans.get(i);
@@ -136,9 +137,16 @@ public class JVMStatisticsGenerator
       @Override
       public void run()
       {
+         long previousFreeMemory = freeMemory.getLongValue();
+
          updateGCStatistics();
          updateClassLoadingStatistics();
          updateMemoryUsageStatistics();
+
+         if (previousFreeMemory != freeMemory.getLongValue())
+         {
+            totalChangesInFreeMemory.increment();
+         }
 
          if (compilationMXBean != null)
          {
