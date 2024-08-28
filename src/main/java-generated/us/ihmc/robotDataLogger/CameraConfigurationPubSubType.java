@@ -11,6 +11,18 @@ package us.ihmc.robotDataLogger;
 public class CameraConfigurationPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robotDataLogger.CameraConfiguration>
 {
    public static final java.lang.String name = "us::ihmc::robotDataLogger::CameraConfiguration";
+   
+   @Override
+   public final java.lang.String getDefinitionChecksum()
+   {
+   		return "b17cf095dd34f50a65f2d4089c1236c304021dfc99d8f1583fd0bc86cd86a1d7";
+   }
+   
+   @Override
+   public final java.lang.String getDefinitionVersion()
+   {
+   		return "local";
+   }
 
    private final us.ihmc.idl.CDR serializeCDR = new us.ihmc.idl.CDR();
    private final us.ihmc.idl.CDR deserializeCDR = new us.ihmc.idl.CDR();

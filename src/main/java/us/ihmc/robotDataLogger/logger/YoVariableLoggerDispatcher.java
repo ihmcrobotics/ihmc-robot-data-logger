@@ -1,17 +1,18 @@
 package us.ihmc.robotDataLogger.logger;
 
-import java.io.IOException;
-import java.util.HashSet;
-
 import com.martiansoftware.jsap.JSAPException;
-
+import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.StaticHostListLoader;
 import us.ihmc.robotDataLogger.interfaces.DataServerDiscoveryListener;
+import us.ihmc.robotDataLogger.websocket.DataServerLocationBroadcast;
 import us.ihmc.robotDataLogger.websocket.client.discovery.DataServerDiscoveryClient;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
+
+import java.io.IOException;
+import java.util.HashSet;
 
 public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 {
@@ -43,12 +44,21 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       discoveryClient = new DataServerDiscoveryClient(this, enableAutoDiscovery);
       discoveryClient.addHosts(StaticHostListLoader.load());
 
+      // We allow for multiple instances of the logger to be run on the same machine
+      if (!options.isAllowManyInstances() && discoveryClient.getBindException() != null)
+      {
+         LogTools.error("The bind multicast port (" + DataServerLocationBroadcast.announcePort + ") is in use. Is there another logger running?");
+         ThreadTools.sleep((long) Conversions.secondsToMilliseconds(3));
+         LogTools.error("Shutting down...");
+         System.exit(0);
+      }
+
       LogTools.info("Client started, waiting for data server sessions");
-      
+
       ThreadTools.sleepForever();
    }
 
-   public static void main(String[] args) throws JSAPException, IOException
+   public static void main(String[] args) throws JSAPException, IOException, InterruptedException
    {
       YoVariableLoggerOptions options = YoVariableLoggerOptions.parse(args);
       new YoVariableLoggerDispatcher(options);
@@ -61,7 +71,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       {
          Announcement announcement = connection.getAnnouncement();
          HashAnnouncement hashAnnouncement = new HashAnnouncement(announcement);
-         LogTools.warn("New control session came online\n" + connection.getTarget() + " (" + announcement.getHostNameAsString() + ")");
+         LogTools.warn("New control session came online: ( {} ({}))", connection.getTarget(), announcement.getHostNameAsString());
          if (activeLogSessions.contains(hashAnnouncement))
          {
             LogTools.warn("A logging sessions for " + announcement.getNameAsString() + " is already started.");
@@ -83,7 +93,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
             }
             else
             {
-               LogTools.info("Not logging.");
+               LogTools.warn("Not logging the above session");
             }
          }
       }
@@ -103,16 +113,14 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
     */
    private void finishedLog(Announcement request)
    {
-      LogTools.info("Finishing Log.");
       synchronized (lock)
       {
-         //pause a bit to ensure everything is closed before removing the active log session
+         // Pause a bit to ensure everything is closed before removing the active log session
+         // Then remove this session from the list of active log sessions
          ThreadTools.sleep(2000);
-         LogTools.info("Removing log session.");
          HashAnnouncement hashRequest = new HashAnnouncement(request);
          activeLogSessions.remove(hashRequest);
-         LogTools.info("Logging session for " + request.getNameAsString() + " has finished.");
-
+         LogTools.info("Logging session for " + request.getNameAsString() + " has finished.\n");
       }
    }
 

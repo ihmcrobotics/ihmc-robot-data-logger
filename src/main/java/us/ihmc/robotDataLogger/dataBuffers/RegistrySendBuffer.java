@@ -15,14 +15,14 @@ public class RegistrySendBuffer extends RegistryBuffer
    private final JointHolder[] jointHolders;
    private final double[] jointStates;
 
-   protected RegistrySendBuffer(int registeryID, List<YoVariable> variables, List<JointHolder> jointHolders)
+   protected RegistrySendBuffer(int registryID, List<YoVariable> variables, List<JointHolder> jointHolders)
    {
       int numberOfJointStates = RegistrySendBufferBuilder.getNumberOfJointStates(jointHolders);
       int maximumNumberOfVariables = variables.size() + numberOfJointStates;//LogParticipantTools.calculateMaximumNumberOfVariables(variables.size(), numberOfJointStates);
       buffer = ByteBuffer.allocate(maximumNumberOfVariables * 8);
 
       data = buffer.asLongBuffer();
-      registryID = registeryID;
+      this.registryID = registryID;
 
       this.variables = variables.toArray(new YoVariable[variables.size()]);
       this.jointHolders = jointHolders.toArray(new JointHolder[jointHolders.size()]);

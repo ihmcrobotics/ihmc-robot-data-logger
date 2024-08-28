@@ -63,12 +63,12 @@ public class ExampleServer
 
    public void start()
    {
-      // Start the server before the loop and after all registires are added to the server.
+      // Start the server before the loop and after all registries are added to the server.
       yoVariableServer.start();
 
       LogTools.info("Starting to loop.");
 
-      // Testing only. Sending main registry a few times before sending the second registry. This is helpfull to test merging packets
+      // Testing only. Sending main registry a few times before sending the second registry. This is helpful to test merging packets
       for (int i = 0; i < 3; i++)
       {
          timestamp += Conversions.secondsToNanoseconds(dt);
@@ -86,7 +86,7 @@ public class ExampleServer
 
          updateVariables(mainChangingVariables);
 
-         // Send main registry
+         // Send main registry, this allows for the YoVariables to be updates and if a client was connected it could receive those values
          yoVariableServer.update(jitteryTimestamp);
 
          if (counter % mainRegistryUpdatesPerSecondRegistryUpdates == 0)

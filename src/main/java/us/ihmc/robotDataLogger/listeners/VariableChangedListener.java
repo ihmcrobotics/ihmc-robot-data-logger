@@ -13,5 +13,5 @@ public interface VariableChangedListener
     * @param id       ID of the YoVariable
     * @param newValue Desired value
     */
-   public void changeVariable(int id, double newValue);
+   void changeVariable(int id, double newValue);
 }

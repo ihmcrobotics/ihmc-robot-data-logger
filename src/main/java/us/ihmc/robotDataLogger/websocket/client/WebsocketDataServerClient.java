@@ -12,9 +12,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -32,6 +30,7 @@ import us.ihmc.robotDataLogger.dataBuffers.RegistryConsumer;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.listeners.TimestampListener;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
+import us.ihmc.robotDataLogger.util.NettyUtils;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection.DisconnectPromise;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
@@ -41,7 +40,7 @@ import static io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFa
 
 public class WebsocketDataServerClient
 {
-   private final EventLoopGroup group = new NioEventLoopGroup();
+   private final EventLoopGroup group = NettyUtils.createEventGroundLoop();
    private final RegistryConsumer consumer;
 
    private final VariableChangeRequestPubSubType variableChangeRequestType = new VariableChangeRequestPubSubType();
@@ -85,7 +84,7 @@ public class WebsocketDataServerClient
                                                                                             type);
 
       Bootstrap b = new Bootstrap();
-      b.group(group).channel(NioSocketChannel.class).handler(new ChannelInitializer<SocketChannel>()
+      b.group(group).channel(NettyUtils.getSocketChannelClass()).handler(new ChannelInitializer<SocketChannel>()
       {
          @Override
          protected void initChannel(SocketChannel ch)

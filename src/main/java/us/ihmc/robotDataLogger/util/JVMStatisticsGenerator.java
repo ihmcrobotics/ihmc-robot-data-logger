@@ -1,5 +1,17 @@
 package us.ihmc.robotDataLogger.util;
 
+import us.ihmc.robotDataLogger.RobotVisualizer;
+import us.ihmc.robotDataLogger.YoVariableServer;
+import us.ihmc.util.PeriodicNonRealtimeThreadScheduler;
+import us.ihmc.util.PeriodicThreadScheduler;
+import us.ihmc.util.PeriodicThreadSchedulerFactory;
+import us.ihmc.yoVariables.registry.YoRegistry;
+import us.ihmc.yoVariables.tools.YoTools;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.yoVariables.variable.YoLong;
+import us.ihmc.yoVariables.variable.YoVariable;
+
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.CompilationMXBean;
 import java.lang.management.GarbageCollectorMXBean;
@@ -10,19 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import us.ihmc.robotDataLogger.RobotVisualizer;
-import us.ihmc.robotDataLogger.YoVariableServer;
-import us.ihmc.util.PeriodicNonRealtimeThreadScheduler;
-import us.ihmc.util.PeriodicNonRealtimeThreadSchedulerFactory;
-import us.ihmc.util.PeriodicThreadScheduler;
-import us.ihmc.util.PeriodicThreadSchedulerFactory;
-import us.ihmc.yoVariables.registry.YoRegistry;
-import us.ihmc.yoVariables.tools.YoTools;
-import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.yoVariables.variable.YoInteger;
-import us.ihmc.yoVariables.variable.YoLong;
-import us.ihmc.yoVariables.variable.YoVariable;
-
 public class JVMStatisticsGenerator
 {
    private final PeriodicThreadScheduler scheduler;
@@ -31,6 +30,7 @@ public class JVMStatisticsGenerator
    private final YoRegistry registry = new YoRegistry("JVMStatistics");
    private final RobotVisualizer visualizer;
 
+   private final YoLong totalChangesInFreeMemory = new YoLong("totalChangesInFreeMemory", registry);
    private final YoLong freeMemory = new YoLong("freeMemoryInBytes", registry);
    private final YoLong maxMemory = new YoLong("maxMemoryInBytes", registry);
    private final YoLong usedMemory = new YoLong("usedMemoryInBytes", registry);
@@ -47,6 +47,7 @@ public class JVMStatisticsGenerator
 
    private final YoInteger availableProcessors = new YoInteger("availableProcessors", registry);
    private final YoDouble systemLoadAverage = new YoDouble("systemLoadAverage", registry);
+   private final YoLong systemUptime = new YoLong("systemUptime", registry);
 
    private final ArrayList<GCBeanHolder> gcBeanHolders = new ArrayList<>();
    private final ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
@@ -55,7 +56,7 @@ public class JVMStatisticsGenerator
 
    public JVMStatisticsGenerator(RobotVisualizer visualizer)
    {
-      this(visualizer, new PeriodicNonRealtimeThreadSchedulerFactory());
+      this(visualizer, new PeriodicGCFreeNonRealtimeThreadSchedulerFactory());
    }
 
    public JVMStatisticsGenerator(RobotVisualizer visualizer, PeriodicThreadSchedulerFactory schedulerFactory)
@@ -88,6 +89,11 @@ public class JVMStatisticsGenerator
    {
       scheduler.schedule(jvmStatisticsGeneratorThread, 1, TimeUnit.SECONDS);
    }
+   
+   public void stop()
+   {
+      scheduler.shutdown();
+   }
 
    public void runManual()
    {
@@ -97,7 +103,7 @@ public class JVMStatisticsGenerator
    public void createGCBeanHolders()
    {
       List<GarbageCollectorMXBean> gcbeans = java.lang.management.ManagementFactory.getGarbageCollectorMXBeans();
-      //Install a notifcation handler for each bean
+      //Install a notification handler for each bean
       for (int i = 0; i < gcbeans.size(); i++)
       {
          GarbageCollectorMXBean gcbean = gcbeans.get(i);
@@ -131,9 +137,16 @@ public class JVMStatisticsGenerator
       @Override
       public void run()
       {
+         long previousFreeMemory = freeMemory.getLongValue();
+
          updateGCStatistics();
          updateClassLoadingStatistics();
          updateMemoryUsageStatistics();
+
+         if (previousFreeMemory != freeMemory.getLongValue())
+         {
+            totalChangesInFreeMemory.increment();
+         }
 
          if (compilationMXBean != null)
          {
@@ -141,6 +154,7 @@ public class JVMStatisticsGenerator
          }
 
          systemLoadAverage.set(operatingSystemMXBean.getSystemLoadAverage());
+         systemUptime.set(LinuxSystemUptime.getSystemUptime());
 
          if (visualizer != null)
          {

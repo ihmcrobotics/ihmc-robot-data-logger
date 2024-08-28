@@ -11,6 +11,18 @@ package us.ihmc.robotDataLogger;
 public class ReferenceFrameInformationPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robotDataLogger.ReferenceFrameInformation>
 {
    public static final java.lang.String name = "us::ihmc::robotDataLogger::ReferenceFrameInformation";
+   
+   @Override
+   public final java.lang.String getDefinitionChecksum()
+   {
+   		return "47788074ef85fc4d41967bc5006da101900e00ccaa28e8af31c5da7ecd907d3e";
+   }
+   
+   @Override
+   public final java.lang.String getDefinitionVersion()
+   {
+   		return "local";
+   }
 
    private final us.ihmc.idl.CDR serializeCDR = new us.ihmc.idl.CDR();
    private final us.ihmc.idl.CDR deserializeCDR = new us.ihmc.idl.CDR();

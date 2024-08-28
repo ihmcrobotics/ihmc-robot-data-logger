@@ -11,6 +11,18 @@ package us.ihmc.robotDataLogger;
 public class TimestampPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robotDataLogger.Timestamp>
 {
    public static final java.lang.String name = "us::ihmc::robotDataLogger::Timestamp";
+   
+   @Override
+   public final java.lang.String getDefinitionChecksum()
+   {
+   		return "e63d78fcdedca4fa15afecf2d8cafa22d79c19618cc1731ea0d16dc8d5fb7534";
+   }
+   
+   @Override
+   public final java.lang.String getDefinitionVersion()
+   {
+   		return "local";
+   }
 
    private final us.ihmc.idl.CDR serializeCDR = new us.ihmc.idl.CDR();
    private final us.ihmc.idl.CDR deserializeCDR = new us.ihmc.idl.CDR();

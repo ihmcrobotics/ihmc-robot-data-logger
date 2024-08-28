@@ -2,20 +2,20 @@ import us.ihmc.idl.generator.IDLGenerator
 
 buildscript {
    dependencies {
-      classpath("us.ihmc:ihmc-pub-sub-generator:0.18.1")
+      classpath("us.ihmc:ihmc-pub-sub-generator:0.19.2")
    }
 }
 
 plugins {
    id("us.ihmc.ihmc-build")
-   id("us.ihmc.ihmc-ci") version "7.6"
-   id("us.ihmc.ihmc-cd") version "1.23"
+   id("us.ihmc.ihmc-ci") version "8.3"
+   id("us.ihmc.ihmc-cd") version "1.26"
    id("us.ihmc.log-tools-plugin") version "0.6.3"
 }
 
 ihmc {
    group = "us.ihmc"
-   version = "0.25.0"
+   version = "0.29.7"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
@@ -37,16 +37,22 @@ mainDependencies {
    api("org.openjdk.jol:jol-core:0.9")
    api("org.apache.commons:commons-text:1.9")
 
-   api("us.ihmc:euclid:0.19.0")
+   api("us.ihmc:euclid:0.21.0")
    api("us.ihmc:ihmc-video-codecs:2.1.6")
-   api("us.ihmc:ihmc-realtime:1.5.1")
+   api("us.ihmc:ihmc-realtime:1.6.0")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
-   api("us.ihmc:ihmc-pub-sub:0.18.1")
-   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.18.1")
+   api("us.ihmc:ihmc-pub-sub:0.19.2")
+   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.19.2")
    api("us.ihmc:ihmc-commons:0.32.0")
-   api("us.ihmc:ihmc-graphics-description:0.19.8")
-   api("us.ihmc:mecano:17-0.11.5")
+   api("us.ihmc:ihmc-graphics-description:0.25.1")
+   api("us.ihmc:mecano:17-0.18.1")
    api("com.hierynomus:sshj:0.31.0")
+   api("us.ihmc:scs2-definition:17-0.27.0")
+
+   api("org.bytedeco:javacv:1.5.9")
+   api("org.bytedeco:javacpp:1.5.9")
+   api("org.bytedeco:javacv-platform:1.5.9")
+   api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
 
    var javaFXVersion = "17.0.2"
    api(ihmc.javaFXModule("base", javaFXVersion))
@@ -62,21 +68,20 @@ testDependencies {
 }
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")
-app.entrypoint("TestCapture", "us.ihmc.javadecklink.Capture")
-
+app.entrypoint("BlackMagicCapture", "us.ihmc.javadecklink.Capture")
 
 tasks.register<JavaExec>("deploy") {
-		dependsOn("generateMessages")
-		dependsOn("distTar")
-		group = "Deploy"
-		description = "Deploy logger"
-		classpath = sourceSets.main.get().runtimeClasspath
-		main = "us.ihmc.publisher.logger.ui.LoggerDeployApplication"
-		
-		var p =   projectDir.toPath().resolve("build/distributions/" + project.name + "-" + project.version + ".tar").normalize()
-		
-		args("--logger-dist=" + p)
-}	
+   dependsOn("generateMessages")
+   dependsOn("distTar")
+   group = "Deploy"
+   description = "Deploy logger"
+   classpath = sourceSets.main.get().runtimeClasspath
+   mainClass.set("us.ihmc.publisher.logger.ui.LoggerDeployApplication")
+
+   var p =   projectDir.toPath().resolve("build/distributions/" + project.name + "-" + project.version + ".tar").normalize()
+
+   args("--logger-dist=" + p)
+}
 
 tasks.create("generateMessages") {
    doLast {
@@ -95,4 +100,3 @@ fun generateMessages()
       IDLGenerator.execute(idl, packagePrefix, targetDirectory, listOf(file(".")))
    }
 }
-

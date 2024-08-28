@@ -3,11 +3,11 @@ package us.ihmc.robotDataLogger.guiRecorder;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.eprosima.xmlschemas.fastrtps_profiles.ReliabilityQosKindType;
 import us.ihmc.pubsub.Domain;
 import us.ihmc.pubsub.DomainFactory;
 import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
 import us.ihmc.pubsub.attributes.ParticipantAttributes;
-import us.ihmc.pubsub.attributes.ReliabilityKind;
 import us.ihmc.pubsub.attributes.SubscriberAttributes;
 import us.ihmc.pubsub.common.MatchingInfo;
 import us.ihmc.pubsub.participant.Participant;
@@ -39,7 +39,7 @@ public class GUICaptureReceiver implements SubscriberListener
       SubscriberAttributes attributes = domain.createSubscriberAttributes(participant,
                                                                           pubSubType,
                                                                           topicName,
-                                                                          ReliabilityKind.BEST_EFFORT,
+                                                                          ReliabilityQosKindType.BEST_EFFORT,
                                                                           GUICaptureStreamer.partition);
       domain.createSubscriber(participant, attributes, this);
 

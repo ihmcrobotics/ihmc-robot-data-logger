@@ -9,7 +9,7 @@ import us.ihmc.robotDataLogger.LogPropertiesPubSubType;
 
 public class LogPropertiesWriter extends LogProperties
 {
-   private final static String version = "3.0";
+   private final static String version = "4.0";
    private final File file;
 
    public LogPropertiesWriter(File file)

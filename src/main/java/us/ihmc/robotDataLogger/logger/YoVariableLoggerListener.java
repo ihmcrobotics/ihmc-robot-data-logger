@@ -61,6 +61,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
    private final File tempDirectory;
    private final File finalDirectory;
+   private final boolean disableVideo;
    private final YoVariableLoggerOptions options;
    private FileChannel dataChannel;
    private FileChannel indexChannel;
@@ -97,6 +98,13 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private long lastStatusUpdateTimestamp = 0;
    private long logStartedTimestamp = 0;
 
+   public YoVariableLoggerListener(File tempDirectory, File finalDirectory, String timestamp, Announcement request)
+   {
+      this(tempDirectory, finalDirectory, timestamp, request, null, null, (t) ->
+      {
+      });
+   }
+
    public YoVariableLoggerListener(File tempDirectory,
                                    File finalDirectory,
                                    String timestamp,
@@ -105,13 +113,25 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                                    YoVariableLoggerOptions options,
                                    Consumer<Announcement> doneListener)
    {
-      LogTools.info(toString(request));
-      flushAggressivelyToDisk = options.isFlushAggressivelyToDisk();
+      LogTools.debug(toString(request));
       this.tempDirectory = tempDirectory;
       this.finalDirectory = finalDirectory;
-      this.options = options;
+
       this.request = request;
       this.doneListener = doneListener;
+
+      this.options = options;
+      if (options == null)
+      {
+         this.disableVideo = true;
+         this.flushAggressivelyToDisk = false;
+      }
+      else
+      {
+         this.disableVideo = options.getDisableVideo();
+         this.flushAggressivelyToDisk = options.isFlushAggressivelyToDisk();
+      }
+
       logProperties = new LogPropertiesWriter(new File(tempDirectory, propertyFile));
       logProperties.getVariables().setHandshake(handshakeFilename);
       logProperties.getVariables().setData(dataFilename);
@@ -123,29 +143,35 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       logProperties.setName(request.getNameAsString());
       logProperties.setTimestamp(timestamp);
 
-      if (!options.getDisableVideo() && target.getCameraList() != null)
+      if (!disableVideo)
       {
          CameraSettings cameras = CameraSettingsLoader.load();
 
-         for (int i = 0; i < target.getCameraList().size(); i++)
+         if (target.getCameraList() != null)
          {
-            byte camera_id = target.getCameraList().get(i);
-
-            for (CameraConfiguration camera : cameras.getCameras())
+            for (int i = 0; i < target.getCameraList().size(); i++)
             {
-               if (camera.getCameraId() == camera_id)
+               byte camera_id = target.getCameraList().get(i);
+
+               for (CameraConfiguration camera : cameras.getCameras())
                {
-                  LogTools.info("Adding camera " + camera.toString());
-                  this.cameras.add(camera);
+                  if (camera.getCameraId() == camera_id)
+                  {
+                     LogTools.info("Adding camera " + camera.toString());
+                     this.cameras.add(camera);
+                  }
                }
             }
          }
+         else
+         {
+            LogTools.warn("The control session has no host in the IHMCControllerParameters file, so no camera's are recording... nice work genius");
+         }
       }
-      else
+      else if (options != null)
       {
-         LogTools.warn("Video capture disabled. Ignoring camera's and network streams");
+         LogTools.warn("Video capture disabled by configuration file. Ignoring camera's and network streams");
       }
-
    }
 
    @Override
@@ -190,7 +216,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
             resourceStream.write(handshake.getResourceZip());
             resourceStream.getFD().sync();
             resourceStream.close();
-
          }
          catch (IOException e)
          {
@@ -260,9 +285,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                throw new RuntimeException(e);
             }
          }
-
       }
-
    }
 
    private void updateStatus()
@@ -275,7 +298,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
             if (now > lastStatusUpdateTimestamp + STATUS_PACKET_RATE)
             {
-
                boolean recordingVideo = false;
                for (int i = 0; i < videoDataLoggers.size(); i++)
                {
@@ -301,7 +323,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       }
    }
 
-   private ByteBuffer reconstructBuffer(long timestamp)
+   protected ByteBuffer reconstructBuffer(long timestamp)
    {
       dataBuffer.clear();
       dataBufferAsLong.clear();
@@ -325,7 +347,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    @Override
    public void disconnected()
    {
-      LogTools.info("Logger disconnected from " + request.getHostNameAsString());
+      LogTools.info("Finalizing log from host: " + request.getHostNameAsString());
 
       try
       {
@@ -344,7 +366,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       if (!connected)
       {
-         LogTools.error("Never started logging, cleaning up");
+         LogTools.error("Never started logging, cleaning up from host: ", request.getHostNameAsString());
          for (VideoDataLoggerInterface videoDataLogger : videoDataLoggers)
          {
             videoDataLogger.removeLogFiles();
@@ -405,6 +427,9 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          }
 
          tempDirectory.renameTo(finalDirectory);
+
+         // This gets printed here because it's been successful and is the final location of the log directory
+         LogTools.info("Log is saved as: " + finalDirectory);
 
          doneListener.accept(request);
       }
@@ -467,14 +492,13 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          {
             dataChannel = new FileOutputStream(dataFile, false).getChannel();
             indexChannel = new FileOutputStream(indexFile, false).getChannel();
-
          }
          catch (FileNotFoundException e)
          {
             throw new RuntimeException(e);
          }
 
-         if (!options.getDisableVideo())
+         if (!disableVideo)
          {
             for (CameraConfiguration camera : cameras)
             {
@@ -482,8 +506,17 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                {
                   switch (camera.getType())
                   {
+                     case CAPTURE_CARD_MAGEWELL:
+                        videoDataLoggers.add(new MagewellVideoDataLogger(camera.getNameAsString(),
+                                                                         camera.getType().name(),
+                                                                         tempDirectory,
+                                                                         logProperties,
+                                                                         Byte.parseByte(camera.getIdentifierAsString()),
+                                                                         options));
+                        break;
                      case CAPTURE_CARD:
                         videoDataLoggers.add(new BlackmagicVideoDataLogger(camera.getNameAsString(),
+                                                                           camera.getType().name(),
                                                                            tempDirectory,
                                                                            logProperties,
                                                                            Byte.parseByte(camera.getIdentifierAsString()),
@@ -491,6 +524,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                         break;
                      case NETWORK_STREAM:
                         videoDataLoggers.add(new NetworkStreamVideoDataLogger(tempDirectory,
+                                                                              camera.getType().name(),
                                                                               logProperties,
                                                                               LogParticipantSettings.videoDomain,
                                                                               camera.getIdentifierAsString()));
@@ -522,7 +556,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
          logStartedTimestamp = System.nanoTime();
       }
-
    }
 
    @Override
@@ -556,7 +589,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          {
             videoDataLogger.restart();
          }
-
       }
       catch (IOException e)
       {
@@ -591,7 +623,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       {
          if (yoVariableClientInterface.isConnected())
          {
-            
+
             LogTools.info("Restarting Log: " + request.getNameAsString());
             yoVariableClientInterface.stop();
          }
@@ -615,5 +647,4 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       return builder.toString();
    }
-
 }

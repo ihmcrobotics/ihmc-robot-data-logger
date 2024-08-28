@@ -9,7 +9,7 @@ public interface CompressionImplementation
     *
     * @return true if using direct buffers
     */
-   public boolean supportsDirectOutput();
+   boolean supportsDirectOutput();
 
    /**
     * Compress src into target
@@ -18,7 +18,7 @@ public interface CompressionImplementation
     * @param target Compressed data buffer
     * @return compressed data size
     */
-   public int compress(ByteBuffer src, ByteBuffer target);
+   int compress(ByteBuffer src, ByteBuffer target);
 
    /**
     * Decompress target into src
@@ -27,15 +27,14 @@ public interface CompressionImplementation
     * @param target             Non compressed data buffer
     * @param decompressedLength Length the decompressed data will be
     */
-   public void decompress(ByteBuffer src, ByteBuffer target, int decompressedLength);
+   void decompress(ByteBuffer src, ByteBuffer target, int decompressedLength);
 
    /**
     * Get the maximum size of the compressed data buffer
     * 
-    * @param uncompressedLength
     * @return Maximum size of the compressed data
     */
-   public int maxCompressedLength(int uncompressedLength);
+   int maxCompressedLength(int uncompressedLength);
 
    /**
     * Get the minimum size of the decompressed data Due to integer rounding, the following relation
@@ -43,5 +42,5 @@ public interface CompressionImplementation
     *
     * @return Minimum size of decompressed data
     */
-   public int minimumDecompressedLength(int compressedLength);
+   int minimumDecompressedLength(int compressedLength);
 }

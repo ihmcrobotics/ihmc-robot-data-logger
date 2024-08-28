@@ -31,10 +31,10 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
 
    private volatile long lastFrameTimestamp = 0;
 
-   public BlackmagicVideoDataLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
+   public BlackmagicVideoDataLogger(String name, String captureType, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
    {
-      super(logPath, logProperties, name);
-      decklink = decklinkID;
+      super(logPath, captureType, logProperties, name);
+      this.decklink = decklinkID;
       this.options = options;
 
       createCaptureInterface();

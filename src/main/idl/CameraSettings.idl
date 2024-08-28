@@ -4,7 +4,8 @@ module us{
 		
 			enum CameraType
 			{
-				CAPTURE_CARD,
+			    CAPTURE_CARD_MAGEWELL,
+			    CAPTURE_CARD,
 				NETWORK_STREAM
 			};
 			

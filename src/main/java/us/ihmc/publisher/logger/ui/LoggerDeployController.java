@@ -97,6 +97,12 @@ public class LoggerDeployController implements Initializable
    
    @FXML
    CheckBox restart_on_save;
+
+   @FXML
+   CheckBox logger_service;
+
+   @FXML
+   CheckBox allow_many_instances;
    
 
    @Override
@@ -114,6 +120,10 @@ public class LoggerDeployController implements Initializable
       prefs.linkToPrefs(logger_restart_midnight, false);
       
       prefs.linkToPrefs(restart_on_save, true);
+
+      prefs.linkToPrefs(logger_service, true);
+
+      prefs.linkToPrefs(allow_many_instances, false);
 
       camera_table.setEditable(true);
 
@@ -169,6 +179,7 @@ public class LoggerDeployController implements Initializable
       {
          restart_label.setVisible(false);
          logger_restart_midnight.setVisible(false);
+         logger_service.setVisible(false);
       }
    }
 
@@ -319,13 +330,11 @@ public class LoggerDeployController implements Initializable
          alert.setHeaderText(ex.getMessage());
          alert.showAndWait();
       }
-
    }
 
    @FXML
    void save(ActionEvent e)
    {
-
       CameraSettings settings = new CameraSettings();
 
       for (CameraBean cameraBean : cameraList)
@@ -345,20 +354,18 @@ public class LoggerDeployController implements Initializable
       loggerDeployScript.saveConfiguration(logger_host.getText(), logger_user.getText(), logger_pasword.getText(), logger_sudo_password.getText(), settings, staticHosts, restart_on_save.isSelected(), getStage());
    }
 
-   
    @FXML
    void logger_deploy(ActionEvent e)
    {
-
-      
          loggerDeployScript.deploy(logger_host.getText(),
                                    logger_user.getText(),
                                    logger_pasword.getText(),
                                    logger_sudo_password.getText(),
                                    logger_dist.getText(),
                                    logger_restart_midnight.isSelected(),
-                                   getStage());
-      
+                                   getStage(),
+                                   logger_service.isSelected(),
+                                   allow_many_instances.isSelected());
    }
 
    private Stage getStage()
@@ -368,7 +375,6 @@ public class LoggerDeployController implements Initializable
 
    private void createFileSelection(String name, String argument, TextField textField, Button browseButton, String filter)
    {
-
       if (argument == null)
       {
          FileChooser fileChooser = new FileChooser();
@@ -398,22 +404,19 @@ public class LoggerDeployController implements Initializable
          textField.setDisable(true);
          browseButton.setVisible(false);
       }
-
    }
 
    /**
     * Set parameters that were used to start the application
     * 
-    * @param parameters
+    * @param loggerDistribution
     */
    public void setLoggerDistribution(String loggerDistribution)
    {
-
       Platform.runLater(() ->
       {
          createFileSelection("Logger distribution", loggerDistribution, logger_dist, browse_dist, "*.tar");
       });
 
    }
-
 }

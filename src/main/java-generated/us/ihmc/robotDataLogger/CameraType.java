@@ -12,6 +12,8 @@ import us.ihmc.idl.IDLTools;
 
 public enum CameraType
 {
+         CAPTURE_CARD_MAGEWELL,
+      
          CAPTURE_CARD,
       
          NETWORK_STREAM,

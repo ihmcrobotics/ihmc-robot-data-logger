@@ -21,6 +21,7 @@ public interface LoggerDeployScript
     * @param logger_dist
     * @param nightly_restart
     * @param stage
+    * @param logger_service
     */
    default void deploy(String logger_host,
                        String logger_user,
@@ -28,12 +29,13 @@ public interface LoggerDeployScript
                        String logger_sudo_password,
                        String logger_dist,
                        boolean nightly_restart,
-                       Stage stage)
+                       Stage stage,
+                       boolean logger_service,
+                       boolean allow_many_instances)
    {
-      FXConsole deployConsole = new FXConsole((Stage) stage);
+      FXConsole deployConsole = new FXConsole(stage);
       SSHRemote remote = new SSHRemote(logger_host, logger_user, logger_password, logger_sudo_password);
-      LoggerDeployConfiguration.deploy(remote, logger_dist, nightly_restart, deployConsole);
-
+      LoggerDeployConfiguration.deploy(remote, logger_dist, nightly_restart, deployConsole, logger_service, allow_many_instances);
    }
 
    default boolean implementsAutoRestart()
@@ -50,12 +52,10 @@ public interface LoggerDeployScript
                                   boolean restartonSave,
                                   Stage stage)
    {
-      FXConsole deployConsole = new FXConsole((Stage) stage);
+      FXConsole deployConsole = new FXConsole(stage);
       SSHRemote remote = new SSHRemote(logger_host, logger_user, logger_password, logger_sudo_password);
       
       LoggerDeployConfiguration.saveConfiguration(remote, settings, staticHostList, restartonSave, deployConsole);
-
-
    }
    
    default CameraSettings loadCameraConfiguration(String logger_host,
@@ -77,5 +77,4 @@ public interface LoggerDeployScript
       SSHRemote remote = new SSHRemote(logger_host, logger_user, logger_password, logger_sudo_password);      
       return LoggerDeployConfiguration.loadStaticHostList(remote);
    }
-
 }
