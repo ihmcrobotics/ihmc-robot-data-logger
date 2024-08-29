@@ -47,7 +47,7 @@ mainDependencies {
    api("us.ihmc:ihmc-graphics-description:0.25.1")
    api("us.ihmc:mecano:17-0.18.1")
    api("com.hierynomus:sshj:0.31.0")
-   api("us.ihmc:scs2-definition:17-0.27.0")
+   api("us.ihmc:scs2-definition:17-0.27.3")
 
    api("org.bytedeco:javacv:1.5.9")
    api("org.bytedeco:javacpp:1.5.9")
