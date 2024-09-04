@@ -1,19 +1,19 @@
 package us.ihmc.robotDataLogger.guiRecorder;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import com.eprosima.xmlschemas.fastrtps_profiles.ReliabilityQosKindType;
+import com.eprosima.xmlschemas.fastrtps_profiles.ReliabilityQosKindPolicyType;
 import us.ihmc.pubsub.Domain;
 import us.ihmc.pubsub.DomainFactory;
 import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
-import us.ihmc.pubsub.attributes.ParticipantAttributes;
+import us.ihmc.pubsub.attributes.ParticipantProfile;
 import us.ihmc.pubsub.attributes.SubscriberAttributes;
 import us.ihmc.pubsub.common.MatchingInfo;
 import us.ihmc.pubsub.participant.Participant;
 import us.ihmc.pubsub.subscriber.Subscriber;
 import us.ihmc.pubsub.subscriber.SubscriberListener;
 import us.ihmc.pubsub.types.ByteBufferPubSubType;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class GUICaptureReceiver implements SubscriberListener
 {
@@ -28,7 +28,7 @@ public class GUICaptureReceiver implements SubscriberListener
       this.topicName = topicName;
       this.handler = handler;
 
-      ParticipantAttributes participantAttributes = domain.createParticipantAttributes(domainID, getClass().getSimpleName());
+      ParticipantProfile participantAttributes = domain.createParticipantAttributes(domainID, getClass().getSimpleName());
       participant = domain.createParticipant(participantAttributes);
 
    }
@@ -39,7 +39,7 @@ public class GUICaptureReceiver implements SubscriberListener
       SubscriberAttributes attributes = domain.createSubscriberAttributes(participant,
                                                                           pubSubType,
                                                                           topicName,
-                                                                          ReliabilityQosKindType.BEST_EFFORT,
+                                                                          ReliabilityQosKindPolicyType.BEST_EFFORT,
                                                                           GUICaptureStreamer.partition);
       domain.createSubscriber(participant, attributes, this);
 

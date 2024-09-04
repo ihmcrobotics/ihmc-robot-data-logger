@@ -2,7 +2,7 @@ import us.ihmc.idl.generator.IDLGenerator
 
 buildscript {
    dependencies {
-      classpath("us.ihmc:ihmc-pub-sub-generator:0.19.2")
+      classpath("us.ihmc:ihmc-pub-sub-generator:0.20.0")
    }
 }
 
@@ -41,8 +41,8 @@ mainDependencies {
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-realtime:1.6.0")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
-   api("us.ihmc:ihmc-pub-sub:0.19.2")
-   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.19.2")
+   api("us.ihmc:ihmc-pub-sub:0.20.0")
+   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.20.0")
    api("us.ihmc:ihmc-commons:0.32.0")
    api("us.ihmc:ihmc-graphics-description:0.25.1")
    api("us.ihmc:mecano:17-0.18.1")

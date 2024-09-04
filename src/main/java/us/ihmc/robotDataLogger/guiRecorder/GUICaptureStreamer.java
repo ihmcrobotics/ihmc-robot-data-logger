@@ -1,19 +1,6 @@
 package us.ihmc.robotDataLogger.guiRecorder;
 
-import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.awt.Toolkit;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-
-import javax.swing.JFrame;
-
-import com.eprosima.xmlschemas.fastrtps_profiles.ReliabilityQosKindType;
+import com.eprosima.xmlschemas.fastrtps_profiles.ReliabilityQosKindPolicyType;
 import us.ihmc.codecs.generated.RGBPicture;
 import us.ihmc.codecs.generated.YUVPicture;
 import us.ihmc.codecs.generated.YUVPicture.YUVSubsamplingType;
@@ -24,12 +11,22 @@ import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.pubsub.Domain;
 import us.ihmc.pubsub.DomainFactory;
 import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
-import us.ihmc.pubsub.attributes.ParticipantAttributes;
+import us.ihmc.pubsub.attributes.ParticipantProfile;
 import us.ihmc.pubsub.attributes.PublisherAttributes;
 import us.ihmc.pubsub.participant.Participant;
 import us.ihmc.pubsub.publisher.Publisher;
 import us.ihmc.pubsub.types.ByteBufferPubSubType;
 import us.ihmc.robotDataLogger.rtps.LogParticipantSettings;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 public class GUICaptureStreamer
 {
@@ -66,7 +63,7 @@ public class GUICaptureStreamer
       this.topicName = topicName;
       try
       {
-         ParticipantAttributes attributes = domain.createParticipantAttributes(domainID, getClass().getSimpleName());
+         ParticipantProfile attributes = domain.createParticipantAttributes(domainID, getClass().getSimpleName());
          participant = domain.createParticipant(attributes);
 
       }
@@ -83,7 +80,7 @@ public class GUICaptureStreamer
          future.cancel(false);
       }
       ByteBufferPubSubType pubSubType = new ByteBufferPubSubType(topicType, MAXIMUM_IMAGE_DATA_SIZE);
-      PublisherAttributes attributes = domain.createPublisherAttributes(participant, pubSubType, topicName, ReliabilityQosKindType.BEST_EFFORT, partition);
+      PublisherAttributes attributes = domain.createPublisherAttributes(participant, pubSubType, topicName, ReliabilityQosKindPolicyType.BEST_EFFORT, partition);
       try
       {
          publisher = domain.createPublisher(participant, attributes);
