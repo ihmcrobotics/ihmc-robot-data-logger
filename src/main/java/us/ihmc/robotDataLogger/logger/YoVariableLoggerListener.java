@@ -88,6 +88,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
    private long lastReceivedTimestamp = Long.MIN_VALUE;
    private long ticksWithoutNewTimestamp = 0;
+   private boolean alreadyShutDown = false;
 
    private final Announcement request;
    private final Consumer<Announcement> doneListener;
@@ -440,6 +441,11 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
          doneListener.accept(request);
       }
+
+      if (alreadyShutDown)
+      {
+         LogTools.info("This may have already shutdown properly due to the server losing power for an extended amount of time");
+      }
    }
 
    private final ExecutorService executor = Executors.newCachedThreadPool();
@@ -575,6 +581,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          {
             LogTools.warn("Whoa whoa whoa, haven't received new timestamps in a while, maybe the server crashed without proper shutdown, stopping the logger...");
             disconnected();
+            alreadyShutDown = true;
          }
 
          if (timestamp > lastReceivedTimestamp) // Check if this a newer timestamp. UDP is out of order and the TCP packets also call this function
