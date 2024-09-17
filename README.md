@@ -13,10 +13,10 @@ IHMC Robot Data Logger
 - Capture cards to record video feeds (optional)
   - [Magewell Pro Capture Card](https://www.magewell.com/products/pro-capture-sdi)
   - BlackMagic Decklink Mini Recorder Capture Card (Deprecated)
-    - This is deprecated because it only works on Ubuntu 20.04 and is no longer supported by the maintainers of this repository
+    - This is deprecated because [https://github.com/ihmcrobotics/ihmc-java-decklink-capture](https://github.com/ihmcrobotics/ihmc-java-decklink-capture) only works on Ubuntu 20.04 and is no longer supported by the maintainers of this repository. And that is required to use the BlackMagic Capture Card
 
 ## Ubuntu 22.04 (recommended)
-- Install Ubuntu Desktop 22.04 LTS (its convenient to have a GUI to work with)
+- Install Ubuntu Desktop 22.04 LTS (it's convenient to have a GUI to work with)
 	- Make sure to install OpenSSH
 - Install the firmware for the Magewell Capture Card: [Pro Capture Linux x86 Driver](https://www.magewell.com/downloads/pro-capture#/driver/linux-x86)
 - Setup a workspace where ihmc-robot-data-logger is cloned: `git clone https://github.com/ihmcrobotics/ihmc-robot-data-logger.git`
@@ -53,7 +53,7 @@ The steps below walk through how to set those two files up. They should be setup
 This file holds the information regarding the cameras that the logger will try to capture the feeds from.
 It is possible to configure the cameras from the `gradle deploy` but since they get changes often its important to know how to change it manually.
 
-Create a new file ~/.ihmc/CameraSettings.yaml. A basic setup looks like this:
+Create a new file `~/.ihmc/CameraSettings.yaml`. A basic setup looks like this:
 
 ```
 cameras:
