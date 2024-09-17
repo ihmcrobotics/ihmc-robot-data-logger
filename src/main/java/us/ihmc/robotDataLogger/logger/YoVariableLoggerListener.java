@@ -444,7 +444,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       if (alreadyShutDown)
       {
-         LogTools.info("This may have already shutdown properly due to the server losing power for an extended amount of time");
+         LogTools.info("This may have already shutdown because the connection to the server was lost");
       }
    }
 
@@ -577,7 +577,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       synchronized (timestampUpdater)
       {
          // We haven't received any new timestamps, shutdown the logger gracefully
-         if (ticksWithoutNewTimestamp == TICKS_WITHOUT_DATA_BEFORE_SHUTDOWN)
+         if (!alreadyShutDown && ticksWithoutNewTimestamp == TICKS_WITHOUT_DATA_BEFORE_SHUTDOWN)
          {
             LogTools.warn("Whoa whoa whoa, haven't received new timestamps in a while, maybe the server crashed without proper shutdown, stopping the logger...");
             disconnected();
