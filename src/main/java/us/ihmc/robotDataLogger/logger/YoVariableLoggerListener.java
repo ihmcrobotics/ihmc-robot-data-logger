@@ -42,6 +42,12 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 {
+   /**
+    * We wait this long before shutting down the logger, this prevents logging forever in the case where the server didn't
+    * shut down properly.
+    */
+   private static final int TICKS_WITHOUT_DATA_BEFORE_SHUTDOWN = 5000;
+
    private static final int FLUSH_EVERY_N_PACKETS = 250;
    public static final long STATUS_PACKET_RATE = Conversions.secondsToNanoseconds(5.0);
    private static final long VIDEO_RECORDING_TIMEOUT = Conversions.secondsToNanoseconds(1.0);
@@ -81,6 +87,8 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private long currentIndex = 0;
 
    private long lastReceivedTimestamp = Long.MIN_VALUE;
+   private long ticksWithoutNewTimestamp = 0;
+   private boolean alreadyShutDown = false;
 
    private final Announcement request;
    private final Consumer<Announcement> doneListener;
@@ -433,6 +441,11 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
          doneListener.accept(request);
       }
+
+      if (alreadyShutDown)
+      {
+         LogTools.info("This may have already shutdown because the connection to the server was lost");
+      }
    }
 
    private final ExecutorService executor = Executors.newCachedThreadPool();
@@ -563,6 +576,14 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    {
       synchronized (timestampUpdater)
       {
+         // We haven't received any new timestamps, shutdown the logger gracefully
+         if (!alreadyShutDown && ticksWithoutNewTimestamp == TICKS_WITHOUT_DATA_BEFORE_SHUTDOWN)
+         {
+            LogTools.warn("Whoa whoa whoa, haven't received new timestamps in a while, maybe the server crashed without proper shutdown, stopping the logger...");
+            disconnected();
+            alreadyShutDown = true;
+         }
+
          if (timestamp > lastReceivedTimestamp) // Check if this a newer timestamp. UDP is out of order and the TCP packets also call this function
          {
             for (int i = 0; i < videoDataLoggers.size(); i++)
@@ -570,6 +591,11 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                videoDataLoggers.get(i).timestampChanged(timestamp);
             }
             lastReceivedTimestamp = timestamp;
+            ticksWithoutNewTimestamp = 0;
+         }
+         else
+         {
+            ticksWithoutNewTimestamp++;
          }
       }
    }
