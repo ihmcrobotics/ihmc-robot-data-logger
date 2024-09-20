@@ -49,9 +49,17 @@ mainDependencies {
    api("com.hierynomus:sshj:0.31.0")
    api("us.ihmc:scs2-definition:17-0.27.3")
 
-   api("org.bytedeco:javacv:1.5.9")
-   api("org.bytedeco:javacpp:1.5.9")
-   api("org.bytedeco:javacv-platform:1.5.9")
+   val opencvVersion = "4.7.0-1.5.9"
+   api("org.bytedeco:opencv:$opencvVersion")
+   api("org.bytedeco:opencv:$opencvVersion:linux-x86_64")
+   api("org.bytedeco:opencv:$opencvVersion:linux-arm64")
+   api("org.bytedeco:opencv:$opencvVersion:windows-x86_64")
+   val ffmpegVersion = "6.0-1.5.9"
+   api("org.bytedeco:ffmpeg:$ffmpegVersion")
+   api("org.bytedeco:ffmpeg:$ffmpegVersion:linux-x86_64")
+   api("org.bytedeco:ffmpeg:$ffmpegVersion:linux-arm64")
+   api("org.bytedeco:ffmpeg:$ffmpegVersion:windows-x86_64")
+
    api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
 
    var javaFXVersion = "17.0.2"
