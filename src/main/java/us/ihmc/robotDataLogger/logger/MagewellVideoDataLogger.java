@@ -67,7 +67,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
                                      {
                                         startCapture();
                                      }
-                                     catch (InterruptedException | IOException e)
+                                     catch (Exception e)
                                      {
                                         LogTools.error("Last frame is bad for {} but who cares, shutting down gracefully because of threading", deviceNumber);
                                      }
@@ -95,7 +95,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
       }
    }
 
-   public void startCapture() throws IOException, InterruptedException
+   public void startCapture() throws Exception
    {
       grabber.start();
       magewellMuxer.start();
