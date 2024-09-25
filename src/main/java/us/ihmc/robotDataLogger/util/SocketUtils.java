@@ -4,6 +4,7 @@ import java.net.BindException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.util.Enumeration;
 
 public final class SocketUtils
 {
@@ -18,16 +19,19 @@ public final class SocketUtils
    {
       try
       {
-         InetAddress address = networkInterface.getInetAddresses().nextElement();
-         while (address.isLoopbackAddress() && networkInterface.getInetAddresses().hasMoreElements())
-         {
-            address = networkInterface.getInetAddresses().nextElement();
-         }
+         Enumeration<InetAddress> address = networkInterface.getInetAddresses();
 
-         DatagramSocket socket = new DatagramSocket(port, address);
-         socket.close();
-         socket.disconnect();
-         return false;
+         while(address.hasMoreElements())
+         {
+            InetAddress inetAddress = address.nextElement();
+            if (!inetAddress.isLoopbackAddress())
+            {
+               DatagramSocket socket = new DatagramSocket(port, inetAddress);
+               socket.close();
+               socket.disconnect();
+               return false;
+            }
+         }
       }
       catch (BindException e)
       {
@@ -38,5 +42,7 @@ public final class SocketUtils
          e.printStackTrace();
          return true; // Other errors
       }
+
+      return true; // Other errors
    }
 }
