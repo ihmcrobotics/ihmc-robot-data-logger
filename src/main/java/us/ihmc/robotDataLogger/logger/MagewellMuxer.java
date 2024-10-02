@@ -12,7 +12,7 @@ public class MagewellMuxer
 {
    private final FFmpegFrameRecorder recorder;
 
-   public MagewellMuxer(File videoCaptureFile, int captureWidth, int captureHeight)
+   public MagewellMuxer(File videoCaptureFile, int captureWidth, int captureHeight, int frameRate, int bitRate)
    {
       recorder = new FFmpegFrameRecorder(videoCaptureFile, captureWidth, captureHeight);
 
@@ -22,14 +22,14 @@ public class MagewellMuxer
       // For information about these settings visit https://trac.ffmpeg.org/wiki/Encode/H.264
       recorder.setVideoOption("preset", "ultrafast");
       recorder.setVideoOption("crf", "27");
-      recorder.setVideoBitrate(60000000); // 6000 kb/s
+      recorder.setVideoBitrate(bitRate); // 6000 kb/s
 
       // This video codec is deprecated, so in order to use it without errors we have to set the pixel format and strictly allow FFMPEG to use it
       recorder.setVideoCodec(avcodec.AV_CODEC_ID_MJPEG);
       recorder.setPixelFormat(avutil.AV_PIX_FMT_YUV420P);
       recorder.setVideoOption("strict", "-2");
       // Frame rate of video recordings
-      recorder.setFrameRate(60);
+      recorder.setFrameRate(frameRate);
    }
 
    public void start() throws Exception

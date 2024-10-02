@@ -64,6 +64,11 @@ public class MagewellDemuxer
         return grabber.getFrameNumber();
     }
 
+    public int getBitRate()
+    {
+        return grabber.getVideoBitrate();
+    }
+
     public Frame getNextFrame()
     {
         try
@@ -76,8 +81,8 @@ public class MagewellDemuxer
         }
     }
 
-    public double getFrameRate()
+    public int getFrameRate()
     {
-        return grabber.getVideoFrameRate();
+        return (int) grabber.getVideoFrameRate();
     }
 }

@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import static us.ihmc.robotDataLogger.logger.MagewellVideoDataLogger.*;
+
 /**
  * This example class provides the basics for capturing a video using the ByteDeco JavaCV bindings
  * You need a Magewell capture card, and a camera attached on the other end for this to work
@@ -35,7 +37,6 @@ public class ExampleMagewellCapture
 
    private static long timestampsWritten = 0;
    private static final int CAPTURE_TIME_DURATION = 10;
-   private static final int FRAME_RATE = 60;
 
    public static void main(String[] args) throws InterruptedException
    {
@@ -45,23 +46,17 @@ public class ExampleMagewellCapture
       videoFile = new File(videoPath);
       timestampFile = new File(timestampPath);
 
-      // This is the resolution of the video, overrides camera
-//      final int captureWidth = 1980;
-      final int captureWidth = 1280;
-//      final int captureHeight = 1080;
-      final int captureHeight = 720;
-
       // Can try VideoInputFrameGrabber as well to see how that one works, and there is FFMPEGFrameGrabber
       try (OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(DEVICE_INDEX))
       {
-         grabber.setImageWidth(captureWidth);
-         grabber.setImageHeight(captureHeight);
-         grabber.setFrameRate(FRAME_RATE);
+         grabber.setImageWidth(CAPTURE_WIDTH);
+         grabber.setImageHeight(CAPTURE_HEIGHT);
+         grabber.setFrameRate(CAPTURE_FPS);
          grabber.start();
 
          setupTimestampWriter();
 
-         magewellMuxer = new MagewellMuxer(videoFile, captureWidth, captureHeight);
+         magewellMuxer = new MagewellMuxer(videoFile, CAPTURE_WIDTH, CAPTURE_HEIGHT, CAPTURE_FPS, CAPTURE_TIME_DURATION);
          magewellMuxer.start();
 
          // A really nice hardware accelerated component for our preview...

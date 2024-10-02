@@ -13,6 +13,12 @@ import us.ihmc.tools.CaptureTimeTools;
 
 public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
 {
+   // This is the specifications of the video, overrides camera
+   public static final int CAPTURE_WIDTH = 1280;
+   public static final int CAPTURE_HEIGHT = 1280;
+   public static final int CAPTURE_FPS = 60;
+   public static final int CAPTURE_BIT_RATE = 60000000; // 6000 kps
+
    private final YoVariableLoggerOptions options;
 
    private OpenCVFrameGrabber grabber;
@@ -39,20 +45,16 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
       File timestampFile = new File(timestampData);
       File videoCaptureFile = new File(videoFile);
 
-      // This is the resolution of the video, overrides camera
-      int captureWidth = 1280;
-      int captureHeight = 720;
-
       switch (options.getVideoCodec())
       {
          case AV_CODEC_ID_H264, AV_CODEC_ID_MJPEG ->
          {
             grabber = new OpenCVFrameGrabber(deviceNumber);
-            grabber.setImageWidth(captureWidth);
-            grabber.setImageHeight(captureHeight);
-            grabber.setFrameRate(60);
+            grabber.setImageWidth(CAPTURE_WIDTH);
+            grabber.setImageHeight(CAPTURE_HEIGHT);
+            grabber.setFrameRate(CAPTURE_FPS);
 
-            magewellMuxer = new MagewellMuxer(videoCaptureFile, captureWidth, captureHeight);
+            magewellMuxer = new MagewellMuxer(videoCaptureFile, CAPTURE_WIDTH, CAPTURE_HEIGHT, CAPTURE_FPS, CAPTURE_BIT_RATE);
          }
          default -> throw new RuntimeException();
       }
