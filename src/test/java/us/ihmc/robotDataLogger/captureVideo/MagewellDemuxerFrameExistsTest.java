@@ -6,7 +6,7 @@ import us.ihmc.robotDataLogger.logger.MagewellDemuxer;
 import java.io.File;
 
 /**
- * This class allows the user to specify a file and see if when requesting a specific frame we are able to receive that frame or if the value is noll
+ * This class allows the user to specify a file and see if when requesting a specific frame we are able to receive that frame or if the value is null
  * The file for the video will be wrong so make sure to update it with the location of the video you want to test
  */
 public class MagewellDemuxerFrameExistsTest
