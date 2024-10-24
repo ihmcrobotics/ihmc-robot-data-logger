@@ -71,6 +71,8 @@ mainDependencies {
 
 testDependencies {
    api("us.ihmc:ihmc-commons-testing:0.32.0")
+   api("org.bytedeco:lz4-platform:1.9.4-1.5.8")
+   api("org.bytedeco:lz4:1.9.4-1.5.8")
 }
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")
