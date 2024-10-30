@@ -41,13 +41,13 @@ mainDependencies {
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-realtime:1.6.0")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
-   api("us.ihmc:ihmc-pub-sub:0.20.0")
-   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.20.0")
+   api("us.ihmc:ihmc-pub-sub:0.20.1")
+   api("us.ihmc:ihmc-pub-sub-serializers-extra:0.20.1")
    api("us.ihmc:ihmc-commons:0.34.0")
-   api("us.ihmc:ihmc-graphics-description:0.25.1")
+   api("us.ihmc:ihmc-graphics-description:0.25.2")
    api("us.ihmc:mecano:17-0.19.0")
    api("com.hierynomus:sshj:0.31.0")
-   api("us.ihmc:scs2-definition:17-0.27.3")
+   api("us.ihmc:scs2-definition:17-0.28.1")
 
    val opencvVersion = "4.7.0-1.5.9"
    api("org.bytedeco:opencv:$opencvVersion")
