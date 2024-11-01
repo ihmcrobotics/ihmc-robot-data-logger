@@ -59,6 +59,11 @@ mainDependencies {
    api("org.bytedeco:ffmpeg:$ffmpegVersion:linux-x86_64")
    api("org.bytedeco:ffmpeg:$ffmpegVersion:linux-arm64")
    api("org.bytedeco:ffmpeg:$ffmpegVersion:windows-x86_64")
+   val openblasVersion = "0.3.23-1.5.9" // TODO: This can probably be removed in 1.5.10
+   api("org.bytedeco:openblas:$openblasVersion")
+   api("org.bytedeco:openblas:$openblasVersion:linux-x86_64")
+   api("org.bytedeco:openblas:$openblasVersion:linux-arm64")
+   api("org.bytedeco:openblas:$openblasVersion:windows-x86_64")
 
    api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
 
