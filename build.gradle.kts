@@ -53,11 +53,13 @@ mainDependencies {
    api("org.bytedeco:opencv:$opencvVersion")
    api("org.bytedeco:opencv:$opencvVersion:linux-x86_64")
    api("org.bytedeco:opencv:$opencvVersion:linux-arm64")
+   api("org.bytedeco:opencv:$opencvVersion:linux-armhf")
    api("org.bytedeco:opencv:$opencvVersion:windows-x86_64")
    val ffmpegVersion = "6.0-1.5.9"
    api("org.bytedeco:ffmpeg:$ffmpegVersion")
    api("org.bytedeco:ffmpeg:$ffmpegVersion:linux-x86_64")
    api("org.bytedeco:ffmpeg:$ffmpegVersion:linux-arm64")
+   api("org.bytedeco:ffmpeg:$ffmpegVersion:linux-armhf")
    api("org.bytedeco:ffmpeg:$ffmpegVersion:windows-x86_64")
 
    api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
