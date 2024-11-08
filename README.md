@@ -6,45 +6,73 @@ IHMC Robot Data Logger
 ## Logger computer system requirements
 
 - Tons of hard drive space
-	- The logger can take 100GB/hour easily, depending on the number of variables and video streams.
+    - The logger can take 100GB/hour easily, depending on the number of variables and video streams.
 - 4 GB RAM (8 GB when more than one video stream is captured)
 - 2.5GHz or faster Intel i7 or Xeon E3, E5 or E7
-	- 1 + n cores, where n is the number of video streams
-- Capture cards to record video feeds (optional)
-  - [Magewell Pro Capture Card](https://www.magewell.com/products/pro-capture-sdi)
-  - BlackMagic Decklink Mini Recorder Capture Card (Deprecated)
-    - This is deprecated because [https://github.com/ihmcrobotics/ihmc-java-decklink-capture](https://github.com/ihmcrobotics/ihmc-java-decklink-capture) only works on Ubuntu 20.04 and is no longer supported by the maintainers of this repository. And that is required to use the BlackMagic Capture Card
-
-## Ubuntu 22.04 (recommended)
-- Install Ubuntu Desktop 22.04 LTS (it's convenient to have a GUI to work with)
-	- Make sure to install OpenSSH
-- Install the firmware for the Magewell Capture Card: [Pro Capture Linux x86 Driver](https://www.magewell.com/downloads/pro-capture#/driver/linux-x86)
-- Setup a workspace where ihmc-robot-data-logger is cloned: `git clone https://github.com/ihmcrobotics/ihmc-robot-data-logger.git`
-- Reboot the computer
+    - 1 + n cores, where n is the number of video streams
+- [Optional] Capture cards to record video feeds
+    - [Magewell Pro Capture Card](https://www.magewell.com/products/pro-capture-sdi)
+    - [Deprecated] BlackMagic Decklink Mini Recorder Capture Card
+        - This is deprecated because [https://github.com/ihmcrobotics/ihmc-java-decklink-capture](https://github.com/ihmcrobotics/ihmc-java-decklink-capture)
+          only works on Ubuntu 20.04 and is no longer supported by the maintainers of this repository. And that is required to use the BlackMagic Capture Card
 
 ---
+
+## Setting up the Logger from source (Ubuntu 22.04 / Magewell)
+
+- Install Ubuntu Desktop 22.04 LTS (it's convenient to have a GUI to work with)
+    - Make sure to install OpenSSH
+- Install Git:
+    - `sudo apt install git`
+- Install Java:
+    - `sudo apt update`
+    - `sudo apt install openjdk-17-jdk`
+- Install Gradle: (we will install curl to help with this)
+    - `sudo apt install curl`
+    - `cd ~/Downloads`
+    - `curl -sL https://services.gradle.org/distributions/gradle-8.1.1-all.zip -o gradle.zip\`
+    - `unzip -q gradle.zip -d gradle`
+    - `sudo mv gradle/gradle-8.1.1/ /opt/`
+    - `sudo ln -s /opt/gradle-8.1.1/ /opt/gradle`
+    - `sudo ln -s /opt/gradle/bin/gradle /usr/bin/gradle`
+- Install the firmware for the Magewell Capture Card: [Pro Capture Linux x86 Driver](https://www.magewell.com/downloads/pro-capture#/driver/linux-x86)
+- Setup a workspace where ihmc-robot-data-logger is cloned:
+    - `git clone https://github.com/ihmcrobotics/ihmc-robot-data-logger.git`
+- Reboot the computer for Magewell Capture Card drivers to take effect
+- Note: In order to capture from the camera feed you need to setup those yaml files, ensure the right capture card type is being specified when making those
+  files
+
+---
+
 ## Publishing and configuring the logger
 
 - Navigate to where you have cloned ihmc-robot-data-logger: `cd ihmc-robot-data-logger`
 - From there you can use `gradle deploy`. This will show a deploy GUI which allows installation and setup of a logger on a remote computer.
-  - This GUI allows you to select several options for the deployed logger
+    - This GUI allows you to select several options for the deployed logger
 
-    ### Logging to a Network volume
+      ### Logging to a Network volume
 
-    If you would like to log to a network volume, ~/robotLogs can be a symbolic link to a mount point. The IHMC convention is to create a RobotLogs/incoming directory on the network storage volume, auto-mount this volume using the OS's fstab, and then symlinking the "incoming" directory to be the ~/robotLogs directory
+      If you would like to log to a network volume, ~/robotLogs can be a symbolic link to a mount point. The IHMC convention is to create a RobotLogs/incoming
+      directory on the network storage volume, auto-mount this volume using the OS's fstab, and then symlinking the "incoming" directory to be the ~/robotLogs
+      directory
 
-    ### Customizing the logging location
-    If you would like to log somewhere other than ~/robotLogs, you can change the directory using the "-d" command line flag when you launch the logger
+      ### Customizing the logging location
+      If you would like to log somewhere other than ~/robotLogs, you can change the directory using the "-d" command line flag when you launch the logger
+
 ---
+
 ## <p style="text-align:center;">Starting the Logger</p>
 
 Depending on how the logger is deployed, it can be setup to automatically start when the computer boots, or restart at the beginning of each day.
-To start the logger navigate to `/opt/ihmc/logger/bin/` and run `./IHMCLogger`. This will start the logger manually if you have it configured to not run on boot or restart at the beginning of each day.
+To start the logger navigate to `/opt/ihmc/logger/bin/` and run `./IHMCLogger`. This will start the logger manually if you have it configured to not run on boot
+or restart at the beginning of each day.
 The Logger can also be run as a service, to see if thats the case this command `ps aux | grep java` tells you if java processes are running.
 The service should be `ihmc-robot-data-logger.service`.
 
-Before starting the logger, you need to setup the camera file, and the host file. These are important to capturing video feeds, as well as logging from specific hosts.
-The steps below walk through how to set those two files up. They should be setup on the remote computer that is doing the logging. This is why we recommend using Ubuntu Desktop because setting these up are much simpler if you have access to the GUI.
+Before starting the logger, you need to setup the camera file, and the host file. These are important to capturing video feeds, as well as logging from specific
+hosts.
+The steps below walk through how to set those two files up. They should be setup on the remote computer that is doing the logging. This is why we recommend
+using Ubuntu Desktop because setting these up are much simpler if you have access to the GUI.
 
 ---
 
@@ -66,20 +94,23 @@ cameras:
   name: Another-User-Friendly-Name
   identifier: /stream_topic
 ```
-			
+
 This adds two cameras to the logger, a capture card and a stream. The following fields are needed for each camera:
 
 - type: CAPTURE_CARD_MAGEWELL or CAPTURE_CARD for capture cards or NETWORK_STREAM for streaming over DDS/RTPS
 - camera_id: An unique id from 0 to 127 to refer to the camera in the static hosts section
 - name: A user friendly name used to name the file of the recorded video when logging
-- identifier: For capture cards, this is the numeric id of the device, for NETWORK_STREAM this is the DDS topic name 
+- identifier: For capture cards, this is the numeric id of the device, for NETWORK_STREAM this is the DDS topic name
 
 ---
+
 ## Setting up hosts
 
-This file contains the hosts that will be logged when a server starts on that device. It is possible to configure the cameras from the `gradle deploy` but since they get changes often its important to know how to change it manually.
+This file contains the hosts that will be logged when a server starts on that device. It is possible to configure the cameras from the `gradle deploy` but since
+they get changes often its important to know how to change it manually.
 
 Create a new file `~/.ihmc/ControllerHosts.yaml`. A basic setup looks like this:
+
 ```
 disableAutoDiscovery: false
 hosts:
@@ -90,7 +121,17 @@ hosts:
   cameras: [1, 2]
 ```
 
-This adds the host `10.0.0.10` without cameras and the host `10.0.0.11` with two cameras with camera_id 1 and 2.  
+This adds the host `10.0.0.10` without cameras and the host `10.0.0.11` with two cameras with camera_id 1 and 2.
 
-Alternatively, you can start `SCSVisualizer` from `ihmc-robot-data-visualizer` and add hosts using the GUI. After you close the visualizer, the hosts you added will be saved  `~/.ihmc/ControllerHosts.yaml`. You can copy that file to the logger if it is on a different computer.
- 
+Alternatively, you can start `SCSVisualizer` from `ihmc-robot-data-visualizer` and add hosts using the GUI. After you close the visualizer, the hosts you added
+will be saved  `~/.ihmc/ControllerHosts.yaml`. You can copy that file to the logger if it is on a different computer.
+
+---
+
+## Viewing Logs in SCS2
+
+Simulation Construction Set 2 (SCS2) is used to view logs. This repository lives
+at [Simulation Construction Set 2](https://github.com/ihmcrobotics/simulation-construction-set-2).
+The Blackmagic capture cards will work with any version of SCS2. However, the Magewell capture card requires a newer release of SCS2. If videos are recorded in
+logs with Magewell, please use [release 17-0.27.3](https://github.com/ihmcrobotics/simulation-construction-set-2/releases/tag/0.27.3-java-17)
+or any release after this one. The 17-0.27.3 release is when support for Magewell was added to SCS2.
