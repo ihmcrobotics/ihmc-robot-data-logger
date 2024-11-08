@@ -125,4 +125,13 @@ This adds the host `10.0.0.10` without cameras and the host `10.0.0.11` with two
 
 Alternatively, you can start `SCSVisualizer` from `ihmc-robot-data-visualizer` and add hosts using the GUI. After you close the visualizer, the hosts you added
 will be saved  `~/.ihmc/ControllerHosts.yaml`. You can copy that file to the logger if it is on a different computer.
- 
+
+---
+
+## Viewing Logs in SCS2
+
+Simulation Construction Set 2 (SCS2) is used to view logs. This repository lives
+at [Simulation Construction Set 2](https://github.com/ihmcrobotics/simulation-construction-set-2).
+The Blackmagic capture cards will work with any version of SCS2. However, the Magewell capture card requires a newer release of SCS2. If videos are recorded in
+logs with Magewell, please use [release 17-0.27.3](https://github.com/ihmcrobotics/simulation-construction-set-2/releases/tag/0.27.3-java-17)
+or any release after this one. The 17-0.27.3 release is when support for Magewell was added to SCS2.
