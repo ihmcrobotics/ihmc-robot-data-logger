@@ -23,21 +23,29 @@ IHMC Robot Data Logger
 - Install Ubuntu Desktop 22.04 LTS (it's convenient to have a GUI to work with)
     - Make sure to install OpenSSH
 - Install Git:
-    - `sudo apt install git`
+```
+sudo apt install git
+```
 - Install Java:
-    - `sudo apt update`
-    - `sudo apt install openjdk-17-jdk`
+```
+sudo apt update
+sudo apt install openjdk-17-jdk
+```
 - Install Gradle: (we will install curl to help with this)
-    - `sudo apt install curl`
-    - `cd ~/Downloads`
-    - `curl -sL https://services.gradle.org/distributions/gradle-8.1.1-all.zip -o gradle.zip\`
-    - `unzip -q gradle.zip -d gradle`
-    - `sudo mv gradle/gradle-8.1.1/ /opt/`
-    - `sudo ln -s /opt/gradle-8.1.1/ /opt/gradle`
-    - `sudo ln -s /opt/gradle/bin/gradle /usr/bin/gradle`
+```
+sudo apt install curl
+cd ~/Downloads
+curl -sL https://services.gradle.org/distributions/gradle-8.1.1-all.zip -o gradle.zip
+unzip -q gradle.zip -d gradle
+sudo mv gradle/gradle-8.1.1/ /opt/
+sudo ln -s /opt/gradle-8.1.1/ /opt/gradle
+sudo ln -s /opt/gradle/bin/gradle /usr/bin/gradle
+```
 - Install the firmware for the Magewell Capture Card: [Pro Capture Linux x86 Driver](https://www.magewell.com/downloads/pro-capture#/driver/linux-x86)
 - Setup a workspace where ihmc-robot-data-logger is cloned:
-    - `git clone https://github.com/ihmcrobotics/ihmc-robot-data-logger.git`
+```
+git clone https://github.com/ihmcrobotics/ihmc-robot-data-logger.git
+```
 - Reboot the computer for Magewell Capture Card drivers to take effect
 - Note: In order to capture from the camera feed you need to setup those yaml files, ensure the right capture card type is being specified when making those
   files
