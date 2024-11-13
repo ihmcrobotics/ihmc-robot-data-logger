@@ -8,7 +8,6 @@ import us.ihmc.yoVariables.variable.YoDouble;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@Tag("robot-data-logger-2")
 public class ServerImplementationTest
 {
    private static final double dt = 0.001;

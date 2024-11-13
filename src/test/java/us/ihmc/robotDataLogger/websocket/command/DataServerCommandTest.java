@@ -11,7 +11,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
-@Tag("robot-data-logger-2")
 public class DataServerCommandTest
 {
    @Test
