@@ -14,7 +14,6 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Tag("robot-data-logger-2")
 public class ClientImplementationTest
 {
    private static final double dt = 0.001;
