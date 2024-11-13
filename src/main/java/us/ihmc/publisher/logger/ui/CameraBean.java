@@ -1,13 +1,15 @@
 package us.ihmc.publisher.logger.ui;
 
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import us.ihmc.robotDataLogger.CameraConfiguration;
 import us.ihmc.robotDataLogger.CameraType;
 
 public class CameraBean
 {
-
+   public final ObjectProperty<CameraType> camera_type = new SimpleObjectProperty<>(CameraType.CAPTURE_CARD_MAGEWELL);
    public final SimpleStringProperty camera_name = new SimpleStringProperty();
    public final SimpleIntegerProperty camera_id = new SimpleIntegerProperty();
    public final SimpleIntegerProperty camera_input = new SimpleIntegerProperty();
@@ -17,13 +19,17 @@ public class CameraBean
       this.camera_id.set(id);
       camera_name.set("");
    }
-   
+
    public CameraBean(CameraConfiguration config)
    {
       camera_id.set(config.getCameraId());
       camera_input.set(Integer.valueOf(config.getIdentifierAsString()));
       camera_name.set(config.getNameAsString());
+   }
 
+   public CameraType getCamera_type()
+   {
+      return camera_type.get();
    }
 
    public String getCamera_name()
@@ -40,13 +46,12 @@ public class CameraBean
    {
       return camera_input.get();
    }
-   
+
    public void pack(CameraConfiguration camera)
    {
-      camera.setType(camera.getType());
+      camera.setType(getCamera_type());
       camera.setName(getCamera_name());
       camera.setCameraId((byte) getCamera_id());
       camera.setIdentifier(String.valueOf(getCamera_input()));
-
    }
 }

@@ -114,9 +114,10 @@
                                     <children>
                                         <TableView fx:id="camera_table" prefHeight="480.0" prefWidth="1234.0" VBox.vgrow="ALWAYS">
                                             <columns>
-                                                <TableColumn fx:id="camera_id_col" prefWidth="244.5" text="ID"/>
-                                                <TableColumn fx:id="camera_name_col" prefWidth="318.0" text="Name"/>
-                                                <TableColumn fx:id="camera_input_col" prefWidth="193.0" text="Input Number"/>
+                                                <TableColumn fx:id="camera_type_column" prefWidth="250.0" text="Type"/>
+                                                <TableColumn fx:id="camera_id_col" prefWidth="50.0" text="ID"/>
+                                                <TableColumn fx:id="camera_name_col" prefWidth="325.0" text="Name"/>
+                                                <TableColumn fx:id="camera_input_col" prefWidth="125.0" text="Input Number"/>
                                             </columns>
                                         </TableView>
                                         <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0">

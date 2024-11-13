@@ -24,6 +24,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.FileChooser;
@@ -59,6 +60,9 @@ public class LoggerDeployController implements Initializable
 
    @FXML
    TableView<CameraBean> camera_table;
+
+   @FXML
+   TableColumn<CameraBean, CameraType> camera_type_column;
 
    @FXML
    TableColumn<CameraBean, String> camera_name_col;
@@ -126,6 +130,14 @@ public class LoggerDeployController implements Initializable
       prefs.linkToPrefs(allow_many_instances, false);
 
       camera_table.setEditable(true);
+
+      ObservableList<CameraType> cameraOptionsList = FXCollections.observableArrayList(CameraType.values());
+      camera_type_column.setCellFactory(ComboBoxTableCell.forTableColumn(cameraOptionsList));
+      camera_type_column.setCellValueFactory(new PropertyValueFactory<CameraBean, CameraType>("camera_type"));
+      camera_type_column.setOnEditCommit(e ->
+                                         {
+                                            e.getRowValue().camera_type.set(e.getNewValue());
+                                         });
 
       camera_id_col.setCellValueFactory(new PropertyValueFactory<CameraBean, Integer>("camera_id"));
 
