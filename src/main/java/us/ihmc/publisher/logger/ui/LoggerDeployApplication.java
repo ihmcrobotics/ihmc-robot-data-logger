@@ -34,7 +34,7 @@ public class LoggerDeployApplication
 
    /**
     * Helper function to open this as part of another application
-    *
+    * 
     * @param parameters Parameters from application start
     * @param scene      Parent scene
     */
@@ -119,7 +119,7 @@ public class LoggerDeployApplication
 
       String loggerDist = config.getString("loggerDist");
 
-
+      
 
       PlatformImpl.startup(new Runnable()
       {
