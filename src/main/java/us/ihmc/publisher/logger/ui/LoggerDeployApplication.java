@@ -25,7 +25,7 @@ import us.ihmc.publisher.logger.utils.TeeStream;
 public class LoggerDeployApplication
 {
    private static final URL uiDescription = LoggerDeployApplication.class.getResource("LoggerSetup.fxml");
-   private final String loggerDist;
+   private String loggerDist;
 
    public LoggerDeployApplication(String loggerDist)
    {
@@ -35,6 +35,7 @@ public class LoggerDeployApplication
    /**
     * Helper function to open this as part of another application
     *
+    * @param parameters Parameters from application start
     * @param scene      Parent scene
     */
    public static void open(String loggerDistribution, LoggerDeployScript deployScript, Scene scene)
