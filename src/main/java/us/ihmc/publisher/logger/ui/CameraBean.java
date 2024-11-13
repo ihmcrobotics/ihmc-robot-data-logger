@@ -43,7 +43,7 @@ public class CameraBean
    
    public void pack(CameraConfiguration camera)
    {
-      camera.setType(CameraType.CAPTURE_CARD);
+      camera.setType(camera.getType());
       camera.setName(getCamera_name());
       camera.setCameraId((byte) getCamera_id());
       camera.setIdentifier(String.valueOf(getCamera_input()));
