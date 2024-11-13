@@ -13,4 +13,4 @@ permissions:
 
 jobs:
   gradle-test:
-    uses: ihmcrobotics/ihmc-actions/.github/workflows/gradle-test.yml@main
+    uses: ihmcrobotics/ihmc-actions/.github/workflows/gradle-test.yml@print-info
