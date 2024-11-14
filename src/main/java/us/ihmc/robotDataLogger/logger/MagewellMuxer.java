@@ -12,7 +12,7 @@ public class MagewellMuxer
 {
    private final FFmpegFrameRecorder recorder;
 
-   public MagewellMuxer(File videoCaptureFile, int captureWidth, int captureHeight)
+   public MagewellMuxer(File videoCaptureFile, int captureWidth, int captureHeight, int frameRate)
    {
       recorder = new FFmpegFrameRecorder(videoCaptureFile, captureWidth, captureHeight);
 
@@ -29,7 +29,7 @@ public class MagewellMuxer
       recorder.setPixelFormat(avutil.AV_PIX_FMT_YUV420P);
       recorder.setVideoOption("strict", "-2");
       // Frame rate of video recordings
-      recorder.setFrameRate(60);
+      recorder.setFrameRate(frameRate);
    }
 
    public void start() throws Exception
