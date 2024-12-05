@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.pubsub.Domain;
 import us.ihmc.pubsub.DomainFactory;
-import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
 import us.ihmc.pubsub.attributes.ParticipantProfile;
 import us.ihmc.pubsub.common.LogLevel;
 import us.ihmc.pubsub.common.MatchingInfo;
@@ -66,7 +65,7 @@ public class VariableChangeRequestTest
       };
 
       // The domain is how the subscriber and publisher talk to each other. If this isn't set up correctly then the message won't be received
-      Domain domain = DomainFactory.getDomain(PubSubImplementation.FAST_RTPS);
+      Domain domain = DomainFactory.getDomain();
 
       // Where on the domain the publishers and subscribers will be listening on
       Participant participant = domain.createParticipant(domain.createParticipantAttributes(1, "TestParticipant"));
@@ -145,7 +144,7 @@ public class VariableChangeRequestTest
          }
       };
 
-      Domain domain = DomainFactory.getDomain(PubSubImplementation.FAST_RTPS);
+      Domain domain = DomainFactory.getDomain();
       domain.setLogLevel(LogLevel.WARNING);
 
       ParticipantProfile attr = domain.createParticipantAttributes(1, "TestParticipant");
