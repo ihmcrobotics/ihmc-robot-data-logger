@@ -29,7 +29,7 @@ mainDependencies {
    api("com.martiansoftware:jsap:2.1")
    api("com.google.guava:guava:18.0")
    api("org.tukaani:xz:1.5")
-   api("org.xerial.snappy:snappy-java:1.1.2-M1")
+   api("org.xerial.snappy:snappy-java:1.1.1-M1")
    api("net.jpountz.lz4:lz4:1.3.0")
    api("io.netty:netty-all:4.1.77.Final")
    api("org.openjdk.jol:jol-core:0.9")
