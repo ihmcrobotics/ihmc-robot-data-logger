@@ -10,7 +10,6 @@ import us.ihmc.codecs.yuv.JPEGEncoder;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.pubsub.Domain;
 import us.ihmc.pubsub.DomainFactory;
-import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
 import us.ihmc.pubsub.attributes.ParticipantProfile;
 import us.ihmc.pubsub.attributes.PublisherAttributes;
 import us.ihmc.pubsub.participant.Participant;
@@ -42,7 +41,7 @@ public class GUICaptureStreamer
    private final CaptureRunner captureRunner = new CaptureRunner();
    private final Dimension size = new Dimension();
 
-   private Domain domain = DomainFactory.getDomain(PubSubImplementation.FAST_RTPS);
+   private Domain domain = DomainFactory.getDomain();
    private Participant participant;
    private Publisher publisher;
    private final String topicName;

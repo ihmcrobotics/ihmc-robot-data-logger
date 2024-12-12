@@ -3,7 +3,6 @@ package us.ihmc.robotDataLogger.guiRecorder;
 import com.eprosima.xmlschemas.fastrtps_profiles.ReliabilityQosKindPolicyType;
 import us.ihmc.pubsub.Domain;
 import us.ihmc.pubsub.DomainFactory;
-import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
 import us.ihmc.pubsub.attributes.ParticipantProfile;
 import us.ihmc.pubsub.attributes.SubscriberAttributes;
 import us.ihmc.pubsub.common.MatchingInfo;
@@ -18,7 +17,7 @@ import java.nio.ByteBuffer;
 public class GUICaptureReceiver implements SubscriberListener
 {
    private final String topicName;
-   private final Domain domain = DomainFactory.getDomain(PubSubImplementation.FAST_RTPS);
+   private final Domain domain = DomainFactory.getDomain();
    private final Participant participant;
    private final GUICaptureHandler handler;
    private final ByteBuffer receiveBuffer = ByteBuffer.allocateDirect(GUICaptureStreamer.MAXIMUM_IMAGE_DATA_SIZE);
