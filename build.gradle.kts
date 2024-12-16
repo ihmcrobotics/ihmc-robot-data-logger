@@ -45,7 +45,7 @@ mainDependencies {
    api("us.ihmc:ihmc-graphics-description:0.25.2")
    api("us.ihmc:mecano:17-0.19.0")
    api("com.hierynomus:sshj:0.31.0")
-   api("us.ihmc:scs2-definition:17-0.28.1")
+   api("us.ihmc:scs2-definition:17-0.28.2")
 
    val opencvVersion = "4.7.0-1.5.9"
    api("org.bytedeco:opencv:$opencvVersion")
