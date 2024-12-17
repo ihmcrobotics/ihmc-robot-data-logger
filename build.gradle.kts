@@ -37,7 +37,7 @@ mainDependencies {
 
    api("us.ihmc:euclid:0.22.2")
    api("us.ihmc:ihmc-video-codecs:2.1.6")
-   api("us.ihmc:ihmc-realtime:1.6.0")
+   api("us.ihmc:ihmc-realtime:1.7.0")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
    api("us.ihmc:ihmc-pub-sub:1.1.4")
    api("us.ihmc:ihmc-pub-sub-serializers-extra:1.1.4")
