@@ -64,7 +64,7 @@ mainDependencies {
 
    api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
 
-   var javaFXVersion = "17.0.2"
+   var javaFXVersion = "17.0.8"
    api(ihmc.javaFXModule("base", javaFXVersion))
    api(ihmc.javaFXModule("controls", javaFXVersion))
    api(ihmc.javaFXModule("graphics", javaFXVersion))
