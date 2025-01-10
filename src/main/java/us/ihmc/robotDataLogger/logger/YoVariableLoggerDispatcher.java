@@ -12,7 +12,8 @@ import us.ihmc.robotDataLogger.websocket.client.discovery.DataServerDiscoveryCli
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 
 public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 {
@@ -24,7 +25,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
     * List of sessions for which we started a logger. This is to avoid double logging should there be
     * multiple known IPs for a single host.
     */
-   private final HashSet<HashAnnouncement> activeLogSessions = new HashSet<>();
+   private final Map<HashAnnouncement, YoVariableLogger> activeLogSessions = new HashMap<>();
 
    private final YoVariableLoggerOptions options;
 
@@ -53,6 +54,11 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
          System.exit(0);
       }
 
+      Runtime.getRuntime().addShutdownHook(new Thread(() ->
+      {
+         activeLogSessions.forEach((hashAnnouncement, yoVariableLogger) -> yoVariableLogger.destroy());
+      }, getClass().getName() + "Shutdown"));
+
       LogTools.info("Client started, waiting for data server sessions");
 
       ThreadTools.sleepForever();
@@ -72,7 +78,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
          Announcement announcement = connection.getAnnouncement();
          HashAnnouncement hashAnnouncement = new HashAnnouncement(announcement);
          LogTools.warn("New control session came online: ( {} ({}))", connection.getTarget(), announcement.getHostNameAsString());
-         if (activeLogSessions.contains(hashAnnouncement))
+         if (activeLogSessions.containsKey(hashAnnouncement))
          {
             LogTools.warn("A logging sessions for " + announcement.getNameAsString() + " is already started.");
          }
@@ -82,8 +88,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
             {
                try
                {
-                  new YoVariableLogger(connection, options, (request) -> finishedLog(request));
-                  activeLogSessions.add(hashAnnouncement);
+                  activeLogSessions.put(hashAnnouncement, new YoVariableLogger(connection, options, this::finishedLog));
                   LogTools.info("Logging session started for " + announcement.getNameAsString());
                }
                catch (Exception e)
@@ -119,7 +124,8 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
          // Then remove this session from the list of active log sessions
          ThreadTools.sleep(2000);
          HashAnnouncement hashRequest = new HashAnnouncement(request);
-         activeLogSessions.remove(hashRequest);
+         YoVariableLogger logger = activeLogSessions.remove(hashRequest);
+         logger.destroy();
          LogTools.info("Logging session for " + request.getNameAsString() + " has finished.\n");
       }
    }

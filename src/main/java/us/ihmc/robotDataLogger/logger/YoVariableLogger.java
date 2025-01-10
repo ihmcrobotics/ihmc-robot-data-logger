@@ -1,5 +1,14 @@
 package us.ihmc.robotDataLogger.logger;
 
+import us.ihmc.log.LogTools;
+import us.ihmc.robotDataLogger.Announcement;
+import us.ihmc.robotDataLogger.YoVariableClient;
+import us.ihmc.robotDataLogger.ZEDSDKAnnounce;
+import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
+import us.ihmc.ros2.ROS2Node;
+import us.ihmc.ros2.ROS2NodeBuilder;
+import us.ihmc.ros2.ROS2Topic;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,25 +17,30 @@ import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-
-import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.Announcement;
-import us.ihmc.robotDataLogger.YoVariableClient;
-import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 
 public class YoVariableLogger
 {
    // changed to a 10s timeout for camp lejeune demo
    public static final int timeout = 25000; // 2500;
+   public static final ROS2Topic<ZEDSDKAnnounce> ZED_SDK_ANNOUNCE_TOPIC = new ROS2Topic<ZEDSDKAnnounce>().withType(ZEDSDKAnnounce.class)
+                                                                                                         .withSuffix("zed_sdk_announce");
 
-   private final YoVariableClient client;
+   private final ROS2Node ros2Node = new ROS2NodeBuilder().build("logger_node");
+   private final Map<ZEDSDKHostInfo, ZEDSVOLogger> zedLoggers = new ConcurrentHashMap<>();
+
+   private record ZEDSDKHostInfo(String address, int port)
+   {
+   }
 
    public YoVariableLogger(HTTPDataServerConnection connection, YoVariableLoggerOptions options, Consumer<Announcement> doneListener) throws IOException
    {
       Path logDirectory = Paths.get(options.getLogDirectory());
-      
-      if(!Files.exists(logDirectory))
+
+      if (!Files.exists(logDirectory))
       {
          // Log directory does not exist. Try making it
          LogTools.info("Creating directory for logs in " + logDirectory);
@@ -36,12 +50,12 @@ public class YoVariableLogger
       {
          throw new IOException("Desired path for storing logs is not a directory: " + logDirectory);
       }
-      
-      if(options.isRotateLogs())
+
+      if (options.isRotateLogs())
       {
          YoVariableLogRotator.rotate(logDirectory, options.getNumberOfLogsToKeep());
       }
-      
+
       Announcement request = connection.getAnnouncement();
 
       DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
@@ -66,8 +80,14 @@ public class YoVariableLogger
                                + "\nThis is likely due to the fact your Logger storage is full... maybe get some better funding and buy some more storage hot shot");
       }
 
-      YoVariableLoggerListener logger = new YoVariableLoggerListener(tempDirectory, finalDirectory, timestamp, request, connection.getTarget(), options, doneListener);
-      client = new YoVariableClient(logger);
+      YoVariableLoggerListener logger = new YoVariableLoggerListener(tempDirectory,
+                                                                     finalDirectory,
+                                                                     timestamp,
+                                                                     request,
+                                                                     connection.getTarget(),
+                                                                     options,
+                                                                     doneListener);
+      YoVariableClient client = new YoVariableClient(logger);
 
       try
       {
@@ -78,5 +98,45 @@ public class YoVariableLogger
          finalDirectory.delete();
          throw e;
       }
+
+      ros2Node.createSubscription2(ZED_SDK_ANNOUNCE_TOPIC, message ->
+      {
+         ZEDSDKHostInfo hostInfo = new ZEDSDKHostInfo(message.getAddressAsString(), message.getPort());
+
+         File perceptionDir = new File(tempDirectory, "perception");
+         perceptionDir.mkdirs();
+         String svoFile = perceptionDir.getAbsolutePath() + "/" + generateSVOFileName();
+
+         if (zedLoggers.containsKey(hostInfo))
+         {
+            ZEDSVOLogger zedSVOLogger = zedLoggers.get(hostInfo);
+
+            if (zedSVOLogger.stopped())
+            {
+               zedLoggers.remove(hostInfo);
+            }
+         }
+         else
+         {
+            ZEDSVOLogger zedSVOLogger = new ZEDSVOLogger();
+
+            zedSVOLogger.start(svoFile, hostInfo.address(), hostInfo.port());
+
+            zedLoggers.put(hostInfo, zedSVOLogger);
+         }
+      });
+   }
+
+   public void destroy()
+   {
+      zedLoggers.forEach((zedsdkHostInfo, zedSVOLogger) -> zedSVOLogger.stop());
+
+      ros2Node.destroy();
+   }
+
+   private static String generateSVOFileName()
+   {
+      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
+      return dateFormat.format(new Date()) + "_" + "ZEDRecording.svo2";
    }
 }
