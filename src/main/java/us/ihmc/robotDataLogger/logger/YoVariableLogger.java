@@ -8,6 +8,7 @@ import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnecti
 import us.ihmc.ros2.ROS2Node;
 import us.ihmc.ros2.ROS2NodeBuilder;
 import us.ihmc.ros2.ROS2Topic;
+import us.ihmc.ros2.ROS2TopicNameTools;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,12 +30,8 @@ public class YoVariableLogger
    public static final ROS2Topic<ZEDSDKAnnounce> ZED_SDK_ANNOUNCE_TOPIC = new ROS2Topic<ZEDSDKAnnounce>().withType(ZEDSDKAnnounce.class)
                                                                                                          .withSuffix("zed_sdk_announce");
 
-   private final ROS2Node ros2Node = new ROS2NodeBuilder().build("logger_node");
-   private final Map<ZEDSDKHostInfo, ZEDSVOLogger> zedLoggers = new ConcurrentHashMap<>();
-
-   private record ZEDSDKHostInfo(String address, int port)
-   {
-   }
+   private final ROS2Node ros2Node;
+   private final Map<String, ZEDSVOLogger> zedLoggers = new ConcurrentHashMap<>();
 
    public YoVariableLogger(HTTPDataServerConnection connection, YoVariableLoggerOptions options, Consumer<Announcement> doneListener) throws IOException
    {
@@ -99,37 +96,37 @@ public class YoVariableLogger
          throw e;
       }
 
+      ros2Node = new ROS2NodeBuilder().build(ROS2TopicNameTools.toROSTopicFormat(finalDirectory.getName() + "_node"));
+
       ros2Node.createSubscription2(ZED_SDK_ANNOUNCE_TOPIC, message ->
       {
-         ZEDSDKHostInfo hostInfo = new ZEDSDKHostInfo(message.getAddressAsString(), message.getPort());
-
          File perceptionDir = new File(tempDirectory, "perception");
          perceptionDir.mkdirs();
          String svoFile = perceptionDir.getAbsolutePath() + "/" + generateSVOFileName();
 
-         if (zedLoggers.containsKey(hostInfo))
+         if (zedLoggers.containsKey(message.getInstanceIDAsString()))
          {
-            ZEDSVOLogger zedSVOLogger = zedLoggers.get(hostInfo);
+            ZEDSVOLogger zedSVOLogger = zedLoggers.get(message.getInstanceIDAsString());
 
-            if (zedSVOLogger.stopped())
+            if (zedSVOLogger.stopped() && !zedSVOLogger.failedBeyondRecovery())
             {
-               zedLoggers.remove(hostInfo);
+               zedLoggers.remove(message.getInstanceIDAsString());
             }
          }
          else
          {
             ZEDSVOLogger zedSVOLogger = new ZEDSVOLogger();
 
-            zedSVOLogger.start(svoFile, hostInfo.address(), hostInfo.port());
+            zedSVOLogger.start(svoFile, message.getAddressAsString(), message.getPort());
 
-            zedLoggers.put(hostInfo, zedSVOLogger);
+            zedLoggers.put(message.getInstanceIDAsString(), zedSVOLogger);
          }
       });
    }
 
    public void destroy()
    {
-      zedLoggers.forEach((zedsdkHostInfo, zedSVOLogger) -> zedSVOLogger.stop());
+      zedLoggers.forEach((hostInstanceID, zedSVOLogger) -> zedSVOLogger.stop());
 
       ros2Node.destroy();
    }

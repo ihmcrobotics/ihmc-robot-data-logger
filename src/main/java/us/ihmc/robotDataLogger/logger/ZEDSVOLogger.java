@@ -17,7 +17,7 @@ public class ZEDSVOLogger
       ZEDJavaAPINativeLibrary.load();
    }
 
-   private static final double CONNECT_TIMEOUT = 3.0;
+   private static final double CONNECT_TIMEOUT = 2.0;
 
    private static int nextCameraId = 0;
 
@@ -26,7 +26,9 @@ public class ZEDSVOLogger
    protected final SL_RuntimeParameters runtimeParameters = new SL_RuntimeParameters();
    private final RepeatingTaskThread grabThread = new RepeatingTaskThread(getClass().getName() + "GrabThread", this::grab);
 
+   private volatile double lastGrabTime;
    private volatile boolean stopped;
+   private volatile boolean failedBeyondRecovery;
 
    public ZEDSVOLogger()
    {
@@ -34,11 +36,7 @@ public class ZEDSVOLogger
       initParameters.async_grab_camera_recovery(true);
 
       runtimeParameters.reference_frame(SL_REFERENCE_FRAME_CAMERA);
-      runtimeParameters.enable_depth(true);
-      runtimeParameters.confidence_threshold(100);
-      runtimeParameters.texture_confidence_threshold(100);
-      runtimeParameters.remove_saturated_areas(true);
-      runtimeParameters.enable_fill_mode(false);
+      runtimeParameters.enable_depth(false);
    }
 
    public void start(String svoFile, String address, int port)
@@ -77,28 +75,49 @@ public class ZEDSVOLogger
 
             stop();
          }
-      }, getClass().getSimpleName() + "ConnectTimeout");
+
+         while (!stopped)
+         {
+            if ((System.currentTimeMillis() / 1000D) - lastGrabTime > CONNECT_TIMEOUT)
+            {
+               LogTools.info("grab() timeout reached, disconnecting from ZED SDK stream");
+
+               stop();
+            }
+         }
+      }, getClass().getSimpleName() + "ConnectionWatchdog");
    }
 
    public void stop()
    {
-      if (grabThread.isRunning())
-         grabThread.kill();
+      if (!stopped)
+      {
+         stopped = true;
 
-      sl_close_camera(cameraID);
+         if (grabThread.isRunning())
+            grabThread.blockingKill();
 
-      initParameters.close();
-      runtimeParameters.close();
+         sl_close_camera(cameraID);
 
-      // Can't use LogTools here, we might be shutting down...
-      System.out.println("Closing ZED SDK stream");
+         initParameters.close();
+         runtimeParameters.close();
 
-      stopped = true;
+         // Can't use LogTools here, we might be shutting down...
+         System.out.println("Closing ZED SDK stream");
+      }
    }
 
    public void grab()
    {
+      if (stopped)
+         throw new IllegalStateException("Cannot grab(), already stopped");
+
       int returnCode = sl_grab(cameraID, runtimeParameters);
+
+      lastGrabTime = System.currentTimeMillis() / 1000D;
+
+      if (returnCode == SL_ERROR_CODE_FAILURE || returnCode == SL_ERROR_CODE_CAMERA_NOT_DETECTED)
+         failedBeyondRecovery = true;
 
       if (returnCode == SL_ERROR_CODE_CAMERA_NOT_INITIALIZED || returnCode == SL_ERROR_CODE_CAMERA_REBOOTING)
          stop();
@@ -107,5 +126,10 @@ public class ZEDSVOLogger
    public boolean stopped()
    {
       return stopped;
+   }
+
+   public boolean failedBeyondRecovery()
+   {
+      return failedBeyondRecovery;
    }
 }
