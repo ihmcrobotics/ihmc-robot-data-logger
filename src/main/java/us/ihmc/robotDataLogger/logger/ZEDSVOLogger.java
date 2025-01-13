@@ -28,6 +28,7 @@ public class ZEDSVOLogger
 
    private volatile double lastGrabTime;
    private volatile boolean stopped;
+   private volatile boolean completelyStopped;
    private volatile boolean failedBeyondRecovery;
 
    public ZEDSVOLogger()
@@ -104,6 +105,8 @@ public class ZEDSVOLogger
 
          // Can't use LogTools here, we might be shutting down...
          System.out.println("Closing ZED SDK stream");
+
+         completelyStopped = true;
       }
    }
 
@@ -126,6 +129,11 @@ public class ZEDSVOLogger
    public boolean stopped()
    {
       return stopped;
+   }
+
+   public boolean completelyStopped()
+   {
+      return completelyStopped;
    }
 
    public boolean failedBeyondRecovery()

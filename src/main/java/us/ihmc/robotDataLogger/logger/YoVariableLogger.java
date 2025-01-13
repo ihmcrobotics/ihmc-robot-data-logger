@@ -112,7 +112,7 @@ public class YoVariableLogger
          {
             ZEDSVOLogger zedSVOLogger = zedLoggers.get(announceHash);
 
-            if (zedSVOLogger.stopped() && !zedSVOLogger.failedBeyondRecovery())
+            if (zedSVOLogger.completelyStopped() && !zedSVOLogger.failedBeyondRecovery())
             {
                zedLoggers.remove(announceHash);
             }
