@@ -2,7 +2,6 @@ module us{
 module ihmc{
 module robotDataLogger{
 	struct ZEDSDKAnnounce{
-	    string instanceID;
 		string address;
 		short port;
 	};

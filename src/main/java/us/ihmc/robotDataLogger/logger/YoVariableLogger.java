@@ -30,8 +30,10 @@ public class YoVariableLogger
    public static final ROS2Topic<ZEDSDKAnnounce> ZED_SDK_ANNOUNCE_TOPIC = new ROS2Topic<ZEDSDKAnnounce>().withType(ZEDSDKAnnounce.class)
                                                                                                          .withSuffix("zed_sdk_announce");
 
+   private record ZEDSDKAnnounceHash(String address, int port) {}
+
    private final ROS2Node ros2Node;
-   private final Map<String, ZEDSVOLogger> zedLoggers = new ConcurrentHashMap<>();
+   private final Map<ZEDSDKAnnounceHash, ZEDSVOLogger> zedLoggers = new ConcurrentHashMap<>();
 
    public YoVariableLogger(HTTPDataServerConnection connection, YoVariableLoggerOptions options, Consumer<Announcement> doneListener) throws IOException
    {
@@ -104,13 +106,15 @@ public class YoVariableLogger
          perceptionDir.mkdirs();
          String svoFile = perceptionDir.getAbsolutePath() + "/" + generateSVOFileName();
 
-         if (zedLoggers.containsKey(message.getInstanceIDAsString()))
+         ZEDSDKAnnounceHash announceHash = new ZEDSDKAnnounceHash(message.getAddressAsString(), message.getPort());
+
+         if (zedLoggers.containsKey(announceHash))
          {
-            ZEDSVOLogger zedSVOLogger = zedLoggers.get(message.getInstanceIDAsString());
+            ZEDSVOLogger zedSVOLogger = zedLoggers.get(announceHash);
 
             if (zedSVOLogger.stopped() && !zedSVOLogger.failedBeyondRecovery())
             {
-               zedLoggers.remove(message.getInstanceIDAsString());
+               zedLoggers.remove(announceHash);
             }
          }
          else
@@ -119,7 +123,7 @@ public class YoVariableLogger
 
             zedSVOLogger.start(svoFile, message.getAddressAsString(), message.getPort());
 
-            zedLoggers.put(message.getInstanceIDAsString(), zedSVOLogger);
+            zedLoggers.put(announceHash, zedSVOLogger);
          }
       });
    }
