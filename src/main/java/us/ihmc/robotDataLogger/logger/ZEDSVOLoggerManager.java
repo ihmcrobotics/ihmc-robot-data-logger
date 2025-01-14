@@ -26,7 +26,6 @@ public class ZEDSVOLoggerManager
    }
 
    private final File tempDirectory;
-   private final File finalDirectory;
 
    private final ROS2Node ros2Node;
    private final Map<ZEDSDKAnnounceHash, ZEDSVOLogger> zedLoggers = new ConcurrentHashMap<>();
@@ -34,7 +33,6 @@ public class ZEDSVOLoggerManager
    public ZEDSVOLoggerManager(File tempDirectory, File finalDirectory)
    {
       this.tempDirectory = tempDirectory;
-      this.finalDirectory = finalDirectory;
 
       ros2Node = new ROS2NodeBuilder().build(ROS2TopicNameTools.toROSTopicFormat(finalDirectory.getName() + "_zed_svo_logger_node"));
 
