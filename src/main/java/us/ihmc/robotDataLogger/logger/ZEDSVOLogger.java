@@ -123,16 +123,25 @@ public class ZEDSVOLogger
          stop();
    }
 
+   /**
+    * @return true if stop() has been called, false if not
+    */
    public boolean stopped()
    {
       return stopped;
    }
 
+   /**
+    * @return true if ZED SDK has completely closed the camera stop() has completely finished
+    */
    public boolean completelyStopped()
    {
       return completelyStopped;
    }
 
+   /**
+    * @return true if we received an error code from ZED SDK that is likely to cause a crash
+    */
    public boolean failedBeyondRecovery()
    {
       return failedBeyondRecovery;
