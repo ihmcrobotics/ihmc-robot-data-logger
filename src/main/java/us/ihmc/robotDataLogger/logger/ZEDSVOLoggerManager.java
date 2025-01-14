@@ -28,7 +28,7 @@ public class ZEDSVOLoggerManager
 
    public ZEDSVOLoggerManager(File tempDirectory, File finalDirectory)
    {
-      ros2Node = new ROS2NodeBuilder().build(ROS2TopicNameTools.toROSTopicFormat(finalDirectory.getName() + "_node"));
+      ros2Node = new ROS2NodeBuilder().build(ROS2TopicNameTools.toROSTopicFormat(finalDirectory.getName() + "_zed_svo_logger_node"));
 
       ros2Node.createSubscription2(ZED_SDK_ANNOUNCE_TOPIC, message ->
       {
