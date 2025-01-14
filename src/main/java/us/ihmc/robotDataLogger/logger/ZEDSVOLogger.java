@@ -1,7 +1,7 @@
 package us.ihmc.robotDataLogger.logger;
 
+import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.RepeatingTaskThread;
-import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.zed.SL_InitParameters;
 import us.ihmc.zed.SL_RuntimeParameters;
@@ -26,6 +26,7 @@ public class ZEDSVOLogger
    protected SL_InitParameters initParameters;
    protected SL_RuntimeParameters runtimeParameters;
    private final RepeatingTaskThread grabThread = new RepeatingTaskThread(getClass().getName() + "GrabThread", this::grab);
+   private final RepeatingTaskThread connectionWatchdogThread = new RepeatingTaskThread(getClass().getName() + "ConnectionWatchdog", this::connectionCheck);
 
    private volatile double lastGrabTime;
    private volatile boolean stopped;
@@ -66,27 +67,8 @@ public class ZEDSVOLogger
          grabThread.startRepeating();
       }
 
-      ThreadTools.startAThread(() ->
-      {
-         ThreadTools.park(CONNECT_TIMEOUT);
-
-         if (!sl_is_opened(cameraID))
-         {
-            LogTools.info("Unable to connect to ZED SDK stream on: " + address + ":" + port);
-
-            stop();
-         }
-
-         while (!stopped)
-         {
-            if ((System.currentTimeMillis() / 1000D) - lastGrabTime > CONNECT_TIMEOUT)
-            {
-               LogTools.info("grab() timeout reached, disconnecting from ZED SDK stream");
-
-               stop();
-            }
-         }
-      }, getClass().getSimpleName() + "ConnectionWatchdog");
+      connectionWatchdogThread.setFrequencyLimit(Conversions.secondsToHertz(CONNECT_TIMEOUT));
+      connectionWatchdogThread.startRepeating();
    }
 
    public void stop()
@@ -124,6 +106,26 @@ public class ZEDSVOLogger
 
       if (returnCode == SL_ERROR_CODE_CAMERA_NOT_INITIALIZED || returnCode == SL_ERROR_CODE_CAMERA_REBOOTING)
          stop();
+   }
+
+   private void connectionCheck()
+   {
+      if (!sl_is_opened(cameraID))
+      {
+         LogTools.info("Unable to connect to ZED SDK stream");
+
+         stop();
+      }
+
+      while (!stopped)
+      {
+         if ((System.currentTimeMillis() / 1000D) - lastGrabTime > CONNECT_TIMEOUT)
+         {
+            LogTools.info("grab() timeout reached, disconnecting from ZED SDK stream");
+
+            stop();
+         }
+      }
    }
 
    /**
