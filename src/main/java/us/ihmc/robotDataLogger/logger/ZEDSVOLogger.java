@@ -16,6 +16,9 @@ import static us.ihmc.zed.global.zed.*;
 public class ZEDSVOLogger
 {
    private static final double CONNECT_TIMEOUT = 2.0;
+   private static final int BITRATE = 8000;
+   private static final int MAX_FPS = 15;
+   private static final boolean TRANSCODE = true;
 
    private static int nextCameraId = 0;
 
@@ -51,7 +54,7 @@ public class ZEDSVOLogger
       if (returnCode != SL_ERROR_CODE_SUCCESS)
          LogTools.error("ZED SDK error code: " + returnCode);
 
-      returnCode = sl_enable_recording(cameraID, svoFile, SL_SVO_COMPRESSION_MODE_H264, 8000, 30, true);
+      returnCode = sl_enable_recording(cameraID, svoFile, SL_SVO_COMPRESSION_MODE_H264, BITRATE, MAX_FPS, TRANSCODE);
       if (returnCode != SL_ERROR_CODE_SUCCESS)
          LogTools.error("ZED SDK error code: " + returnCode);
 
