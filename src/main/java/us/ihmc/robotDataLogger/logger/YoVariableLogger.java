@@ -89,6 +89,8 @@ public class YoVariableLogger
 
       if (enableZEDSVOLogging)
          zedSVOLoggerManager = new ZEDSVOLoggerManager(tempDirectory, finalDirectory);
+      else
+         LogTools.info("ZED SDK could not be initialized (is it installed?). Will not log ZED SDK streams.");
    }
 
    public void destroy()
