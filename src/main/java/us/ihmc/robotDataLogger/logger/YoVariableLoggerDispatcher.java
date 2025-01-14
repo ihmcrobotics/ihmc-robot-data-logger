@@ -10,6 +10,7 @@ import us.ihmc.robotDataLogger.interfaces.DataServerDiscoveryListener;
 import us.ihmc.robotDataLogger.websocket.DataServerLocationBroadcast;
 import us.ihmc.robotDataLogger.websocket.client.discovery.DataServerDiscoveryClient;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
+import us.ihmc.zed.library.ZEDJavaAPINativeLibrary;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -17,6 +18,8 @@ import java.util.Map;
 
 public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 {
+   private static final boolean ZED_SDK_LOADED = ZEDJavaAPINativeLibrary.load();
+
    private final DataServerDiscoveryClient discoveryClient;
 
    private final Object lock = new Object();
@@ -88,7 +91,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
             {
                try
                {
-                  activeLogSessions.put(hashAnnouncement, new YoVariableLogger(connection, options, this::finishedLog));
+                  activeLogSessions.put(hashAnnouncement, new YoVariableLogger(connection, options, this::finishedLog, ZED_SDK_LOADED));
                   LogTools.info("Logging session started for " + announcement.getNameAsString());
                }
                catch (Exception e)

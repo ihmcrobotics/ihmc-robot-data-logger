@@ -24,7 +24,7 @@ public class YoVariableLogger
    @Nullable
    private ZEDSVOLoggerManager zedSVOLoggerManager;
 
-   public YoVariableLogger(HTTPDataServerConnection connection, YoVariableLoggerOptions options, Consumer<Announcement> doneListener) throws IOException
+   public YoVariableLogger(HTTPDataServerConnection connection, YoVariableLoggerOptions options, Consumer<Announcement> doneListener, boolean enableZEDSVOLogging) throws IOException
    {
       Path logDirectory = Paths.get(options.getLogDirectory());
 
@@ -87,7 +87,7 @@ public class YoVariableLogger
          throw e;
       }
 
-      if (ZEDJavaAPINativeLibrary.load())
+      if (enableZEDSVOLogging)
          zedSVOLoggerManager = new ZEDSVOLoggerManager(tempDirectory, finalDirectory);
    }
 
