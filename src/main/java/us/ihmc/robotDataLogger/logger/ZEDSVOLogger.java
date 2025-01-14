@@ -132,7 +132,7 @@ public class ZEDSVOLogger
    }
 
    /**
-    * @return true if ZED SDK has completely closed the camera stop() has completely finished
+    * @return true if ZED SDK has completely closed the camera and stop() has completely finished
     */
    public boolean completelyStopped()
    {
