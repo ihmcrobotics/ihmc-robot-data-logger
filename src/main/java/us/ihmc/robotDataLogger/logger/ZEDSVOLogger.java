@@ -2,6 +2,7 @@ package us.ihmc.robotDataLogger.logger;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.RepeatingTaskThread;
+import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.zed.SL_InitParameters;
 import us.ihmc.zed.SL_RuntimeParameters;
@@ -68,7 +69,11 @@ public class ZEDSVOLogger
       }
 
       connectionWatchdogThread.setFrequencyLimit(Conversions.secondsToHertz(CONNECT_TIMEOUT));
-      connectionWatchdogThread.startRepeating();
+      ThreadTools.startAThread(() ->
+                               {
+                                  ThreadTools.park(5.0);
+                                  connectionWatchdogThread.startRepeating();
+                               }, getClass().getSimpleName() + "ConnectionWatchdogDelay");
    }
 
    public void stop()
@@ -110,15 +115,15 @@ public class ZEDSVOLogger
 
    private void connectionCheck()
    {
-      if (!sl_is_opened(cameraID))
+      if (!stopped())
       {
-         LogTools.info("Unable to connect to ZED SDK stream");
+         if (!sl_is_opened(cameraID))
+         {
+            LogTools.info("Unable to connect to ZED SDK stream");
 
-         stop();
-      }
+            stop();
+         }
 
-      while (!stopped)
-      {
          if ((System.currentTimeMillis() / 1000D) - lastGrabTime > CONNECT_TIMEOUT)
          {
             LogTools.info("grab() timeout reached, disconnecting from ZED SDK stream");
