@@ -70,10 +70,10 @@ public class ZEDSVOLogger
 
       connectionWatchdogThread.setFrequencyLimit(Conversions.secondsToHertz(CONNECT_TIMEOUT));
       ThreadTools.startAThread(() ->
-                               {
-                                  ThreadTools.park(5.0);
-                                  connectionWatchdogThread.startRepeating();
-                               }, getClass().getSimpleName() + "ConnectionWatchdogDelay");
+      {
+         ThreadTools.park(5.0);
+         connectionWatchdogThread.startRepeating();
+      }, getClass().getSimpleName() + "ConnectionWatchdogDelay");
    }
 
    public void stop()
