@@ -3,13 +3,10 @@ package us.ihmc.robotDataLogger.logger;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.YoVariableClient;
-import us.ihmc.robotDataLogger.ZEDSDKAnnounce;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
-import us.ihmc.ros2.ROS2Node;
-import us.ihmc.ros2.ROS2NodeBuilder;
-import us.ihmc.ros2.ROS2Topic;
-import us.ihmc.ros2.ROS2TopicNameTools;
+import us.ihmc.zed.library.ZEDJavaAPINativeLibrary;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,22 +15,14 @@ import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class YoVariableLogger
 {
    // changed to a 10s timeout for camp lejeune demo
    public static final int timeout = 25000; // 2500;
-   public static final ROS2Topic<ZEDSDKAnnounce> ZED_SDK_ANNOUNCE_TOPIC = new ROS2Topic<ZEDSDKAnnounce>().withType(ZEDSDKAnnounce.class)
-                                                                                                         .withSuffix("zed_sdk_announce");
-
-   private record ZEDSDKAnnounceHash(String address, int port) {}
-
-   private final ROS2Node ros2Node;
-   private final Map<ZEDSDKAnnounceHash, ZEDSVOLogger> zedLoggers = new ConcurrentHashMap<>();
+   @Nullable
+   private ZEDSVOLoggerManager zedSVOLoggerManager;
 
    public YoVariableLogger(HTTPDataServerConnection connection, YoVariableLoggerOptions options, Consumer<Announcement> doneListener) throws IOException
    {
@@ -98,46 +87,13 @@ public class YoVariableLogger
          throw e;
       }
 
-      ros2Node = new ROS2NodeBuilder().build(ROS2TopicNameTools.toROSTopicFormat(finalDirectory.getName() + "_node"));
-
-      ros2Node.createSubscription2(ZED_SDK_ANNOUNCE_TOPIC, message ->
-      {
-         File perceptionDir = new File(tempDirectory, "perception");
-         perceptionDir.mkdirs();
-         String svoFile = perceptionDir.getAbsolutePath() + "/" + generateSVOFileName();
-
-         ZEDSDKAnnounceHash announceHash = new ZEDSDKAnnounceHash(message.getAddressAsString(), message.getPort());
-
-         if (zedLoggers.containsKey(announceHash))
-         {
-            ZEDSVOLogger zedSVOLogger = zedLoggers.get(announceHash);
-
-            if (zedSVOLogger.completelyStopped() && !zedSVOLogger.failedBeyondRecovery())
-            {
-               zedLoggers.remove(announceHash);
-            }
-         }
-         else
-         {
-            ZEDSVOLogger zedSVOLogger = new ZEDSVOLogger();
-
-            zedSVOLogger.start(svoFile, message.getAddressAsString(), message.getPort());
-
-            zedLoggers.put(announceHash, zedSVOLogger);
-         }
-      });
+      if (ZEDJavaAPINativeLibrary.load())
+         zedSVOLoggerManager = new ZEDSVOLoggerManager(tempDirectory, finalDirectory);
    }
 
    public void destroy()
    {
-      zedLoggers.forEach((hostInstanceID, zedSVOLogger) -> zedSVOLogger.stop());
-
-      ros2Node.destroy();
-   }
-
-   private static String generateSVOFileName()
-   {
-      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
-      return dateFormat.format(new Date()) + "_" + "ZEDRecording.svo2";
+      if (zedSVOLoggerManager != null)
+         zedSVOLoggerManager.destroy();
    }
 }

@@ -6,24 +6,18 @@ import us.ihmc.log.LogTools;
 import us.ihmc.zed.SL_InitParameters;
 import us.ihmc.zed.SL_RuntimeParameters;
 import us.ihmc.zed.global.zed;
-import us.ihmc.zed.library.ZEDJavaAPINativeLibrary;
 
 import static us.ihmc.zed.global.zed.*;
 
 public class ZEDSVOLogger
 {
-   static
-   {
-      ZEDJavaAPINativeLibrary.load();
-   }
-
    private static final double CONNECT_TIMEOUT = 2.0;
 
    private static int nextCameraId = 0;
 
    private final int cameraID = nextCameraId++;
-   protected final SL_InitParameters initParameters = new SL_InitParameters();
-   protected final SL_RuntimeParameters runtimeParameters = new SL_RuntimeParameters();
+   protected SL_InitParameters initParameters;
+   protected SL_RuntimeParameters runtimeParameters;
    private final RepeatingTaskThread grabThread = new RepeatingTaskThread(getClass().getName() + "GrabThread", this::grab);
 
    private volatile double lastGrabTime;
@@ -31,19 +25,18 @@ public class ZEDSVOLogger
    private volatile boolean completelyStopped;
    private volatile boolean failedBeyondRecovery;
 
-   public ZEDSVOLogger()
-   {
-      initParameters.input_type(zed.SL_INPUT_TYPE_STREAM);
-      initParameters.async_grab_camera_recovery(true);
-
-      runtimeParameters.reference_frame(SL_REFERENCE_FRAME_CAMERA);
-      runtimeParameters.enable_depth(false);
-   }
-
    public void start(String svoFile, String address, int port)
    {
       if (stopped)
          throw new IllegalStateException("Cannot restart ZEDSVOLogger once stopped");
+
+      initParameters = new SL_InitParameters();
+      initParameters.input_type(zed.SL_INPUT_TYPE_STREAM);
+      initParameters.async_grab_camera_recovery(true);
+
+      runtimeParameters = new SL_RuntimeParameters();
+      runtimeParameters.reference_frame(SL_REFERENCE_FRAME_CAMERA);
+      runtimeParameters.enable_depth(false);
 
       LogTools.info("Connecting to ZED SDK stream on: " + address + ":" + port);
 
