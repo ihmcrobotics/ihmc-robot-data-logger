@@ -96,6 +96,7 @@ public class ZEDSVOLogger
             grabThread.blockingKill();
 
          sl_close_camera(cameraID);
+         sl_unload_instance(cameraID);
 
          initParameters.close();
          runtimeParameters.close();
