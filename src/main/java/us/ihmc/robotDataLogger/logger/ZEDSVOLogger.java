@@ -83,6 +83,7 @@ public class ZEDSVOLogger
          stopped = true;
 
          grabThread.blockingKill();
+         connectionWatchdogThread.blockingKill();
 
          sl_close_camera(cameraID);
          sl_unload_instance(cameraID);
