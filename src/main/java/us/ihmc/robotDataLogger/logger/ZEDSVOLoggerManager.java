@@ -21,41 +21,51 @@ public class ZEDSVOLoggerManager
    public static final ROS2Topic<ZEDSDKAnnounce> ZED_SDK_ANNOUNCE_TOPIC = new ROS2Topic<ZEDSDKAnnounce>().withType(ZEDSDKAnnounce.class)
                                                                                                          .withSuffix("zed_sdk_announce");
 
-   private record ZEDSDKAnnounceHash(String address, int port) {}
+   private record ZEDSDKAnnounceHash(String address, int port)
+   {
+   }
+
+   private final File tempDirectory;
+   private final File finalDirectory;
 
    private final ROS2Node ros2Node;
    private final Map<ZEDSDKAnnounceHash, ZEDSVOLogger> zedLoggers = new ConcurrentHashMap<>();
 
    public ZEDSVOLoggerManager(File tempDirectory, File finalDirectory)
    {
+      this.tempDirectory = tempDirectory;
+      this.finalDirectory = finalDirectory;
+
       ros2Node = new ROS2NodeBuilder().build(ROS2TopicNameTools.toROSTopicFormat(finalDirectory.getName() + "_zed_svo_logger_node"));
 
-      ros2Node.createSubscription2(ZED_SDK_ANNOUNCE_TOPIC, message ->
+      ros2Node.createSubscription2(ZED_SDK_ANNOUNCE_TOPIC, this::onZEDSDKAnnounceMessage);
+   }
+
+   private void onZEDSDKAnnounceMessage(ZEDSDKAnnounce message)
+   {
+      File perceptionDir = new File(tempDirectory, "perception");
+      perceptionDir.mkdirs();
+      String svoFile = perceptionDir.getAbsolutePath() + "/" + generateSVOFileName();
+
+      ZEDSDKAnnounceHash announceHash = new ZEDSDKAnnounceHash(message.getAddressAsString(), message.getPort());
+
+      if (zedLoggers.containsKey(announceHash))
       {
-         File perceptionDir = new File(tempDirectory, "perception");
-         perceptionDir.mkdirs();
-         String svoFile = perceptionDir.getAbsolutePath() + "/" + generateSVOFileName();
+         ZEDSVOLogger zedSVOLogger = zedLoggers.get(announceHash);
 
-         ZEDSDKAnnounceHash announceHash = new ZEDSDKAnnounceHash(message.getAddressAsString(), message.getPort());
-
-         if (zedLoggers.containsKey(announceHash))
+         if (zedSVOLogger.completelyStopped() && !zedSVOLogger.failedBeyondRecovery())
          {
-            ZEDSVOLogger zedSVOLogger = zedLoggers.get(announceHash);
-
-            if (zedSVOLogger.completelyStopped() && !zedSVOLogger.failedBeyondRecovery())
-            {
-               zedLoggers.remove(announceHash);
-            }
+            zedLoggers.remove(announceHash);
          }
-         else
-         {
-            ZEDSVOLogger zedSVOLogger = new ZEDSVOLogger();
+      }
+      else
+      {
+         ZEDSVOLogger zedSVOLogger = new ZEDSVOLogger();
 
-            zedSVOLogger.start(svoFile, message.getAddressAsString(), message.getPort());
+         zedSVOLogger.start(svoFile, message.getAddressAsString(), message.getPort());
 
-            zedLoggers.put(announceHash, zedSVOLogger);
-         }
-      });
+         zedLoggers.put(announceHash, zedSVOLogger);
+      }
    }
 
    public void destroy()
