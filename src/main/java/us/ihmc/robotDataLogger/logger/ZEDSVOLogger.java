@@ -9,6 +9,10 @@ import us.ihmc.zed.global.zed;
 
 import static us.ihmc.zed.global.zed.*;
 
+/**
+ * Connects to a remote ZED SDK and logs an SVO file.
+ * Manages an internal frame grab thread.
+ */
 public class ZEDSVOLogger
 {
    private static final double CONNECT_TIMEOUT = 2.0;

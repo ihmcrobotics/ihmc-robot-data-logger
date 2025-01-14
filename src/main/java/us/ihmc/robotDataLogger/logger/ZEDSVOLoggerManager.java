@@ -12,6 +12,10 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Manages n number of ZED SDK connections for logging SVO files.
+ * Listens on {@link #ZED_SDK_ANNOUNCE_TOPIC} for connection information.
+ */
 public class ZEDSVOLoggerManager
 {
    public static final ROS2Topic<ZEDSDKAnnounce> ZED_SDK_ANNOUNCE_TOPIC = new ROS2Topic<ZEDSDKAnnounce>().withType(ZEDSDKAnnounce.class)

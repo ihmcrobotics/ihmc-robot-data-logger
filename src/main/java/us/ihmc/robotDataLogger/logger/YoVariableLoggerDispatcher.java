@@ -18,6 +18,9 @@ import java.util.Map;
 
 public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 {
+   /**
+    * Used to determine if {@link ZEDSVOLoggerManager} and {@link ZEDSVOLogger} are initialized
+    */
    private static final boolean ZED_SDK_LOADED = ZEDJavaAPINativeLibrary.load();
 
    private final DataServerDiscoveryClient discoveryClient;
