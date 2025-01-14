@@ -18,7 +18,7 @@ public class ZEDSVOLogger
    private static final double CONNECT_TIMEOUT = 2.0;
    private static final int BITRATE = 8000;
    private static final int MAX_FPS = 15;
-   private static final boolean TRANSCODE = true;
+   private static final boolean TRANSCODE = false;
 
    private static int nextCameraId = 0;
 
@@ -95,8 +95,7 @@ public class ZEDSVOLogger
       {
          stopped = true;
 
-         if (grabThread.isRunning())
-            grabThread.blockingKill();
+         grabThread.blockingKill();
 
          sl_close_camera(cameraID);
          sl_unload_instance(cameraID);
