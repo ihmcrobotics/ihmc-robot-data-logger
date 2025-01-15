@@ -43,7 +43,7 @@ public class ZEDSVOLoggerManager
    {
       File perceptionDir = new File(tempDirectory, "perception");
       perceptionDir.mkdirs();
-      String svoFile = perceptionDir.getAbsolutePath() + "/" + generateSVOFileName();
+      String svoFile = perceptionDir.getAbsolutePath() + File.separator + generateSVOFileName();
 
       ZEDSDKAnnounceHash announceHash = new ZEDSDKAnnounceHash(message.getAddressAsString(), message.getPort());
 
