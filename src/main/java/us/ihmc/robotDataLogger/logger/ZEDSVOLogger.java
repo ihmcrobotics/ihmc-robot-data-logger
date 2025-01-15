@@ -24,8 +24,8 @@ public class ZEDSVOLogger
    private static int nextCameraId = 0;
 
    private final int cameraID = nextCameraId++;
-   protected SL_InitParameters initParameters;
-   protected SL_RuntimeParameters runtimeParameters;
+   private SL_InitParameters initParameters;
+   private SL_RuntimeParameters runtimeParameters;
    private final RepeatingTaskThread grabThread = new RepeatingTaskThread(getClass().getName() + "GrabThread", this::grab);
    private final RepeatingTaskThread connectionWatchdogThread = new RepeatingTaskThread(getClass().getName() + "ConnectionWatchdog", this::connectionCheck);
 
