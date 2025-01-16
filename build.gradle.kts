@@ -46,19 +46,19 @@ mainDependencies {
    api("us.ihmc:mecano:17-0.19.0")
    api("com.hierynomus:sshj:0.31.0")
 
-   val openblasVersion = "0.3.28-1.5.11"
+   val openblasVersion = "0.3.28-1.5.11-ihmc-2"
    api("us.ihmc:openblas:$openblasVersion")
    api("us.ihmc:openblas:$openblasVersion:linux-x86_64")
    api("us.ihmc:openblas:$openblasVersion:linux-arm64")
    api("us.ihmc:openblas:$openblasVersion:windows-x86_64")
-   val opencvVersion = "4.10.0-1.5.11"
+   val opencvVersion = "4.10.0-1.5.11-ihmc-2"
    api("us.ihmc:opencv:$opencvVersion")
    api("us.ihmc:opencv:$opencvVersion:linux-arm64")
    api("us.ihmc:opencv:$opencvVersion:linux-x86_64")
    api("us.ihmc:opencv:$opencvVersion:linux-x86_64-gpu")
    api("us.ihmc:opencv:$opencvVersion:windows-x86_64")
    api("us.ihmc:opencv:$opencvVersion:windows-x86_64-gpu")
-   val ffmpegVersion = "7.1-1.5.11"
+   val ffmpegVersion = "7.1-1.5.11-ihmc-2"
    api("us.ihmc:ffmpeg:$ffmpegVersion")
    api("us.ihmc:ffmpeg:$ffmpegVersion:linux-arm64")
    api("us.ihmc:ffmpeg:$ffmpegVersion:linux-x86_64")
