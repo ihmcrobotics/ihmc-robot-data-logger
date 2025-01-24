@@ -21,7 +21,7 @@ public class ZEDSVOLogger
    private static final int MAX_FPS = 15;
    private static final boolean TRANSCODE = false;
 
-   private static int nextCameraId = 0;
+   private static int nextCameraId = 10;
 
    private final int cameraID = nextCameraId++;
    private SL_InitParameters initParameters;
