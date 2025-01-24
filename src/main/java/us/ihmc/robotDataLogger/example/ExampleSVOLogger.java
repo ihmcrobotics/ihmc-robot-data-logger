@@ -48,7 +48,7 @@ public class ExampleSVOLogger
       /*
          Connect and start logging the SVO
        */
-      String svoFile = System.getProperty("user.home") + "/Desktop/test" + UUID.randomUUID().toString().substring(0, 5) + ".svo";
+      String svoFile = System.getProperty("user.home") + "/Desktop/test" + UUID.randomUUID().toString().substring(0, 5) + ".svo2";
       SVO_LOGGER.start(svoFile, ADDRESS, PORT);
 
       /*
