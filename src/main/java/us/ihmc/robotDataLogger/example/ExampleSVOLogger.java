@@ -11,9 +11,7 @@ import java.util.UUID;
 import static us.ihmc.zed.global.zed.*;
 
 /**
- * Starts a local USB ZED sensor, creates a ZEDSVOLoggerManager, and publishes on the ZED_SDK_ANNOUNCE_TOPIC topic
- * The ZEDSVOLoggerManager will listen to the ZED_SDK_ANNOUNCE_TOPIC and attempt to connect to the SVO stream to start
- * logging.
+ * Starts a local USB ZED sensor, and a ZEDSVOLogger which connects and logs to SVO
  */
 public class ExampleSVOLogger
 {
