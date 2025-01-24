@@ -1,17 +1,11 @@
 package us.ihmc.robotDataLogger.example;
 
-import us.ihmc.commons.thread.RepeatingTaskThread;
 import us.ihmc.commons.thread.ThreadTools;
-import us.ihmc.robotDataLogger.ZEDSDKAnnounce;
-import us.ihmc.robotDataLogger.logger.ZEDSVOLoggerManager;
-import us.ihmc.ros2.ROS2Node;
-import us.ihmc.ros2.ROS2NodeBuilder;
-import us.ihmc.ros2.ROS2Publisher;
+import us.ihmc.robotDataLogger.logger.ZEDSVOLogger;
 import us.ihmc.zed.SL_InitParameters;
 import us.ihmc.zed.SL_RuntimeParameters;
 import us.ihmc.zed.library.ZEDJavaAPINativeLibrary;
 
-import java.io.File;
 import java.util.UUID;
 
 import static us.ihmc.zed.global.zed.*;
@@ -23,10 +17,12 @@ import static us.ihmc.zed.global.zed.*;
  */
 public class ExampleSVOLogger
 {
+   private static final String ADDRESS = "127.0.0.1";
+   private static final int PORT = 30000;
+
+   private static final ZEDSVOLogger SVO_LOGGER = new ZEDSVOLogger();
+
    private static volatile boolean running = true;
-   private static final File LOG_DIRECTORY = new File(System.getProperty("user.home"),
-                                                     "Desktop/svoLoggingExample/log" + UUID.randomUUID().toString().substring(0, 5));
-   private static final ZEDSVOLoggerManager SVO_LOGGER_MANAGER = new ZEDSVOLoggerManager(LOG_DIRECTORY, LOG_DIRECTORY);
 
    static
    {
@@ -50,6 +46,12 @@ public class ExampleSVOLogger
       startLocalUSBSensor();
 
       /*
+         Connect and start logging the SVO
+       */
+      String svoFile = System.getProperty("user.home") + "/Desktop/test" + UUID.randomUUID().toString().substring(0, 5) + ".svo";
+      SVO_LOGGER.start(svoFile, ADDRESS, PORT);
+
+      /*
          Do nothing forever, everything else runs in other threads
        */
       ThreadTools.sleepForever();
@@ -59,7 +61,7 @@ public class ExampleSVOLogger
    {
       running = false;
 
-      SVO_LOGGER_MANAGER.destroy();
+      SVO_LOGGER.stop();
 
       stopLocalUSBSensor();
    }
@@ -84,7 +86,7 @@ public class ExampleSVOLogger
       initParameters.input_type(SL_INPUT_TYPE_USB);
       initParameters.camera_device_id(0);
       int state = sl_open_camera(0, initParameters, 0, "", "", 0, "", "", "");
-      sl_enable_streaming(0, SL_STREAMING_CODEC_H264, 8000, (short) 30000, -1, 0, 16084, 30);
+      sl_enable_streaming(0, SL_STREAMING_CODEC_H264, 8000, (short) PORT, -1, 0, 16084, 30);
       if (state != 0)
          throw new RuntimeException("Could not initialize ZED");
 
@@ -104,21 +106,5 @@ public class ExampleSVOLogger
          }
       }, "ImageGrabThread");
       imageGrabThread.start();
-
-      /*
-         Publish the stream information on the ZED_SDK_ANNOUNCE_TOPIC topic
-         so the logger knows how to connect
-       */
-      ROS2Node ros2Node = new ROS2NodeBuilder().build("zed_announce_node");
-      ROS2Publisher<ZEDSDKAnnounce> publisher = ros2Node.createPublisher(ZEDSVOLoggerManager.ZED_SDK_ANNOUNCE_TOPIC);
-      RepeatingTaskThread zedSDKAnnounceThread = new RepeatingTaskThread("ZEDSDKAnnounceThread", () ->
-      {
-         ZEDSDKAnnounce message = new ZEDSDKAnnounce();
-         message.setAddress("127.0.0.1");
-         message.setPort((short) 30000);
-         publisher.publish(message);
-      });
-      zedSDKAnnounceThread.setFrequencyLimit(1.0);
-      zedSDKAnnounceThread.startRepeating();
    }
 }
