@@ -41,10 +41,6 @@ public class ZEDSVOLoggerManager
 
    private void onZEDSDKAnnounceMessage(ZEDSDKAnnounce message)
    {
-      File perceptionDir = new File(tempDirectory, "perception");
-      perceptionDir.mkdirs();
-      String svoFile = perceptionDir.getAbsolutePath() + File.separator + generateSVOFileName();
-
       ZEDSDKAnnounceHash announceHash = new ZEDSDKAnnounceHash(message.getAddressAsString(), message.getPort());
 
       if (zedLoggers.containsKey(announceHash))
@@ -58,6 +54,10 @@ public class ZEDSVOLoggerManager
       }
       else
       {
+         File perceptionDir = new File(tempDirectory, "perception");
+         perceptionDir.mkdirs();
+         String svoFile = perceptionDir.getAbsolutePath() + File.separator + generateSVOFileName();
+
          ZEDSVOLogger zedSVOLogger = new ZEDSVOLogger();
 
          zedSVOLogger.start(svoFile, message.getAddressAsString(), message.getPort());
