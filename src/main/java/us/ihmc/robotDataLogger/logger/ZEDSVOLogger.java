@@ -30,13 +30,13 @@ public class ZEDSVOLogger
    private final RepeatingTaskThread connectionWatchdogThread = new RepeatingTaskThread(getClass().getName() + "ConnectionWatchdog", this::connectionCheck);
 
    private volatile double lastGrabTime;
-   private volatile boolean stopped;
+   private volatile boolean stopRequested;
    private volatile boolean completelyStopped;
    private volatile boolean failedBeyondRecovery;
 
    public void start(String svoFile, String address, int port)
    {
-      if (stopped)
+      if (stopRequested)
          throw new IllegalStateException("Cannot restart ZEDSVOLogger once stopped");
 
       initParameters = new SL_InitParameters();
@@ -78,9 +78,9 @@ public class ZEDSVOLogger
 
    public void stop()
    {
-      if (!stopped)
+      if (!stopRequested)
       {
-         stopped = true;
+         stopRequested = true;
 
          grabThread.blockingKill();
          connectionWatchdogThread.kill();
@@ -100,7 +100,7 @@ public class ZEDSVOLogger
 
    public void grab()
    {
-      if (stopped)
+      if (stopRequested)
          throw new IllegalStateException("Cannot grab(), already stopped");
 
       int returnCode = sl_grab(cameraID, runtimeParameters);
@@ -116,7 +116,7 @@ public class ZEDSVOLogger
 
    private void connectionCheck()
    {
-      if (!stopped())
+      if (!stopRequested())
       {
          if (!sl_is_opened(cameraID))
          {
@@ -137,9 +137,9 @@ public class ZEDSVOLogger
    /**
     * @return true if stop() has been called, false if not
     */
-   public boolean stopped()
+   public boolean stopRequested()
    {
-      return stopped;
+      return stopRequested;
    }
 
    /**
