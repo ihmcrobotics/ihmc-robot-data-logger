@@ -5,6 +5,7 @@ import us.ihmc.ros2.ROS2Node;
 import us.ihmc.ros2.ROS2NodeBuilder;
 import us.ihmc.ros2.ROS2Topic;
 import us.ihmc.ros2.ROS2TopicNameTools;
+import us.ihmc.zed.library.ZEDJavaAPINativeLibrary;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -18,6 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ZEDSVOLoggerManager
 {
+   public static final boolean ZED_SDK_LOADED = ZEDJavaAPINativeLibrary.load();
+
    public static final ROS2Topic<ZEDSDKAnnounce> ZED_SDK_ANNOUNCE_TOPIC = new ROS2Topic<ZEDSDKAnnounce>().withType(ZEDSDKAnnounce.class)
                                                                                                          .withSuffix("zed_sdk_announce");
 

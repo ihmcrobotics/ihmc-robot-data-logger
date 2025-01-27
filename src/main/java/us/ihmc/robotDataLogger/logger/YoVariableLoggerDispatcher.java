@@ -10,19 +10,15 @@ import us.ihmc.robotDataLogger.interfaces.DataServerDiscoveryListener;
 import us.ihmc.robotDataLogger.websocket.DataServerLocationBroadcast;
 import us.ihmc.robotDataLogger.websocket.client.discovery.DataServerDiscoveryClient;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
-import us.ihmc.zed.library.ZEDJavaAPINativeLibrary;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static us.ihmc.robotDataLogger.logger.ZEDSVOLoggerManager.ZED_SDK_LOADED;
+
 public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 {
-   /**
-    * Used to determine if {@link ZEDSVOLoggerManager} and {@link ZEDSVOLogger} are initialized
-    */
-   private static final boolean ZED_SDK_LOADED = ZEDJavaAPINativeLibrary.load();
-
    private final DataServerDiscoveryClient discoveryClient;
 
    private final Object lock = new Object();
