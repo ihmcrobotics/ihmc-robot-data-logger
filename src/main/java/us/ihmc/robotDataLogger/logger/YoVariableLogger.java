@@ -4,9 +4,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.YoVariableClient;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
-import us.ihmc.zed.library.ZEDJavaAPINativeLibrary;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,10 +19,10 @@ public class YoVariableLogger
 {
    // changed to a 10s timeout for camp lejeune demo
    public static final int timeout = 25000; // 2500;
-   @Nullable
-   private ZEDSVOLoggerManager zedSVOLoggerManager;
 
-   public YoVariableLogger(HTTPDataServerConnection connection, YoVariableLoggerOptions options, Consumer<Announcement> doneListener, boolean enableZEDSVOLogging) throws IOException
+   private final ZEDSVOLoggerManager zedSVOLoggerManager;
+
+   public YoVariableLogger(HTTPDataServerConnection connection, YoVariableLoggerOptions options, Consumer<Announcement> doneListener) throws IOException
    {
       Path logDirectory = Paths.get(options.getLogDirectory());
 
@@ -87,15 +85,11 @@ public class YoVariableLogger
          throw e;
       }
 
-      if (enableZEDSVOLogging)
-         zedSVOLoggerManager = new ZEDSVOLoggerManager(tempDirectory, finalDirectory);
-      else
-         LogTools.info("ZED SDK could not be initialized (is it installed?). Will not log ZED SDK streams.");
+      zedSVOLoggerManager = new ZEDSVOLoggerManager(tempDirectory, finalDirectory);
    }
 
    public void destroy()
    {
-      if (zedSVOLoggerManager != null)
-         zedSVOLoggerManager.destroy();
+      zedSVOLoggerManager.destroy();
    }
 }

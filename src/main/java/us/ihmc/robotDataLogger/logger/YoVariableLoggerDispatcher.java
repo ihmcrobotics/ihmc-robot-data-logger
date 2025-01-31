@@ -15,8 +15,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static us.ihmc.robotDataLogger.logger.ZEDSVOLoggerManager.ZED_SDK_LOADED;
-
 public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 {
    private final DataServerDiscoveryClient discoveryClient;
@@ -90,7 +88,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
             {
                try
                {
-                  activeLogSessions.put(hashAnnouncement, new YoVariableLogger(connection, options, this::finishedLog, ZED_SDK_LOADED));
+                  activeLogSessions.put(hashAnnouncement, new YoVariableLogger(connection, options, this::finishedLog));
                   LogTools.info("Logging session started for " + announcement.getNameAsString());
                }
                catch (Exception e)

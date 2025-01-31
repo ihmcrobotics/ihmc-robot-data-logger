@@ -1,5 +1,6 @@
 package us.ihmc.robotDataLogger.logger;
 
+import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.ZEDSDKAnnounce;
 import us.ihmc.ros2.ROS2Node;
 import us.ihmc.ros2.ROS2NodeBuilder;
@@ -19,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ZEDSVOLoggerManager
 {
-   public static final boolean ZED_SDK_LOADED = ZEDJavaAPINativeLibrary.load();
+   private static final boolean ZED_SDK_LOADED = ZEDJavaAPINativeLibrary.load();
 
    public static final ROS2Topic<ZEDSDKAnnounce> ZED_SDK_ANNOUNCE_TOPIC = new ROS2Topic<ZEDSDKAnnounce>().withType(ZEDSDKAnnounce.class)
                                                                                                          .withSuffix("zed_sdk_announce");
@@ -39,7 +40,10 @@ public class ZEDSVOLoggerManager
 
       ros2Node = new ROS2NodeBuilder().build(ROS2TopicNameTools.toROSTopicFormat(finalDirectory.getName() + "_zed_svo_logger_node"));
 
-      ros2Node.createSubscription2(ZED_SDK_ANNOUNCE_TOPIC, this::onZEDSDKAnnounceMessage);
+      if (ZED_SDK_LOADED)
+         ros2Node.createSubscription2(ZED_SDK_ANNOUNCE_TOPIC, this::onZEDSDKAnnounceMessage);
+      else
+         LogTools.info("ZED SDK not available on the system. Will not attempt to log SVO files.");
    }
 
    private void onZEDSDKAnnounceMessage(ZEDSDKAnnounce message)
