@@ -39,7 +39,7 @@ mainDependencies {
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-realtime:1.7.0")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
-   api("us.ihmc:ihmc-pub-sub:1.1.5")
+   api("us.ihmc:ros2-library:1.1.5")
    api("us.ihmc:ihmc-pub-sub-serializers-extra:1.1.5")
    api("us.ihmc:ihmc-commons:0.34.0")
    api("us.ihmc:ihmc-graphics-description:0.26.0")
@@ -61,6 +61,10 @@ mainDependencies {
    api("org.bytedeco:openblas:$openblasVersion:linux-x86_64")
    api("org.bytedeco:openblas:$openblasVersion:linux-arm64")
    api("org.bytedeco:openblas:$openblasVersion:windows-x86_64")
+   // ZED SDK for logging remote ZED data streams
+   api("us.ihmc:zed-java-api:4.2.0_1") {
+      exclude(group = "org.bytedeco")
+   }
 
    api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
 
