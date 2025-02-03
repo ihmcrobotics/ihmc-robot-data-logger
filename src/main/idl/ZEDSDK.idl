@@ -1,0 +1,10 @@
+module us{
+module ihmc{
+module robotDataLogger{
+	struct ZEDSDKAnnounce{
+		string address;
+		short port;
+	};
+};
+};
+};

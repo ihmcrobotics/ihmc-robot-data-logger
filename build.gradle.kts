@@ -13,7 +13,7 @@ plugins {
 
 ihmc {
    group = "us.ihmc"
-   version = "0.30.2"
+   version = "0.31.0"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
@@ -39,7 +39,7 @@ mainDependencies {
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-realtime:1.7.0")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
-   api("us.ihmc:ihmc-pub-sub:1.1.5")
+   api("us.ihmc:ros2-library:1.1.5")
    api("us.ihmc:ihmc-pub-sub-serializers-extra:1.1.5")
    api("us.ihmc:ihmc-commons:0.34.0")
    api("us.ihmc:ihmc-graphics-description:0.26.0")
@@ -66,7 +66,7 @@ mainDependencies {
 
    api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
 
-   var javaFXVersion = "17.0.2"
+   var javaFXVersion = "17.0.8"
    api(ihmc.javaFXModule("base", javaFXVersion))
    api(ihmc.javaFXModule("controls", javaFXVersion))
    api(ihmc.javaFXModule("graphics", javaFXVersion))
