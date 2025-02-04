@@ -46,25 +46,26 @@ mainDependencies {
    api("us.ihmc:mecano:17-0.19.0")
    api("com.hierynomus:sshj:0.31.0")
 
-   val opencvVersion = "4.7.0-1.5.9"
-   api("org.bytedeco:opencv:$opencvVersion")
-   api("org.bytedeco:opencv:$opencvVersion:linux-x86_64")
-   api("org.bytedeco:opencv:$opencvVersion:linux-arm64")
-   api("org.bytedeco:opencv:$opencvVersion:windows-x86_64")
-   val ffmpegVersion = "6.0-1.5.9"
-   api("org.bytedeco:ffmpeg:$ffmpegVersion")
-   api("org.bytedeco:ffmpeg:$ffmpegVersion:linux-x86_64")
-   api("org.bytedeco:ffmpeg:$ffmpegVersion:linux-arm64")
-   api("org.bytedeco:ffmpeg:$ffmpegVersion:windows-x86_64")
-   val openblasVersion = "0.3.23-1.5.9" // TODO: This can probably be removed in 1.5.10
-   api("org.bytedeco:openblas:$openblasVersion")
-   api("org.bytedeco:openblas:$openblasVersion:linux-x86_64")
-   api("org.bytedeco:openblas:$openblasVersion:linux-arm64")
-   api("org.bytedeco:openblas:$openblasVersion:windows-x86_64")
+   val openblasVersion = "0.3.28-1.5.11-ihmc-2"
+   api("us.ihmc:openblas:$openblasVersion")
+   api("us.ihmc:openblas:$openblasVersion:linux-x86_64")
+   api("us.ihmc:openblas:$openblasVersion:linux-arm64")
+   api("us.ihmc:openblas:$openblasVersion:windows-x86_64")
+   val opencvVersion = "4.10.0-1.5.11-ihmc-2"
+   api("us.ihmc:opencv:$opencvVersion")
+   api("us.ihmc:opencv:$opencvVersion:linux-arm64")
+   api("us.ihmc:opencv:$opencvVersion:linux-x86_64")
+   api("us.ihmc:opencv:$opencvVersion:linux-x86_64-gpu")
+   api("us.ihmc:opencv:$opencvVersion:windows-x86_64")
+   api("us.ihmc:opencv:$opencvVersion:windows-x86_64-gpu")
+   val ffmpegVersion = "7.1-1.5.11-ihmc-2"
+   api("us.ihmc:ffmpeg:$ffmpegVersion")
+   api("us.ihmc:ffmpeg:$ffmpegVersion:linux-arm64")
+   api("us.ihmc:ffmpeg:$ffmpegVersion:linux-x86_64")
+   api("us.ihmc:ffmpeg:$ffmpegVersion:windows-x86_64")
+
    // ZED SDK for logging remote ZED data streams
-   api("us.ihmc:zed-java-api:4.2.0_1") {
-      exclude(group = "org.bytedeco")
-   }
+   api("us.ihmc:zed-java-api:4.2.0_2")
 
    api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
 
