@@ -41,7 +41,7 @@ mainDependencies {
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
    api("us.ihmc:ros2-library:1.1.5")
    api("us.ihmc:ihmc-pub-sub-serializers-extra:1.1.5")
-   api("us.ihmc:ihmc-commons:0.34.0")
+   api("us.ihmc:ihmc-commons:0.35.1")
    api("us.ihmc:ihmc-graphics-description:0.26.0")
    api("us.ihmc:mecano:17-0.19.0")
    api("com.hierynomus:sshj:0.31.0")
@@ -77,7 +77,7 @@ mainDependencies {
 }
 
 testDependencies {
-   api("us.ihmc:ihmc-commons-testing:0.34.0")
+   api("us.ihmc:ihmc-commons-testing:0.35.1")
 }
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")
