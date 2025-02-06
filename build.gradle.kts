@@ -46,12 +46,12 @@ mainDependencies {
    api("us.ihmc:mecano:17-0.19.2")
    api("com.hierynomus:sshj:0.31.0")
 
-   val openblasVersion = "0.3.28-1.5.11-ihmc-2"
+   val openblasVersion = "0.3.23-1.5.11-ihmc-2"
    api("us.ihmc:openblas:$openblasVersion")
    api("us.ihmc:openblas:$openblasVersion:linux-x86_64")
    api("us.ihmc:openblas:$openblasVersion:linux-arm64")
    api("us.ihmc:openblas:$openblasVersion:windows-x86_64")
-   val opencvVersion = "4.10.0-1.5.11-ihmc-2"
+   val opencvVersion = "4.7.0-1.5.11-ihmc-2"
    api("us.ihmc:opencv:$opencvVersion")
    api("us.ihmc:opencv:$opencvVersion:linux-arm64")
    api("us.ihmc:opencv:$opencvVersion:linux-x86_64")
