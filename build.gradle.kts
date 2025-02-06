@@ -13,7 +13,7 @@ plugins {
 
 ihmc {
    group = "us.ihmc"
-   version = "0.31.1"
+   version = "0.31.2"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
