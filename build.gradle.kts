@@ -42,7 +42,7 @@ mainDependencies {
    api("us.ihmc:ros2-library:1.1.7")
    api("us.ihmc:ihmc-pub-sub-serializers-extra:1.1.7")
    api("us.ihmc:ihmc-commons:0.35.1")
-   api("us.ihmc:ihmc-graphics-description:0.26.1")
+   api("us.ihmc:ihmc-graphics-description:0.26.2")
    api("us.ihmc:mecano:17-0.19.2")
    api("com.hierynomus:sshj:0.31.0")
 
