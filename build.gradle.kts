@@ -46,10 +46,11 @@ mainDependencies {
    api("us.ihmc:mecano:17-0.19.2")
    api("com.hierynomus:sshj:0.31.0")
 
-   api("us.ihmc:javacpp:1.5.11-ihmc-2")
-   api("us.ihmc:javacpp:1.5.11-ihmc-2:linux-arm64")
-   api("us.ihmc:javacpp:1.5.11-ihmc-2:linux-x86_64")
-   api("us.ihmc:javacpp:1.5.11-ihmc-2:windows-x86_64")
+   val javacppVersion = "1.5.11-ihmc-2"
+   api("us.ihmc:javacpp:$javacppVersion")
+   api("us.ihmc:javacpp:$javacppVersion:linux-arm64")
+   api("us.ihmc:javacpp:$javacppVersion:linux-x86_64")
+   api("us.ihmc:javacpp:$javacppVersion:windows-x86_64")
    val openblasVersion = "0.3.23-1.5.11-ihmc-2"
    api("us.ihmc:openblas:$openblasVersion")
    api("us.ihmc:openblas:$openblasVersion:linux-x86_64")
