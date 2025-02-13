@@ -46,19 +46,24 @@ mainDependencies {
    api("us.ihmc:mecano:17-0.19.2")
    api("com.hierynomus:sshj:0.31.0")
 
-   val openblasVersion = "0.3.23-1.5.11-ihmc-2"
+   val javacppVersion = "1.5.11-ihmc-2"
+   api("us.ihmc:javacpp:$javacppVersion")
+   api("us.ihmc:javacpp:$javacppVersion:linux-arm64")
+   api("us.ihmc:javacpp:$javacppVersion:linux-x86_64")
+   api("us.ihmc:javacpp:$javacppVersion:windows-x86_64")
+   val openblasVersion = "0.3.23-$javacppVersion"
    api("us.ihmc:openblas:$openblasVersion")
    api("us.ihmc:openblas:$openblasVersion:linux-x86_64")
    api("us.ihmc:openblas:$openblasVersion:linux-arm64")
    api("us.ihmc:openblas:$openblasVersion:windows-x86_64")
-   val opencvVersion = "4.7.0-1.5.11-ihmc-2"
+   val opencvVersion = "4.7.0-$javacppVersion"
    api("us.ihmc:opencv:$opencvVersion")
    api("us.ihmc:opencv:$opencvVersion:linux-arm64")
    api("us.ihmc:opencv:$opencvVersion:linux-x86_64")
    api("us.ihmc:opencv:$opencvVersion:linux-x86_64-gpu")
    api("us.ihmc:opencv:$opencvVersion:windows-x86_64")
    api("us.ihmc:opencv:$opencvVersion:windows-x86_64-gpu")
-   val ffmpegVersion = "7.1-1.5.11-ihmc-2"
+   val ffmpegVersion = "7.1-$javacppVersion"
    api("us.ihmc:ffmpeg:$ffmpegVersion")
    api("us.ihmc:ffmpeg:$ffmpegVersion:linux-arm64")
    api("us.ihmc:ffmpeg:$ffmpegVersion:linux-x86_64")
@@ -69,7 +74,7 @@ mainDependencies {
 
    api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
 
-   var javaFXVersion = "17.0.8"
+   val javaFXVersion = "17.0.8"
    api(ihmc.javaFXModule("base", javaFXVersion))
    api(ihmc.javaFXModule("controls", javaFXVersion))
    api(ihmc.javaFXModule("graphics", javaFXVersion))
