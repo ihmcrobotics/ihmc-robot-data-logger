@@ -144,31 +144,31 @@ public class HandshakePubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
 
       if(data.getRegistries().size() <= 1024)
       cdr.write_type_e(data.getRegistries());else
-          throw new RuntimeException("registries field exceeds the maximum length");
+          throw new RuntimeException("registries field exceeds the maximum length: %d > %d".formatted(data.getRegistries().size(), 1024));
 
       if(data.getVariables().size() <= 32767)
       cdr.write_type_e(data.getVariables());else
-          throw new RuntimeException("variables field exceeds the maximum length");
+          throw new RuntimeException("variables field exceeds the maximum length: %d > %d".formatted(data.getVariables().size(), 32767));
 
       if(data.getJoints().size() <= 128)
       cdr.write_type_e(data.getJoints());else
-          throw new RuntimeException("joints field exceeds the maximum length");
+          throw new RuntimeException("joints field exceeds the maximum length: %d > %d".formatted(data.getJoints().size(), 128));
 
       if(data.getGraphicObjects().size() <= 2048)
       cdr.write_type_e(data.getGraphicObjects());else
-          throw new RuntimeException("graphicObjects field exceeds the maximum length");
+          throw new RuntimeException("graphicObjects field exceeds the maximum length: %d > %d".formatted(data.getGraphicObjects().size(), 2048));
 
       if(data.getArtifacts().size() <= 2048)
       cdr.write_type_e(data.getArtifacts());else
-          throw new RuntimeException("artifacts field exceeds the maximum length");
+          throw new RuntimeException("artifacts field exceeds the maximum length: %d > %d".formatted(data.getArtifacts().size(), 2048));
 
       if(data.getScs2YoGraphicDefinitions().size() <= 2048)
       cdr.write_type_e(data.getScs2YoGraphicDefinitions());else
-          throw new RuntimeException("scs2YoGraphicDefinitions field exceeds the maximum length");
+          throw new RuntimeException("scs2YoGraphicDefinitions field exceeds the maximum length: %d > %d".formatted(data.getScs2YoGraphicDefinitions().size(), 2048));
 
       if(data.getEnumTypes().size() <= 1024)
       cdr.write_type_e(data.getEnumTypes());else
-          throw new RuntimeException("enumTypes field exceeds the maximum length");
+          throw new RuntimeException("enumTypes field exceeds the maximum length: %d > %d".formatted(data.getEnumTypes().size(), 1024));
 
       us.ihmc.robotDataLogger.ReferenceFrameInformationPubSubType.write(data.getReferenceFrameInformation(), cdr);
       us.ihmc.robotDataLogger.SummaryPubSubType.write(data.getSummary(), cdr);

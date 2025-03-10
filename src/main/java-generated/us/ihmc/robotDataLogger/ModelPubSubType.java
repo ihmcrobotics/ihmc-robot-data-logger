@@ -94,23 +94,23 @@ public class ModelPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.rob
    {
       if(data.getLoader().length() <= 255)
       cdr.write_type_d(data.getLoader());else
-          throw new RuntimeException("loader field exceeds the maximum length");
+          throw new RuntimeException("loader field exceeds the maximum length: %d > %d".formatted(data.getLoader().length(), 255));
 
       if(data.getPath().length() <= 255)
       cdr.write_type_d(data.getPath());else
-          throw new RuntimeException("path field exceeds the maximum length");
+          throw new RuntimeException("path field exceeds the maximum length: %d > %d".formatted(data.getPath().length(), 255));
 
       if(data.getName().length() <= 255)
       cdr.write_type_d(data.getName());else
-          throw new RuntimeException("name field exceeds the maximum length");
+          throw new RuntimeException("name field exceeds the maximum length: %d > %d".formatted(data.getName().length(), 255));
 
       if(data.getResourceBundle().length() <= 255)
       cdr.write_type_d(data.getResourceBundle());else
-          throw new RuntimeException("resourceBundle field exceeds the maximum length");
+          throw new RuntimeException("resourceBundle field exceeds the maximum length: %d > %d".formatted(data.getResourceBundle().length(), 255));
 
       if(data.getResourceDirectoriesList().size() <= 255)
       cdr.write_type_e(data.getResourceDirectoriesList());else
-          throw new RuntimeException("resourceDirectoriesList field exceeds the maximum length");
+          throw new RuntimeException("resourceDirectoriesList field exceeds the maximum length: %d > %d".formatted(data.getResourceDirectoriesList().size(), 255));
 
    }
 

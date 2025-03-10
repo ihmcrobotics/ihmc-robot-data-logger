@@ -85,11 +85,11 @@ public class EnumTypePubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.
    {
       if(data.getName().length() <= 255)
       cdr.write_type_d(data.getName());else
-          throw new RuntimeException("name field exceeds the maximum length");
+          throw new RuntimeException("name field exceeds the maximum length: %d > %d".formatted(data.getName().length(), 255));
 
       if(data.getEnumValues().size() <= 255)
       cdr.write_type_e(data.getEnumValues());else
-          throw new RuntimeException("enumValues field exceeds the maximum length");
+          throw new RuntimeException("enumValues field exceeds the maximum length: %d > %d".formatted(data.getEnumValues().size(), 255));
 
    }
 

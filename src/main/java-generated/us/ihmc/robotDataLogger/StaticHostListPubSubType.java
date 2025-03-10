@@ -88,7 +88,7 @@ public class StaticHostListPubSubType implements us.ihmc.pubsub.TopicDataType<us
 
       if(data.getHosts().size() <= 128)
       cdr.write_type_e(data.getHosts());else
-          throw new RuntimeException("hosts field exceeds the maximum length");
+          throw new RuntimeException("hosts field exceeds the maximum length: %d > %d".formatted(data.getHosts().size(), 128));
 
    }
 

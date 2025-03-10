@@ -81,7 +81,7 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
    {
       if(data.getAddress().length() <= 255)
       cdr.write_type_d(data.getAddress());else
-          throw new RuntimeException("address field exceeds the maximum length");
+          throw new RuntimeException("address field exceeds the maximum length: %d > %d".formatted(data.getAddress().length(), 255));
 
       cdr.write_type_1(data.getPort());
 

@@ -90,21 +90,21 @@ public class CameraPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.ro
    {
       if(data.getType().length() <= 255)
       cdr.write_type_d(data.getType());else
-          throw new RuntimeException("type field exceeds the maximum length");
+          throw new RuntimeException("type field exceeds the maximum length: %d > %d".formatted(data.getType().length(), 255));
 
       if(data.getName().length() <= 255)
       cdr.write_type_d(data.getName());else
-          throw new RuntimeException("name field exceeds the maximum length");
+          throw new RuntimeException("name field exceeds the maximum length: %d > %d".formatted(data.getName().length(), 255));
 
       cdr.write_type_7(data.getInterlaced());
 
       if(data.getVideoFile().length() <= 255)
       cdr.write_type_d(data.getVideoFile());else
-          throw new RuntimeException("videoFile field exceeds the maximum length");
+          throw new RuntimeException("videoFile field exceeds the maximum length: %d > %d".formatted(data.getVideoFile().length(), 255));
 
       if(data.getTimestampFile().length() <= 255)
       cdr.write_type_d(data.getTimestampFile());else
-          throw new RuntimeException("timestampFile field exceeds the maximum length");
+          throw new RuntimeException("timestampFile field exceeds the maximum length: %d > %d".formatted(data.getTimestampFile().length(), 255));
 
    }
 

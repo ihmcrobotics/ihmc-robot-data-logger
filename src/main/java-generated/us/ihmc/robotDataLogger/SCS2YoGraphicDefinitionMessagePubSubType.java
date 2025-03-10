@@ -91,11 +91,11 @@ public class SCS2YoGraphicDefinitionMessagePubSubType implements us.ihmc.pubsub.
    {
       if(data.getFieldNames().size() <= 64)
       cdr.write_type_e(data.getFieldNames());else
-          throw new RuntimeException("fieldNames field exceeds the maximum length");
+          throw new RuntimeException("fieldNames field exceeds the maximum length: %d > %d".formatted(data.getFieldNames().size(), 64));
 
       if(data.getFieldValues().size() <= 64)
       cdr.write_type_e(data.getFieldValues());else
-          throw new RuntimeException("fieldValues field exceeds the maximum length");
+          throw new RuntimeException("fieldValues field exceeds the maximum length: %d > %d".formatted(data.getFieldValues().size(), 64));
 
    }
 

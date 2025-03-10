@@ -110,15 +110,15 @@ public class ModelFileDescriptionPubSubType implements us.ihmc.pubsub.TopicDataT
 
       if(data.getName().length() <= 255)
       cdr.write_type_d(data.getName());else
-          throw new RuntimeException("name field exceeds the maximum length");
+          throw new RuntimeException("name field exceeds the maximum length: %d > %d".formatted(data.getName().length(), 255));
 
       if(data.getModelLoaderClass().length() <= 255)
       cdr.write_type_d(data.getModelLoaderClass());else
-          throw new RuntimeException("modelLoaderClass field exceeds the maximum length");
+          throw new RuntimeException("modelLoaderClass field exceeds the maximum length: %d > %d".formatted(data.getModelLoaderClass().length(), 255));
 
       if(data.getResourceDirectories().size() <= 255)
       cdr.write_type_e(data.getResourceDirectories());else
-          throw new RuntimeException("resourceDirectories field exceeds the maximum length");
+          throw new RuntimeException("resourceDirectories field exceeds the maximum length: %d > %d".formatted(data.getResourceDirectories().size(), 255));
 
       cdr.write_type_2(data.getModelFileSize());
 

@@ -92,11 +92,11 @@ public class SummaryPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.r
 
       if(data.getSummaryTriggerVariable().length() <= 1024)
       cdr.write_type_d(data.getSummaryTriggerVariable());else
-          throw new RuntimeException("summaryTriggerVariable field exceeds the maximum length");
+          throw new RuntimeException("summaryTriggerVariable field exceeds the maximum length: %d > %d".formatted(data.getSummaryTriggerVariable().length(), 1024));
 
       if(data.getSummarizedVariables().size() <= 128)
       cdr.write_type_e(data.getSummarizedVariables());else
-          throw new RuntimeException("summarizedVariables field exceeds the maximum length");
+          throw new RuntimeException("summarizedVariables field exceeds the maximum length: %d > %d".formatted(data.getSummarizedVariables().size(), 128));
 
    }
 
