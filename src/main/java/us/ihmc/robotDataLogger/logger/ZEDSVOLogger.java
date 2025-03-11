@@ -37,7 +37,7 @@ public class ZEDSVOLogger
    private final RepeatingTaskThread grabThread = new RepeatingTaskThread(getClass().getName() + "GrabThread", this::grab);
    private final RepeatingTaskThread connectionWatchdogThread = new RepeatingTaskThread(getClass().getName() + "ConnectionWatchdog", this::connectionCheck);
 
-   private String svoFileName;
+   private String svoPrefix;
    private LongSupplier timestampSupplier;
    private FileWriter timestampWriter;
    private Instant startTime;
@@ -49,12 +49,12 @@ public class ZEDSVOLogger
 
    public void start(String svoFile, String datFile, LongSupplier timestampSupplier, String address, int port)
    {
-      this.svoFileName = svoFile;
       this.timestampSupplier = timestampSupplier;
 
       if (stopRequested)
          throw new IllegalStateException("Cannot restart ZEDSVOLogger once stopped");
 
+      svoPrefix = svoFile.substring(0, "yyyyMMdd_HHmmss".length());
       timestampWriter = ExceptionTools.handle(() -> new FileWriter(datFile, true), DefaultExceptionHandler.RUNTIME_EXCEPTION);
 
       initParameters = new SL_InitParameters();
@@ -132,7 +132,7 @@ public class ZEDSVOLogger
 
       try
       {
-         timestampWriter.write("%d %d %s%n".formatted(timestampSupplier.getAsLong(), frameTimeNanos, svoFileName));
+         timestampWriter.write("%d %d %s%n".formatted(timestampSupplier.getAsLong(), frameTimeNanos, svoPrefix));
       }
       catch (IOException e)
       {
