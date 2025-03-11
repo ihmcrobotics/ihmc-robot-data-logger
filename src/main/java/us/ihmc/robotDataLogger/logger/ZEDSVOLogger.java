@@ -37,6 +37,7 @@ public class ZEDSVOLogger
    private final RepeatingTaskThread grabThread = new RepeatingTaskThread(getClass().getName() + "GrabThread", this::grab);
    private final RepeatingTaskThread connectionWatchdogThread = new RepeatingTaskThread(getClass().getName() + "ConnectionWatchdog", this::connectionCheck);
 
+   private String svoFileName;
    private LongSupplier timestampSupplier;
    private FileWriter timestampWriter;
    private Instant startTime;
@@ -48,6 +49,7 @@ public class ZEDSVOLogger
 
    public void start(String svoFile, String datFile, LongSupplier timestampSupplier, String address, int port)
    {
+      this.svoFileName = svoFile;
       this.timestampSupplier = timestampSupplier;
 
       if (stopRequested)
@@ -81,16 +83,6 @@ public class ZEDSVOLogger
          LogTools.info("Connected to ZED SDK stream on: " + address + ":" + port);
 
          startTime = Instant.now();
-         float fps = sl_get_current_fps(cameraID);
-         try
-         {
-            timestampWriter.write(1 + "\n");
-            timestampWriter.write(Math.round(fps) + "\n");
-         }
-         catch (IOException e)
-         {
-            LogTools.error(e.getMessage());
-         }
 
          grabThread.setFrequencyLimit(RepeatingTaskThread.UNLIMITED_FREQUENCY);
          grabThread.startRepeating();
@@ -140,7 +132,7 @@ public class ZEDSVOLogger
 
       try
       {
-         timestampWriter.write("%d %d%n".formatted(timestampSupplier.getAsLong(), frameTimeNanos));
+         timestampWriter.write("%d %d %s%n".formatted(timestampSupplier.getAsLong(), frameTimeNanos, svoFileName));
       }
       catch (IOException e)
       {
