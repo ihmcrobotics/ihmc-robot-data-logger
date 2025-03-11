@@ -67,7 +67,8 @@ public class ZEDSVOLoggerManager
          File perceptionDir = new File(tempDirectory, "perception");
          perceptionDir.mkdirs();
          String svoFile = perceptionDir.getAbsolutePath() + File.separator + generateSVOFileName(message);
-         String datFile = "%s%s".formatted(message.getSensorNameAsString(), VideoDataLoggerInterface.timestampDataPostfix);
+         String datFile = perceptionDir.getAbsolutePath() + File.separator + 
+                 "%s%s".formatted(message.getSensorNameAsString(), VideoDataLoggerInterface.timestampDataPostfix);
 
          ZEDSVOLogger zedSVOLogger = new ZEDSVOLogger();
 

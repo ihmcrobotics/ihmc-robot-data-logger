@@ -54,7 +54,8 @@ public class ZEDSVOLogger
       if (stopRequested)
          throw new IllegalStateException("Cannot restart ZEDSVOLogger once stopped");
 
-      svoPrefix = svoFile.substring(0, "yyyyMMdd_HHmmss".length());
+      String[] parts = svoFile.split("[/\\\\]");
+      svoPrefix = parts[parts.length - 1].substring(0, "yyyyMMdd_HHmmss".length());
       timestampWriter = ExceptionTools.handle(() -> new FileWriter(datFile, true), DefaultExceptionHandler.RUNTIME_EXCEPTION);
 
       initParameters = new SL_InitParameters();
