@@ -1,12 +1,20 @@
 package us.ihmc.robotDataLogger.logger;
 
 import us.ihmc.commons.Conversions;
+import us.ihmc.commons.exception.DefaultExceptionHandler;
+import us.ihmc.commons.exception.ExceptionTools;
 import us.ihmc.commons.thread.RepeatingTaskThread;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.zed.SL_InitParameters;
 import us.ihmc.zed.SL_RuntimeParameters;
 import us.ihmc.zed.global.zed;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.function.LongSupplier;
 
 import static us.ihmc.zed.global.zed.*;
 
@@ -29,17 +37,23 @@ public class ZEDSVOLogger
    private final RepeatingTaskThread grabThread = new RepeatingTaskThread(getClass().getName() + "GrabThread", this::grab);
    private final RepeatingTaskThread connectionWatchdogThread = new RepeatingTaskThread(getClass().getName() + "ConnectionWatchdog", this::connectionCheck);
 
+   private LongSupplier timestampSupplier;
+   private FileWriter timestampWriter;
+   private Instant startTime;
+
    private volatile double lastGrabTime;
    private volatile boolean stopRequested;
    private volatile boolean completelyStopped;
    private volatile boolean failedBeyondRecovery;
 
-   public void start(String svoFile, String datFile, String address, int port)
+   public void start(String svoFile, String datFile, LongSupplier timestampSupplier, String address, int port)
    {
+      this.timestampSupplier = timestampSupplier;
+
       if (stopRequested)
          throw new IllegalStateException("Cannot restart ZEDSVOLogger once stopped");
 
-      // TODO: Setup dat file -- append not truncate
+      timestampWriter = ExceptionTools.handle(() -> new FileWriter(datFile, true), DefaultExceptionHandler.RUNTIME_EXCEPTION);
 
       initParameters = new SL_InitParameters();
       initParameters.input_type(zed.SL_INPUT_TYPE_STREAM);
@@ -65,6 +79,18 @@ public class ZEDSVOLogger
       if (sl_is_opened(cameraID))
       {
          LogTools.info("Connected to ZED SDK stream on: " + address + ":" + port);
+
+         startTime = Instant.now();
+         float fps = sl_get_current_fps(cameraID);
+         try
+         {
+            timestampWriter.write(1 + "\n");
+            timestampWriter.write(Math.round(fps) + "\n");
+         }
+         catch (IOException e)
+         {
+            LogTools.error(e.getMessage());
+         }
 
          grabThread.setFrequencyLimit(RepeatingTaskThread.UNLIMITED_FREQUENCY);
          grabThread.startRepeating();
@@ -96,6 +122,8 @@ public class ZEDSVOLogger
          // Can't use LogTools here, we might be shutting down...
          System.out.println("Closing ZED SDK stream");
 
+         ExceptionTools.handle(timestampWriter::close, DefaultExceptionHandler.PRINT_MESSAGE);
+
          completelyStopped = true;
       }
    }
@@ -108,6 +136,16 @@ public class ZEDSVOLogger
       int returnCode = sl_grab(cameraID, runtimeParameters);
 
       lastGrabTime = System.currentTimeMillis() / 1000D;
+      long frameTimeNanos = Duration.between(startTime, Instant.now()).toNanos();
+
+      try
+      {
+         timestampWriter.write("%d %d%n".formatted(timestampSupplier.getAsLong(), frameTimeNanos));
+      }
+      catch (IOException e)
+      {
+         LogTools.error(e.getMessage());
+      }
 
       if (returnCode == SL_ERROR_CODE_FAILURE || returnCode == SL_ERROR_CODE_CAMERA_NOT_DETECTED)
          failedBeyondRecovery = true;

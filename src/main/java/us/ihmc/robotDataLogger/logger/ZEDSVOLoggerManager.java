@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.LongSupplier;
 
 /**
  * Manages n number of ZED SDK connections for logging SVO files.
@@ -30,13 +31,15 @@ public class ZEDSVOLoggerManager
    }
 
    private final File tempDirectory;
+   private final LongSupplier timestampSupplier;
 
    private final ROS2Node ros2Node;
    private final Map<ZEDSDKAnnounceHash, ZEDSVOLogger> zedLoggers = new ConcurrentHashMap<>();
 
-   public ZEDSVOLoggerManager(File tempDirectory, File finalDirectory)
+   public ZEDSVOLoggerManager(File tempDirectory, File finalDirectory, LongSupplier timestampSupplier)
    {
       this.tempDirectory = tempDirectory;
+      this.timestampSupplier = timestampSupplier;
 
       ros2Node = new ROS2NodeBuilder().build(ROS2TopicNameTools.toROSTopicFormat(finalDirectory.getName() + "_zed_svo_logger_node"));
 
@@ -68,7 +71,7 @@ public class ZEDSVOLoggerManager
 
          ZEDSVOLogger zedSVOLogger = new ZEDSVOLogger();
 
-         zedSVOLogger.start(svoFile, datFile, message.getAddressAsString(), message.getPort());
+         zedSVOLogger.start(svoFile, datFile, timestampSupplier, message.getAddressAsString(), message.getPort());
 
          zedLoggers.put(announceHash, zedSVOLogger);
       }
