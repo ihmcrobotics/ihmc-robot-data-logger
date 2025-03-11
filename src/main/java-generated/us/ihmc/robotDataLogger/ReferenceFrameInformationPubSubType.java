@@ -88,11 +88,11 @@ public class ReferenceFrameInformationPubSubType implements us.ihmc.pubsub.Topic
    {
       if(data.getFrameIndices().size() <= 8192)
       cdr.write_type_e(data.getFrameIndices());else
-          throw new RuntimeException("frameIndices field exceeds the maximum length");
+          throw new RuntimeException("frameIndices field exceeds the maximum length: %d > %d".formatted(data.getFrameIndices().size(), 8192));
 
       if(data.getFrameNames().size() <= 8192)
       cdr.write_type_e(data.getFrameNames());else
-          throw new RuntimeException("frameNames field exceeds the maximum length");
+          throw new RuntimeException("frameNames field exceeds the maximum length: %d > %d".formatted(data.getFrameNames().size(), 8192));
 
    }
 

@@ -94,19 +94,19 @@ public class AnnouncementPubSubType implements us.ihmc.pubsub.TopicDataType<us.i
    {
       if(data.getIdentifier().length() <= 255)
       cdr.write_type_d(data.getIdentifier());else
-          throw new RuntimeException("identifier field exceeds the maximum length");
+          throw new RuntimeException("identifier field exceeds the maximum length: %d > %d".formatted(data.getIdentifier().length(), 255));
 
       if(data.getName().length() <= 255)
       cdr.write_type_d(data.getName());else
-          throw new RuntimeException("name field exceeds the maximum length");
+          throw new RuntimeException("name field exceeds the maximum length: %d > %d".formatted(data.getName().length(), 255));
 
       if(data.getHostName().length() <= 255)
       cdr.write_type_d(data.getHostName());else
-          throw new RuntimeException("hostName field exceeds the maximum length");
+          throw new RuntimeException("hostName field exceeds the maximum length: %d > %d".formatted(data.getHostName().length(), 255));
 
       if(data.getReconnectKey().length() <= 255)
       cdr.write_type_d(data.getReconnectKey());else
-          throw new RuntimeException("reconnectKey field exceeds the maximum length");
+          throw new RuntimeException("reconnectKey field exceeds the maximum length: %d > %d".formatted(data.getReconnectKey().length(), 255));
 
       us.ihmc.robotDataLogger.ModelFileDescriptionPubSubType.write(data.getModelFileDescription(), cdr);
       cdr.write_type_7(data.getLog());

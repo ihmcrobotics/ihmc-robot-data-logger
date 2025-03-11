@@ -74,7 +74,7 @@ public class ClearLogRequestPubSubType implements us.ihmc.pubsub.TopicDataType<u
    {
       if(data.getGuid().length() <= 255)
       cdr.write_type_d(data.getGuid());else
-          throw new RuntimeException("guid field exceeds the maximum length");
+          throw new RuntimeException("guid field exceeds the maximum length: %d > %d".formatted(data.getGuid().length(), 255));
 
    }
 

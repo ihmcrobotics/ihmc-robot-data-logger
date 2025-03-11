@@ -103,19 +103,19 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
 
       if(data.getHandshake().length() <= 255)
       cdr.write_type_d(data.getHandshake());else
-          throw new RuntimeException("handshake field exceeds the maximum length");
+          throw new RuntimeException("handshake field exceeds the maximum length: %d > %d".formatted(data.getHandshake().length(), 255));
 
       if(data.getData().length() <= 255)
       cdr.write_type_d(data.getData());else
-          throw new RuntimeException("data field exceeds the maximum length");
+          throw new RuntimeException("data field exceeds the maximum length: %d > %d".formatted(data.getData().length(), 255));
 
       if(data.getSummary().length() <= 255)
       cdr.write_type_d(data.getSummary());else
-          throw new RuntimeException("summary field exceeds the maximum length");
+          throw new RuntimeException("summary field exceeds the maximum length: %d > %d".formatted(data.getSummary().length(), 255));
 
       if(data.getIndex().length() <= 255)
       cdr.write_type_d(data.getIndex());else
-          throw new RuntimeException("index field exceeds the maximum length");
+          throw new RuntimeException("index field exceeds the maximum length: %d > %d".formatted(data.getIndex().length(), 255));
 
       cdr.write_type_7(data.getTimestamped());
 

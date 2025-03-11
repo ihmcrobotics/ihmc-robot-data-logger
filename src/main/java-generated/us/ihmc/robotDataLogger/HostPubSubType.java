@@ -87,13 +87,13 @@ public class HostPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.robo
    {
       if(data.getHostname().length() <= 255)
       cdr.write_type_d(data.getHostname());else
-          throw new RuntimeException("hostname field exceeds the maximum length");
+          throw new RuntimeException("hostname field exceeds the maximum length: %d > %d".formatted(data.getHostname().length(), 255));
 
       cdr.write_type_3(data.getPort());
 
       if(data.getCameras().size() <= 128)
       cdr.write_type_e(data.getCameras());else
-          throw new RuntimeException("cameras field exceeds the maximum length");
+          throw new RuntimeException("cameras field exceeds the maximum length: %d > %d".formatted(data.getCameras().size(), 128));
 
    }
 

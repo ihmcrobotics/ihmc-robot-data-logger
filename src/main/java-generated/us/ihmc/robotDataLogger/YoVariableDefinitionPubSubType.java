@@ -119,11 +119,11 @@ public class YoVariableDefinitionPubSubType implements us.ihmc.pubsub.TopicDataT
    {
       if(data.getName().length() <= 255)
       cdr.write_type_d(data.getName());else
-          throw new RuntimeException("name field exceeds the maximum length");
+          throw new RuntimeException("name field exceeds the maximum length: %d > %d".formatted(data.getName().length(), 255));
 
       if(data.getDescription().length() <= 255)
       cdr.write_type_d(data.getDescription());else
-          throw new RuntimeException("description field exceeds the maximum length");
+          throw new RuntimeException("description field exceeds the maximum length: %d > %d".formatted(data.getDescription().length(), 255));
 
       cdr.write_type_c(data.getType().ordinal());
 

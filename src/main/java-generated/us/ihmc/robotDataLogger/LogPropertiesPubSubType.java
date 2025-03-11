@@ -102,21 +102,21 @@ public class LogPropertiesPubSubType implements us.ihmc.pubsub.TopicDataType<us.
    {
       if(data.getVersion().length() <= 255)
       cdr.write_type_d(data.getVersion());else
-          throw new RuntimeException("version field exceeds the maximum length");
+          throw new RuntimeException("version field exceeds the maximum length: %d > %d".formatted(data.getVersion().length(), 255));
 
       if(data.getName().length() <= 255)
       cdr.write_type_d(data.getName());else
-          throw new RuntimeException("name field exceeds the maximum length");
+          throw new RuntimeException("name field exceeds the maximum length: %d > %d".formatted(data.getName().length(), 255));
 
       us.ihmc.robotDataLogger.VariablesPubSubType.write(data.getVariables(), cdr);
       us.ihmc.robotDataLogger.ModelPubSubType.write(data.getModel(), cdr);
       if(data.getTimestamp().length() <= 255)
       cdr.write_type_d(data.getTimestamp());else
-          throw new RuntimeException("timestamp field exceeds the maximum length");
+          throw new RuntimeException("timestamp field exceeds the maximum length: %d > %d".formatted(data.getTimestamp().length(), 255));
 
       if(data.getCameras().size() <= 255)
       cdr.write_type_e(data.getCameras());else
-          throw new RuntimeException("cameras field exceeds the maximum length");
+          throw new RuntimeException("cameras field exceeds the maximum length: %d > %d".formatted(data.getCameras().size(), 255));
 
       us.ihmc.robotDataLogger.VideoPubSubType.write(data.getVideo(), cdr);
    }

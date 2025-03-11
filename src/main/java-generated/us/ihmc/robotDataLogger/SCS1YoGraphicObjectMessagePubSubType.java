@@ -102,20 +102,20 @@ public class SCS1YoGraphicObjectMessagePubSubType implements us.ihmc.pubsub.Topi
 
       if(data.getName().length() <= 255)
       cdr.write_type_d(data.getName());else
-          throw new RuntimeException("name field exceeds the maximum length");
+          throw new RuntimeException("name field exceeds the maximum length: %d > %d".formatted(data.getName().length(), 255));
 
       if(data.getYoVariableIndex().size() <= 1024)
       cdr.write_type_e(data.getYoVariableIndex());else
-          throw new RuntimeException("yoVariableIndex field exceeds the maximum length");
+          throw new RuntimeException("yoVariableIndex field exceeds the maximum length: %d > %d".formatted(data.getYoVariableIndex().size(), 1024));
 
       if(data.getConstants().size() <= 128)
       cdr.write_type_e(data.getConstants());else
-          throw new RuntimeException("constants field exceeds the maximum length");
+          throw new RuntimeException("constants field exceeds the maximum length: %d > %d".formatted(data.getConstants().size(), 128));
 
       us.ihmc.robotDataLogger.SCS1AppearanceDefinitionMessagePubSubType.write(data.getAppearance(), cdr);
       if(data.getListName().length() <= 255)
       cdr.write_type_d(data.getListName());else
-          throw new RuntimeException("listName field exceeds the maximum length");
+          throw new RuntimeException("listName field exceeds the maximum length: %d > %d".formatted(data.getListName().length(), 255));
 
    }
 

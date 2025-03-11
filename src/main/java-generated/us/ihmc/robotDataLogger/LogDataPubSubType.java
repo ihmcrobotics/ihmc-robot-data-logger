@@ -135,11 +135,11 @@ public class LogDataPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.r
 
       if(data.getData().size() <= 100)
       cdr.write_type_e(data.getData());else
-          throw new RuntimeException("data field exceeds the maximum length");
+          throw new RuntimeException("data field exceeds the maximum length: %d > %d".formatted(data.getData().size(), 100));
 
       if(data.getJointStates().size() <= 100)
       cdr.write_type_e(data.getJointStates());else
-          throw new RuntimeException("jointStates field exceeds the maximum length");
+          throw new RuntimeException("jointStates field exceeds the maximum length: %d > %d".formatted(data.getJointStates().size(), 100));
 
    }
 
