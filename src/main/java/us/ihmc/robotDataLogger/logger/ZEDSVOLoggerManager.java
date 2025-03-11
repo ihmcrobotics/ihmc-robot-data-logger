@@ -63,11 +63,12 @@ public class ZEDSVOLoggerManager
       {
          File perceptionDir = new File(tempDirectory, "perception");
          perceptionDir.mkdirs();
-         String svoFile = perceptionDir.getAbsolutePath() + File.separator + generateSVOFileName();
+         String svoFile = perceptionDir.getAbsolutePath() + File.separator + generateSVOFileName(message);
+         String datFile = "%s%s".formatted(message.getSensorNameAsString(), VideoDataLoggerInterface.timestampDataPostfix);
 
          ZEDSVOLogger zedSVOLogger = new ZEDSVOLogger();
 
-         zedSVOLogger.start(svoFile, message.getAddressAsString(), message.getPort());
+         zedSVOLogger.start(svoFile, datFile, message.getAddressAsString(), message.getPort());
 
          zedLoggers.put(announceHash, zedSVOLogger);
       }
@@ -80,9 +81,9 @@ public class ZEDSVOLoggerManager
       ros2Node.destroy();
    }
 
-   private static String generateSVOFileName()
+   private static String generateSVOFileName(ZEDSDKAnnounce message)
    {
       SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
-      return dateFormat.format(new Date()) + "_" + "ZEDRecording.svo2";
+      return "%s_%s.svo2".formatted(dateFormat.format(new Date()), message.getSensorNameAsString());
    }
 }

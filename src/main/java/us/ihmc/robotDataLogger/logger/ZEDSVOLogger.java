@@ -34,10 +34,12 @@ public class ZEDSVOLogger
    private volatile boolean completelyStopped;
    private volatile boolean failedBeyondRecovery;
 
-   public void start(String svoFile, String address, int port)
+   public void start(String svoFile, String datFile, String address, int port)
    {
       if (stopRequested)
          throw new IllegalStateException("Cannot restart ZEDSVOLogger once stopped");
+
+      // TODO: Setup dat file -- append not truncate
 
       initParameters = new SL_InitParameters();
       initParameters.input_type(zed.SL_INPUT_TYPE_STREAM);
