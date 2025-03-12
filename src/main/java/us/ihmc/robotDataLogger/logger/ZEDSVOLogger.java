@@ -12,8 +12,6 @@ import us.ihmc.zed.global.zed;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.function.LongSupplier;
 
 import static us.ihmc.zed.global.zed.*;
@@ -40,7 +38,6 @@ public class ZEDSVOLogger
    private String svoPrefix;
    private LongSupplier timestampSupplier;
    private FileWriter timestampWriter;
-   private Instant startTime;
 
    private volatile double lastGrabTime;
    private volatile boolean stopRequested;
@@ -82,8 +79,6 @@ public class ZEDSVOLogger
       if (sl_is_opened(cameraID))
       {
          LogTools.info("Connected to ZED SDK stream on: " + address + ":" + port);
-
-         startTime = Instant.now();
 
          grabThread.setFrequencyLimit(RepeatingTaskThread.UNLIMITED_FREQUENCY);
          grabThread.startRepeating();
@@ -129,11 +124,10 @@ public class ZEDSVOLogger
       int returnCode = sl_grab(cameraID, runtimeParameters);
 
       lastGrabTime = System.currentTimeMillis() / 1000D;
-      long frameTimeNanos = Duration.between(startTime, Instant.now()).toNanos();
 
       try
       {
-         timestampWriter.write("%d %d %s%n".formatted(timestampSupplier.getAsLong(), frameTimeNanos, svoPrefix));
+         timestampWriter.write("%d %d %s%n".formatted(timestampSupplier.getAsLong(), sl_get_current_timestamp(cameraID), svoPrefix));
       }
       catch (IOException e)
       {
