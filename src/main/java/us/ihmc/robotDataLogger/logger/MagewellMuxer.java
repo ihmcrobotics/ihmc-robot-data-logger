@@ -56,7 +56,10 @@ public class MagewellMuxer
       // This is where a frame is record, and we then need to store the timestamps, so they are synced
       try
       {
-         recorder.record(capturedFrame);
+         if (!closed)
+         {
+            recorder.record(capturedFrame);
+         }
       }
       catch (Exception e)
       {
