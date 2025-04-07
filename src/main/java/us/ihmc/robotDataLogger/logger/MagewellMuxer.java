@@ -11,6 +11,7 @@ import java.io.File;
 public class MagewellMuxer
 {
    private final FFmpegFrameRecorder recorder;
+   private boolean closed = false;
 
    public MagewellMuxer(File videoCaptureFile, int captureWidth, int captureHeight)
    {
@@ -63,6 +64,11 @@ public class MagewellMuxer
       }
    }
 
+   public boolean isClosed()
+   {
+      return closed;
+   }
+
    public long getTimeStamp()
    {
       return recorder.getTimestamp();
@@ -70,6 +76,7 @@ public class MagewellMuxer
 
    public void close()
    {
+      closed = true;
       try
       {
          recorder.stop();
