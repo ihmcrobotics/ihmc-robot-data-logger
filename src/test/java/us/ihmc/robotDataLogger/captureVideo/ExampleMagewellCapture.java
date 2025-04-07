@@ -74,7 +74,7 @@ public class ExampleMagewellCapture
 
          // Loop to capture a video, will stop after iterations have been completed
          LogTools.info("Starting capture");
-         while (!magewellMuxer.isCloseOutputStream() && ((capturedFrame = grabber.grabAtFrameRate()) != null))
+         while (!magewellMuxer.isClosed() && ((capturedFrame = grabber.grabAtFrameRate()) != null))
          {
             long videoTimestamp = CaptureTimeTools.timeSinceStartedCaptureInSeconds(System.currentTimeMillis(), startTime);
             magewellMuxer.recordFrame(capturedFrame, videoTimestamp);

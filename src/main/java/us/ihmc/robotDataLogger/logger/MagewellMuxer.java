@@ -11,6 +11,7 @@ import java.io.File;
 public class MagewellMuxer
 {
    private final FFmpegFrameRecorder recorder;
+   private boolean closed = false;
 
    public MagewellMuxer(File videoCaptureFile, int captureWidth, int captureHeight)
    {
@@ -55,7 +56,7 @@ public class MagewellMuxer
       // This is where a frame is record, and we then need to store the timestamps, so they are synced
       try
       {
-         if (!recorder.isCloseOutputStream())
+         if (!closed)
          {
             recorder.record(capturedFrame);
          }
@@ -66,9 +67,9 @@ public class MagewellMuxer
       }
    }
 
-   public boolean isCloseOutputStream()
+   public boolean isClosed()
    {
-      return recorder.isCloseOutputStream();
+      return closed;
    }
 
    public long getTimeStamp()
@@ -78,10 +79,9 @@ public class MagewellMuxer
 
    public void close()
    {
-      recorder.setCloseOutputStream(true);
+      closed = true;
       try
       {
-         recorder.flush();
          recorder.stop();
       }
       catch (Exception e)
