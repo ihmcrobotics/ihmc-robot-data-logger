@@ -55,20 +55,12 @@ public class MagewellMuxer
       // This is where a frame is record, and we then need to store the timestamps, so they are synced
       try
       {
-         if (!recorder.isCloseOutputStream())
-         {
-            recorder.record(capturedFrame);
-         }
+         recorder.record(capturedFrame);
       }
       catch (Exception e)
       {
          throw new RuntimeException(e);
       }
-   }
-
-   public boolean isCloseOutputStream()
-   {
-      return recorder.isCloseOutputStream();
    }
 
    public long getTimeStamp()
@@ -78,10 +70,8 @@ public class MagewellMuxer
 
    public void close()
    {
-      recorder.setCloseOutputStream(true);
       try
       {
-         recorder.flush();
          recorder.stop();
       }
       catch (Exception e)
