@@ -70,7 +70,7 @@ mainDependencies {
    api("us.ihmc:ffmpeg:$ffmpegVersion:windows-x86_64")
 
    // ZED SDK for logging remote ZED data streams
-   api("us.ihmc:zed-java-api:4.2.0_4")
+   api("us.ihmc:zed-java-api:4.2.0_5")
 
    api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
 
