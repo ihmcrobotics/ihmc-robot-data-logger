@@ -46,8 +46,10 @@ public class ExampleSVOLogger
       /*
          Connect and start logging the SVO
        */
-      String svoFile = System.getProperty("user.home") + "/Desktop/test" + UUID.randomUUID().toString().substring(0, 5) + ".svo2";
-      SVO_LOGGER.start(svoFile, ADDRESS, PORT);
+      String path = System.getProperty("user.home") + "/Desktop/test" + UUID.randomUUID().toString().substring(0, 5);
+      String svoFile = path + ".svo2";
+      String datFile = path + ".dat";
+      SVO_LOGGER.start(svoFile, datFile, System::nanoTime, ADDRESS, PORT);
 
       /*
          Do nothing forever, everything else runs in other threads

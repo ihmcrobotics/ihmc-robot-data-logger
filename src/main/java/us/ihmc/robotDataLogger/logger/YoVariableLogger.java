@@ -88,7 +88,7 @@ public class YoVariableLogger
       }
 
       if (!options.getDisableZEDLogging())
-         zedSVOLoggerManager = new ZEDSVOLoggerManager(tempDirectory, finalDirectory);
+         zedSVOLoggerManager = new ZEDSVOLoggerManager(tempDirectory, finalDirectory, logger::getLastReceivedTimestamp);
    }
 
    public void destroy()

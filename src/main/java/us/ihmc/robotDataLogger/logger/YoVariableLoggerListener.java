@@ -673,4 +673,9 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       return builder.toString();
    }
+
+   public long getLastReceivedTimestamp()
+   {
+      return lastReceivedTimestamp;
+   }
 }

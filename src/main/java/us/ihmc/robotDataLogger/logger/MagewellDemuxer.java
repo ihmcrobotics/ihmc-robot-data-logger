@@ -3,6 +3,7 @@ package us.ihmc.robotDataLogger.logger;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
+import us.ihmc.log.LogTools;
 
 import java.io.File;
 
@@ -79,5 +80,17 @@ public class MagewellDemuxer
     public double getFrameRate()
     {
         return grabber.getVideoFrameRate();
+    }
+
+    public void stop()
+    {
+       try
+       {
+           grabber.stop();
+       }
+       catch (FFmpegFrameGrabber.Exception e)
+       {
+           LogTools.error(e.getMessage());
+       }
     }
 }
