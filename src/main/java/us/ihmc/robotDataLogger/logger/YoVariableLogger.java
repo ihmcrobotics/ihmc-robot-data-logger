@@ -19,11 +19,13 @@ public class YoVariableLogger
 {
    // changed to a 10s timeout for camp lejeune demo
    public static final int timeout = 25000; // 2500;
+   private final YoVariableLoggerOptions options;
 
-   private final ZEDSVOLoggerManager zedSVOLoggerManager;
+   private ZEDSVOLoggerManager zedSVOLoggerManager;
 
    public YoVariableLogger(HTTPDataServerConnection connection, YoVariableLoggerOptions options, Consumer<Announcement> doneListener) throws IOException
    {
+      this.options = options;
       Path logDirectory = Paths.get(options.getLogDirectory());
 
       if (!Files.exists(logDirectory))
@@ -85,11 +87,13 @@ public class YoVariableLogger
          throw e;
       }
 
-      zedSVOLoggerManager = new ZEDSVOLoggerManager(tempDirectory, finalDirectory);
+      if (!options.getDisableZEDLogging())
+         zedSVOLoggerManager = new ZEDSVOLoggerManager(tempDirectory, finalDirectory);
    }
 
    public void destroy()
    {
-      zedSVOLoggerManager.destroy();
+      if (!options.getDisableZEDLogging())
+         zedSVOLoggerManager.destroy();
    }
 }
