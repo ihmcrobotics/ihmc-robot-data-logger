@@ -43,7 +43,7 @@ public class YoVariableLoggerOptions
       SimpleJSAP jsap = new SimpleJSAP("YoVariabeLogger",
                                        "Logs YoVariables and video from a robot",
                                        new Parameter[] {new Switch("disableVideo", 'n', "noVideo", "Disable video recording"),
-                                                        new Switch("disableZEDLogging", 'z', "noZEDLoggin", "Disable ZED Logging"),
+                                                        new Switch("disableZEDLogging", 'z', "noZEDLogging", "Disable ZED Logging"),
                                                         new FlaggedOption("logDirectory",
                                                                           JSAP.STRING_PARSER,
                                                                           YoVariableLoggerOptions.defaultLogDirectory,
