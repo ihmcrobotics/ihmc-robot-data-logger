@@ -26,6 +26,8 @@ public class YoVariableLoggerOptions
 
    private boolean disableVideo = false;
 
+   private boolean disableZEDLogging = false;
+
    private boolean flushAggressivelyToDisk = false;
 
    private boolean disableAutoDiscovery = false;
@@ -41,53 +43,54 @@ public class YoVariableLoggerOptions
       SimpleJSAP jsap = new SimpleJSAP("YoVariabeLogger",
                                        "Logs YoVariables and video from a robot",
                                        new Parameter[] {new Switch("disableVideo", 'n', "noVideo", "Disable video recording"),
-                                             new FlaggedOption("logDirectory",
-                                                               JSAP.STRING_PARSER,
-                                                               YoVariableLoggerOptions.defaultLogDirectory,
-                                                               JSAP.NOT_REQUIRED,
-                                                               'd',
-                                                               "directory",
-                                                               "Directory where to save log files"),
-                                             new FlaggedOption("videoQuality",
-                                                               JSAP.DOUBLE_PARSER,
-                                                               String.valueOf(YoVariableLoggerOptions.defaultVideoQuality),
-                                                               JSAP.NOT_REQUIRED,
-                                                               'q',
-                                                               "quality",
-                                                               "Video quality for MJPEG"),
-                                             new FlaggedOption("videoCodec",
-                                                               JSAP.STRING_PARSER,
-                                                               String.valueOf(defaultCodec),
-                                                               JSAP.NOT_REQUIRED,
-                                                               'c',
-                                                               "codec",
-                                                               "Desired video codec. AV_CODEC_ID_H264 or AV_CODEC_ID_MJPEG"),
-                                             new FlaggedOption("crf",
-                                                               JSAP.INTEGER_PARSER,
-                                                               String.valueOf(defaultCRF),
-                                                               JSAP.NOT_REQUIRED,
-                                                               'r',
-                                                               "crf",
-                                                               "CRF (Constant rate factor) for H264. 0-51, 0 is lossless. Sane values are 18 to 28."),
-                                             new FlaggedOption("rotate",
-                                                               JSAP.INTEGER_PARSER,
-                                                               "0",
-                                                               JSAP.NOT_REQUIRED,
-                                                               'o',
-                                                               "rotate",
-                                                               "Rotate logs in incoming folder, keep n logs. Set to zero to keep all logs."),
-                                             new FlaggedOption("allowManyInstances",
-                                                              JSAP.BOOLEAN_PARSER,
-                                                               "false",
-                                                              JSAP.NOT_REQUIRED,
-                                                              'm',
-                                                              "allowManyInstances",
-                                                              "Allow more than one instance of the logger at once."),
-                                             new Switch("flushAggressivelyToDisk",
-                                                        's',
-                                                        "sync",
-                                                        "Aggressively flush data to disk. Reduces change of data loss but doesn't work on slow platters."),
-                                             new Switch("disableAutoDiscovery", 'a', "noDiscovery", "Disable autodiscovery of clients.")});
+                                                        new Switch("disableZEDLogging", 'z', "noZEDLogging", "Disable ZED Logging"),
+                                                        new FlaggedOption("logDirectory",
+                                                                          JSAP.STRING_PARSER,
+                                                                          YoVariableLoggerOptions.defaultLogDirectory,
+                                                                          JSAP.NOT_REQUIRED,
+                                                                          'd',
+                                                                          "directory",
+                                                                          "Directory where to save log files"),
+                                                        new FlaggedOption("videoQuality",
+                                                                          JSAP.DOUBLE_PARSER,
+                                                                          String.valueOf(YoVariableLoggerOptions.defaultVideoQuality),
+                                                                          JSAP.NOT_REQUIRED,
+                                                                          'q',
+                                                                          "quality",
+                                                                          "Video quality for MJPEG"),
+                                                        new FlaggedOption("videoCodec",
+                                                                          JSAP.STRING_PARSER,
+                                                                          String.valueOf(defaultCodec),
+                                                                          JSAP.NOT_REQUIRED,
+                                                                          'c',
+                                                                          "codec",
+                                                                          "Desired video codec. AV_CODEC_ID_H264 or AV_CODEC_ID_MJPEG"),
+                                                        new FlaggedOption("crf",
+                                                                          JSAP.INTEGER_PARSER,
+                                                                          String.valueOf(defaultCRF),
+                                                                          JSAP.NOT_REQUIRED,
+                                                                          'r',
+                                                                          "crf",
+                                                                          "CRF (Constant rate factor) for H264. 0-51, 0 is lossless. Sane values are 18 to 28."),
+                                                        new FlaggedOption("rotate",
+                                                                          JSAP.INTEGER_PARSER,
+                                                                          "0",
+                                                                          JSAP.NOT_REQUIRED,
+                                                                          'o',
+                                                                          "rotate",
+                                                                          "Rotate logs in incoming folder, keep n logs. Set to zero to keep all logs."),
+                                                        new FlaggedOption("allowManyInstances",
+                                                                          JSAP.BOOLEAN_PARSER,
+                                                                          "false",
+                                                                          JSAP.NOT_REQUIRED,
+                                                                          'm',
+                                                                          "allowManyInstances",
+                                                                          "Allow more than one instance of the logger at once."),
+                                                        new Switch("flushAggressivelyToDisk",
+                                                                   's',
+                                                                   "sync",
+                                                                   "Aggressively flush data to disk. Reduces change of data loss but doesn't work on slow platters."),
+                                                        new Switch("disableAutoDiscovery", 'a', "noDiscovery", "Disable autodiscovery of clients.")});
       JSAPResult config = jsap.parse(args);
       if (jsap.messagePrinted())
       {
@@ -100,6 +103,7 @@ public class YoVariableLoggerOptions
       options.setLogDirectory(config.getString("logDirectory"));
       options.setVideoQuality(config.getDouble("videoQuality"));
       options.setDisableVideo(config.getBoolean("disableVideo"));
+      options.setDisableZEDLogging(config.getBoolean("disableZEDLogging"));
       options.setVideoCodec(CodecID.valueOf(config.getString("videoCodec")));
       options.setRotateLogs(config.getInt("rotate"));
       options.setAllowManyInstances(config.getBoolean("allowManyInstances"));
@@ -215,4 +219,13 @@ public class YoVariableLoggerOptions
       this.disableAutoDiscovery = disableAutoDiscovery;
    }
 
+   public boolean getDisableZEDLogging()
+   {
+      return disableZEDLogging;
+   }
+
+   public void setDisableZEDLogging(boolean disableZEDLogging)
+   {
+      this.disableZEDLogging = disableZEDLogging;
+   }
 }
