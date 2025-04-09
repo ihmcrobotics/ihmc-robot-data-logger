@@ -85,7 +85,7 @@ public class YoVariableLogger
          throw e;
       }
 
-      zedSVOLoggerManager = new ZEDSVOLoggerManager(tempDirectory, finalDirectory);
+      zedSVOLoggerManager = new ZEDSVOLoggerManager(tempDirectory, finalDirectory, logger::getLastReceivedTimestamp);
    }
 
    public void destroy()
