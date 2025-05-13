@@ -23,8 +23,6 @@ import static us.ihmc.zed.global.zed.*;
 public class ZEDSVOLogger
 {
    private static final double CONNECT_TIMEOUT = 2.0;
-   private static final int BITRATE = 8000;
-   private static final int MAX_FPS = 15;
    private static final boolean TRANSCODE = false;
 
    private static int nextCameraId = 10;
@@ -44,7 +42,7 @@ public class ZEDSVOLogger
    private volatile boolean completelyStopped;
    private volatile boolean failedBeyondRecovery;
 
-   public void start(String svoFile, String datFile, LongSupplier timestampSupplier, String address, int port)
+   public void start(String svoFile, String datFile, LongSupplier timestampSupplier, String address, int port, int fps, int bitrate)
    {
       this.timestampSupplier = timestampSupplier;
 
@@ -72,7 +70,7 @@ public class ZEDSVOLogger
       if (returnCode != SL_ERROR_CODE_SUCCESS)
          LogTools.error("ZED SDK error code: " + returnCode);
 
-      returnCode = sl_enable_recording(cameraID, svoFile, SL_SVO_COMPRESSION_MODE_H264, BITRATE, MAX_FPS, TRANSCODE);
+      returnCode = sl_enable_recording(cameraID, svoFile, SL_SVO_COMPRESSION_MODE_H264, bitrate, fps, TRANSCODE);
       if (returnCode != SL_ERROR_CODE_SUCCESS)
          LogTools.error("ZED SDK error code: " + returnCode);
 
