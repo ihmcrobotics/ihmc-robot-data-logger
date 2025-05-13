@@ -15,7 +15,7 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "e3710472cf327eef8765ab1aafdd1a4fdc8b7cba2ab45bd577bbca5435234f75";
+   		return "0a8a4b3b0580df7906673f4755a2db962b6a9a5b2be9db40bac836b844922163";
    }
    
    @Override
@@ -56,6 +56,10 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
       current_alignment += 2 + us.ihmc.idl.CDR.alignment(current_alignment, 2);
 
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+
 
       return current_alignment - initial_alignment;
    }
@@ -76,6 +80,12 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
       current_alignment += 2 + us.ihmc.idl.CDR.alignment(current_alignment, 2);
 
 
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+
+
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+
+
 
       return current_alignment - initial_alignment;
    }
@@ -92,6 +102,10 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
 
       cdr.write_type_1(data.getPort());
 
+      cdr.write_type_2(data.getFps());
+
+      cdr.write_type_2(data.getBitrate());
+
    }
 
    public static void read(us.ihmc.robotDataLogger.ZEDSDKAnnounce data, us.ihmc.idl.CDR cdr)
@@ -99,6 +113,10 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
       cdr.read_type_d(data.getSensorName());	
       cdr.read_type_d(data.getAddress());	
       data.setPort(cdr.read_type_1());
+      	
+      data.setFps(cdr.read_type_2());
+      	
+      data.setBitrate(cdr.read_type_2());
       	
 
    }
@@ -109,6 +127,8 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
       ser.write_type_d("sensor_name", data.getSensorName());
       ser.write_type_d("address", data.getAddress());
       ser.write_type_1("port", data.getPort());
+      ser.write_type_2("fps", data.getFps());
+      ser.write_type_2("bitrate", data.getBitrate());
    }
 
    @Override
@@ -117,6 +137,8 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
       ser.read_type_d("sensor_name", data.getSensorName());
       ser.read_type_d("address", data.getAddress());
       data.setPort(ser.read_type_1("port"));
+      data.setFps(ser.read_type_2("fps"));
+      data.setBitrate(ser.read_type_2("bitrate"));
    }
 
    public static void staticCopy(us.ihmc.robotDataLogger.ZEDSDKAnnounce src, us.ihmc.robotDataLogger.ZEDSDKAnnounce dest)

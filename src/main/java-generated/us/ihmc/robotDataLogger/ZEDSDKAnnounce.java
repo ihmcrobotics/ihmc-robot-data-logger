@@ -11,6 +11,8 @@ public class ZEDSDKAnnounce extends Packet<ZEDSDKAnnounce> implements Settable<Z
    public java.lang.StringBuilder sensor_name_;
    public java.lang.StringBuilder address_;
    public short port_;
+   public int fps_;
+   public int bitrate_;
 
    public ZEDSDKAnnounce()
    {
@@ -33,6 +35,10 @@ public class ZEDSDKAnnounce extends Packet<ZEDSDKAnnounce> implements Settable<Z
       address_.append(other.address_);
 
       port_ = other.port_;
+
+      fps_ = other.fps_;
+
+      bitrate_ = other.bitrate_;
 
    }
 
@@ -75,6 +81,24 @@ public class ZEDSDKAnnounce extends Packet<ZEDSDKAnnounce> implements Settable<Z
       return port_;
    }
 
+   public void setFps(int fps)
+   {
+      fps_ = fps;
+   }
+   public int getFps()
+   {
+      return fps_;
+   }
+
+   public void setBitrate(int bitrate)
+   {
+      bitrate_ = bitrate;
+   }
+   public int getBitrate()
+   {
+      return bitrate_;
+   }
+
 
    public static Supplier<ZEDSDKAnnouncePubSubType> getPubSubType()
    {
@@ -99,6 +123,10 @@ public class ZEDSDKAnnounce extends Packet<ZEDSDKAnnounce> implements Settable<Z
 
       if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.port_, other.port_, epsilon)) return false;
 
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.fps_, other.fps_, epsilon)) return false;
+
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.bitrate_, other.bitrate_, epsilon)) return false;
+
 
       return true;
    }
@@ -118,6 +146,10 @@ public class ZEDSDKAnnounce extends Packet<ZEDSDKAnnounce> implements Settable<Z
 
       if(this.port_ != otherMyClass.port_) return false;
 
+      if(this.fps_ != otherMyClass.fps_) return false;
+
+      if(this.bitrate_ != otherMyClass.bitrate_) return false;
+
 
       return true;
    }
@@ -133,7 +165,11 @@ public class ZEDSDKAnnounce extends Packet<ZEDSDKAnnounce> implements Settable<Z
       builder.append("address=");
       builder.append(this.address_);      builder.append(", ");
       builder.append("port=");
-      builder.append(this.port_);
+      builder.append(this.port_);      builder.append(", ");
+      builder.append("fps=");
+      builder.append(this.fps_);      builder.append(", ");
+      builder.append("bitrate=");
+      builder.append(this.bitrate_);
       builder.append("}");
       return builder.toString();
    }
