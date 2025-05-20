@@ -76,7 +76,7 @@ public class ExampleMagewellCapture
          LogTools.info("Starting capture");
          while (!magewellMuxer.isClosed() && ((capturedFrame = grabber.grabAtFrameRate()) != null))
          {
-            long videoTimestamp = CaptureTimeTools.timeSinceStartedCaptureInSeconds(System.currentTimeMillis(), startTime);
+            long videoTimestamp = CaptureTimeTools.timeSinceStartedCaptureInMicroseconds(System.currentTimeMillis(), startTime);
             magewellMuxer.recordFrame(capturedFrame, videoTimestamp);
 
             // Shows the captured frame its currently recording

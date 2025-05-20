@@ -52,7 +52,7 @@ public class ExampleBytedecoWindowsScreenRecord
                if (startTime == 0)
                   startTime = System.currentTimeMillis();
 
-               long videoTS = CaptureTimeTools.timeSinceStartedCaptureInSeconds(System.currentTimeMillis(), startTime);
+               long videoTS = CaptureTimeTools.timeSinceStartedCaptureInMicroseconds(System.currentTimeMillis(), startTime);
 
                if (videoTS > recorder.getTimestamp())
                {

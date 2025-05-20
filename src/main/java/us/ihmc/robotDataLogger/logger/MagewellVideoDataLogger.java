@@ -107,7 +107,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
       Frame capturedFrame;
       while (!magewellMuxer.isClosed() && ((capturedFrame = grabber.grabAtFrameRate()) != null))
       {
-         long videoTimestamp = CaptureTimeTools.timeSinceStartedCaptureInSeconds(System.currentTimeMillis(), startTime);
+         long videoTimestamp = CaptureTimeTools.timeSinceStartedCaptureInMicroseconds(System.currentTimeMillis(), startTime);
          magewellMuxer.recordFrame(capturedFrame, videoTimestamp);
          receivedFrameAtTime(System.nanoTime(), magewellMuxer.getTimeStamp(), 1, 60000);
       }
