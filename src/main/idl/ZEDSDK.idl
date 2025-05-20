@@ -5,6 +5,8 @@ module robotDataLogger{
 		string sensor_name;
 		string address;
 		short port;
+		long fps;
+		long bitrate;
 	};
 };
 };

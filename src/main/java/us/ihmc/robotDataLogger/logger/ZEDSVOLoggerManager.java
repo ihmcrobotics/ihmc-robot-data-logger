@@ -72,7 +72,7 @@ public class ZEDSVOLoggerManager
 
          ZEDSVOLogger zedSVOLogger = new ZEDSVOLogger();
 
-         zedSVOLogger.start(svoFile, datFile, timestampSupplier, message.getAddressAsString(), message.getPort());
+         zedSVOLogger.start(svoFile, datFile, timestampSupplier, message.getAddressAsString(), message.getPort(), message.getFps(), message.getBitrate());
 
          zedLoggers.put(announceHash, zedSVOLogger);
       }
