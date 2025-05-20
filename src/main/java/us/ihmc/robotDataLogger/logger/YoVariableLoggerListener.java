@@ -1,35 +1,10 @@
 package us.ihmc.robotDataLogger.logger;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.LongBuffer;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
-
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.MathTools;
 import us.ihmc.idl.serializers.extra.YAMLSerializer;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.Announcement;
-import us.ihmc.robotDataLogger.CameraConfiguration;
-import us.ihmc.robotDataLogger.CameraSettings;
-import us.ihmc.robotDataLogger.CameraSettingsLoader;
-import us.ihmc.robotDataLogger.Handshake;
-import us.ihmc.robotDataLogger.HandshakeFileType;
-import us.ihmc.robotDataLogger.HandshakePubSubType;
-import us.ihmc.robotDataLogger.YoVariableClientInterface;
-import us.ihmc.robotDataLogger.YoVariablesUpdatedListener;
+import us.ihmc.robotDataLogger.*;
 import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.jointState.JointState;
@@ -39,6 +14,18 @@ import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescript
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 import us.ihmc.tools.compression.SnappyUtils;
 import us.ihmc.yoVariables.variable.YoVariable;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.LongBuffer;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.function.Consumer;
 
 public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 {
@@ -434,12 +421,12 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
             yoVariableSummarizer.writeData(new File(tempDirectory, summaryFilename));
          }
 
+         doneListener.accept(request);
+
          tempDirectory.renameTo(finalDirectory);
 
          // This gets printed here because it's been successful and is the final location of the log directory
          LogTools.info("Log is saved as: " + finalDirectory);
-
-         doneListener.accept(request);
       }
 
       if (alreadyShutDown)
