@@ -56,9 +56,10 @@ mainDependencies {
    api("us.ihmc:openblas:$openblasVersion:linux-x86_64")
    api("us.ihmc:openblas:$openblasVersion:linux-arm64")
    api("us.ihmc:openblas:$openblasVersion:windows-x86_64")
-   val opencvVersion = "4.7.0-1.5.11-ihmc-2"
+   val opencvVersion = "4.7.0-1.5.11-ihmc-3" // Hosted on github https://github.com/ihmcrobotics/maven-artifacts-archive
    api("us.ihmc:opencv:$opencvVersion")
    api("us.ihmc:opencv:$opencvVersion:linux-arm64")
+   api("us.ihmc:opencv:$opencvVersion:linux-arm64-gpu")
    api("us.ihmc:opencv:$opencvVersion:linux-x86_64")
    api("us.ihmc:opencv:$opencvVersion:linux-x86_64-gpu")
    api("us.ihmc:opencv:$opencvVersion:windows-x86_64")
