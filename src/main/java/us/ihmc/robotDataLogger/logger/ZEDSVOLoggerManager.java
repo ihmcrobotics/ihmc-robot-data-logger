@@ -41,6 +41,7 @@ public class ZEDSVOLoggerManager
       this.tempDirectory = tempDirectory;
       this.timestampSupplier = timestampSupplier;
 
+      LogTools.info("Creating a ROS2Node for listening to ZED SDK connections.");
       ros2Node = new ROS2NodeBuilder().build(ROS2TopicNameTools.toROSTopicFormat(finalDirectory.getName() + "_zed_svo_logger_node"));
 
       if (ZED_SDK_LOADED)
@@ -64,7 +65,7 @@ public class ZEDSVOLoggerManager
        */
       try
       {
-         String firstWordInTempDirName = tempDirectory.getName().split("(?=[A-Z])")[1];
+         String firstWordInTempDirName = tempDirectory.getName().substring(1).split("(?=[A-Z])")[1];
          if (!message.getSensorNameAsString().startsWith(firstWordInTempDirName))
          {
             return;
