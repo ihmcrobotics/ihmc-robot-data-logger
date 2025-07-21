@@ -41,6 +41,7 @@ public class ZEDSVOLoggerManager
       this.tempDirectory = tempDirectory;
       this.timestampSupplier = timestampSupplier;
 
+      LogTools.info("Creating a ROS2Node for listening to ZED SDK connections.");
       ros2Node = new ROS2NodeBuilder().build(ROS2TopicNameTools.toROSTopicFormat(finalDirectory.getName() + "_zed_svo_logger_node"));
 
       if (ZED_SDK_LOADED)
@@ -51,6 +52,30 @@ public class ZEDSVOLoggerManager
 
    private void onZEDSDKAnnounceMessage(ZEDSDKAnnounce message)
    {
+      // TODO: Make a proper fix here
+      /*
+       * This is a temp hacky fix to prevent log sessions from logging SVO's from different robots.
+       *
+       * E.g.
+       * RobotA with ZED sensor
+       * RobotB with no ZED sensor
+       *
+       * Logger session for RobotB should not be trying to connect to the remote ZED SDK connection for RobotA.
+       * We assume the sensor name starts with the robot name (RobotAZED).
+       */
+      try
+      {
+         String secondWordInTempDirName = tempDirectory.getName().substring(1).split("(?=[A-Z])")[1];
+         if (!message.getSensorNameAsString().startsWith(secondWordInTempDirName))
+         {
+            return;
+         }
+      }
+      catch (ArrayIndexOutOfBoundsException e)
+      {
+         return;
+      }
+
       ZEDSDKAnnounceHash announceHash = new ZEDSDKAnnounceHash(message.getAddressAsString(), message.getPort());
 
       if (zedLoggers.containsKey(announceHash))
