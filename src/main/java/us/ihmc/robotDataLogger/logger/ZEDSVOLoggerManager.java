@@ -65,8 +65,8 @@ public class ZEDSVOLoggerManager
        */
       try
       {
-         String firstWordInTempDirName = tempDirectory.getName().substring(1).split("(?=[A-Z])")[1];
-         if (!message.getSensorNameAsString().startsWith(firstWordInTempDirName))
+         String secondWordInTempDirName = tempDirectory.getName().substring(1).split("(?=[A-Z])")[1];
+         if (!message.getSensorNameAsString().startsWith(secondWordInTempDirName))
          {
             return;
          }
