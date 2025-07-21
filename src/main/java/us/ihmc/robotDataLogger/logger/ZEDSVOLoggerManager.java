@@ -1,6 +1,7 @@
 package us.ihmc.robotDataLogger.logger;
 
 import us.ihmc.log.LogTools;
+import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.ZEDSDKAnnounce;
 import us.ihmc.ros2.ROS2Node;
 import us.ihmc.ros2.ROS2NodeBuilder;
@@ -30,14 +31,16 @@ public class ZEDSVOLoggerManager
    {
    }
 
+   private final Announcement request;
    private final File tempDirectory;
    private final LongSupplier timestampSupplier;
 
    private final ROS2Node ros2Node;
    private final Map<ZEDSDKAnnounceHash, ZEDSVOLogger> zedLoggers = new ConcurrentHashMap<>();
 
-   public ZEDSVOLoggerManager(File tempDirectory, File finalDirectory, LongSupplier timestampSupplier)
+   public ZEDSVOLoggerManager(Announcement request, File tempDirectory, File finalDirectory, LongSupplier timestampSupplier)
    {
+      this.request = request;
       this.tempDirectory = tempDirectory;
       this.timestampSupplier = timestampSupplier;
 
@@ -51,6 +54,11 @@ public class ZEDSVOLoggerManager
 
    private void onZEDSDKAnnounceMessage(ZEDSDKAnnounce message)
    {
+      if (!request.getHostNameAsString().equals(message.getAddressAsString()))
+      {
+         return;
+      }
+
       ZEDSDKAnnounceHash announceHash = new ZEDSDKAnnounceHash(message.getAddressAsString(), message.getPort());
 
       if (zedLoggers.containsKey(announceHash))
