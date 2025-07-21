@@ -51,6 +51,17 @@ public class ZEDSVOLoggerManager
 
    private void onZEDSDKAnnounceMessage(ZEDSDKAnnounce message)
    {
+      // TODO: Make a proper fix here
+      /*
+       * This is a temp hacky fix to prevent log sessions from logging SVO's from different robots.
+       *
+       * E.g.
+       * RobotA with ZED sensor
+       * RobotB with no ZED sensor
+       *
+       * Logger session for RobotB should not be trying to connect to the remote ZED SDK connection for RobotA.
+       * We assume the sensor name starts with the robot name (RobotAZED).
+       */
       try
       {
          String firstWordInTempDirName = tempDirectory.getName().split("(?=[A-Z])")[1];
