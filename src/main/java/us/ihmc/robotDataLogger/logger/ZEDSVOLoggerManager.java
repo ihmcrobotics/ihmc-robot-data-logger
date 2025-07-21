@@ -51,6 +51,19 @@ public class ZEDSVOLoggerManager
 
    private void onZEDSDKAnnounceMessage(ZEDSDKAnnounce message)
    {
+      try
+      {
+         String firstWordInTempDirName = tempDirectory.getName().split("(?=[A-Z])")[1];
+         if (!message.getSensorNameAsString().startsWith(firstWordInTempDirName))
+         {
+            return;
+         }
+      }
+      catch (ArrayIndexOutOfBoundsException e)
+      {
+         return;
+      }
+
       ZEDSDKAnnounceHash announceHash = new ZEDSDKAnnounceHash(message.getAddressAsString(), message.getPort());
 
       if (zedLoggers.containsKey(announceHash))
