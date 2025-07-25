@@ -6,6 +6,7 @@ import us.ihmc.commons.exception.ExceptionTools;
 import us.ihmc.commons.thread.RepeatingTaskThread;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
+import us.ihmc.robotDataLogger.ZEDSDKAnnounce;
 import us.ihmc.zed.SL_InitParameters;
 import us.ihmc.zed.SL_RuntimeParameters;
 import us.ihmc.zed.global.zed;
@@ -34,7 +35,7 @@ public class ZEDSVOLogger
    private final RepeatingTaskThread connectionWatchdogThread = new RepeatingTaskThread(getClass().getName() + "ConnectionWatchdog", this::connectionCheck);
 
    private String svoPrefix;
-   private LongSupplier timestampSupplier;
+   private long controllerZeroInSensorFrame;
    private FileWriter timestampWriter;
 
    private volatile double lastGrabTime;
@@ -42,10 +43,8 @@ public class ZEDSVOLogger
    private volatile boolean completelyStopped;
    private volatile boolean failedBeyondRecovery;
 
-   public void start(String svoFile, String datFile, LongSupplier timestampSupplier, String address, int port, int fps, int bitrate)
+   public void start(String svoFile, String datFile, ZEDSDKAnnounce message)
    {
-      this.timestampSupplier = timestampSupplier;
-
       if (stopRequested)
          throw new IllegalStateException("Cannot restart ZEDSVOLogger once stopped");
 
@@ -61,6 +60,10 @@ public class ZEDSVOLogger
       runtimeParameters.reference_frame(SL_REFERENCE_FRAME_CAMERA);
       runtimeParameters.enable_depth(false);
 
+      controllerZeroInSensorFrame = message.getSensorTimestamp() - message.getControllerTimestamp();
+
+      String address = message.getAddressAsString();
+      short port = message.getPort();
       LogTools.info("Connecting to ZED SDK stream on: " + address + ":" + port);
 
       if (sl_is_opened(cameraID))
@@ -70,7 +73,7 @@ public class ZEDSVOLogger
       if (returnCode != SL_ERROR_CODE_SUCCESS)
          LogTools.error("ZED SDK error code: " + returnCode);
 
-      returnCode = sl_enable_recording(cameraID, svoFile, SL_SVO_COMPRESSION_MODE_H264, bitrate, fps, TRANSCODE);
+      returnCode = sl_enable_recording(cameraID, svoFile, SL_SVO_COMPRESSION_MODE_H264, message.getBitrate(), message.getFps(), TRANSCODE);
       if (returnCode != SL_ERROR_CODE_SUCCESS)
          LogTools.error("ZED SDK error code: " + returnCode);
 
@@ -125,7 +128,13 @@ public class ZEDSVOLogger
 
       try
       {
-         timestampWriter.write("%d %d %s%n".formatted(timestampSupplier.getAsLong(), sl_get_current_timestamp(cameraID), svoPrefix));
+         // We assume both the sensor on board & controller real time thread clocks
+         // run at the same speed to try an resolve delay and time stretching issues.
+         // Here, controllerZeroInSensorFrame is calculated from two timestamps taken
+         // on the robot at the moment both the sensor & controller are running
+         long sensorTimestamp = sl_get_current_timestamp(cameraID);
+         long controllerTimestamp = sensorTimestamp - controllerZeroInSensorFrame;
+         timestampWriter.write("%d %d %s%n".formatted(controllerTimestamp, sensorTimestamp, svoPrefix));
       }
       catch (IOException e)
       {
