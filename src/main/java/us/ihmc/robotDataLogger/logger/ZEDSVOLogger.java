@@ -6,14 +6,12 @@ import us.ihmc.commons.exception.ExceptionTools;
 import us.ihmc.commons.thread.RepeatingTaskThread;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.ZEDSDKAnnounce;
 import us.ihmc.zed.SL_InitParameters;
 import us.ihmc.zed.SL_RuntimeParameters;
 import us.ihmc.zed.global.zed;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.function.LongSupplier;
 
 import static us.ihmc.zed.global.zed.*;
 
@@ -43,7 +41,7 @@ public class ZEDSVOLogger
    private volatile boolean completelyStopped;
    private volatile boolean failedBeyondRecovery;
 
-   public void start(String svoFile, String datFile, ZEDSDKAnnounce message)
+   public void start(String svoFile, String datFile, String address, int port, int fps, int bitrate, long sensorTimestamp, long controllerTimestamp)
    {
       if (stopRequested)
          throw new IllegalStateException("Cannot restart ZEDSVOLogger once stopped");
@@ -60,10 +58,8 @@ public class ZEDSVOLogger
       runtimeParameters.reference_frame(SL_REFERENCE_FRAME_CAMERA);
       runtimeParameters.enable_depth(false);
 
-      controllerZeroInSensorFrame = message.getSensorTimestamp() - message.getControllerTimestamp();
+      controllerZeroInSensorFrame = sensorTimestamp - controllerTimestamp;
 
-      String address = message.getAddressAsString();
-      short port = message.getPort();
       LogTools.info("Connecting to ZED SDK stream on: " + address + ":" + port);
 
       if (sl_is_opened(cameraID))
@@ -73,7 +69,7 @@ public class ZEDSVOLogger
       if (returnCode != SL_ERROR_CODE_SUCCESS)
          LogTools.error("ZED SDK error code: " + returnCode);
 
-      returnCode = sl_enable_recording(cameraID, svoFile, SL_SVO_COMPRESSION_MODE_H264, message.getBitrate(), message.getFps(), TRANSCODE);
+      returnCode = sl_enable_recording(cameraID, svoFile, SL_SVO_COMPRESSION_MODE_H264, bitrate, fps, TRANSCODE);
       if (returnCode != SL_ERROR_CODE_SUCCESS)
          LogTools.error("ZED SDK error code: " + returnCode);
 

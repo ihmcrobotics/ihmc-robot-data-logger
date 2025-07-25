@@ -94,7 +94,13 @@ public class ZEDSVOLoggerManager
 
          ZEDSVOLogger zedSVOLogger = new ZEDSVOLogger();
 
-         zedSVOLogger.start(svoFile, datFile, message);
+         zedSVOLogger.start(svoFile, datFile,
+                            message.getAddressAsString(),
+                            message.getPort(),
+                            message.getFps(),
+                            message.getBitrate(),
+                            message.getSensorTimestamp(),
+                            message.getControllerTimestamp());
 
          zedLoggers.put(announceHash, zedSVOLogger);
       }
