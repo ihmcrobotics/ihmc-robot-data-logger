@@ -102,7 +102,7 @@ tasks.register<JavaExec>("deploy") {
    args("--logger-dist=" + p)
 }
 
-tasks.create("generateMessages") {
+tasks.register("generateMessages") {
    doLast {
       generateMessages()
    }
