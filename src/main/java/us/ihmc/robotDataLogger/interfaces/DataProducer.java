@@ -2,8 +2,6 @@ package us.ihmc.robotDataLogger.interfaces;
 
 import java.io.IOException;
 
-import us.ihmc.robotDataLogger.Handshake;
-import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataPublisherType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.robotDataLogger.websocket.server.DataServerServerContent;
 
@@ -17,7 +15,7 @@ public interface DataProducer
    /**
     * Set the handshake data Required
     *
-    * @param handshake
+    * @param dataServerServerContent
     */
    void setDataServerContent(DataServerServerContent dataServerServerContent);
 
@@ -33,7 +31,6 @@ public interface DataProducer
     * Publisher a timestamp update
     * 
     * @param timestamp
-    * @throws IOException
     */
    void publishTimestamp(long timestamp);
 

@@ -154,7 +154,7 @@ public class HTTPDataServerConnection
    }
 
    /**
-    * Setup a new connection If you want a blocking connect call, use the static {@link connect()}
+    * Setup a new connection If you want a blocking connect call, use the static {@link #connect}
     * function
     *
     * @param target
