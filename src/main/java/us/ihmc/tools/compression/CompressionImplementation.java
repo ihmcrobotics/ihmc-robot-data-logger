@@ -38,7 +38,7 @@ public interface CompressionImplementation
 
    /**
     * Get the minimum size of the decompressed data Due to integer rounding, the following relation
-    * holds length - 1 >= minimumDeCompressedLength(maxCompressedLength(int length)) <= length
+    * holds {@code length - 1 >= minimumDeCompressedLength(maxCompressedLength(int length)) <= length}
     *
     * @return Minimum size of decompressed data
     */
