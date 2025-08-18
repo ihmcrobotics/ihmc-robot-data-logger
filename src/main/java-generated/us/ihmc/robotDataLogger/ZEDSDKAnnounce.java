@@ -13,6 +13,8 @@ public class ZEDSDKAnnounce extends Packet<ZEDSDKAnnounce> implements Settable<Z
    public short port_;
    public int fps_;
    public int bitrate_;
+   public long sensorTimestamp_;
+   public long controllerTimestamp_;
 
    public ZEDSDKAnnounce()
    {
@@ -39,6 +41,10 @@ public class ZEDSDKAnnounce extends Packet<ZEDSDKAnnounce> implements Settable<Z
       fps_ = other.fps_;
 
       bitrate_ = other.bitrate_;
+
+      sensorTimestamp_ = other.sensorTimestamp_;
+
+      controllerTimestamp_ = other.controllerTimestamp_;
 
    }
 
@@ -99,6 +105,24 @@ public class ZEDSDKAnnounce extends Packet<ZEDSDKAnnounce> implements Settable<Z
       return bitrate_;
    }
 
+   public void setSensorTimestamp(long sensorTimestamp)
+   {
+      sensorTimestamp_ = sensorTimestamp;
+   }
+   public long getSensorTimestamp()
+   {
+      return sensorTimestamp_;
+   }
+
+   public void setControllerTimestamp(long controllerTimestamp)
+   {
+      controllerTimestamp_ = controllerTimestamp;
+   }
+   public long getControllerTimestamp()
+   {
+      return controllerTimestamp_;
+   }
+
 
    public static Supplier<ZEDSDKAnnouncePubSubType> getPubSubType()
    {
@@ -127,6 +151,10 @@ public class ZEDSDKAnnounce extends Packet<ZEDSDKAnnounce> implements Settable<Z
 
       if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.bitrate_, other.bitrate_, epsilon)) return false;
 
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.sensorTimestamp_, other.sensorTimestamp_, epsilon)) return false;
+
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.controllerTimestamp_, other.controllerTimestamp_, epsilon)) return false;
+
 
       return true;
    }
@@ -150,6 +178,10 @@ public class ZEDSDKAnnounce extends Packet<ZEDSDKAnnounce> implements Settable<Z
 
       if(this.bitrate_ != otherMyClass.bitrate_) return false;
 
+      if(this.sensorTimestamp_ != otherMyClass.sensorTimestamp_) return false;
+
+      if(this.controllerTimestamp_ != otherMyClass.controllerTimestamp_) return false;
+
 
       return true;
    }
@@ -169,7 +201,11 @@ public class ZEDSDKAnnounce extends Packet<ZEDSDKAnnounce> implements Settable<Z
       builder.append("fps=");
       builder.append(this.fps_);      builder.append(", ");
       builder.append("bitrate=");
-      builder.append(this.bitrate_);
+      builder.append(this.bitrate_);      builder.append(", ");
+      builder.append("sensorTimestamp=");
+      builder.append(this.sensorTimestamp_);      builder.append(", ");
+      builder.append("controllerTimestamp=");
+      builder.append(this.controllerTimestamp_);
       builder.append("}");
       return builder.toString();
    }

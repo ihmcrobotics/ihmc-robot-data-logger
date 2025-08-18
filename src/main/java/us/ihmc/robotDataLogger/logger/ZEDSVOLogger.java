@@ -12,7 +12,6 @@ import us.ihmc.zed.global.zed;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.function.LongSupplier;
 
 import static us.ihmc.zed.global.zed.*;
 
@@ -34,7 +33,7 @@ public class ZEDSVOLogger
    private final RepeatingTaskThread connectionWatchdogThread = new RepeatingTaskThread(getClass().getName() + "ConnectionWatchdog", this::connectionCheck);
 
    private String svoPrefix;
-   private LongSupplier timestampSupplier;
+   private long controllerZeroInSensorFrame;
    private FileWriter timestampWriter;
 
    private volatile double lastGrabTime;
@@ -42,10 +41,8 @@ public class ZEDSVOLogger
    private volatile boolean completelyStopped;
    private volatile boolean failedBeyondRecovery;
 
-   public void start(String svoFile, String datFile, LongSupplier timestampSupplier, String address, int port, int fps, int bitrate)
+   public void start(String svoFile, String datFile, String address, int port, int fps, int bitrate, long sensorTimestamp, long controllerTimestamp)
    {
-      this.timestampSupplier = timestampSupplier;
-
       if (stopRequested)
          throw new IllegalStateException("Cannot restart ZEDSVOLogger once stopped");
 
@@ -60,6 +57,8 @@ public class ZEDSVOLogger
       runtimeParameters = new SL_RuntimeParameters();
       runtimeParameters.reference_frame(SL_REFERENCE_FRAME_CAMERA);
       runtimeParameters.enable_depth(false);
+
+      controllerZeroInSensorFrame = sensorTimestamp - controllerTimestamp;
 
       LogTools.info("Connecting to ZED SDK stream on: " + address + ":" + port);
 
@@ -125,7 +124,13 @@ public class ZEDSVOLogger
 
       try
       {
-         timestampWriter.write("%d %d %s%n".formatted(timestampSupplier.getAsLong(), sl_get_current_timestamp(cameraID), svoPrefix));
+         // We assume both the sensor on board & controller real time thread clocks
+         // run at the same speed to try an resolve delay and time stretching issues.
+         // Here, controllerZeroInSensorFrame is calculated from two timestamps taken
+         // on the robot at the moment both the sensor & controller are running
+         long sensorTimestamp = sl_get_current_timestamp(cameraID);
+         long controllerTimestamp = sensorTimestamp - controllerZeroInSensorFrame;
+         timestampWriter.write("%d %d %s%n".formatted(controllerTimestamp, sensorTimestamp, svoPrefix));
       }
       catch (IOException e)
       {

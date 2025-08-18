@@ -210,8 +210,8 @@ public class Frame implements AutoCloseable, Indexable {
     *  Cloning a frame containing a full HD picture (alpha channel included) would take 1920 x 1080 * 4 = 8.294.400 Bytes.
     *  Expect a heap overflow exception when using this method without cleaning up.
     *
+    * @see #cloneBufferArray
     * @return A deep copy of this frame.
-    * @see {@link #cloneBufferArray}
     *
     * Extension proposed by Dragos Dutu
     * */

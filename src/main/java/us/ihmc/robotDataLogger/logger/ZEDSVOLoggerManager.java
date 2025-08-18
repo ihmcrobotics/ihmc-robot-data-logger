@@ -13,7 +13,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.LongSupplier;
 
 /**
  * Manages n number of ZED SDK connections for logging SVO files.
@@ -31,16 +30,15 @@ public class ZEDSVOLoggerManager
    }
 
    private final File tempDirectory;
-   private final LongSupplier timestampSupplier;
 
    private final ROS2Node ros2Node;
    private final Map<ZEDSDKAnnounceHash, ZEDSVOLogger> zedLoggers = new ConcurrentHashMap<>();
 
-   public ZEDSVOLoggerManager(File tempDirectory, File finalDirectory, LongSupplier timestampSupplier)
+   public ZEDSVOLoggerManager(File tempDirectory, File finalDirectory)
    {
       this.tempDirectory = tempDirectory;
-      this.timestampSupplier = timestampSupplier;
 
+      LogTools.info("Creating a ROS2Node for listening to ZED SDK connections.");
       ros2Node = new ROS2NodeBuilder().build(ROS2TopicNameTools.toROSTopicFormat(finalDirectory.getName() + "_zed_svo_logger_node"));
 
       if (ZED_SDK_LOADED)
@@ -51,6 +49,30 @@ public class ZEDSVOLoggerManager
 
    private void onZEDSDKAnnounceMessage(ZEDSDKAnnounce message)
    {
+      // TODO: Make a proper fix here
+      /*
+       * This is a temp hacky fix to prevent log sessions from logging SVO's from different robots.
+       *
+       * E.g.
+       * RobotA with ZED sensor
+       * RobotB with no ZED sensor
+       *
+       * Logger session for RobotB should not be trying to connect to the remote ZED SDK connection for RobotA.
+       * We assume the sensor name starts with the robot name (RobotAZED).
+       */
+      try
+      {
+         String secondWordInTempDirName = tempDirectory.getName().substring(1).split("(?=[A-Z])")[1];
+         if (!message.getSensorNameAsString().startsWith(secondWordInTempDirName))
+         {
+            return;
+         }
+      }
+      catch (ArrayIndexOutOfBoundsException e)
+      {
+         return;
+      }
+
       ZEDSDKAnnounceHash announceHash = new ZEDSDKAnnounceHash(message.getAddressAsString(), message.getPort());
 
       if (zedLoggers.containsKey(announceHash))
@@ -72,7 +94,13 @@ public class ZEDSVOLoggerManager
 
          ZEDSVOLogger zedSVOLogger = new ZEDSVOLogger();
 
-         zedSVOLogger.start(svoFile, datFile, timestampSupplier, message.getAddressAsString(), message.getPort(), message.getFps(), message.getBitrate());
+         zedSVOLogger.start(svoFile, datFile,
+                            message.getAddressAsString(),
+                            message.getPort(),
+                            message.getFps(),
+                            message.getBitrate(),
+                            message.getSensorTimestamp(),
+                            message.getControllerTimestamp());
 
          zedLoggers.put(announceHash, zedSVOLogger);
       }

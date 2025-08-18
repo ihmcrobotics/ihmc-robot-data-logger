@@ -13,7 +13,7 @@ plugins {
 
 ihmc {
    group = "us.ihmc"
-   version = "0.34.0"
+   version = "0.35.0"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
@@ -102,7 +102,7 @@ tasks.register<JavaExec>("deploy") {
    args("--logger-dist=" + p)
 }
 
-tasks.create("generateMessages") {
+tasks.register("generateMessages") {
    doLast {
       generateMessages()
    }
