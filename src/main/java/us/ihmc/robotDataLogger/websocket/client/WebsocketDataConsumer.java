@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.CharsetUtil;
 import us.ihmc.idl.serializers.extra.JSONSerializer;
+import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.HandshakePubSubType;
@@ -144,6 +145,7 @@ public class WebsocketDataConsumer implements DataConsumer
             throw new RuntimeException("Session not started");
          }
 
+         LogTools.info("disconnectSession()");
          session.close();
       }
    }
@@ -154,6 +156,7 @@ public class WebsocketDataConsumer implements DataConsumer
       synchronized (lock)
       {
 
+         LogTools.info("close()");
          if (connection.isConnected())
          {
             connection.close();

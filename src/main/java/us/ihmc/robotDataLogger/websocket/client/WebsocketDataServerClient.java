@@ -21,6 +21,7 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import us.ihmc.log.LogTools;
 import us.ihmc.pubsub.common.SerializedPayload;
 import us.ihmc.robotDataLogger.VariableChangeRequest;
 import us.ihmc.robotDataLogger.VariableChangeRequestPubSubType;
@@ -111,10 +112,13 @@ public class WebsocketDataServerClient
          throw new IOException(e);
       }
 
+
+      // add monitor thread to call disconnected
    }
 
    private void disconnected()
    {
+      LogTools.info("disconnected()");
       udpTimestampClient.stop();
       udpTimestampClient.join();
       consumer.stopImmediately();
@@ -136,6 +140,8 @@ public class WebsocketDataServerClient
 
    public void close()
    {
+
+      LogTools.info("close()");
       ch.close();
    }
 

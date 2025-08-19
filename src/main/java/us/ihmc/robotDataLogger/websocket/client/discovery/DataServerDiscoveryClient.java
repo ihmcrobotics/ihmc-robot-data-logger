@@ -94,12 +94,12 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
          {
             if (description.isPersistant())
             {
-               LogTools.debug("{} already in list of hosts. Marking persistant", description);
+               LogTools.info("{} already in list of hosts. Marking persistant", description);
                hosts.put(description, description);
             }
             else
             {
-               LogTools.debug("{} already in list of hosts", description);
+               LogTools.info("{} already in list of hosts", description);
             }
          }
          else
@@ -137,7 +137,7 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
 
    private void tryConnection(HTTPDataServerDescription target)
    {
-      LogTools.debug("Connecting to {}.", target);
+      LogTools.info("Connecting to {}.", target);
       try
       {
          new HTTPDataServerConnection(target, new ConnectionListener());
@@ -155,7 +155,7 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
       {
          synchronized (lock)
          {
-            LogTools.debug("Connected to {}.", connection.getTarget());
+            LogTools.info("Connected to {}.", connection.getTarget());
 
             connections.add(connection);
             listenerExecutor.execute(() -> listener.connected(connection));
@@ -165,6 +165,7 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
       @Override
       public void disconnected(HTTPDataServerConnection connection)
       {
+         LogTools.info("disconnected");
          listenerExecutor.execute(() -> listener.disconnected(connection));
       }
 
@@ -173,16 +174,16 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
       {
          synchronized (lock)
          {
-            LogTools.debug("Connection refused to {}.", target);
+            LogTools.info("Connection refused to {}.", target);
 
             if (!clientClosed && hosts.get(target).isPersistant())
             {
-               LogTools.debug("{} is marked persistant, reconnecting.", target);
+               LogTools.info("{} is marked persistant, reconnecting.", target);
                connectionExecutor.schedule(() -> tryConnection(target), 1, TimeUnit.SECONDS);
             }
             else
             {
-               LogTools.debug("{} is volatile. Dropping.", target);
+               LogTools.info("{} is volatile. Dropping.", target);
                hosts.remove(target);
             }
 
@@ -194,17 +195,17 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
       {
          synchronized (lock)
          {
-            LogTools.debug("Disconnected from {}.", connection.getTarget());
+            LogTools.info("Disconnected from {}.", connection.getTarget());
             connections.remove(connection);
 
             if (!clientClosed && hosts.get(connection.getTarget()).isPersistant())
             {
-               LogTools.debug("{} is marked persistant, reconnecting.", connection.getTarget());
+               LogTools.info("{} is marked persistant, reconnecting.", connection.getTarget());
                connectionExecutor.execute(() -> tryConnection(connection.getTarget()));
             }
             else
             {
-               LogTools.debug("{} is volatile. Dropping.", connection.getTarget());
+               LogTools.info("{} is volatile. Dropping.", connection.getTarget());
                hosts.remove(connection.getTarget());
             }
          }

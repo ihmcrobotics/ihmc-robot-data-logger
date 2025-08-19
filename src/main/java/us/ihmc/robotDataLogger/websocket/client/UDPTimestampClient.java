@@ -7,6 +7,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 
+import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.listeners.TimestampListener;
 import us.ihmc.robotDataLogger.websocket.server.UDPTimestampServer;
 
@@ -24,6 +25,8 @@ public class UDPTimestampClient
    private volatile boolean running = true;
 
    private final TimestampListener listener;
+
+   private long timeoutCounter = 0L;
 
    public UDPTimestampClient(TimestampListener listener) throws SocketException
    {
@@ -55,6 +58,8 @@ public class UDPTimestampClient
 
    public void stop()
    {
+
+      LogTools.info("stop()");
       running = false;
    }
 
@@ -91,12 +96,15 @@ public class UDPTimestampClient
             }
             catch (SocketTimeoutException e)
             {
+               LogTools.info("UDP timestamp socket timed out. #%d".formatted(timeoutCounter++));
             }
             catch (IOException e)
             {
                throw new RuntimeException(e);
             }
          }
+
+         LogTools.info("while loop exited");
       }
    }
 }

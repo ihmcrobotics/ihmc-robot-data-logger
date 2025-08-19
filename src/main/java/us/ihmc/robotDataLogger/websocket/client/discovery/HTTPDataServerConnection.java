@@ -32,6 +32,7 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.CharsetUtil;
 import us.ihmc.idl.serializers.extra.JSONSerializer;
+import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.AnnouncementPubSubType;
 import us.ihmc.robotDataLogger.util.NettyUtils;
@@ -109,6 +110,7 @@ public class HTTPDataServerConnection
 
       public void complete()
       {
+         LogTools.info("DisconnectPromise#complete()");
          listener.disconnected(connection);
          listener.closed(connection);
       }
@@ -272,6 +274,7 @@ public class HTTPDataServerConnection
    {
       if (channel != null)
       {
+         LogTools.info("close");
          channel.close();
       }
    }
@@ -379,6 +382,8 @@ public class HTTPDataServerConnection
       {
          if (!taken)
          {
+
+            LogTools.info("Handler#channelInactive()");
             listener.disconnected(HTTPDataServerConnection.this);
             group.shutdownGracefully().addListener((e) -> listener.closed(HTTPDataServerConnection.this));
          }

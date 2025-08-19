@@ -146,6 +146,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
    @Override
    public synchronized void stop()
    {
+      LogTools.info("stop()");
       if (dataConsumer == null)
       {
          throw new RuntimeException("Session not started");
@@ -187,6 +188,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
    {
       if (dataConsumer != null)
       {
+         LogTools.info("disconnect()");
          dataConsumer.disconnectSession();
       }
    }

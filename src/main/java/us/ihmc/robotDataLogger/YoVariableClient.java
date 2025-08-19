@@ -102,6 +102,7 @@ public class YoVariableClient
     */
    public void stop()
    {
+      LogTools.info("stop");
       yoVariableClientImplementation.stop();
    }
 

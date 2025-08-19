@@ -4,6 +4,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 import gnu.trove.map.hash.TIntLongHashMap;
 import us.ihmc.commons.thread.ThreadTools;
+import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.LogDataType;
 import us.ihmc.robotDataLogger.YoVariableClientImplementation;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
@@ -92,6 +93,7 @@ public class RegistryConsumer extends Thread
 
    public void stopImmediately()
    {
+      LogTools.info("stopImmediately()");
       running = false;
    }
 

@@ -107,6 +107,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
    @Override
    public void disconnected(HTTPDataServerConnection connection)
    {
+      LogTools.info("disconnected");
    }
 
    /**
