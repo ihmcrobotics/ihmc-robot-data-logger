@@ -49,7 +49,7 @@ public class MemoryLoggerExample
 
    private final YoVariableServer server = new YoVariableServer(getClass(),
                                                                 null,
-                                                                new DataServerSettings(true),
+                                                                new DataServerSettings(false),
                                                                 0.001);
    private final JVMStatisticsGenerator jvmStatisticsGenerator;
 
