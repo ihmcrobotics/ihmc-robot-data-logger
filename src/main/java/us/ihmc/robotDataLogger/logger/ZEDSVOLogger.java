@@ -1,6 +1,5 @@
 package us.ihmc.robotDataLogger.logger;
 
-import us.ihmc.commons.Conversions;
 import us.ihmc.commons.exception.DefaultExceptionHandler;
 import us.ihmc.commons.exception.ExceptionTools;
 import us.ihmc.commons.thread.RepeatingTaskThread;
@@ -8,6 +7,7 @@ import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.zed.SL_InitParameters;
 import us.ihmc.zed.SL_RuntimeParameters;
+import us.ihmc.zed.ZEDTools;
 import us.ihmc.zed.global.zed;
 
 import java.io.FileWriter;
@@ -21,34 +21,34 @@ import static us.ihmc.zed.global.zed.*;
  */
 public class ZEDSVOLogger
 {
-   private static final double CONNECT_TIMEOUT = 2.0;
    private static final boolean TRANSCODE = false;
 
-   private static int nextCameraId = 10;
+   private static int nextCameraId = 0;
 
    private final int cameraID = nextCameraId++;
    private SL_InitParameters initParameters;
    private SL_RuntimeParameters runtimeParameters;
    private final RepeatingTaskThread grabThread = new RepeatingTaskThread(getClass().getName() + "GrabThread", this::grab);
-   private final RepeatingTaskThread connectionWatchdogThread = new RepeatingTaskThread(getClass().getName() + "ConnectionWatchdog", this::connectionCheck);
 
    private String svoPrefix;
    private long controllerZeroInSensorFrame;
    private FileWriter timestampWriter;
 
-   private volatile double lastGrabTime;
-   private volatile boolean stopRequested;
-   private volatile boolean completelyStopped;
-   private volatile boolean failedBeyondRecovery;
+   private volatile boolean closed;
 
-   public void start(String svoFile, String datFile, String address, int port, int fps, int bitrate, long sensorTimestamp, long controllerTimestamp)
+   public void connect(String svoFile, String datFile, String address, int port, int fps, int bitrate, long sensorTimestamp, long controllerTimestamp)
    {
-      if (stopRequested)
-         throw new IllegalStateException("Cannot restart ZEDSVOLogger once stopped");
+      closed = false;
 
-      String[] parts = svoFile.split("[/\\\\]");
-      svoPrefix = parts[parts.length - 1].substring(0, "yyyyMMdd_HHmmss".length());
-      timestampWriter = ExceptionTools.handle(() -> new FileWriter(datFile, true), DefaultExceptionHandler.RUNTIME_EXCEPTION);
+      try {
+         String[] parts = svoFile.split("[/\\\\]");
+         svoPrefix = parts[parts.length - 1].substring(0, "yyyyMMdd_HHmmss".length());
+         timestampWriter = ExceptionTools.handle(() -> new FileWriter(datFile, true), DefaultExceptionHandler.RUNTIME_EXCEPTION);
+      }
+      catch (Exception ignored)
+      {
+         // If the svoFile is not in standard logger format
+      }
 
       initParameters = new SL_InitParameters();
       initParameters.input_type(zed.SL_INPUT_TYPE_STREAM);
@@ -67,36 +67,27 @@ public class ZEDSVOLogger
 
       int returnCode = sl_open_camera(cameraID, initParameters, 0, "", address, port, "", "", "");
       if (returnCode != SL_ERROR_CODE_SUCCESS)
-         LogTools.error("ZED SDK error code: " + returnCode);
+         LogTools.error("Could not connect to ZED SDK stream: " + ZEDTools.errorMessage(returnCode));
 
       returnCode = sl_enable_recording(cameraID, svoFile, SL_SVO_COMPRESSION_MODE_H264, bitrate, fps, TRANSCODE);
       if (returnCode != SL_ERROR_CODE_SUCCESS)
-         LogTools.error("ZED SDK error code: " + returnCode);
+         LogTools.error("Could not enable SVO recording: " + ZEDTools.errorMessage(returnCode));
 
       if (sl_is_opened(cameraID))
       {
          LogTools.info("Connected to ZED SDK stream on: " + address + ":" + port);
 
-         grabThread.setFrequencyLimit(RepeatingTaskThread.UNLIMITED_FREQUENCY);
          grabThread.startRepeating();
       }
-
-      connectionWatchdogThread.setFrequencyLimit(Conversions.secondsToHertz(CONNECT_TIMEOUT));
-      ThreadTools.startAThread(() ->
-      {
-         ThreadTools.park(5.0);
-         connectionWatchdogThread.startRepeating();
-      }, getClass().getSimpleName() + "ConnectionWatchdogDelay");
    }
 
-   public void stop()
+   public void close()
    {
-      if (!stopRequested)
+      if (!closed)
       {
-         stopRequested = true;
+         closed = true;
 
          grabThread.blockingKill();
-         connectionWatchdogThread.kill();
 
          sl_close_camera(cameraID);
          sl_unload_instance(cameraID);
@@ -108,83 +99,41 @@ public class ZEDSVOLogger
          System.out.println("Closing ZED SDK stream");
 
          ExceptionTools.handle(timestampWriter::close, DefaultExceptionHandler.PRINT_MESSAGE);
-
-         completelyStopped = true;
       }
    }
 
    public void grab()
    {
-      if (stopRequested)
-         throw new IllegalStateException("Cannot grab(), already stopped");
-
-      int returnCode = sl_grab(cameraID, runtimeParameters);
-
-      lastGrabTime = System.currentTimeMillis() / 1000D;
-
-      try
+      if (!closed)
       {
-         // We assume both the sensor on board & controller real time thread clocks
-         // run at the same speed to try an resolve delay and time stretching issues.
-         // Here, controllerZeroInSensorFrame is calculated from two timestamps taken
-         // on the robot at the moment both the sensor & controller are running
-         long sensorTimestamp = sl_get_current_timestamp(cameraID);
-         long controllerTimestamp = sensorTimestamp - controllerZeroInSensorFrame;
-         timestampWriter.write("%d %d %s%n".formatted(controllerTimestamp, sensorTimestamp, svoPrefix));
-      }
-      catch (IOException e)
-      {
-         LogTools.error(e.getMessage());
-      }
+         int returnCode = sl_grab(cameraID, runtimeParameters);
 
-      if (returnCode == SL_ERROR_CODE_FAILURE || returnCode == SL_ERROR_CODE_CAMERA_NOT_DETECTED)
-         failedBeyondRecovery = true;
-
-      if (returnCode == SL_ERROR_CODE_CAMERA_NOT_INITIALIZED || returnCode == SL_ERROR_CODE_CAMERA_REBOOTING)
-         stop();
-   }
-
-   private void connectionCheck()
-   {
-      if (!stopRequested())
-      {
-         if (!sl_is_opened(cameraID))
+         try
          {
-            LogTools.info("Unable to connect to ZED SDK stream");
-
-            stop();
+            // We assume both the sensor on board & controller real time thread clocks
+            // run at the same speed to try an resolve delay and time stretching issues.
+            // Here, controllerZeroInSensorFrame is calculated from two timestamps taken
+            // on the robot at the moment both the sensor & controller are running
+            long sensorTimestamp = sl_get_current_timestamp(cameraID);
+            long controllerTimestamp = sensorTimestamp - controllerZeroInSensorFrame;
+            timestampWriter.write("%d %d %s%n".formatted(controllerTimestamp, sensorTimestamp, svoPrefix));
+         }
+         catch (IOException ignored)
+         {
          }
 
-         if ((System.currentTimeMillis() / 1000D) - lastGrabTime > CONNECT_TIMEOUT)
+         if (returnCode != SL_ERROR_CODE_SUCCESS)
          {
-            LogTools.info("grab() timeout reached, disconnecting from ZED SDK stream");
+            // Wait some time before trying to grab again
+            ThreadTools.park(5.0);
 
-            stop();
+            LogTools.info("Could not grab image from ZED, trying again in a few seconds...");
          }
       }
    }
 
-   /**
-    * @return true if stop() has been called, false if not
-    */
-   public boolean stopRequested()
+   public boolean isClosed()
    {
-      return stopRequested;
-   }
-
-   /**
-    * @return true if ZED SDK has completely closed the camera and stop() has completely finished
-    */
-   public boolean completelyStopped()
-   {
-      return completelyStopped;
-   }
-
-   /**
-    * @return true if we received an error code from ZED SDK that is likely to cause a crash
-    */
-   public boolean failedBeyondRecovery()
-   {
-      return failedBeyondRecovery;
+      return closed;
    }
 }

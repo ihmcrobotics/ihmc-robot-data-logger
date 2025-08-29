@@ -68,9 +68,8 @@ public class ZEDSVOLoggerManager
             return;
          }
       }
-      catch (ArrayIndexOutOfBoundsException e)
+      catch (ArrayIndexOutOfBoundsException ignored)
       {
-         return;
       }
 
       ZEDSDKAnnounceHash announceHash = new ZEDSDKAnnounceHash(message.getAddressAsString(), message.getPort());
@@ -79,7 +78,7 @@ public class ZEDSVOLoggerManager
       {
          ZEDSVOLogger zedSVOLogger = zedLoggers.get(announceHash);
 
-         if (zedSVOLogger.completelyStopped() && !zedSVOLogger.failedBeyondRecovery())
+         if (zedSVOLogger.isClosed())
          {
             zedLoggers.remove(announceHash);
          }
@@ -89,12 +88,12 @@ public class ZEDSVOLoggerManager
          File perceptionDir = new File(tempDirectory, "perception");
          perceptionDir.mkdirs();
          String svoFile = perceptionDir.getAbsolutePath() + File.separator + generateSVOFileName(message);
-         String datFile = perceptionDir.getAbsolutePath() + File.separator + 
+         String datFile = perceptionDir.getAbsolutePath() + File.separator +
                  "%s%s".formatted(message.getSensorNameAsString(), VideoDataLoggerInterface.timestampDataPostfix);
 
          ZEDSVOLogger zedSVOLogger = new ZEDSVOLogger();
 
-         zedSVOLogger.start(svoFile, datFile,
+         zedSVOLogger.connect(svoFile, datFile,
                             message.getAddressAsString(),
                             message.getPort(),
                             message.getFps(),
@@ -108,7 +107,7 @@ public class ZEDSVOLoggerManager
 
    public void destroy()
    {
-      zedLoggers.forEach((hostInstanceID, zedSVOLogger) -> zedSVOLogger.stop());
+      zedLoggers.forEach((hostInstanceID, zedSVOLogger) -> zedSVOLogger.close());
 
       ros2Node.destroy();
    }

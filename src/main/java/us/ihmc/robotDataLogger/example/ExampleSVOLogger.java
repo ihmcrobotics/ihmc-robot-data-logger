@@ -49,7 +49,7 @@ public class ExampleSVOLogger
       String path = System.getProperty("user.home") + "/Desktop/test" + UUID.randomUUID().toString().substring(0, 5);
       String svoFile = path + ".svo2";
       String datFile = path + ".dat";
-      SVO_LOGGER.start(svoFile, datFile, ADDRESS, PORT, 15, 8000, 0L, 0L);
+      SVO_LOGGER.connect(svoFile, datFile, ADDRESS, PORT, 15, 8000, 0L, 0L);
 
       /*
          Do nothing forever, everything else runs in other threads
@@ -61,7 +61,7 @@ public class ExampleSVOLogger
    {
       running = false;
 
-      SVO_LOGGER.stop();
+      SVO_LOGGER.close();
 
       stopLocalUSBSensor();
    }
