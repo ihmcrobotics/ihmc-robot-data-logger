@@ -83,7 +83,7 @@ public class ZEDSVOLoggerManager
             zedLoggers.remove(announceHash);
          }
       }
-      else
+      else if (message.getControllerTimestamp() != -1)
       {
          File perceptionDir = new File(tempDirectory, "perception");
          perceptionDir.mkdirs();
@@ -93,13 +93,14 @@ public class ZEDSVOLoggerManager
 
          ZEDSVOLogger zedSVOLogger = new ZEDSVOLogger();
 
-         zedSVOLogger.connect(svoFile, datFile,
-                            message.getAddressAsString(),
-                            message.getPort(),
-                            message.getFps(),
-                            message.getBitrate(),
-                            message.getSensorTimestamp(),
-                            message.getControllerTimestamp());
+         zedSVOLogger.connect(svoFile,
+                              datFile,
+                              message.getAddressAsString(),
+                              message.getPort(),
+                              message.getFps(),
+                              message.getBitrate(),
+                              message.getSensorTimestamp(),
+                              message.getControllerTimestamp());
 
          zedLoggers.put(announceHash, zedSVOLogger);
       }
