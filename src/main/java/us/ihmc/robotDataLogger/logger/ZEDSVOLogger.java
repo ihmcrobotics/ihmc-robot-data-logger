@@ -5,6 +5,7 @@ import us.ihmc.commons.exception.ExceptionTools;
 import us.ihmc.commons.thread.RepeatingTaskThread;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
+import us.ihmc.robotDataLogger.ZEDSDKAnnounce;
 import us.ihmc.zed.SL_InitParameters;
 import us.ihmc.zed.SL_RuntimeParameters;
 import us.ihmc.zed.ZEDTools;
@@ -130,6 +131,11 @@ public class ZEDSVOLogger
             LogTools.info("Could not grab image from ZED, trying again in a few seconds...");
          }
       }
+   }
+
+   public void synchronize(ZEDSDKAnnounce message)
+   {
+      controllerZeroInSensorFrame = message.getSensorTimestamp() - message.getControllerTimestamp();
    }
 
    public boolean isClosed()

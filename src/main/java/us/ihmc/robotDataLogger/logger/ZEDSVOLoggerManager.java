@@ -77,6 +77,7 @@ public class ZEDSVOLoggerManager
       if (zedLoggers.containsKey(announceHash))
       {
          ZEDSVOLogger zedSVOLogger = zedLoggers.get(announceHash);
+         zedSVOLogger.synchronize(message);
 
          if (zedSVOLogger.isClosed())
          {
