@@ -211,7 +211,7 @@ public class Frame implements AutoCloseable, Indexable {
     *  Expect a heap overflow exception when using this method without cleaning up.
     *
     * @return A deep copy of this frame.
-    * @see {@link #cloneBufferArray}
+    * @see #cloneBufferArray
     *
     * Extension proposed by Dragos Dutu
     * */
