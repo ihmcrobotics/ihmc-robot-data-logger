@@ -77,7 +77,8 @@ public class ZEDSVOLoggerManager
       if (zedLoggers.containsKey(announceHash))
       {
          ZEDSVOLogger zedSVOLogger = zedLoggers.get(announceHash);
-         zedSVOLogger.synchronize(message);
+         if (message.getControllerTimestamp() != -1)
+            zedSVOLogger.synchronize(message);
 
          if (zedSVOLogger.isClosed())
          {
