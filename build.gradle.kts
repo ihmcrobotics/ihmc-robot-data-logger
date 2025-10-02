@@ -46,29 +46,21 @@ mainDependencies {
    api("us.ihmc:mecano:17-0.19.2")
    api("com.hierynomus:sshj:0.31.0")
 
-   val javacppVersion = "1.5.11-ihmc-2"
-   api("us.ihmc:javacpp:$javacppVersion")
-   api("us.ihmc:javacpp:$javacppVersion:linux-arm64")
-   api("us.ihmc:javacpp:$javacppVersion:linux-x86_64")
-   api("us.ihmc:javacpp:$javacppVersion:windows-x86_64")
-   val openblasVersion = "0.3.23-1.5.11-ihmc-2"
-   api("us.ihmc:openblas:$openblasVersion")
-   api("us.ihmc:openblas:$openblasVersion:linux-x86_64")
-   api("us.ihmc:openblas:$openblasVersion:linux-arm64")
-   api("us.ihmc:openblas:$openblasVersion:windows-x86_64")
-   val opencvVersion = "4.10.0-1.5.11-ihmc-3" // Hosted on https://robotlabfiles.ihmc.us/repository
+   val openblasVersion = "0.3.28-1.5.11"
+   api("org.bytedeco:openblas:$openblasVersion")
+   api("org.bytedeco:openblas:$openblasVersion:linux-x86_64")
+   api("org.bytedeco:openblas:$openblasVersion:linux-arm64")
+   api("org.bytedeco:openblas:$openblasVersion:windows-x86_64")
+   val opencvVersion = "4.10.0-1.5.11-20251001-ihmc" // Hosted on https://robotlabfiles.ihmc.us/repository
    api("us.ihmc:opencv:$opencvVersion")
-   api("us.ihmc:opencv:$opencvVersion:linux-arm64")
    api("us.ihmc:opencv:$opencvVersion:linux-arm64-gpu")
-   api("us.ihmc:opencv:$opencvVersion:linux-x86_64")
    api("us.ihmc:opencv:$opencvVersion:linux-x86_64-gpu")
-   api("us.ihmc:opencv:$opencvVersion:windows-x86_64")
    api("us.ihmc:opencv:$opencvVersion:windows-x86_64-gpu")
-   val ffmpegVersion = "7.1-1.5.11-ihmc-2"
-   api("us.ihmc:ffmpeg:$ffmpegVersion")
-   api("us.ihmc:ffmpeg:$ffmpegVersion:linux-arm64")
-   api("us.ihmc:ffmpeg:$ffmpegVersion:linux-x86_64")
-   api("us.ihmc:ffmpeg:$ffmpegVersion:windows-x86_64")
+   val ffmpegVersion = "7.1-1.5.11"
+   api("org.bytedeco:ffmpeg:$ffmpegVersion")
+   api("org.bytedeco:ffmpeg:$ffmpegVersion:linux-arm64")
+   api("org.bytedeco:ffmpeg:$ffmpegVersion:linux-x86_64")
+   api("org.bytedeco:ffmpeg:$ffmpegVersion:windows-x86_64")
 
    // ZED SDK for logging remote ZED data streams
    api("us.ihmc:zed-java-api:5.0.0")
