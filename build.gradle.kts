@@ -53,8 +53,11 @@ mainDependencies {
    api("org.bytedeco:openblas:$openblasVersion:windows-x86_64")
    val opencvVersion = "4.10.0-1.5.11-20251001-ihmc" // Hosted on https://robotlabfiles.ihmc.us/repository
    api("us.ihmc:opencv:$opencvVersion")
+   api("us.ihmc:opencv:$opencvVersion:linux-arm64")
    api("us.ihmc:opencv:$opencvVersion:linux-arm64-gpu")
+   api("us.ihmc:opencv:$opencvVersion:linux-x86_64")
    api("us.ihmc:opencv:$opencvVersion:linux-x86_64-gpu")
+   api("us.ihmc:opencv:$opencvVersion:windows-x86_64")
    api("us.ihmc:opencv:$opencvVersion:windows-x86_64-gpu")
    val ffmpegVersion = "7.1-1.5.11"
    api("org.bytedeco:ffmpeg:$ffmpegVersion")
