@@ -77,7 +77,7 @@ public class ZEDSVOLoggerManager
       if (zedLoggers.containsKey(announceHash))
       {
          ZEDSVOLogger zedSVOLogger = zedLoggers.get(announceHash);
-         if (message.getControllerTimestamp() != -1)
+         if (message.getControllerTimestamp() != 0)
             zedSVOLogger.synchronize(message);
 
          if (zedSVOLogger.isClosed())
@@ -85,7 +85,7 @@ public class ZEDSVOLoggerManager
             zedLoggers.remove(announceHash);
          }
       }
-      else if (message.getControllerTimestamp() != -1)
+      else if (message.getControllerTimestamp() != 0)
       {
          File perceptionDir = new File(tempDirectory, "perception");
          perceptionDir.mkdirs();
