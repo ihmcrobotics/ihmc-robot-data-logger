@@ -51,10 +51,10 @@ mainDependencies {
    api("org.bytedeco:openblas:$openblasVersion:linux-x86_64")
    api("org.bytedeco:openblas:$openblasVersion:linux-arm64")
    api("org.bytedeco:openblas:$openblasVersion:windows-x86_64")
-   val opencvVersion = "4.10.0-1.5.11-20251001-ihmc" // Hosted on https://robotlabfiles.ihmc.us/repository
+   val opencvVersion = "4.10.0-1.5.11-20260107-ihmc" // Hosted on https://robotlabfiles.ihmc.us/repository
    api("us.ihmc:opencv:$opencvVersion")
    api("us.ihmc:opencv:$opencvVersion:linux-arm64")
-   api("us.ihmc:opencv:$opencvVersion:linux-arm64-gpu")
+   api("us.ihmc:opencv:$opencvVersion:linux-arm64-gpu") // Pretty much NVIDIA Orin specific
    api("us.ihmc:opencv:$opencvVersion:linux-x86_64")
    api("us.ihmc:opencv:$opencvVersion:linux-x86_64-gpu")
    api("us.ihmc:opencv:$opencvVersion:windows-x86_64")
@@ -66,7 +66,7 @@ mainDependencies {
    api("org.bytedeco:ffmpeg:$ffmpegVersion:windows-x86_64")
 
    // ZED SDK for logging remote ZED data streams
-   api("us.ihmc:zed-java-api:5.0.0_2")
+   api("us.ihmc:zed-java-api:5.1.0")
 
    api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
 
