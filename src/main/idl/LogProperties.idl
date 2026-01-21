@@ -32,6 +32,11 @@ module robotDataLogger{
 		boolean timestamped;	// Does the index contain timestamps
 		boolean compressed;	// Is the data compressed
 	};
+
+	struct Synchronization{
+		long offset;	// Index offset from the start of the parent log
+		long jogRate;	// Jog rate compared to the parent log
+	};
 	
 	struct Model{
 		string loader;	// Loader class
@@ -39,6 +44,12 @@ module robotDataLogger{
 		string name;	// Model file name
 		string resourceBundle;	// Resource bundle zip file name
 		sequence<string, 255> resourceDirectoriesList; 	// List of resource directories
+	};
+
+	struct ChildLog{
+	    string childName; // Name of the child log
+		Synchronization synchronization;	// synchronization with the parent
+		LogProperties properties;	// Properties of the child log
 	};
 	
 	struct LogProperties{
@@ -54,7 +65,7 @@ module robotDataLogger{
 		// Backward compatibility options
 		Video video;	// Old timebase option
 		
-		
+		sequence<ChildLog, 255> childLogs;
 	};
 };
 };

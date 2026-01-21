@@ -39,7 +39,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    public static final long STATUS_PACKET_RATE = Conversions.secondsToNanoseconds(5.0);
    private static final long VIDEO_RECORDING_TIMEOUT = Conversions.secondsToNanoseconds(1.0);
 
-   public static final String propertyFile = "robotData.log";
+   public static final String propertyFile = propertyFileNameBuilder(0);
    private static final String handshakeFilename = "handshake.yaml";
    private static final String dataFilename = "robotData.bsz";
    private static final String modelFilename = "model.sdf";
@@ -665,4 +665,14 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    {
       return lastReceivedTimestamp;
    }
+
+   public static String propertyFileNameBuilder(int childNumber)
+   {
+      if (childNumber < 1)
+      {
+         return "robotData.log";
+      }
+      return "robotData" + childNumber + ".log";
+   }
+
 }

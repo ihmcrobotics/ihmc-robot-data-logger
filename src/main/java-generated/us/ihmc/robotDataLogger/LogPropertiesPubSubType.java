@@ -15,7 +15,7 @@ public class LogPropertiesPubSubType implements us.ihmc.pubsub.TopicDataType<us.
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "6d7fe7d3d8b07e957ab466dc84e2d5f653d3e2cceab5599496e96b3271adb0ea";
+   		return "6c047ea19b4cecc05c7d7b6070fdf170dbd43881449acfff5e0d8e2f9d14b696";
    }
    
    @Override
@@ -64,6 +64,9 @@ public class LogPropertiesPubSubType implements us.ihmc.pubsub.TopicDataType<us.
           current_alignment += us.ihmc.robotDataLogger.CameraPubSubType.getMaxCdrSerializedSize(current_alignment);}
       current_alignment += us.ihmc.robotDataLogger.VideoPubSubType.getMaxCdrSerializedSize(current_alignment);
 
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 255; ++i0)
+      {
+          current_alignment += us.ihmc.robotDataLogger.ChildLogPubSubType.getMaxCdrSerializedSize(current_alignment);}
 
       return current_alignment - initial_alignment;
    }
@@ -94,6 +97,11 @@ public class LogPropertiesPubSubType implements us.ihmc.pubsub.TopicDataType<us.
 
       current_alignment += us.ihmc.robotDataLogger.VideoPubSubType.getCdrSerializedSize(data.getVideo(), current_alignment);
 
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+      for(int i0 = 0; i0 < data.getChildLogs().size(); ++i0)
+      {
+          current_alignment += us.ihmc.robotDataLogger.ChildLogPubSubType.getCdrSerializedSize(data.getChildLogs().get(i0), current_alignment);}
+
 
       return current_alignment - initial_alignment;
    }
@@ -119,6 +127,10 @@ public class LogPropertiesPubSubType implements us.ihmc.pubsub.TopicDataType<us.
           throw new RuntimeException("cameras field exceeds the maximum length: %d > %d".formatted(data.getCameras().size(), 255));
 
       us.ihmc.robotDataLogger.VideoPubSubType.write(data.getVideo(), cdr);
+      if(data.getChildLogs().size() <= 255)
+      cdr.write_type_e(data.getChildLogs());else
+          throw new RuntimeException("childLogs field exceeds the maximum length: %d > %d".formatted(data.getChildLogs().size(), 255));
+
    }
 
    public static void read(us.ihmc.robotDataLogger.LogProperties data, us.ihmc.idl.CDR cdr)
@@ -130,6 +142,7 @@ public class LogPropertiesPubSubType implements us.ihmc.pubsub.TopicDataType<us.
       cdr.read_type_d(data.getTimestamp());	
       cdr.read_type_e(data.getCameras());	
       us.ihmc.robotDataLogger.VideoPubSubType.read(data.getVideo(), cdr);	
+      cdr.read_type_e(data.getChildLogs());	
 
    }
 
@@ -146,6 +159,7 @@ public class LogPropertiesPubSubType implements us.ihmc.pubsub.TopicDataType<us.
       ser.write_type_e("cameras", data.getCameras());
       ser.write_type_a("video", new us.ihmc.robotDataLogger.VideoPubSubType(), data.getVideo());
 
+      ser.write_type_e("childLogs", data.getChildLogs());
    }
 
    @Override
@@ -161,6 +175,7 @@ public class LogPropertiesPubSubType implements us.ihmc.pubsub.TopicDataType<us.
       ser.read_type_e("cameras", data.getCameras());
       ser.read_type_a("video", new us.ihmc.robotDataLogger.VideoPubSubType(), data.getVideo());
 
+      ser.read_type_e("childLogs", data.getChildLogs());
    }
 
    public static void staticCopy(us.ihmc.robotDataLogger.LogProperties src, us.ihmc.robotDataLogger.LogProperties dest)
