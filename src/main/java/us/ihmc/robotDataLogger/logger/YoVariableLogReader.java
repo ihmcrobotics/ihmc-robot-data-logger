@@ -3,14 +3,17 @@ package us.ihmc.robotDataLogger.logger;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 import com.google.common.io.Files;
 
+import us.ihmc.idl.serializers.extra.PropertiesSerializer;
 import us.ihmc.robotDataLogger.LogIndex;
 import us.ihmc.robotDataLogger.LogProperties;
+import us.ihmc.robotDataLogger.LogPropertiesPubSubType;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.tools.compression.SnappyUtils;
 
@@ -31,7 +34,6 @@ public class YoVariableLogReader
    private ByteBuffer uncompressedData;
    private FileInputStream logInputStream;
 
-   protected final File properties;
    private final File model;
    private final File resourceBundle;
    private final File summary;
@@ -41,8 +43,6 @@ public class YoVariableLogReader
 
       this.logDirectory = logDirectory;
       this.logProperties = logProperties;
-
-      properties = new File(logDirectory, YoVariableLoggerListener.propertyFile);
 
       if (!logProperties.getModel().getPathAsString().isEmpty())
       {
@@ -191,7 +191,8 @@ public class YoVariableLogReader
    protected void copyMetaData(File destination) throws IOException
    {
       File propertiesDestination = new File(destination, YoVariableLoggerListener.propertyFile);
-      Files.copy(properties, propertiesDestination);
+      PropertiesSerializer<LogProperties> serializer = new PropertiesSerializer<>(new LogPropertiesPubSubType());
+      serializer.serialize(propertiesDestination, logProperties);
 
       File handShakeDestination = new File(destination, logProperties.getVariables().getHandshakeAsString());
       Files.copy(handshake, handShakeDestination);
