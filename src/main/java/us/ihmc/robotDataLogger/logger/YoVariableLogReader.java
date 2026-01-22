@@ -74,7 +74,7 @@ public class YoVariableLogReader
       handshake = new File(logDirectory, logProperties.getVariables().getHandshakeAsString());
       if (!handshake.exists())
       {
-         throw new RuntimeException("Cannot find " + logProperties.getVariables().getHandshakeAsString());
+         throw new RuntimeException("Cannot find " + logProperties.getVariables().getHandshakeAsString() + " in " + logDirectory.getAbsolutePath());
       }
 
    }
