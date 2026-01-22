@@ -15,7 +15,7 @@ public class SynchronizationPubSubType implements us.ihmc.pubsub.TopicDataType<u
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "6c047ea19b4cecc05c7d7b6070fdf170dbd43881449acfff5e0d8e2f9d14b696";
+   		return "4d659583ed2f86114f4d8637e5aa0a58d871f3b0e594626ecd6de8a8f1a14d0e";
    }
    
    @Override
@@ -52,9 +52,9 @@ public class SynchronizationPubSubType implements us.ihmc.pubsub.TopicDataType<u
    {
       int initial_alignment = current_alignment;
 
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
 
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
 
 
       return current_alignment - initial_alignment;
@@ -69,10 +69,10 @@ public class SynchronizationPubSubType implements us.ihmc.pubsub.TopicDataType<u
    {
       int initial_alignment = current_alignment;
 
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
 
 
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
 
 
 
@@ -81,17 +81,17 @@ public class SynchronizationPubSubType implements us.ihmc.pubsub.TopicDataType<u
 
    public static void write(us.ihmc.robotDataLogger.Synchronization data, us.ihmc.idl.CDR cdr)
    {
-      cdr.write_type_2(data.getOffset());
+      cdr.write_type_6(data.getOffset());
 
-      cdr.write_type_2(data.getJogRate());
+      cdr.write_type_6(data.getJogRate());
 
    }
 
    public static void read(us.ihmc.robotDataLogger.Synchronization data, us.ihmc.idl.CDR cdr)
    {
-      data.setOffset(cdr.read_type_2());
+      data.setOffset(cdr.read_type_6());
       	
-      data.setJogRate(cdr.read_type_2());
+      data.setJogRate(cdr.read_type_6());
       	
 
    }
@@ -99,15 +99,15 @@ public class SynchronizationPubSubType implements us.ihmc.pubsub.TopicDataType<u
    @Override
    public final void serialize(us.ihmc.robotDataLogger.Synchronization data, us.ihmc.idl.InterchangeSerializer ser)
    {
-      ser.write_type_2("offset", data.getOffset());
-      ser.write_type_2("jogRate", data.getJogRate());
+      ser.write_type_6("offset", data.getOffset());
+      ser.write_type_6("jogRate", data.getJogRate());
    }
 
    @Override
    public final void deserialize(us.ihmc.idl.InterchangeSerializer ser, us.ihmc.robotDataLogger.Synchronization data)
    {
-      data.setOffset(ser.read_type_2("offset"));
-      data.setJogRate(ser.read_type_2("jogRate"));
+      data.setOffset(ser.read_type_6("offset"));
+      data.setJogRate(ser.read_type_6("jogRate"));
    }
 
    public static void staticCopy(us.ihmc.robotDataLogger.Synchronization src, us.ihmc.robotDataLogger.Synchronization dest)

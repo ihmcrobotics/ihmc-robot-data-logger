@@ -34,8 +34,8 @@ module robotDataLogger{
 	};
 
 	struct Synchronization{
-		long offset;	// Index offset from the start of the parent log
-		long jogRate;	// Jog rate compared to the parent log
+		double offset;	// Index offset from the start of the parent log
+		double jogRate;	// Jog rate compared to the parent log
 	};
 	
 	struct Model{

@@ -8,9 +8,9 @@ import us.ihmc.pubsub.TopicDataType;
 
 public class Synchronization extends Packet<Synchronization> implements Settable<Synchronization>, EpsilonComparable<Synchronization>
 {
-   public int offset_;
+   public double offset_;
    // Index offset from the start of the parent log
-   public int jogRate_;
+   public double jogRate_;
 
    public Synchronization()
    {
@@ -30,22 +30,22 @@ public class Synchronization extends Packet<Synchronization> implements Settable
 
    }
 
-   public void setOffset(int offset)
+   public void setOffset(double offset)
    {
       offset_ = offset;
    }
-   public int getOffset()
+   public double getOffset()
    {
       return offset_;
    }
 
    // Index offset from the start of the parent log
-   public void setJogRate(int jogRate)
+   public void setJogRate(double jogRate)
    {
       jogRate_ = jogRate;
    }
    // Index offset from the start of the parent log
-   public int getJogRate()
+   public double getJogRate()
    {
       return jogRate_;
    }

@@ -15,7 +15,7 @@ public class ModelPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc.rob
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "6c047ea19b4cecc05c7d7b6070fdf170dbd43881449acfff5e0d8e2f9d14b696";
+   		return "4d659583ed2f86114f4d8637e5aa0a58d871f3b0e594626ecd6de8a8f1a14d0e";
    }
    
    @Override
