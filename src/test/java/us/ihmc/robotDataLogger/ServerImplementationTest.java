@@ -33,7 +33,7 @@ public class ServerImplementationTest
    @Test
    public void testYoVariableConnections()
    {
-      yoVariableServer.setMainRegistry(serverRegistry, null);
+      yoVariableServer.setMainRegistry(serverRegistry);
 
       // Creates a summary tests adding real and fake variables to the summary
       yoVariableServer.createSummary(new YoDouble("YoDoubleSummarize", serverRegistry));
@@ -50,7 +50,7 @@ public class ServerImplementationTest
    @Test
    public void testRegistryHolderException()
    {
-      yoVariableServer.setMainRegistry(serverRegistry, null);
+      yoVariableServer.setMainRegistry(serverRegistry);
       yoVariableServer.start();
 
       // This test is intentionally starting the server after its already been started, should throw an exception
@@ -65,7 +65,7 @@ public class ServerImplementationTest
    @Test
    public void testStartServerConditions()
    {
-      yoVariableServer.setMainRegistry(serverRegistry, null);
+      yoVariableServer.setMainRegistry(serverRegistry);
       yoVariableServer.start();
 
       // This test is intentionally start the server after its already been started, checking if the exception  will trigger
@@ -96,12 +96,12 @@ public class ServerImplementationTest
          assertEquals("Main registry is not set. Set main registry first", thrown.getMessage());
       }
 
-      yoVariableServer.setMainRegistry(serverRegistry, null);
+      yoVariableServer.setMainRegistry(serverRegistry);
 
       // Tries to set a main registry for a server that already has a main registry, this is designed to fail
       for (int i = 0; i < 3; i++)
       {
-         Throwable thrown = assertThrows(RuntimeException.class, () -> yoVariableServer.setMainRegistry(serverRegistry, null));
+         Throwable thrown = assertThrows(RuntimeException.class, () -> yoVariableServer.setMainRegistry(serverRegistry));
          assertEquals("Main registry is already set", thrown.getMessage());
       }
    }

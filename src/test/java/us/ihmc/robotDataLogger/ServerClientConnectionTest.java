@@ -55,7 +55,7 @@ public class ServerClientConnectionTest
 
       // Creates the server and adds the main registry to the server with all the YoVariables, the server is then started
       yoVariableServer = new YoVariableServer("TestServer", null, logSettings, dt);
-      yoVariableServer.setMainRegistry(serverRegistry, null);
+      yoVariableServer.setMainRegistry(serverRegistry);
       yoVariableServer.start();
 
       // Creates the client and adds the listener to the client, then the client is started as well
@@ -107,7 +107,7 @@ public class ServerClientConnectionTest
 
       // Creates the server and adds the main registry to the server with all the YoVariables, the server is then started
       yoVariableServer = new YoVariableServer("TestServer", null, logSettings, dt);
-      yoVariableServer.setMainRegistry(serverRegistry, null);
+      yoVariableServer.setMainRegistry(serverRegistry);
       yoVariableServer.start();
 
       // Creates the client and adds the listener to the client, then the client is started as well

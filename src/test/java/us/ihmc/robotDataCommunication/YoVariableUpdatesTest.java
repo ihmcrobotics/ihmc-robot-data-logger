@@ -63,7 +63,7 @@ public class YoVariableUpdatesTest
       parameterReader = new XmlParameterReader(getClass().getResourceAsStream("TestParameters.xml"));
 
       // Sets the main registry for the server, and adds a JVMStatisticsGenerator to the server
-      server.setMainRegistry(registry, null);
+      server.setMainRegistry(registry);
       jvmStatisticsGenerator = new JVMStatisticsGenerator(server);
 
       // Creates a list on the server that will store the variables added to it, this appears to be for viewing purposes as the only

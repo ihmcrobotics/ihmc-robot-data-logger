@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.robotDataLogger.RobotVisualizer;
@@ -24,49 +23,41 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
 
    private final LoggerDebugRegistry loggerDebugRegistry;
 
-   private final YoGraphicsListRegistry scs1Graphics;
    private final YoGraphicGroupDefinition scs2Graphics;
 
    private int registryID = -1;
 
    public RegistrySendBufferBuilder(YoRegistry registry)
    {
-      this(registry, Collections.emptyList(), null);
+      this(registry, Collections.emptyList());
    }
 
-   public RegistrySendBufferBuilder(YoRegistry registry, YoGraphicsListRegistry scs1Graphics)
+   public RegistrySendBufferBuilder(YoRegistry registry, YoGraphicGroupDefinition scs2Graphics)
    {
-      this(registry, Collections.emptyList(), scs1Graphics);
+      this(registry, Collections.emptyList(), scs2Graphics);
    }
 
-   public RegistrySendBufferBuilder(YoRegistry registry, YoGraphicsListRegistry scs1Graphics, YoGraphicGroupDefinition scs2Graphics)
+   public RegistrySendBufferBuilder(YoRegistry registry, RigidBodyBasics rootBody)
    {
-      this(registry, Collections.emptyList(), scs1Graphics, scs2Graphics);
+      this(registry, RobotVisualizer.collectJoints(rootBody));
    }
 
-   public RegistrySendBufferBuilder(YoRegistry registry, RigidBodyBasics rootBody, YoGraphicsListRegistry scs1Graphics)
+   public RegistrySendBufferBuilder(YoRegistry registry, RigidBodyBasics rootBody,  YoGraphicGroupDefinition scs2Graphics)
    {
-      this(registry, RobotVisualizer.collectJoints(rootBody), scs1Graphics);
+      this(registry, RobotVisualizer.collectJoints(rootBody), scs2Graphics);
    }
 
-   public RegistrySendBufferBuilder(YoRegistry registry, RigidBodyBasics rootBody, YoGraphicsListRegistry scs1Graphics, YoGraphicGroupDefinition scs2Graphics)
+   public RegistrySendBufferBuilder(YoRegistry registry, List<? extends JointBasics> jointsToPublish)
    {
-      this(registry, RobotVisualizer.collectJoints(rootBody), scs1Graphics, scs2Graphics);
-   }
-
-   public RegistrySendBufferBuilder(YoRegistry registry, List<? extends JointBasics> jointsToPublish, YoGraphicsListRegistry scs1Graphics)
-   {
-      this(registry, jointsToPublish, scs1Graphics, null);
+      this(registry, jointsToPublish, null);
    }
 
    public RegistrySendBufferBuilder(YoRegistry registry,
                                     List<? extends JointBasics> jointsToPublish,
-                                    YoGraphicsListRegistry scs1Graphics,
                                     YoGraphicGroupDefinition scs2Graphics)
    {
       this.registry = registry;
       this.jointsToPublish = jointsToPublish;
-      this.scs1Graphics = scs1Graphics;
       this.scs2Graphics = scs2Graphics;
 
       loggerDebugRegistry = new LoggerDebugRegistry(registry);
@@ -99,11 +90,6 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
    public List<JointHolder> getJointHolders()
    {
       return jointHolders;
-   }
-
-   public YoGraphicsListRegistry getSCS1YoGraphics()
-   {
-      return scs1Graphics;
    }
 
    public YoGraphicGroupDefinition getSCS2YoGraphics()
