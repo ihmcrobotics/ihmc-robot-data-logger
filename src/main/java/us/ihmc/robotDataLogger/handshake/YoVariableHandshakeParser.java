@@ -1,14 +1,5 @@
 package us.ihmc.robotDataLogger.handshake;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphicsDescription.yoGraphics.RemoteYoGraphic;
-import us.ihmc.graphicsDescription.yoGraphics.RemoteYoGraphicFactory;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.HandshakeFileType;
 import us.ihmc.robotDataLogger.jointState.JointState;
@@ -17,9 +8,13 @@ import us.ihmc.yoVariables.euclid.referenceFrame.interfaces.FrameIndexMap;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public abstract class YoVariableHandshakeParser
 {
-   private final RemoteYoGraphicFactory yoGraphicFactory = new RemoteYoGraphicFactory();
 
    @SuppressWarnings("deprecation")
    public static YoVariableHandshakeParser create(HandshakeFileType type)
@@ -49,7 +44,6 @@ public abstract class YoVariableHandshakeParser
       return parser.getNumberOfStates();
    }
 
-   protected final YoGraphicsListRegistry scs1YoGraphics = new YoGraphicsListRegistry();
    protected List<YoGraphicGroupDefinition> scs2YoGraphics;
    protected final ArrayList<JointState> jointStates = new ArrayList<>();
    protected double dt;
@@ -93,11 +87,6 @@ public abstract class YoVariableHandshakeParser
       return Collections.unmodifiableList(variables);
    }
 
-   public YoGraphicsListRegistry getSCS1YoGraphics()
-   {
-      return scs1YoGraphics;
-   }
-
    public List<YoGraphicGroupDefinition> getSCS2YoGraphics()
    {
       return scs2YoGraphics;
@@ -128,10 +117,4 @@ public abstract class YoVariableHandshakeParser
    {
       return numberOfJointStateVariables;
    }
-
-   protected RemoteYoGraphic yoGraphicFromMessage(int registrationID, String name, YoVariable[] vars, double[] consts, AppearanceDefinition appearance)
-   {
-      return yoGraphicFactory.yoGraphicFromMessage(registrationID, name, vars, consts, appearance);
-   }
-
 }

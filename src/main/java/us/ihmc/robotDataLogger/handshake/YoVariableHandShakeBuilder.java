@@ -1,32 +1,15 @@
 package us.ihmc.robotDataLogger.handshake;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-
 import gnu.trove.map.hash.TObjectIntHashMap;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
-import us.ihmc.graphicsDescription.plotting.artifact.Artifact;
-import us.ihmc.graphicsDescription.yoGraphics.RemoteYoGraphic;
-import us.ihmc.graphicsDescription.yoGraphics.RemoteYoGraphicFactory;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphic;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.graphicsDescription.yoGraphics.plotting.ArtifactList;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.EnumType;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.JointDefinition;
 import us.ihmc.robotDataLogger.LoadStatus;
 import us.ihmc.robotDataLogger.ReferenceFrameInformation;
-import us.ihmc.robotDataLogger.SCS1AppearanceDefinitionMessage;
-import us.ihmc.robotDataLogger.SCS1YoGraphicObjectMessage;
 import us.ihmc.robotDataLogger.SCS2YoGraphicDefinitionMessage;
 import us.ihmc.robotDataLogger.YoRegistryDefinition;
 import us.ihmc.robotDataLogger.YoType;
@@ -42,9 +25,14 @@ import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.yoVariables.variable.YoVariable;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
 public class YoVariableHandShakeBuilder
 {
-   private final RemoteYoGraphicFactory yoGraphicFactory = new RemoteYoGraphicFactory();
    private final Handshake handshake = new Handshake();
    private final ArrayList<JointHolder> jointHolders = new ArrayList<>();
    private final TObjectIntHashMap<YoVariable> yoVariableIndices = new TObjectIntHashMap<>();
@@ -60,69 +48,6 @@ public class YoVariableHandShakeBuilder
 
       handshake.setDt(dt);
 
-   }
-
-   private void addSCS1YoGraphicObjects(YoGraphicsListRegistry yoGraphicsListRegistry)
-   {
-      if (yoGraphicsListRegistry == null)
-         return;
-
-      ArrayList<YoGraphicsList> yoGraphicsLists = new ArrayList<>();
-      yoGraphicsListRegistry.getRegisteredYoGraphicsLists(yoGraphicsLists);
-      for (YoGraphicsList yoGraphicsList : yoGraphicsLists)
-      {
-         for (YoGraphic yoGraphic : yoGraphicsList.getYoGraphics())
-         {
-            if (yoGraphic instanceof RemoteYoGraphic)
-            {
-               if (handshake.getGraphicObjects().remaining() == 0)
-               {
-                  throw new RuntimeException("The number of YoGraphics exceeds the maximum amount for the logger (" + handshake.getGraphicObjects().capacity()
-                        + ")");
-               }
-
-               if (verifyDynamicGraphicObject((RemoteYoGraphic) yoGraphic))
-               {
-                  SCS1YoGraphicObjectMessage msg = handshake.getGraphicObjects().add();
-                  msg.setListName(yoGraphicsList.getLabel());
-                  messageFromDynamicGraphicObject((RemoteYoGraphic) yoGraphic, msg);
-               }
-
-            }
-            else
-            {
-               System.err.println("Remote DGO not supported:  " + yoGraphic.getClass().getSimpleName());
-            }
-         }
-      }
-
-      ArrayList<ArtifactList> artifactLists = new ArrayList<>();
-      yoGraphicsListRegistry.getRegisteredArtifactLists(artifactLists);
-
-      for (ArtifactList artifactList : artifactLists)
-      {
-         for (Artifact artifact : artifactList.getArtifacts())
-         {
-
-            if (artifact instanceof RemoteYoGraphic)
-            {
-               if (handshake.getArtifacts().remaining() == 0)
-               {
-                  throw new RuntimeException("The number of Artifacts exceeds the maximum amount for the logger (" + handshake.getArtifacts().capacity() + ")");
-               }
-
-               if (verifyDynamicGraphicObject((RemoteYoGraphic) artifact))
-               {
-                  SCS1YoGraphicObjectMessage msg = handshake.getArtifacts().add();
-                  messageFromDynamicGraphicObject((RemoteYoGraphic) artifact, msg);
-               }
-            }
-            else
-            {
-               System.err.println("Remote artifact not supported: " + artifact.getClass().getSimpleName());
-            }
-         }
-      }
    }
 
    private void addSCS2YoGraphicDefinition(YoGraphicGroupDefinition rootDefinition)
@@ -177,7 +102,6 @@ public class YoVariableHandShakeBuilder
       YoRegistry registry = builder.getYoRegistry();
 
       int registryID = addRegistry(0, registry, builder.getVariables(), registry);
-      addSCS1YoGraphicObjects(builder.getSCS1YoGraphics());
       addSCS2YoGraphicDefinition(builder.getSCS2YoGraphics());
 
       builder.build(registryID);
@@ -351,63 +275,6 @@ public class YoVariableHandShakeBuilder
          yoVariableIndices.put(variable, variablesAndRootRegistries.size() - 1);
 
       }
-   }
-
-   private boolean verifyDynamicGraphicObject(RemoteYoGraphic remoteYoGraphic)
-   {
-      for (YoVariable yoVariable : remoteYoGraphic.getVariables())
-      {
-         if (!yoVariableIndices.containsKey(yoVariable))
-         {
-            LogTools.error("Backing YoRegistry not added for {}, variable: {}. Disabling visualizer for {}.",
-                           remoteYoGraphic.getName(),
-                           yoVariable,
-                           remoteYoGraphic.getName());
-            return false;
-         }
-      }
-
-      return true;
-   }
-
-   private void messageFromDynamicGraphicObject(RemoteYoGraphic obj, SCS1YoGraphicObjectMessage objectMessage)
-   {
-      objectMessage.setRegistrationID(yoGraphicFactory.getRegistrationID(obj.getClass()));
-      objectMessage.setName(obj.getName());
-
-      try
-      {
-         SCS1AppearanceDefinitionMessage appearanceMessage = objectMessage.getAppearance();
-         appearanceMessage.setR(obj.getAppearance().getColor().getX());
-         appearanceMessage.setG(obj.getAppearance().getColor().getY());
-         appearanceMessage.setB(obj.getAppearance().getColor().getZ());
-         appearanceMessage.setTransparency(obj.getAppearance().getTransparency());
-      }
-      catch (NotImplementedException e)
-      {
-         System.err.println(e.getMessage());
-      }
-
-      if (obj.getVariables().length > objectMessage.getYoVariableIndex().capacity())
-      {
-         throw new RuntimeException(obj.getName() + " has too many variables. It has " + obj.getVariables().length + " variables");
-      }
-
-      for (YoVariable yoVar : obj.getVariables())
-      {
-         if (!yoVariableIndices.containsKey(yoVar))
-         {
-            throw new RuntimeException("Backing YoRegistry not added for " + obj.getName() + ", variable: " + yoVar);
-         }
-         int index = yoVariableIndices.get(yoVar);
-         objectMessage.getYoVariableIndex().add((short) index);
-      }
-
-      for (double d : obj.getConstants())
-      {
-         objectMessage.getConstants().add(d);
-      }
-
    }
 
    public int getNumberOfVariables()

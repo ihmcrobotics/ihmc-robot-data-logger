@@ -3,7 +3,6 @@ package us.ihmc.robotDataLogger;
 import java.util.Collections;
 import java.util.List;
 
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
@@ -15,42 +14,41 @@ public interface RobotVisualizer
 
    void update(long timestamp, YoRegistry registry);
 
-   default void setMainRegistry(YoRegistry registry, YoGraphicsListRegistry scs1YoGraphics)
+   default void setMainRegistry(YoRegistry registry)
    {
-      setMainRegistry(registry, Collections.emptyList(), scs1YoGraphics, null);
+      setMainRegistry(registry, Collections.emptyList(), null);
    }
 
-   default void setMainRegistry(YoRegistry registry, YoGraphicsListRegistry scs1YoGraphics, YoGraphicGroupDefinition scs2YoGraphics)
+   default void setMainRegistry(YoRegistry registry, YoGraphicGroupDefinition scs2YoGraphics)
    {
-      setMainRegistry(registry, Collections.emptyList(), scs1YoGraphics, scs2YoGraphics);
+      setMainRegistry(registry, Collections.emptyList(), scs2YoGraphics);
    }
 
-   default void setMainRegistry(YoRegistry registry, RigidBodyBasics rootBody, YoGraphicsListRegistry scs1YoGraphics)
+   default void setMainRegistry(YoRegistry registry, RigidBodyBasics rootBody)
    {
-      setMainRegistry(registry, collectJoints(rootBody), scs1YoGraphics, null);
+      setMainRegistry(registry, collectJoints(rootBody), null);
    }
 
-   default void setMainRegistry(YoRegistry registry, RigidBodyBasics rootBody, YoGraphicsListRegistry scs1YoGraphics, YoGraphicGroupDefinition scs2YoGraphics)
+   default void setMainRegistry(YoRegistry registry, RigidBodyBasics rootBody, YoGraphicGroupDefinition scs2YoGraphics)
    {
-      setMainRegistry(registry, collectJoints(rootBody), scs1YoGraphics, scs2YoGraphics);
+      setMainRegistry(registry, collectJoints(rootBody), scs2YoGraphics);
    }
 
-   default void setMainRegistry(YoRegistry registry, List<? extends JointBasics> jointsToPublish, YoGraphicsListRegistry scs1YoGraphics)
+   default void setMainRegistry(YoRegistry registry, List<? extends JointBasics> jointsToPublish)
    {
-      setMainRegistry(registry, jointsToPublish, scs1YoGraphics, null);
+      setMainRegistry(registry, jointsToPublish, null);
    }
 
    void setMainRegistry(YoRegistry registry,
                         List<? extends JointBasics> jointsToPublish,
-                        YoGraphicsListRegistry scs1YoGraphics,
                         YoGraphicGroupDefinition scs2YoGraphics);
 
-   default void addRegistry(YoRegistry registry, YoGraphicsListRegistry scs1YoGraphics)
+   default void addRegistry(YoRegistry registry)
    {
-      addRegistry(registry, scs1YoGraphics, null);
+      addRegistry(registry,null);
    }
 
-   void addRegistry(YoRegistry registry, YoGraphicsListRegistry scs1YoGraphics, YoGraphicGroupDefinition scs2YoGraphics);
+   void addRegistry(YoRegistry registry, YoGraphicGroupDefinition scs2YoGraphics);
 
    void close();
 

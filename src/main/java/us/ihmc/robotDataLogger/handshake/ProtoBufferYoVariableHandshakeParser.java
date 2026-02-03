@@ -1,28 +1,9 @@
 package us.ihmc.robotDataLogger.handshake;
 
-import java.awt.Color;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-import org.apache.commons.lang3.ArrayUtils;
-
 import com.google.protobuf.InvalidProtocolBufferException;
-
-import us.ihmc.commons.PrintTools;
-import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
-import us.ihmc.graphicsDescription.color.MutableColor;
-import us.ihmc.graphicsDescription.plotting.artifact.Artifact;
-import us.ihmc.graphicsDescription.yoGraphics.RemoteYoGraphic;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphic;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphicsDescription.yoGraphics.plotting.ArtifactList;
 import us.ihmc.robotDataLogger.Handshake;
 import us.ihmc.robotDataLogger.JointType;
 import us.ihmc.robotDataLogger.handshake.generated.YoProtoHandshakeProto.YoProtoHandshake;
-import us.ihmc.robotDataLogger.handshake.generated.YoProtoHandshakeProto.YoProtoHandshake.DynamicGraphicMessage;
 import us.ihmc.robotDataLogger.handshake.generated.YoProtoHandshakeProto.YoProtoHandshake.JointDefinition;
 import us.ihmc.robotDataLogger.handshake.generated.YoProtoHandshakeProto.YoProtoHandshake.YoRegistryDefinition;
 import us.ihmc.robotDataLogger.handshake.generated.YoProtoHandshakeProto.YoProtoHandshake.YoVariableDefinition;
@@ -35,8 +16,12 @@ import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.yoVariables.variable.YoVariable;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Depracated class to support legacy log files that still contain a description based on a
+ * Deprecated class to support legacy log files that still contain a description based on a
  * protobuffer handshake
  *
  * @author jesper
@@ -93,7 +78,6 @@ public class ProtoBufferYoVariableHandshakeParser extends YoVariableHandshakePar
       variables.addAll(vars);
 
       addJointStates(yoProtoHandshake);
-      addGraphicObjects(yoProtoHandshake);
 
       int numberOfVariables = yoProtoHandshake.getVariableCount();
       int numberOfJointStateVariables = getNumberOfJointStateVariables(yoProtoHandshake);
@@ -186,83 +170,6 @@ public class ProtoBufferYoVariableHandshakeParser extends YoVariableHandshakePar
          JointDefinition joint = yoProtoHandshake.getJoint(i);
          jointStates.add(JointState.createJointState(joint.getName(), convertJointType(joint.getType())));
       }
-   }
-
-   private void addGraphicObjects(YoProtoHandshake yoProtoHandshake)
-   {
-      HashMap<String, YoGraphicsList> dgoListMap = new HashMap<>();
-      String listName;
-      YoGraphicsList dgoList;
-      for (int i = 0; i < yoProtoHandshake.getGraphicObjectCount(); i++)
-      {
-         listName = "default";
-         if (yoProtoHandshake.getGraphicObject(i).hasListName())
-         {
-            if (!yoProtoHandshake.getGraphicObject(i).getListName().isEmpty())
-               listName = yoProtoHandshake.getGraphicObject(i).getListName();
-         }
-
-         if (dgoListMap.containsKey(listName))
-         {
-            dgoList = dgoListMap.get(listName);
-         }
-         else
-         {
-            dgoList = new YoGraphicsList(listName);
-            dgoListMap.put(listName, dgoList);
-         }
-
-         try
-         {
-            dgoList.add((YoGraphic) getRemoteGraphic(yoProtoHandshake.getGraphicObject(i)));
-         }
-         catch (Exception e)
-         {
-            PrintTools.error(this, "Got exception: " + e.getClass().getSimpleName() + " when loading a YoGraphic.");
-         }
-      }
-
-      for (String list : dgoListMap.keySet())
-      {
-         scs1YoGraphics.registerYoGraphicsList(dgoListMap.get(list));
-      }
-
-      ArtifactList artifactList = new ArtifactList("remote");
-      for (int i = 0; i < yoProtoHandshake.getArtifactCount(); i++)
-      {
-         try
-         {
-            artifactList.add((Artifact) getRemoteGraphic(yoProtoHandshake.getArtifact(i)));
-         }
-         catch (Exception e)
-         {
-            PrintTools.error(this, "Got exception: " + e.getClass().getSimpleName() + " when loading a Artifact.");
-         }
-      }
-      scs1YoGraphics.registerArtifactList(artifactList);
-   }
-
-   private RemoteYoGraphic getRemoteGraphic(DynamicGraphicMessage msg)
-   {
-      int registrationID = msg.getType();
-
-      String name = msg.getName();
-      YoVariable[] vars = new YoVariable[msg.getYoIndexCount()];
-      for (int v = 0; v < vars.length; v++)
-         vars[v] = variables.get(msg.getYoIndex(v));
-
-      double[] consts = ArrayUtils.toPrimitive(msg.getConstantList().toArray(new Double[msg.getConstantCount()]));
-
-      AppearanceDefinition appearance = new YoAppearanceRGBColor(Color.red, 0.0);
-      if (msg.hasAppearance())
-      {
-         appearance = new YoAppearanceRGBColor(new MutableColor((float) msg.getAppearance().getX(),
-                                                                (float) msg.getAppearance().getY(),
-                                                                (float) msg.getAppearance().getZ()),
-                                               msg.getAppearance().getTransparency());
-      }
-
-      return yoGraphicFromMessage(registrationID, name, vars, consts, appearance);
    }
 
    @Override
