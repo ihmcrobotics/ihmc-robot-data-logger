@@ -43,7 +43,7 @@ mainDependencies {
    api("us.ihmc:ihmc-pub-sub-serializers-extra:1.2.1")
    api("us.ihmc:ihmc-commons:0.35.1")
    api("us.ihmc:ihmc-graphics-description:0.26.2")
-   api("us.ihmc:mecano:17-0.19.2")
+   api("us.ihmc:mecano:17-0.19.3")
    api("com.hierynomus:sshj:0.31.0")
 
    val openblasVersion = "0.3.28-1.5.11"
