@@ -79,6 +79,11 @@ public class SnappyUtils
     */
    public static void uncompress(ByteBuffer input, ByteBuffer output) throws IllegalArgumentException, IOException
    {
+      uncompress(snappyLibrary, input, output);
+   }
+
+   public static void uncompress(SnappyLibrary snappyLibrary, ByteBuffer input, ByteBuffer output) throws IllegalArgumentException, IOException
+   {
       byte[] in;
       int inOffset, inLength;
       if (!input.hasArray())

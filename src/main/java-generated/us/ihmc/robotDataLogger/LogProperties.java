@@ -19,6 +19,8 @@ public class LogProperties extends Packet<LogProperties> implements Settable<Log
    public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.Camera>  cameras_;
    // Backward compatibility options
    public us.ihmc.robotDataLogger.Video video_;
+   // Old timebase option
+   public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.ChildLog>  childLogs_;
 
    public LogProperties()
    {
@@ -29,6 +31,7 @@ public class LogProperties extends Packet<LogProperties> implements Settable<Log
       timestamp_ = new java.lang.StringBuilder(255);
       cameras_ = new us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.Camera> (255, new us.ihmc.robotDataLogger.CameraPubSubType());
       video_ = new us.ihmc.robotDataLogger.Video();
+      childLogs_ = new us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.ChildLog> (255, new us.ihmc.robotDataLogger.ChildLogPubSubType());
 
    }
 
@@ -53,6 +56,7 @@ public class LogProperties extends Packet<LogProperties> implements Settable<Log
 
       cameras_.set(other.cameras_);
       us.ihmc.robotDataLogger.VideoPubSubType.staticCopy(other.video_, video_);
+      childLogs_.set(other.childLogs_);
    }
 
    public void setVersion(java.lang.String version)
@@ -131,6 +135,13 @@ public class LogProperties extends Packet<LogProperties> implements Settable<Log
    }
 
 
+   // Old timebase option
+   public us.ihmc.idl.IDLSequence.Object<us.ihmc.robotDataLogger.ChildLog>  getChildLogs()
+   {
+      return childLogs_;
+   }
+
+
    public static Supplier<LogPropertiesPubSubType> getPubSubType()
    {
       return LogPropertiesPubSubType::new;
@@ -164,6 +175,13 @@ public class LogProperties extends Packet<LogProperties> implements Settable<Log
       }
 
       if (!this.video_.epsilonEquals(other.video_, epsilon)) return false;
+      if (this.childLogs_.size() != other.childLogs_.size()) { return false; }
+      else
+      {
+         for (int i = 0; i < this.childLogs_.size(); i++)
+         {  if (!this.childLogs_.get(i).epsilonEquals(other.childLogs_.get(i), epsilon)) return false; }
+      }
+
 
       return true;
    }
@@ -187,6 +205,7 @@ public class LogProperties extends Packet<LogProperties> implements Settable<Log
 
       if (!this.cameras_.equals(otherMyClass.cameras_)) return false;
       if (!this.video_.equals(otherMyClass.video_)) return false;
+      if (!this.childLogs_.equals(otherMyClass.childLogs_)) return false;
 
       return true;
    }
@@ -210,7 +229,9 @@ public class LogProperties extends Packet<LogProperties> implements Settable<Log
       builder.append("cameras=");
       builder.append(this.cameras_);      builder.append(", ");
       builder.append("video=");
-      builder.append(this.video_);
+      builder.append(this.video_);      builder.append(", ");
+      builder.append("childLogs=");
+      builder.append(this.childLogs_);
       builder.append("}");
       return builder.toString();
    }
