@@ -9,7 +9,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.concurrent.ConcurrentRingBuffer;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.multicastLogDataProtocol.modelLoaders.LogModelProvider;
 import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataPublisherType;
@@ -60,46 +59,6 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    private final LogWatcher logWatcher = new LogWatcher();
    
    private BufferListenerInterface bufferListener = null;
-
-   @Deprecated
-   /**
-    * A thread scheduler is not necessary anymore. This function is left in for backwards
-    * compatibility.
-    *
-    * @param mainClazz
-    * @param schedulerFactory
-    * @param logModelProvider
-    * @param dataServerSettings
-    * @param dt
-    */
-   public YoVariableServer(Class<?> mainClazz,
-                           PeriodicThreadSchedulerFactory schedulerFactory,
-                           LogModelProvider logModelProvider,
-                           DataServerSettings dataServerSettings,
-                           double dt)
-   {
-      this(mainClazz, logModelProvider, dataServerSettings, dt);
-   }
-
-   @Deprecated
-   /**
-    * A thread scheduler is not necessary anymore. This function is left in for backwards
-    * compatibility.
-    *
-    * @param mainClazz
-    * @param schedulerFactory
-    * @param logModelProvider
-    * @param dataServerSettings
-    * @param dt
-    */
-   public YoVariableServer(String mainClazz,
-                           PeriodicThreadSchedulerFactory schedulerFactory,
-                           LogModelProvider logModelProvider,
-                           DataServerSettings dataServerSettings,
-                           double dt)
-   {
-      this(mainClazz, logModelProvider, dataServerSettings, dt);
-   }
 
    /**
     * Create a YoVariable server with mainClazz.getSimpleName(). For example, see other constructor.
@@ -344,27 +303,24 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    }
 
    @Override
-   public void addRegistry(YoRegistry registry, YoGraphicsListRegistry scs1YoGraphics, YoGraphicGroupDefinition scs2YoGraphics)
+   public void addRegistry(YoRegistry registry, YoGraphicGroupDefinition scs2YoGraphics)
    {
       if (mainRegistry == null)
       {
          throw new RuntimeException("Main registry is not set. Set main registry first");
       }
 
-      registeredBuffers.add(new RegistrySendBufferBuilder(registry, scs1YoGraphics, scs2YoGraphics));
+      registeredBuffers.add(new RegistrySendBufferBuilder(registry, scs2YoGraphics));
    }
 
    @Override
-   public void setMainRegistry(YoRegistry registry,
-                               List<? extends JointBasics> jointsToPublish,
-                               YoGraphicsListRegistry scs1YoGraphics,
-                               YoGraphicGroupDefinition scs2YoGraphics)
+   public void setMainRegistry(YoRegistry registry, List<? extends JointBasics> jointsToPublish, YoGraphicGroupDefinition scs2YoGraphics)
    {
       if (mainRegistry != null)
       {
          throw new RuntimeException("Main registry is already set");
       }
-      registeredBuffers.add(new RegistrySendBufferBuilder(registry, jointsToPublish, scs1YoGraphics, scs2YoGraphics));
+      registeredBuffers.add(new RegistrySendBufferBuilder(registry, jointsToPublish, scs2YoGraphics));
       mainRegistry = registry;
    }
 

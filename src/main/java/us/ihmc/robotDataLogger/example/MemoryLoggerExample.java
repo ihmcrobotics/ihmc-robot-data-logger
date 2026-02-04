@@ -63,7 +63,7 @@ public class MemoryLoggerExample
 
       server.addBufferListener(new CircularMemoryLogger(new File("/tmp"), 60 * 1000));
       
-      server.setMainRegistry(registry, null);
+      server.setMainRegistry(registry);
       jvmStatisticsGenerator = new JVMStatisticsGenerator(server);
 
       server.createSummary("tester.startVariableSummary");

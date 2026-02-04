@@ -44,7 +44,7 @@ public class ClientImplementationTest
    public void testClientBadHostException()
    {
       // Adds the main registry to the server with all the YoVariables, the server is then started
-      yoVariableServer.setMainRegistry(serverRegistry, null);
+      yoVariableServer.setMainRegistry(serverRegistry);
       yoVariableServer.start();
 
       // Creates the client and adds the listener to the client
@@ -61,7 +61,7 @@ public class ClientImplementationTest
    public void testClientBadConnectionException() throws IOException
    {
       // Adds the main registry to the server with all the YoVariables, the server is then started
-      yoVariableServer.setMainRegistry(serverRegistry, null);
+      yoVariableServer.setMainRegistry(serverRegistry);
       yoVariableServer.start();
 
       // Creates the client and adds the listener to the client
@@ -88,7 +88,7 @@ public class ClientImplementationTest
    {
       // Creates the server and adds the main registry to the server with all the YoVariables, the server is then started
       yoVariableServer = new YoVariableServer("TestServer", null, logSettings, dt);
-      yoVariableServer.setMainRegistry(serverRegistry, null);
+      yoVariableServer.setMainRegistry(serverRegistry);
       yoVariableServer.start();
 
       // Creates the client and adds the listener to the client, starts both clients, and connects the first one to the localhost

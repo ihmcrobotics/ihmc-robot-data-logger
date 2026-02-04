@@ -37,13 +37,14 @@ mainDependencies {
 
    api("us.ihmc:euclid:0.22.5")
    api("us.ihmc:ihmc-video-codecs:2.1.6")
-   api("us.ihmc:ihmc-realtime:1.7.0")
+   api("us.ihmc:ihmc-realtime:1.7.1")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
    api("us.ihmc:ros2-library:1.2.1")
    api("us.ihmc:ihmc-pub-sub-serializers-extra:1.2.1")
    api("us.ihmc:ihmc-commons:0.35.1")
-   api("us.ihmc:ihmc-graphics-description:0.26.2")
-   api("us.ihmc:mecano:17-0.19.2")
+   api("us.ihmc:ihmc-yovariables:0.13.7")
+   api("us.ihmc:scs2-definition:17-0.31.3")
+   api("us.ihmc:mecano:17-0.19.3")
    api("com.hierynomus:sshj:0.31.0")
 
    val openblasVersion = "0.3.28-1.5.11"

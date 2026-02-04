@@ -17,14 +17,6 @@ import gnu.trove.map.hash.TObjectLongHashMap;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
-import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
-import us.ihmc.graphicsDescription.color.MutableColor;
-import us.ihmc.graphicsDescription.plotting.artifact.Artifact;
-import us.ihmc.graphicsDescription.yoGraphics.RemoteYoGraphic;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphic;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphicsDescription.yoGraphics.plotting.ArtifactList;
 import us.ihmc.idl.IDLSequence.Object;
 import us.ihmc.idl.serializers.extra.AbstractSerializer;
 import us.ihmc.idl.serializers.extra.YAMLSerializer;
@@ -126,7 +118,6 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
       variables.addAll(vars);
 
       addJointStates(handshake);
-      addGraphicObjects(handshake);
       scs2YoGraphics = parseSCS2YoGraphics(handshake);
       frameIndexMap = parseReferenceFrames(handshake);
 
@@ -303,78 +294,6 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
          JointDefinition joint = handshake.getJoints().get(i);
          jointStates.add(JointState.createJointState(joint.getNameAsString(), joint.getType()));
       }
-   }
-
-   private void addGraphicObjects(Handshake yoProtoHandshake)
-   {
-      HashMap<String, YoGraphicsList> dgoListMap = new HashMap<>();
-      String listName;
-      YoGraphicsList dgoList;
-      for (int i = 0; i < yoProtoHandshake.getGraphicObjects().size(); i++)
-      {
-         listName = "default";
-         if (!yoProtoHandshake.getGraphicObjects().get(i).getListNameAsString().isEmpty())
-         {
-            listName = yoProtoHandshake.getGraphicObjects().get(i).getListNameAsString();
-         }
-
-         if (dgoListMap.containsKey(listName))
-         {
-            dgoList = dgoListMap.get(listName);
-         }
-         else
-         {
-            dgoList = new YoGraphicsList(listName);
-            dgoListMap.put(listName, dgoList);
-         }
-
-         try
-         {
-            dgoList.add((YoGraphic) getRemoteGraphic(yoProtoHandshake.getGraphicObjects().get(i)));
-         }
-         catch (Exception e)
-         {
-            LogTools.error("Got exception: " + e.getClass().getSimpleName() + " when loading a YoGraphic: " + e.getMessage());
-         }
-      }
-
-      for (String list : dgoListMap.keySet())
-      {
-         scs1YoGraphics.registerYoGraphicsList(dgoListMap.get(list));
-      }
-
-      ArtifactList artifactList = new ArtifactList("remote");
-      for (int i = 0; i < yoProtoHandshake.getArtifacts().size(); i++)
-      {
-         try
-         {
-            artifactList.add((Artifact) getRemoteGraphic(yoProtoHandshake.getArtifacts().get(i)));
-         }
-         catch (Exception e)
-         {
-            LogTools.error("Got exception: " + e.getClass().getSimpleName() + " when loading a Artifact: " + e.getMessage());
-         }
-      }
-      scs1YoGraphics.registerArtifactList(artifactList);
-   }
-
-   private RemoteYoGraphic getRemoteGraphic(SCS1YoGraphicObjectMessage graphicObjectMessage)
-   {
-      int registrationID = graphicObjectMessage.getRegistrationID();
-
-      String name = graphicObjectMessage.getNameAsString();
-      YoVariable[] vars = new YoVariable[graphicObjectMessage.getYoVariableIndex().size()];
-      for (int v = 0; v < vars.length; v++)
-         vars[v] = variables.get(graphicObjectMessage.getYoVariableIndex().get(v));
-
-      double[] consts = graphicObjectMessage.getConstants().toArray();
-
-      AppearanceDefinition appearance = new YoAppearanceRGBColor(new MutableColor((float) graphicObjectMessage.getAppearance().getR(),
-                                                                                  (float) graphicObjectMessage.getAppearance().getG(),
-                                                                                  (float) graphicObjectMessage.getAppearance().getB()),
-                                                                 graphicObjectMessage.getAppearance().getTransparency());
-
-      return yoGraphicFromMessage(registrationID, name, vars, consts, appearance);
    }
 
    private static List<YoGraphicGroupDefinition> parseSCS2YoGraphics(Handshake handshake)
