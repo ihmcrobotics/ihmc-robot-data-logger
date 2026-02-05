@@ -168,14 +168,7 @@ public abstract class AbstractSerializer<T>
 
    private Object serializeAndCatch(T data) throws IOException
    {
-      try
-      {
-         return serialize(data);
-      }
-      catch (UnsupportedFeatureException e)
-      {
-         throw new IOException(e);
-      }
+      return serialize(data);
    }
 
    /**
@@ -309,14 +302,7 @@ public abstract class AbstractSerializer<T>
    {
       if (root != null)
       {
-         try
-         {
-            return deserialize(root);
-         }
-         catch (UnsupportedFeatureException e)
-         {
-            throw new IOException(e);
-         }
+         return deserialize(root);
       }
       else
       {

@@ -208,7 +208,7 @@ class JacksonInterchangeSerializer implements InterchangeSerializer
    {
       if(!supportsArrays)
       {
-         throw new UnsupportedFeatureException("This serializer does not support arrays and sequences");
+         throw new RuntimeException("This serializer does not support arrays and sequences");
       }
    }
 
