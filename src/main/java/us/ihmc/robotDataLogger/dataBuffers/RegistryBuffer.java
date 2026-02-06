@@ -1,6 +1,6 @@
 package us.ihmc.robotDataLogger.dataBuffers;
 
-import us.ihmc.robotDataLogger.LogDataType;
+import logger_msgs.msg.dds.LogDataType;
 
 public class RegistryBuffer implements Comparable<RegistryBuffer>
 {
@@ -9,7 +9,10 @@ public class RegistryBuffer implements Comparable<RegistryBuffer>
    protected long timestamp;
    protected long transmitTime;
    protected int numberOfVariables;
-   private LogDataType type = LogDataType.DATA_PACKET;
+   private LogDataType type = new LogDataType();
+   {
+      type.setType(LogDataType.DATA_PACKET);
+   }
 
    public long getTransmitTime()
    {

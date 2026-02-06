@@ -1,13 +1,13 @@
 package us.ihmc.robotDataLogger.interfaces;
 
-import java.io.IOException;
-
-import us.ihmc.robotDataLogger.Handshake;
+import logger_msgs.msg.dds.Handshake;
 import us.ihmc.robotDataLogger.YoVariableClientImplementation;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.listeners.TimestampListener;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
+
+import java.io.IOException;
 
 public interface DataConsumer
 {

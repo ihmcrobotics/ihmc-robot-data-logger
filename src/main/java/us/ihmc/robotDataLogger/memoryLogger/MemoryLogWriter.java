@@ -15,6 +15,18 @@ import us.ihmc.robotDataLogger.websocket.server.DataServerServerContent;
 
 public class MemoryLogWriter
 {
+   /**
+    * Helper method to convert IDLStringSequence to String array
+    */
+   private static String[] toStringArray(us.ihmc.idl.IDLStringSequence sequence)
+   {
+      String[] result = new String[sequence.size()];
+      for (int i = 0; i < sequence.size(); i++)
+      {
+         result[i] = sequence.getAsString(i);
+      }
+      return result;
+   }
    private class MemoryLoggerListener extends YoVariableLoggerListener
    {
       private final ByteBuffer buffer;
@@ -105,7 +117,7 @@ public class MemoryLogWriter
       {
          logHandshake.setModel(content.getModel().array());
          logHandshake.setModelLoaderClass(announcement.getModelFileDescription().getModelLoaderClassAsString());
-         logHandshake.setResourceDirectories(announcement.getModelFileDescription().getResourceDirectories().toStringArray());
+         logHandshake.setResourceDirectories(toStringArray(announcement.getModelFileDescription().getResourceDirectories()));
          
          if (announcement.getModelFileDescription().getHasResourceZip())
          {

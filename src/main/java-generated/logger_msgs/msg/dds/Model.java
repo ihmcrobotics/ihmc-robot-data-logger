@@ -15,7 +15,7 @@ string loader    # Loader class
 string path    # Path
 string name    # Model file name
 string resourceBundle    # Resource bundle zip file name
-string[255] resourceDirectoriesList    # List of resource directories
+string[] resourceDirectoriesList    # List of resource directories
 }</pre>
 */
 public class Model implements ROS2Message<Model>
@@ -26,7 +26,7 @@ public class Model implements ROS2Message<Model>
    private final StringBuilder path_; // Path
    private final StringBuilder name_; // Model file name
    private final StringBuilder resourceBundle_; // Resource bundle zip file name
-   private final StringBuilder[] resourceDirectoriesList_; // List of resource directories
+   private final IDLStringSequence resourceDirectoriesList_; // List of resource directories
 
    public Model()
    {
@@ -34,12 +34,7 @@ public class Model implements ROS2Message<Model>
       path_ = new StringBuilder();
       name_ = new StringBuilder();
       resourceBundle_ = new StringBuilder();
-      resourceDirectoriesList_ = new StringBuilder[255];
-      // resourceDirectoriesList is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < resourceDirectoriesList_.length; ++i)
-      {
-         resourceDirectoriesList_[i] = new StringBuilder();
-      }
+      resourceDirectoriesList_ = new IDLStringSequence();
 
    }
 
@@ -52,7 +47,7 @@ public class Model implements ROS2Message<Model>
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4) + (1 * path_.length()) + 1; // path_
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4) + (1 * name_.length()) + 1; // name_
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4) + (1 * resourceBundle_.length()) + 1; // resourceBundle_
-      currentAlignment += (255 * 1) + CDRBuffer.alignment(currentAlignment, (255 * 1)); // resourceDirectoriesList_
+      currentAlignment += resourceDirectoriesList_.calculateSizeBytes(currentAlignment);
 
       return currentAlignment - initialAlignment;
    }
@@ -64,10 +59,7 @@ public class Model implements ROS2Message<Model>
       buffer.writeString(path_);
       buffer.writeString(name_);
       buffer.writeString(resourceBundle_);
-      for (int i = 0; i < resourceDirectoriesList_.length; ++i)
-      {
-         buffer.writeString(resourceDirectoriesList_[i]);
-      }
+      resourceDirectoriesList_.serialize(buffer);
 
    }
 
@@ -78,10 +70,7 @@ public class Model implements ROS2Message<Model>
       buffer.readString(path_);
       buffer.readString(name_);
       buffer.readString(resourceBundle_);
-      for (int i = 0; i < resourceDirectoriesList_.length; ++i)
-      {
-         buffer.readString(resourceDirectoriesList_[i]);
-      }
+      resourceDirectoriesList_.deserialize(buffer);
 
    }
 
@@ -96,10 +85,7 @@ public class Model implements ROS2Message<Model>
       name_.insert(0, from.name_);
       resourceBundle_.delete(0, resourceBundle_.length());
       resourceBundle_.insert(0, from.resourceBundle_);
-      for (int i = 0; i < resourceDirectoriesList_.length; ++i)
-      {
-         resourceDirectoriesList_[i] = from.resourceDirectoriesList_[i];
-      }
+      resourceDirectoriesList_.set(from.resourceDirectoriesList_);
 
    }
 
@@ -167,7 +153,7 @@ public class Model implements ROS2Message<Model>
       this.resourceBundle_.insert(0, s);
    }
 
-   public StringBuilder[] getResourceDirectoriesList()
+   public IDLStringSequence getResourceDirectoriesList()
    {
       return resourceDirectoriesList_;
    }

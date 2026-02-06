@@ -1,7 +1,7 @@
 bool hasModel
 string name
 string modelLoaderClass
-string[255] resourceDirectories
+string[] resourceDirectories
 
 int32 modelFileSize
 

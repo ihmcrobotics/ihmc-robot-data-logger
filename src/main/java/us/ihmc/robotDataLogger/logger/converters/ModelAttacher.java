@@ -16,9 +16,7 @@ import java.util.Properties;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
-import us.ihmc.idl.serializers.extra.PropertiesSerializer;
-import us.ihmc.robotDataLogger.LogProperties;
-import us.ihmc.robotDataLogger.LogPropertiesPubSubType;
+import logger_msgs.msg.dds.LogProperties;
 import us.ihmc.robotDataLogger.logger.LogPropertiesReader;
 import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
 

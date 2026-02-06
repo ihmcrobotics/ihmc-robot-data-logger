@@ -14,7 +14,7 @@ import us.ihmc.jros2.ROS2Message;
 bool hasModel
 string name
 string modelLoaderClass
-string[255] resourceDirectories
+string[] resourceDirectories
 
 int32 modelFileSize
 
@@ -29,7 +29,7 @@ public class ModelFileDescription implements ROS2Message<ModelFileDescription>
    private boolean hasModel_;
    private final StringBuilder name_;
    private final StringBuilder modelLoaderClass_;
-   private final StringBuilder[] resourceDirectories_;
+   private final IDLStringSequence resourceDirectories_;
    private int modelFileSize_;
    private boolean hasResourceZip_;
    private int resourceZipSize_;
@@ -39,12 +39,7 @@ public class ModelFileDescription implements ROS2Message<ModelFileDescription>
       hasModel_ = (boolean) false;
       name_ = new StringBuilder();
       modelLoaderClass_ = new StringBuilder();
-      resourceDirectories_ = new StringBuilder[255];
-      // resourceDirectories is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < resourceDirectories_.length; ++i)
-      {
-         resourceDirectories_[i] = new StringBuilder();
-      }
+      resourceDirectories_ = new IDLStringSequence();
       hasResourceZip_ = (boolean) false;
 
    }
@@ -57,7 +52,7 @@ public class ModelFileDescription implements ROS2Message<ModelFileDescription>
       currentAlignment += 1 + CDRBuffer.alignment(currentAlignment, 1); // hasModel_
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4) + (1 * name_.length()) + 1; // name_
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4) + (1 * modelLoaderClass_.length()) + 1; // modelLoaderClass_
-      currentAlignment += (255 * 1) + CDRBuffer.alignment(currentAlignment, (255 * 1)); // resourceDirectories_
+      currentAlignment += resourceDirectories_.calculateSizeBytes(currentAlignment);
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // modelFileSize_
       currentAlignment += 1 + CDRBuffer.alignment(currentAlignment, 1); // hasResourceZip_
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // resourceZipSize_
@@ -71,10 +66,7 @@ public class ModelFileDescription implements ROS2Message<ModelFileDescription>
       buffer.writeBoolean(hasModel_);
       buffer.writeString(name_);
       buffer.writeString(modelLoaderClass_);
-      for (int i = 0; i < resourceDirectories_.length; ++i)
-      {
-         buffer.writeString(resourceDirectories_[i]);
-      }
+      resourceDirectories_.serialize(buffer);
       buffer.writeInt(modelFileSize_);
       buffer.writeBoolean(hasResourceZip_);
       buffer.writeInt(resourceZipSize_);
@@ -87,10 +79,7 @@ public class ModelFileDescription implements ROS2Message<ModelFileDescription>
       hasModel_ = buffer.readBoolean();
       buffer.readString(name_);
       buffer.readString(modelLoaderClass_);
-      for (int i = 0; i < resourceDirectories_.length; ++i)
-      {
-         buffer.readString(resourceDirectories_[i]);
-      }
+      resourceDirectories_.deserialize(buffer);
       modelFileSize_ = buffer.readInt();
       hasResourceZip_ = buffer.readBoolean();
       resourceZipSize_ = buffer.readInt();
@@ -105,10 +94,7 @@ public class ModelFileDescription implements ROS2Message<ModelFileDescription>
       name_.insert(0, from.name_);
       modelLoaderClass_.delete(0, modelLoaderClass_.length());
       modelLoaderClass_.insert(0, from.modelLoaderClass_);
-      for (int i = 0; i < resourceDirectories_.length; ++i)
-      {
-         resourceDirectories_[i] = from.resourceDirectories_[i];
-      }
+      resourceDirectories_.set(from.resourceDirectories_);
       modelFileSize_ = from.modelFileSize_;
       hasResourceZip_ = from.hasResourceZip_;
       resourceZipSize_ = from.resourceZipSize_;
@@ -157,7 +143,7 @@ public class ModelFileDescription implements ROS2Message<ModelFileDescription>
       this.modelLoaderClass_.insert(0, s);
    }
 
-   public StringBuilder[] getResourceDirectories()
+   public IDLStringSequence getResourceDirectories()
    {
       return resourceDirectories_;
    }

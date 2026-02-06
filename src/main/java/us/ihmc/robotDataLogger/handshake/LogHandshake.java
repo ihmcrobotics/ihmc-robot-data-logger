@@ -1,6 +1,6 @@
 package us.ihmc.robotDataLogger.handshake;
 
-import us.ihmc.robotDataLogger.Handshake;
+import logger_msgs.msg.dds.Handshake;
 
 public class LogHandshake
 {

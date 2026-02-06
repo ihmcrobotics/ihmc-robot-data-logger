@@ -11,23 +11,18 @@ import us.ihmc.jros2.ROS2Message;
 /**
 <p>Source (logger_msgs/CameraSettings):
 <pre>{@code
-CameraConfiguration[128] cameras
+CameraConfiguration[] cameras
 }</pre>
 */
 public class CameraSettings implements ROS2Message<CameraSettings>
 {
    public static final java.lang.String name = "logger_msgs::msg::dds_::CameraSettings_";
 
-   private final logger_msgs.msg.dds.CameraConfiguration[] cameras_;
+   private final IDLObjectSequence<logger_msgs.msg.dds.CameraConfiguration> cameras_;
 
    public CameraSettings()
    {
-      cameras_ = new logger_msgs.msg.dds.CameraConfiguration[128];
-      // cameras is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < cameras_.length; ++i)
-      {
-         cameras_[i] = new logger_msgs.msg.dds.CameraConfiguration();
-      }
+      cameras_ = new IDLObjectSequence<logger_msgs.msg.dds.CameraConfiguration>(logger_msgs.msg.dds.CameraConfiguration.class);
 
    }
 
@@ -36,10 +31,7 @@ public class CameraSettings implements ROS2Message<CameraSettings>
    {
       int initialAlignment = currentAlignment;
 
-      for (int i = 0; i < cameras_.length; ++i)
-      {
-         currentAlignment += cameras_[i].calculateSizeBytes(currentAlignment);
-      }
+      currentAlignment += cameras_.calculateSizeBytes(currentAlignment);
 
       return currentAlignment - initialAlignment;
    }
@@ -47,34 +39,25 @@ public class CameraSettings implements ROS2Message<CameraSettings>
    @Override
    public void serialize(CDRBuffer buffer)
    {
-      for (int i = 0; i < cameras_.length; ++i)
-      {
-         cameras_[i].serialize(buffer);
-      }
+      cameras_.serialize(buffer);
 
    }
 
    @Override
    public void deserialize(CDRBuffer buffer)
    {
-      for (int i = 0; i < cameras_.length; ++i)
-      {
-         cameras_[i].deserialize(buffer);
-      }
+      cameras_.deserialize(buffer);
 
    }
 
    @Override
    public void set(CameraSettings from)
    {
-      for (int i = 0; i < cameras_.length; ++i)
-      {
-         cameras_[i].set(from.cameras_[i]);
-      }
+      cameras_.set(from.cameras_);
 
    }
 
-   public logger_msgs.msg.dds.CameraConfiguration[] getCameras()
+   public IDLObjectSequence<logger_msgs.msg.dds.CameraConfiguration> getCameras()
    {
       return cameras_;
    }

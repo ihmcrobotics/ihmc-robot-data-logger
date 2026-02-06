@@ -1,16 +1,15 @@
 package us.ihmc.robotDataLogger.logger.converters;
 
+import logger_msgs.msg.dds.HandshakeFileType;
+import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
+
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import us.ihmc.robotDataLogger.HandshakeFileType;
-import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
-
 public class ConverterUtil
 {
-
    static YoVariableHandshakeParser getHandshake(HandshakeFileType type, File handshake) throws IOException
    {
       if (!handshake.exists())
@@ -27,5 +26,4 @@ public class ConverterUtil
       parser.parseFrom(handshakeData);
       return parser;
    }
-
 }

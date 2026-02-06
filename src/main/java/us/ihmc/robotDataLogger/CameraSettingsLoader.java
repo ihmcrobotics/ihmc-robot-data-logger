@@ -5,8 +5,9 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 
-import us.ihmc.idl.serializers.extra.YAMLSerializer;
+import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
 import us.ihmc.log.LogTools;
+import logger_msgs.msg.dds.CameraSettings;
 
 public class CameraSettingsLoader
 {
@@ -39,7 +40,7 @@ public class CameraSettingsLoader
 
    public static CameraSettings load(String data)
    {
-      YAMLSerializer<CameraSettings> ser = new YAMLSerializer<>(new CameraSettingsPubSubType());
+      ROS2YAMLSerializer<CameraSettings> ser = new ROS2YAMLSerializer<>(CameraSettings.class);
       ser.setAddTypeAsRootNode(false);
 
       try
@@ -55,10 +56,10 @@ public class CameraSettingsLoader
       }
 
    }
-   
+
    public static String toString(CameraSettings settings) throws IOException
    {
-      YAMLSerializer<CameraSettings> ser = new YAMLSerializer<>(new CameraSettingsPubSubType());
+      ROS2YAMLSerializer<CameraSettings> ser = new ROS2YAMLSerializer<>(CameraSettings.class);
       ser.setAddTypeAsRootNode(false);
       return ser.serializeToString(settings);
    }

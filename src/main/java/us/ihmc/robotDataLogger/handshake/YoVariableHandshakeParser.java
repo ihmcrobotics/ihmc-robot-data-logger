@@ -1,7 +1,7 @@
 package us.ihmc.robotDataLogger.handshake;
 
-import us.ihmc.robotDataLogger.Handshake;
-import us.ihmc.robotDataLogger.HandshakeFileType;
+import logger_msgs.msg.dds.Handshake;
+import logger_msgs.msg.dds.HandshakeFileType;
 import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
 import us.ihmc.yoVariables.euclid.referenceFrame.interfaces.FrameIndexMap;
@@ -22,15 +22,16 @@ public abstract class YoVariableHandshakeParser
       if (type == null)
       {
          System.err.println("Handshake file type is null. Defaulting to PROTOBUFFER");
-         type = HandshakeFileType.PROTOBUFFER;
+         type = new HandshakeFileType();
+         type.setType(HandshakeFileType.PROTOBUFFER);
       }
 
-      switch (type)
+      switch (type.getType())
       {
-         case IDL_CDR:
-         case IDL_YAML:
+         case HandshakeFileType.IDL_CDR:
+         case HandshakeFileType.IDL_YAML:
             return new IDLYoVariableHandshakeParser(type);
-         case PROTOBUFFER:
+         case HandshakeFileType.PROTOBUFFER:
             return new ProtoBufferYoVariableHandshakeParser();
          default:
             throw new RuntimeException("Not implemented");

@@ -11,31 +11,21 @@ import us.ihmc.jros2.ROS2Message;
 /**
 <p>Source (logger_msgs/SCS2YoGraphicDefinitionMessage):
 <pre>{@code
-string[64] fieldNames
-string[64] fieldValues
+string[] fieldNames
+string[] fieldValues
 }</pre>
 */
 public class SCS2YoGraphicDefinitionMessage implements ROS2Message<SCS2YoGraphicDefinitionMessage>
 {
    public static final java.lang.String name = "logger_msgs::msg::dds_::SCS2YoGraphicDefinitionMessage_";
 
-   private final StringBuilder[] fieldNames_;
-   private final StringBuilder[] fieldValues_;
+   private final IDLStringSequence fieldNames_;
+   private final IDLStringSequence fieldValues_;
 
    public SCS2YoGraphicDefinitionMessage()
    {
-      fieldNames_ = new StringBuilder[64];
-      // fieldNames is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < fieldNames_.length; ++i)
-      {
-         fieldNames_[i] = new StringBuilder();
-      }
-      fieldValues_ = new StringBuilder[64];
-      // fieldValues is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < fieldValues_.length; ++i)
-      {
-         fieldValues_[i] = new StringBuilder();
-      }
+      fieldNames_ = new IDLStringSequence();
+      fieldValues_ = new IDLStringSequence();
 
    }
 
@@ -44,8 +34,8 @@ public class SCS2YoGraphicDefinitionMessage implements ROS2Message<SCS2YoGraphic
    {
       int initialAlignment = currentAlignment;
 
-      currentAlignment += (64 * 1) + CDRBuffer.alignment(currentAlignment, (64 * 1)); // fieldNames_
-      currentAlignment += (64 * 1) + CDRBuffer.alignment(currentAlignment, (64 * 1)); // fieldValues_
+      currentAlignment += fieldNames_.calculateSizeBytes(currentAlignment);
+      currentAlignment += fieldValues_.calculateSizeBytes(currentAlignment);
 
       return currentAlignment - initialAlignment;
    }
@@ -53,51 +43,33 @@ public class SCS2YoGraphicDefinitionMessage implements ROS2Message<SCS2YoGraphic
    @Override
    public void serialize(CDRBuffer buffer)
    {
-      for (int i = 0; i < fieldNames_.length; ++i)
-      {
-         buffer.writeString(fieldNames_[i]);
-      }
-      for (int i = 0; i < fieldValues_.length; ++i)
-      {
-         buffer.writeString(fieldValues_[i]);
-      }
+      fieldNames_.serialize(buffer);
+      fieldValues_.serialize(buffer);
 
    }
 
    @Override
    public void deserialize(CDRBuffer buffer)
    {
-      for (int i = 0; i < fieldNames_.length; ++i)
-      {
-         buffer.readString(fieldNames_[i]);
-      }
-      for (int i = 0; i < fieldValues_.length; ++i)
-      {
-         buffer.readString(fieldValues_[i]);
-      }
+      fieldNames_.deserialize(buffer);
+      fieldValues_.deserialize(buffer);
 
    }
 
    @Override
    public void set(SCS2YoGraphicDefinitionMessage from)
    {
-      for (int i = 0; i < fieldNames_.length; ++i)
-      {
-         fieldNames_[i] = from.fieldNames_[i];
-      }
-      for (int i = 0; i < fieldValues_.length; ++i)
-      {
-         fieldValues_[i] = from.fieldValues_[i];
-      }
+      fieldNames_.set(from.fieldNames_);
+      fieldValues_.set(from.fieldValues_);
 
    }
 
-   public StringBuilder[] getFieldNames()
+   public IDLStringSequence getFieldNames()
    {
       return fieldNames_;
    }
 
-   public StringBuilder[] getFieldValues()
+   public IDLStringSequence getFieldValues()
    {
       return fieldValues_;
    }

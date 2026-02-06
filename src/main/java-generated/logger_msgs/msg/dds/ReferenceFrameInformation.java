@@ -11,26 +11,21 @@ import us.ihmc.jros2.ROS2Message;
 /**
 <p>Source (logger_msgs/ReferenceFrameInformation):
 <pre>{@code
-uint32[8192] frameIndices
-string[8192] frameNames
+uint32[] frameIndices
+string[] frameNames
 }</pre>
 */
 public class ReferenceFrameInformation implements ROS2Message<ReferenceFrameInformation>
 {
    public static final java.lang.String name = "logger_msgs::msg::dds_::ReferenceFrameInformation_";
 
-   private final int[] frameIndices_;
-   private final StringBuilder[] frameNames_;
+   private final IDLIntSequence frameIndices_;
+   private final IDLStringSequence frameNames_;
 
    public ReferenceFrameInformation()
    {
-      frameIndices_ = new int[8192];
-      frameNames_ = new StringBuilder[8192];
-      // frameNames is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < frameNames_.length; ++i)
-      {
-         frameNames_[i] = new StringBuilder();
-      }
+      frameIndices_ = new IDLIntSequence();
+      frameNames_ = new IDLStringSequence();
 
    }
 
@@ -39,8 +34,8 @@ public class ReferenceFrameInformation implements ROS2Message<ReferenceFrameInfo
    {
       int initialAlignment = currentAlignment;
 
-      currentAlignment += (8192 * 4) + CDRBuffer.alignment(currentAlignment, (8192 * 4)); // frameIndices_
-      currentAlignment += (8192 * 1) + CDRBuffer.alignment(currentAlignment, (8192 * 1)); // frameNames_
+      currentAlignment += frameIndices_.calculateSizeBytes(currentAlignment);
+      currentAlignment += frameNames_.calculateSizeBytes(currentAlignment);
 
       return currentAlignment - initialAlignment;
    }
@@ -48,51 +43,33 @@ public class ReferenceFrameInformation implements ROS2Message<ReferenceFrameInfo
    @Override
    public void serialize(CDRBuffer buffer)
    {
-      for (int i = 0; i < frameIndices_.length; ++i)
-      {
-         buffer.writeInt(frameIndices_[i]);
-      }
-      for (int i = 0; i < frameNames_.length; ++i)
-      {
-         buffer.writeString(frameNames_[i]);
-      }
+      frameIndices_.serialize(buffer);
+      frameNames_.serialize(buffer);
 
    }
 
    @Override
    public void deserialize(CDRBuffer buffer)
    {
-      for (int i = 0; i < frameIndices_.length; ++i)
-      {
-         frameIndices_[i] = buffer.readInt();
-      }
-      for (int i = 0; i < frameNames_.length; ++i)
-      {
-         buffer.readString(frameNames_[i]);
-      }
+      frameIndices_.deserialize(buffer);
+      frameNames_.deserialize(buffer);
 
    }
 
    @Override
    public void set(ReferenceFrameInformation from)
    {
-      for (int i = 0; i < frameIndices_.length; ++i)
-      {
-         frameIndices_[i] = from.frameIndices_[i];
-      }
-      for (int i = 0; i < frameNames_.length; ++i)
-      {
-         frameNames_[i] = from.frameNames_[i];
-      }
+      frameIndices_.set(from.frameIndices_);
+      frameNames_.set(from.frameNames_);
 
    }
 
-   public int[] getFrameIndices()
+   public IDLIntSequence getFrameIndices()
    {
       return frameIndices_;
    }
 
-   public StringBuilder[] getFrameNames()
+   public IDLStringSequence getFrameNames()
    {
       return frameNames_;
    }

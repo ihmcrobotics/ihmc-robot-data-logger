@@ -1,11 +1,9 @@
 package us.ihmc.robotDataLogger.logger;
 
+import logger_msgs.msg.dds.ZEDSDKAnnounce;
+import us.ihmc.jros2.ROS2Node;
+import us.ihmc.jros2.ROS2Topic;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.ZEDSDKAnnounce;
-import us.ihmc.ros2.ROS2Node;
-import us.ihmc.ros2.ROS2NodeBuilder;
-import us.ihmc.ros2.ROS2Topic;
-import us.ihmc.ros2.ROS2TopicNameTools;
 import us.ihmc.zed.library.ZEDJavaAPINativeLibrary;
 
 import java.io.File;
@@ -23,7 +21,7 @@ public class ZEDSVOLoggerManager
    private static final boolean ZED_SDK_LOADED = ZEDJavaAPINativeLibrary.load();
 
    public static final ROS2Topic<ZEDSDKAnnounce> ZED_SDK_ANNOUNCE_TOPIC = new ROS2Topic<ZEDSDKAnnounce>().withType(ZEDSDKAnnounce.class)
-                                                                                                         .withSuffix("zed_sdk_announce");
+                                                                                                         .prependedWith("zed_sdk_announce");
 
    private record ZEDSDKAnnounceHash(String address, int port)
    {
@@ -39,10 +37,10 @@ public class ZEDSVOLoggerManager
       this.tempDirectory = tempDirectory;
 
       LogTools.info("Creating a ROS2Node for listening to ZED SDK connections.");
-      ros2Node = new ROS2NodeBuilder().build(ROS2TopicNameTools.toROSTopicFormat(finalDirectory.getName() + "_zed_svo_logger_node"));
+      ros2Node = new ROS2Node(finalDirectory.getName() + "_zed_svo_logger_node");
 
       if (ZED_SDK_LOADED)
-         ros2Node.createSubscription2(ZED_SDK_ANNOUNCE_TOPIC, this::onZEDSDKAnnounceMessage);
+         ros2Node.createSubscriptionSampler(ZED_SDK_ANNOUNCE_TOPIC, this::onZEDSDKAnnounceMessage);
       else
          LogTools.info("ZED SDK not available on the system. Will not attempt to log SVO files.");
    }
@@ -112,7 +110,7 @@ public class ZEDSVOLoggerManager
    {
       zedLoggers.forEach((hostInstanceID, zedSVOLogger) -> zedSVOLogger.close());
 
-      ros2Node.destroy();
+      ros2Node.close();
    }
 
    private static String generateSVOFileName(ZEDSDKAnnounce message)

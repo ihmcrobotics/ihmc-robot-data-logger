@@ -7,6 +7,12 @@ import java.nio.LongBuffer;
 
 public class OneDoFState extends JointState
 {
+   private static final JointType ONEDOFJOINTTYPE = new JointType();
+   static
+   {
+      ONEDOFJOINTTYPE.setType(JointType.ONEDOFJOINT);
+   }
+
    public static final int numberOfStateVariables = 2;
 
    private double q;
@@ -14,7 +20,7 @@ public class OneDoFState extends JointState
 
    public OneDoFState(String name)
    {
-      super(name, JointType.OneDoFJoint);
+      super(name, ONEDOFJOINTTYPE);
    }
 
    @Override

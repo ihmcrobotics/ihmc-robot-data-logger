@@ -1,2 +1,2 @@
 string name
-string[255] enumValues
+string[] enumValues

@@ -1,10 +1,7 @@
 package us.ihmc.robotDataLogger;
 
-import java.io.IOException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
 import us.ihmc.commons.MathTools;
+import us.ihmc.fastddsjava.cdr.idl.IDLStringSequence;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.handshake.LogHandshake;
@@ -15,6 +12,10 @@ import us.ihmc.robotDataLogger.websocket.client.WebsocketDataConsumer;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 
+import java.io.IOException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 /**
  * Client for the logger This is a general client for a logging sessions. A listener can be attached
  * to provide desired functionality.
@@ -23,6 +24,18 @@ import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
  */
 public class YoVariableClientImplementation implements YoVariableClientInterface
 {
+   /**
+    * Helper method to convert IDLStringSequence to String array
+    */
+   private static String[] toStringArray(IDLStringSequence sequence)
+   {
+      String[] result = new String[sequence.size()];
+      for (int i = 0; i < sequence.size(); i++)
+      {
+         result[i] = sequence.getAsString(i);
+      }
+      return result;
+   }
    private String serverName;
 
    private final VariableChangedProducer variableChangedProducer;
@@ -99,7 +112,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
          // Requesting model file
          logHandshake.setModel(dataConsumer.getModelFile());
          logHandshake.setModelLoaderClass(announcement.getModelFileDescription().getModelLoaderClassAsString());
-         logHandshake.setResourceDirectories(announcement.getModelFileDescription().getResourceDirectories().toStringArray());
+         logHandshake.setResourceDirectories(toStringArray(announcement.getModelFileDescription().getResourceDirectories()));
          if (announcement.getModelFileDescription().getHasResourceZip())
          {
             // Requesting resource bundle

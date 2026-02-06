@@ -27,7 +27,7 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.CharsetUtil;
 import logger_msgs.msg.dds.Announcement;
-import us.ihmc.idl.serializers.extra.JSONSerializer;
+import us.ihmc.idl.serializers.extra.ROS2JSONSerializer;
 import us.ihmc.robotDataLogger.util.NettyUtils;
 import us.ihmc.robotDataLogger.websocket.HTTPDataServerPaths;
 
@@ -206,7 +206,7 @@ public class HTTPDataServerConnection
 
    private void receivedAnnouncement(ByteBuf buf)
    {
-      JSONSerializer<Announcement> serializer = new JSONSerializer<>(new AnnouncementPubSubType());
+      ROS2JSONSerializer<Announcement> serializer = new ROS2JSONSerializer<>(Announcement.class);
       try
       {
          announcement.set(serializer.deserialize(buf.toString(CharsetUtil.UTF_8)));

@@ -1,21 +1,19 @@
 package us.ihmc.robotDataLogger.logger;
 
+import com.google.common.io.Files;
+import logger_msgs.msg.dds.HandshakeFileType;
+import logger_msgs.msg.dds.LogProperties;
+import us.ihmc.idl.serializers.extra.ROS2PropertiesSerializer;
+import us.ihmc.robotDataLogger.LogIndex;
+import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
+import us.ihmc.tools.compression.SnappyUtils;
+
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-
-import com.google.common.io.Files;
-
-import us.ihmc.idl.serializers.extra.PropertiesSerializer;
-import us.ihmc.robotDataLogger.LogIndex;
-import us.ihmc.robotDataLogger.LogProperties;
-import us.ihmc.robotDataLogger.LogPropertiesPubSubType;
-import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
-import us.ihmc.tools.compression.SnappyUtils;
 
 public class YoVariableLogReader
 {
@@ -89,7 +87,9 @@ public class YoVariableLogReader
             byte[] handshakeData = new byte[(int) handshake.length()];
             handshakeStream.readFully(handshakeData);
             handshakeStream.close();
-            logLineLength = YoVariableHandshakeParser.getNumberOfStateVariables(logProperties.getVariables().getHandshakeFileType(), handshakeData);
+            HandshakeFileType handshakeFileType = new HandshakeFileType();
+            handshakeFileType.setType(logProperties.getVariables().getHandshakeFileType());
+            logLineLength = YoVariableHandshakeParser.getNumberOfStateVariables(handshakeFileType, handshakeData);
 
             File logdata = new File(logDirectory, logProperties.getVariables().getDataAsString());
             if (!logdata.exists())
@@ -191,7 +191,7 @@ public class YoVariableLogReader
    protected void copyMetaData(File destination) throws IOException
    {
       File propertiesDestination = new File(destination, YoVariableLoggerListener.propertyFile);
-      PropertiesSerializer<LogProperties> serializer = new PropertiesSerializer<>(new LogPropertiesPubSubType());
+      ROS2PropertiesSerializer<LogProperties> serializer = new ROS2PropertiesSerializer<>(LogProperties.class);
       serializer.serialize(propertiesDestination, logProperties);
 
       File handShakeDestination = new File(destination, logProperties.getVariables().getHandshakeAsString());

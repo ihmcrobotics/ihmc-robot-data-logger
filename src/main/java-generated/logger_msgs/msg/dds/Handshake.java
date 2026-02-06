@@ -12,13 +12,13 @@ import us.ihmc.jros2.ROS2Message;
 <p>Source (logger_msgs/Handshake):
 <pre>{@code
 float64 dt
-YoRegistryDefinition[1024] registries
-YoVariableDefinition[32767] variables
-JointDefinition[128] joints
-SCS1YoGraphicObjectMessage[2048] graphicObjects
-SCS1YoGraphicObjectMessage[2048] artifacts
-SCS2YoGraphicDefinitionMessage[2048] scs2YoGraphicDefinitions
-EnumType[1024] enumTypes
+YoRegistryDefinition[] registries
+YoVariableDefinition[] variables
+JointDefinition[] joints
+SCS1YoGraphicObjectMessage[] graphicObjects
+SCS1YoGraphicObjectMessage[] artifacts
+SCS2YoGraphicDefinitionMessage[] scs2YoGraphicDefinitions
+EnumType[] enumTypes
 ReferenceFrameInformation referenceFrameInformation
 Summary summary
 }</pre>
@@ -28,60 +28,25 @@ public class Handshake implements ROS2Message<Handshake>
    public static final java.lang.String name = "logger_msgs::msg::dds_::Handshake_";
 
    private double dt_;
-   private final logger_msgs.msg.dds.YoRegistryDefinition[] registries_;
-   private final logger_msgs.msg.dds.YoVariableDefinition[] variables_;
-   private final logger_msgs.msg.dds.JointDefinition[] joints_;
-   private final logger_msgs.msg.dds.SCS1YoGraphicObjectMessage[] graphicObjects_;
-   private final logger_msgs.msg.dds.SCS1YoGraphicObjectMessage[] artifacts_;
-   private final logger_msgs.msg.dds.SCS2YoGraphicDefinitionMessage[] scs2YoGraphicDefinitions_;
-   private final logger_msgs.msg.dds.EnumType[] enumTypes_;
+   private final IDLObjectSequence<logger_msgs.msg.dds.YoRegistryDefinition> registries_;
+   private final IDLObjectSequence<logger_msgs.msg.dds.YoVariableDefinition> variables_;
+   private final IDLObjectSequence<logger_msgs.msg.dds.JointDefinition> joints_;
+   private final IDLObjectSequence<logger_msgs.msg.dds.SCS1YoGraphicObjectMessage> graphicObjects_;
+   private final IDLObjectSequence<logger_msgs.msg.dds.SCS1YoGraphicObjectMessage> artifacts_;
+   private final IDLObjectSequence<logger_msgs.msg.dds.SCS2YoGraphicDefinitionMessage> scs2YoGraphicDefinitions_;
+   private final IDLObjectSequence<logger_msgs.msg.dds.EnumType> enumTypes_;
    private final logger_msgs.msg.dds.ReferenceFrameInformation referenceFrameInformation_;
    private final logger_msgs.msg.dds.Summary summary_;
 
    public Handshake()
    {
-      registries_ = new logger_msgs.msg.dds.YoRegistryDefinition[1024];
-      // registries is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < registries_.length; ++i)
-      {
-         registries_[i] = new logger_msgs.msg.dds.YoRegistryDefinition();
-      }
-      variables_ = new logger_msgs.msg.dds.YoVariableDefinition[32767];
-      // variables is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < variables_.length; ++i)
-      {
-         variables_[i] = new logger_msgs.msg.dds.YoVariableDefinition();
-      }
-      joints_ = new logger_msgs.msg.dds.JointDefinition[128];
-      // joints is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < joints_.length; ++i)
-      {
-         joints_[i] = new logger_msgs.msg.dds.JointDefinition();
-      }
-      graphicObjects_ = new logger_msgs.msg.dds.SCS1YoGraphicObjectMessage[2048];
-      // graphicObjects is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < graphicObjects_.length; ++i)
-      {
-         graphicObjects_[i] = new logger_msgs.msg.dds.SCS1YoGraphicObjectMessage();
-      }
-      artifacts_ = new logger_msgs.msg.dds.SCS1YoGraphicObjectMessage[2048];
-      // artifacts is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < artifacts_.length; ++i)
-      {
-         artifacts_[i] = new logger_msgs.msg.dds.SCS1YoGraphicObjectMessage();
-      }
-      scs2YoGraphicDefinitions_ = new logger_msgs.msg.dds.SCS2YoGraphicDefinitionMessage[2048];
-      // scs2YoGraphicDefinitions is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < scs2YoGraphicDefinitions_.length; ++i)
-      {
-         scs2YoGraphicDefinitions_[i] = new logger_msgs.msg.dds.SCS2YoGraphicDefinitionMessage();
-      }
-      enumTypes_ = new logger_msgs.msg.dds.EnumType[1024];
-      // enumTypes is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < enumTypes_.length; ++i)
-      {
-         enumTypes_[i] = new logger_msgs.msg.dds.EnumType();
-      }
+      registries_ = new IDLObjectSequence<logger_msgs.msg.dds.YoRegistryDefinition>(logger_msgs.msg.dds.YoRegistryDefinition.class);
+      variables_ = new IDLObjectSequence<logger_msgs.msg.dds.YoVariableDefinition>(logger_msgs.msg.dds.YoVariableDefinition.class);
+      joints_ = new IDLObjectSequence<logger_msgs.msg.dds.JointDefinition>(logger_msgs.msg.dds.JointDefinition.class);
+      graphicObjects_ = new IDLObjectSequence<logger_msgs.msg.dds.SCS1YoGraphicObjectMessage>(logger_msgs.msg.dds.SCS1YoGraphicObjectMessage.class);
+      artifacts_ = new IDLObjectSequence<logger_msgs.msg.dds.SCS1YoGraphicObjectMessage>(logger_msgs.msg.dds.SCS1YoGraphicObjectMessage.class);
+      scs2YoGraphicDefinitions_ = new IDLObjectSequence<logger_msgs.msg.dds.SCS2YoGraphicDefinitionMessage>(logger_msgs.msg.dds.SCS2YoGraphicDefinitionMessage.class);
+      enumTypes_ = new IDLObjectSequence<logger_msgs.msg.dds.EnumType>(logger_msgs.msg.dds.EnumType.class);
       referenceFrameInformation_ = new logger_msgs.msg.dds.ReferenceFrameInformation();
       summary_ = new logger_msgs.msg.dds.Summary();
 
@@ -93,34 +58,13 @@ public class Handshake implements ROS2Message<Handshake>
       int initialAlignment = currentAlignment;
 
       currentAlignment += 8 + CDRBuffer.alignment(currentAlignment, 8); // dt_
-      for (int i = 0; i < registries_.length; ++i)
-      {
-         currentAlignment += registries_[i].calculateSizeBytes(currentAlignment);
-      }
-      for (int i = 0; i < variables_.length; ++i)
-      {
-         currentAlignment += variables_[i].calculateSizeBytes(currentAlignment);
-      }
-      for (int i = 0; i < joints_.length; ++i)
-      {
-         currentAlignment += joints_[i].calculateSizeBytes(currentAlignment);
-      }
-      for (int i = 0; i < graphicObjects_.length; ++i)
-      {
-         currentAlignment += graphicObjects_[i].calculateSizeBytes(currentAlignment);
-      }
-      for (int i = 0; i < artifacts_.length; ++i)
-      {
-         currentAlignment += artifacts_[i].calculateSizeBytes(currentAlignment);
-      }
-      for (int i = 0; i < scs2YoGraphicDefinitions_.length; ++i)
-      {
-         currentAlignment += scs2YoGraphicDefinitions_[i].calculateSizeBytes(currentAlignment);
-      }
-      for (int i = 0; i < enumTypes_.length; ++i)
-      {
-         currentAlignment += enumTypes_[i].calculateSizeBytes(currentAlignment);
-      }
+      currentAlignment += registries_.calculateSizeBytes(currentAlignment);
+      currentAlignment += variables_.calculateSizeBytes(currentAlignment);
+      currentAlignment += joints_.calculateSizeBytes(currentAlignment);
+      currentAlignment += graphicObjects_.calculateSizeBytes(currentAlignment);
+      currentAlignment += artifacts_.calculateSizeBytes(currentAlignment);
+      currentAlignment += scs2YoGraphicDefinitions_.calculateSizeBytes(currentAlignment);
+      currentAlignment += enumTypes_.calculateSizeBytes(currentAlignment);
       currentAlignment += referenceFrameInformation_.calculateSizeBytes(currentAlignment);
       currentAlignment += summary_.calculateSizeBytes(currentAlignment);
 
@@ -131,34 +75,13 @@ public class Handshake implements ROS2Message<Handshake>
    public void serialize(CDRBuffer buffer)
    {
       buffer.writeDouble(dt_);
-      for (int i = 0; i < registries_.length; ++i)
-      {
-         registries_[i].serialize(buffer);
-      }
-      for (int i = 0; i < variables_.length; ++i)
-      {
-         variables_[i].serialize(buffer);
-      }
-      for (int i = 0; i < joints_.length; ++i)
-      {
-         joints_[i].serialize(buffer);
-      }
-      for (int i = 0; i < graphicObjects_.length; ++i)
-      {
-         graphicObjects_[i].serialize(buffer);
-      }
-      for (int i = 0; i < artifacts_.length; ++i)
-      {
-         artifacts_[i].serialize(buffer);
-      }
-      for (int i = 0; i < scs2YoGraphicDefinitions_.length; ++i)
-      {
-         scs2YoGraphicDefinitions_[i].serialize(buffer);
-      }
-      for (int i = 0; i < enumTypes_.length; ++i)
-      {
-         enumTypes_[i].serialize(buffer);
-      }
+      registries_.serialize(buffer);
+      variables_.serialize(buffer);
+      joints_.serialize(buffer);
+      graphicObjects_.serialize(buffer);
+      artifacts_.serialize(buffer);
+      scs2YoGraphicDefinitions_.serialize(buffer);
+      enumTypes_.serialize(buffer);
       referenceFrameInformation_.serialize(buffer);
       summary_.serialize(buffer);
 
@@ -168,34 +91,13 @@ public class Handshake implements ROS2Message<Handshake>
    public void deserialize(CDRBuffer buffer)
    {
       dt_ = buffer.readDouble();
-      for (int i = 0; i < registries_.length; ++i)
-      {
-         registries_[i].deserialize(buffer);
-      }
-      for (int i = 0; i < variables_.length; ++i)
-      {
-         variables_[i].deserialize(buffer);
-      }
-      for (int i = 0; i < joints_.length; ++i)
-      {
-         joints_[i].deserialize(buffer);
-      }
-      for (int i = 0; i < graphicObjects_.length; ++i)
-      {
-         graphicObjects_[i].deserialize(buffer);
-      }
-      for (int i = 0; i < artifacts_.length; ++i)
-      {
-         artifacts_[i].deserialize(buffer);
-      }
-      for (int i = 0; i < scs2YoGraphicDefinitions_.length; ++i)
-      {
-         scs2YoGraphicDefinitions_[i].deserialize(buffer);
-      }
-      for (int i = 0; i < enumTypes_.length; ++i)
-      {
-         enumTypes_[i].deserialize(buffer);
-      }
+      registries_.deserialize(buffer);
+      variables_.deserialize(buffer);
+      joints_.deserialize(buffer);
+      graphicObjects_.deserialize(buffer);
+      artifacts_.deserialize(buffer);
+      scs2YoGraphicDefinitions_.deserialize(buffer);
+      enumTypes_.deserialize(buffer);
       referenceFrameInformation_.deserialize(buffer);
       summary_.deserialize(buffer);
 
@@ -205,34 +107,13 @@ public class Handshake implements ROS2Message<Handshake>
    public void set(Handshake from)
    {
       dt_ = from.dt_;
-      for (int i = 0; i < registries_.length; ++i)
-      {
-         registries_[i].set(from.registries_[i]);
-      }
-      for (int i = 0; i < variables_.length; ++i)
-      {
-         variables_[i].set(from.variables_[i]);
-      }
-      for (int i = 0; i < joints_.length; ++i)
-      {
-         joints_[i].set(from.joints_[i]);
-      }
-      for (int i = 0; i < graphicObjects_.length; ++i)
-      {
-         graphicObjects_[i].set(from.graphicObjects_[i]);
-      }
-      for (int i = 0; i < artifacts_.length; ++i)
-      {
-         artifacts_[i].set(from.artifacts_[i]);
-      }
-      for (int i = 0; i < scs2YoGraphicDefinitions_.length; ++i)
-      {
-         scs2YoGraphicDefinitions_[i].set(from.scs2YoGraphicDefinitions_[i]);
-      }
-      for (int i = 0; i < enumTypes_.length; ++i)
-      {
-         enumTypes_[i].set(from.enumTypes_[i]);
-      }
+      registries_.set(from.registries_);
+      variables_.set(from.variables_);
+      joints_.set(from.joints_);
+      graphicObjects_.set(from.graphicObjects_);
+      artifacts_.set(from.artifacts_);
+      scs2YoGraphicDefinitions_.set(from.scs2YoGraphicDefinitions_);
+      enumTypes_.set(from.enumTypes_);
       referenceFrameInformation_.set(from.referenceFrameInformation_);
       summary_.set(from.summary_);
 
@@ -248,37 +129,37 @@ public class Handshake implements ROS2Message<Handshake>
       this.dt_ = dt_;
    }
 
-   public logger_msgs.msg.dds.YoRegistryDefinition[] getRegistries()
+   public IDLObjectSequence<logger_msgs.msg.dds.YoRegistryDefinition> getRegistries()
    {
       return registries_;
    }
 
-   public logger_msgs.msg.dds.YoVariableDefinition[] getVariables()
+   public IDLObjectSequence<logger_msgs.msg.dds.YoVariableDefinition> getVariables()
    {
       return variables_;
    }
 
-   public logger_msgs.msg.dds.JointDefinition[] getJoints()
+   public IDLObjectSequence<logger_msgs.msg.dds.JointDefinition> getJoints()
    {
       return joints_;
    }
 
-   public logger_msgs.msg.dds.SCS1YoGraphicObjectMessage[] getGraphicObjects()
+   public IDLObjectSequence<logger_msgs.msg.dds.SCS1YoGraphicObjectMessage> getGraphicObjects()
    {
       return graphicObjects_;
    }
 
-   public logger_msgs.msg.dds.SCS1YoGraphicObjectMessage[] getArtifacts()
+   public IDLObjectSequence<logger_msgs.msg.dds.SCS1YoGraphicObjectMessage> getArtifacts()
    {
       return artifacts_;
    }
 
-   public logger_msgs.msg.dds.SCS2YoGraphicDefinitionMessage[] getScs2YoGraphicDefinitions()
+   public IDLObjectSequence<logger_msgs.msg.dds.SCS2YoGraphicDefinitionMessage> getScs2YoGraphicDefinitions()
    {
       return scs2YoGraphicDefinitions_;
    }
 
-   public logger_msgs.msg.dds.EnumType[] getEnumTypes()
+   public IDLObjectSequence<logger_msgs.msg.dds.EnumType> getEnumTypes()
    {
       return enumTypes_;
    }

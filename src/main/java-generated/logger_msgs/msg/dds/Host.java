@@ -13,7 +13,7 @@ import us.ihmc.jros2.ROS2Message;
 <pre>{@code
 string hostname
 uint16 port
-uint8[128] cameras
+uint8[] cameras
 }</pre>
 */
 public class Host implements ROS2Message<Host>
@@ -22,12 +22,12 @@ public class Host implements ROS2Message<Host>
 
    private final StringBuilder hostname_;
    private short port_;
-   private final byte[] cameras_;
+   private final IDLByteSequence cameras_;
 
    public Host()
    {
       hostname_ = new StringBuilder();
-      cameras_ = new byte[128];
+      cameras_ = new IDLByteSequence();
 
    }
 
@@ -38,7 +38,7 @@ public class Host implements ROS2Message<Host>
 
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4) + (1 * hostname_.length()) + 1; // hostname_
       currentAlignment += 2 + CDRBuffer.alignment(currentAlignment, 2); // port_
-      currentAlignment += (128 * 1) + CDRBuffer.alignment(currentAlignment, (128 * 1)); // cameras_
+      currentAlignment += cameras_.calculateSizeBytes(currentAlignment);
 
       return currentAlignment - initialAlignment;
    }
@@ -48,10 +48,7 @@ public class Host implements ROS2Message<Host>
    {
       buffer.writeString(hostname_);
       buffer.writeShort(port_);
-      for (int i = 0; i < cameras_.length; ++i)
-      {
-         buffer.writeByte(cameras_[i]);
-      }
+      cameras_.serialize(buffer);
 
    }
 
@@ -60,10 +57,7 @@ public class Host implements ROS2Message<Host>
    {
       buffer.readString(hostname_);
       port_ = buffer.readShort();
-      for (int i = 0; i < cameras_.length; ++i)
-      {
-         cameras_[i] = buffer.readByte();
-      }
+      cameras_.deserialize(buffer);
 
    }
 
@@ -73,10 +67,7 @@ public class Host implements ROS2Message<Host>
       hostname_.delete(0, hostname_.length());
       hostname_.insert(0, from.hostname_);
       port_ = from.port_;
-      for (int i = 0; i < cameras_.length; ++i)
-      {
-         cameras_[i] = from.cameras_[i];
-      }
+      cameras_.set(from.cameras_);
 
    }
 
@@ -106,7 +97,7 @@ public class Host implements ROS2Message<Host>
       this.port_ = port_;
    }
 
-   public byte[] getCameras()
+   public IDLByteSequence getCameras()
    {
       return cameras_;
    }

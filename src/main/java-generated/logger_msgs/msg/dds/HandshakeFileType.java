@@ -14,7 +14,7 @@ import us.ihmc.jros2.ROS2Message;
 uint8 PROTOBUFFER=0
 uint8 IDL_YAML=1
 uint8 IDL_CDR=2
-}</pre>
+uint8 type 0}</pre>
 */
 public class HandshakeFileType implements ROS2Message<HandshakeFileType>
 {
@@ -23,9 +23,12 @@ public class HandshakeFileType implements ROS2Message<HandshakeFileType>
    public static final byte PROTOBUFFER = 0;
    public static final byte IDL_YAML = 1;
    public static final byte IDL_CDR = 2;
+   private byte type_;
 
    public HandshakeFileType()
    {
+      type_ = (byte) 0;
+
    }
 
    @Override
@@ -33,22 +36,41 @@ public class HandshakeFileType implements ROS2Message<HandshakeFileType>
    {
       int initialAlignment = currentAlignment;
 
+      currentAlignment += 1 + CDRBuffer.alignment(currentAlignment, 1); // type_
+
       return currentAlignment - initialAlignment;
    }
 
    @Override
    public void serialize(CDRBuffer buffer)
    {
+      buffer.writeByte(type_);
+
    }
 
    @Override
    public void deserialize(CDRBuffer buffer)
    {
+      type_ = buffer.readByte();
+
    }
 
    @Override
    public void set(HandshakeFileType from)
    {
+      type_ = from.type_;
+
    }
+
+   public byte getType()
+   {
+      return type_;
+   }
+
+   public void setType(byte type_)
+   {
+      this.type_ = type_;
+   }
+
 
 }

@@ -1,17 +1,25 @@
 package us.ihmc.robotDataLogger.logger;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.concurrent.Semaphore;
-
-import org.freedesktop.gstreamer.*;
+import logger_msgs.msg.dds.LogProperties;
+import org.freedesktop.gstreamer.Buffer;
+import org.freedesktop.gstreamer.Bus;
+import org.freedesktop.gstreamer.Element;
+import org.freedesktop.gstreamer.Gst;
+import org.freedesktop.gstreamer.Pad;
+import org.freedesktop.gstreamer.PadProbeInfo;
+import org.freedesktop.gstreamer.PadProbeReturn;
+import org.freedesktop.gstreamer.PadProbeType;
+import org.freedesktop.gstreamer.Pipeline;
 import org.freedesktop.gstreamer.event.EOSEvent;
 import us.ihmc.commons.Conversions;
 import us.ihmc.javadecklink.CaptureHandler;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.LogProperties;
 import us.ihmc.tools.maps.CircularLongMap;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.concurrent.Semaphore;
 
 /**
  * This class does not work properly yet, it still needs more testing to make sure everything works as expected

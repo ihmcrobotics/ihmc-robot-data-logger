@@ -1,10 +1,16 @@
 package us.ihmc.robotDataLogger.jointState;
 
+import logger_msgs.msg.dds.JointType;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
-import us.ihmc.robotDataLogger.JointType;
 
 public class OneDoFJointHolder implements JointHolder
 {
+   private static final JointType ONEDOFJOINTTYPE = new JointType();
+   static
+   {
+      ONEDOFJOINTTYPE.setType(JointType.ONEDOFJOINT);
+   }
+
    private final OneDoFJointBasics joint;
 
    public OneDoFJointHolder(OneDoFJointBasics joint)
@@ -15,7 +21,7 @@ public class OneDoFJointHolder implements JointHolder
    @Override
    public JointType getJointType()
    {
-      return JointType.OneDoFJoint;
+      return ONEDOFJOINTTYPE;
    }
 
    @Override

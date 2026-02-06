@@ -4,12 +4,12 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
-import us.ihmc.robotDataLogger.CameraConfiguration;
-import us.ihmc.robotDataLogger.CameraType;
+import logger_msgs.msg.dds.CameraConfiguration;
+import logger_msgs.msg.dds.CameraType;
 
 public class CameraBean
 {
-   public final ObjectProperty<CameraType> camera_type = new SimpleObjectProperty<>(CameraType.CAPTURE_CARD_MAGEWELL);
+   public final ObjectProperty<CameraType> camera_type = new SimpleObjectProperty<>();
    public final SimpleStringProperty camera_name = new SimpleStringProperty();
    public final SimpleIntegerProperty camera_id = new SimpleIntegerProperty();
    public final SimpleIntegerProperty camera_input = new SimpleIntegerProperty();
@@ -49,7 +49,7 @@ public class CameraBean
 
    public void pack(CameraConfiguration camera)
    {
-      camera.setType(getCamera_type());
+      camera.setType(getCamera_type().getType());
       camera.setName(getCamera_name());
       camera.setCameraId((byte) getCamera_id());
       camera.setIdentifier(String.valueOf(getCamera_input()));

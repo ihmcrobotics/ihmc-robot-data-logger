@@ -1,19 +1,12 @@
 package us.ihmc.robotDataLogger.handshake;
 
 import gnu.trove.map.hash.TObjectIntHashMap;
+import logger_msgs.msg.dds.Handshake;
+import logger_msgs.msg.dds.SCS2YoGraphicDefinitionMessage;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.EnumType;
-import us.ihmc.robotDataLogger.Handshake;
-import us.ihmc.robotDataLogger.JointDefinition;
-import us.ihmc.robotDataLogger.LoadStatus;
-import us.ihmc.robotDataLogger.ReferenceFrameInformation;
-import us.ihmc.robotDataLogger.SCS2YoGraphicDefinitionMessage;
-import us.ihmc.robotDataLogger.YoRegistryDefinition;
-import us.ihmc.robotDataLogger.YoType;
-import us.ihmc.robotDataLogger.YoVariableDefinition;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.robotDataLogger.jointState.JointHolder;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;

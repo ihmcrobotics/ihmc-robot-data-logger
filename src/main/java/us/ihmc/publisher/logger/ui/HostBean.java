@@ -1,14 +1,14 @@
 package us.ihmc.publisher.logger.ui;
 
-import java.util.Collections;
-import java.util.List;
-
 import gnu.trove.list.array.TByteArrayList;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import logger_msgs.msg.dds.Host;
 import us.ihmc.commons.MathTools;
-import us.ihmc.robotDataLogger.Host;
+
+import java.util.Collections;
+import java.util.List;
 
 public class HostBean
 {
@@ -54,7 +54,7 @@ public class HostBean
       CameraHolder holder = new CameraHolder();
       for (int i = 0; i < host.getCameras().size(); i++)
       {
-         holder.cameras.add(host.getCameras().get(i));
+         holder.cameras.add(host.getCameras().getBuffer().get(i));
       }
       
       setCameras(holder);
@@ -83,15 +83,13 @@ public class HostBean
    public void pack(Host host)
    {
       host.setHostname(getHostname());
-      host.setPort(getPort());
+      host.setPort((short) getPort());
+      host.getCameras().ensureMinCapacity(getCameras().cameras.size());
 
       for (int i = 0; i < getCameras().cameras.size(); i++)
       {
          byte camera = getCameras().cameras.get(i);
-         host.getCameras().add(camera);
+         host.getCameras().getBuffer().put(i, camera);
       }
-
    }
-
-
 }

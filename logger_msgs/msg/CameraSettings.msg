@@ -1,1 +1,1 @@
-CameraConfiguration[128] cameras
+CameraConfiguration[] cameras

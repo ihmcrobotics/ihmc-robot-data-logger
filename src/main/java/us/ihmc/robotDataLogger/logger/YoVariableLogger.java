@@ -1,7 +1,7 @@
 package us.ihmc.robotDataLogger.logger;
 
+import logger_msgs.msg.dds.Announcement;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.YoVariableClient;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 

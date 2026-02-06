@@ -5,17 +5,16 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import logger_msgs.msg.dds.Camera;
+import logger_msgs.msg.dds.LogProperties;
 import us.ihmc.idl.serializers.extra.CustomDeserializationHandler;
-import us.ihmc.idl.serializers.extra.PropertiesSerializer;
-import us.ihmc.robotDataLogger.Camera;
-import us.ihmc.robotDataLogger.LogProperties;
-import us.ihmc.robotDataLogger.LogPropertiesPubSubType;
+import us.ihmc.idl.serializers.extra.ROS2PropertiesSerializer;
 
 public class LogPropertiesReader extends LogProperties
 {
    public LogPropertiesReader(File file)
    {
-      PropertiesSerializer<LogProperties> serializer = new PropertiesSerializer<>(new LogPropertiesPubSubType());
+      ROS2PropertiesSerializer<LogProperties> serializer = new ROS2PropertiesSerializer<>(LogProperties.class);
       serializer.setCustomDeserializationHandler(new LegacyFileHandler());
       try
       {

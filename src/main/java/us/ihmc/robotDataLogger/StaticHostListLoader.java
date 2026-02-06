@@ -8,8 +8,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import us.ihmc.idl.serializers.extra.YAMLSerializer;
+import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
 import us.ihmc.log.LogTools;
+import logger_msgs.msg.dds.Host;
+import logger_msgs.msg.dds.StaticHostList;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 
 public class StaticHostListLoader
@@ -45,7 +47,7 @@ public class StaticHostListLoader
    
    public static StaticHostList loadHostList(String data) throws IOException
    {
-      YAMLSerializer<StaticHostList> ser = new YAMLSerializer<>(new StaticHostListPubSubType());
+      ROS2YAMLSerializer<StaticHostList> ser = new ROS2YAMLSerializer<>(StaticHostList.class);
       ser.setAddTypeAsRootNode(false);
 
       return ser.deserialize(data);
@@ -100,7 +102,7 @@ public class StaticHostListLoader
 
    public static String toString(StaticHostList staticHostList) throws IOException
    {
-      YAMLSerializer<StaticHostList> ser = new YAMLSerializer<>(new StaticHostListPubSubType());
+      ROS2YAMLSerializer<StaticHostList> ser = new ROS2YAMLSerializer<>(StaticHostList.class);
       ser.setAddTypeAsRootNode(false);
       return ser.serializeToString(staticHostList);
    }

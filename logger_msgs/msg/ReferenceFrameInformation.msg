@@ -1,2 +1,2 @@
-uint32[8192] frameIndices
-string[8192] frameNames
+uint32[] frameIndices
+string[] frameNames

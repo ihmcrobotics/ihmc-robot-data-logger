@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import logger_msgs.msg.dds.Host;
+import logger_msgs.msg.dds.StaticHostList;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.Host;
-import us.ihmc.robotDataLogger.StaticHostList;
 import us.ihmc.robotDataLogger.util.SocketUtils;
 
 import java.io.IOException;

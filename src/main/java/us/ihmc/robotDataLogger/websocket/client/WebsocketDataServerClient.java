@@ -1,10 +1,5 @@
 package us.ihmc.robotDataLogger.websocket.client;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.concurrent.TimeUnit;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -21,9 +16,8 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
 import io.netty.handler.timeout.IdleStateHandler;
-import us.ihmc.pubsub.common.SerializedPayload;
-import us.ihmc.robotDataLogger.VariableChangeRequest;
-import us.ihmc.robotDataLogger.VariableChangeRequestPubSubType;
+import logger_msgs.msg.dds.VariableChangeRequest;
+import us.ihmc.fastddsjava.cdr.CDRBuffer;
 import us.ihmc.robotDataLogger.YoVariableClientImplementation;
 import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataSubscriberType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistryConsumer;
@@ -36,15 +30,17 @@ import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnecti
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.concurrent.TimeUnit;
+
 import static io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory.newHandshaker;
 
 public class WebsocketDataServerClient
 {
    private final EventLoopGroup group = NettyUtils.createEventGroundLoop();
    private final RegistryConsumer consumer;
-
-   private final VariableChangeRequestPubSubType variableChangeRequestType = new VariableChangeRequestPubSubType();
-   private final SerializedPayload variableChangeRequestPayload = new SerializedPayload(variableChangeRequestType.getTypeSize());
 
    private final Channel ch;
 
@@ -147,11 +143,14 @@ public class WebsocketDataServerClient
          msg.setVariableID(identifier);
          msg.setRequestedValue(valueAsDouble);
 
-         variableChangeRequestPayload.getData().clear();
-         variableChangeRequestType.serialize(msg, variableChangeRequestPayload);
+         // TODO jros2: Make allocation free?
 
-         ByteBuf data = ch.alloc().buffer(variableChangeRequestPayload.getLength());
-         data.writeBytes(variableChangeRequestPayload.getData());
+         CDRBuffer buffer = new CDRBuffer();
+         buffer.ensureRemainingCapacity(msg.calculateSizeBytes(0));
+         msg.serialize(buffer);
+
+         ByteBuf data = ch.alloc().buffer(buffer.getBufferUnsafe().capacity());
+         data.writeBytes(buffer.getBufferUnsafe());
          BinaryWebSocketFrame frame = new BinaryWebSocketFrame(data);
          ch.writeAndFlush(frame);
       }

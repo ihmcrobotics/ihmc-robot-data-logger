@@ -12,7 +12,7 @@ import us.ihmc.jros2.ROS2Message;
 <p>Source (logger_msgs/EnumType):
 <pre>{@code
 string name
-string[255] enumValues
+string[] enumValues
 }</pre>
 */
 public class EnumType implements ROS2Message<EnumType>
@@ -20,17 +20,12 @@ public class EnumType implements ROS2Message<EnumType>
    public static final java.lang.String name = "logger_msgs::msg::dds_::EnumType_";
 
    private final StringBuilder name_;
-   private final StringBuilder[] enumValues_;
+   private final IDLStringSequence enumValues_;
 
    public EnumType()
    {
       name_ = new StringBuilder();
-      enumValues_ = new StringBuilder[255];
-      // enumValues is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < enumValues_.length; ++i)
-      {
-         enumValues_[i] = new StringBuilder();
-      }
+      enumValues_ = new IDLStringSequence();
 
    }
 
@@ -40,7 +35,7 @@ public class EnumType implements ROS2Message<EnumType>
       int initialAlignment = currentAlignment;
 
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4) + (1 * name_.length()) + 1; // name_
-      currentAlignment += (255 * 1) + CDRBuffer.alignment(currentAlignment, (255 * 1)); // enumValues_
+      currentAlignment += enumValues_.calculateSizeBytes(currentAlignment);
 
       return currentAlignment - initialAlignment;
    }
@@ -49,10 +44,7 @@ public class EnumType implements ROS2Message<EnumType>
    public void serialize(CDRBuffer buffer)
    {
       buffer.writeString(name_);
-      for (int i = 0; i < enumValues_.length; ++i)
-      {
-         buffer.writeString(enumValues_[i]);
-      }
+      enumValues_.serialize(buffer);
 
    }
 
@@ -60,10 +52,7 @@ public class EnumType implements ROS2Message<EnumType>
    public void deserialize(CDRBuffer buffer)
    {
       buffer.readString(name_);
-      for (int i = 0; i < enumValues_.length; ++i)
-      {
-         buffer.readString(enumValues_[i]);
-      }
+      enumValues_.deserialize(buffer);
 
    }
 
@@ -72,10 +61,7 @@ public class EnumType implements ROS2Message<EnumType>
    {
       name_.delete(0, name_.length());
       name_.insert(0, from.name_);
-      for (int i = 0; i < enumValues_.length; ++i)
-      {
-         enumValues_[i] = from.enumValues_[i];
-      }
+      enumValues_.set(from.enumValues_);
 
    }
 
@@ -95,7 +81,7 @@ public class EnumType implements ROS2Message<EnumType>
       this.name_.insert(0, s);
    }
 
-   public StringBuilder[] getEnumValues()
+   public IDLStringSequence getEnumValues()
    {
       return enumValues_;
    }

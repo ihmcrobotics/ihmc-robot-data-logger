@@ -1,13 +1,13 @@
 package us.ihmc.robotDataLogger.dataBuffers;
 
-import java.util.concurrent.PriorityBlockingQueue;
-
 import gnu.trove.map.hash.TIntLongHashMap;
+import logger_msgs.msg.dds.LogDataType;
 import us.ihmc.commons.thread.ThreadTools;
-import us.ihmc.robotDataLogger.LogDataType;
 import us.ihmc.robotDataLogger.YoVariableClientImplementation;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
+
+import java.util.concurrent.PriorityBlockingQueue;
 
 public class RegistryConsumer extends Thread
 {
@@ -125,7 +125,7 @@ public class RegistryConsumer extends Thread
    private void handlePackets() throws InterruptedException
    {
       RegistryReceiveBuffer buffer = orderedBuffers.take();
-      if (buffer.getType() == LogDataType.DATA_PACKET)
+      if (buffer.getType().getType() == LogDataType.DATA_PACKET)
       {
 
          long timestamp = buffer.getTimestamp();

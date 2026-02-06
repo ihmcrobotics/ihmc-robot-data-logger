@@ -12,7 +12,7 @@ import us.ihmc.jros2.ROS2Message;
 <p>Source (logger_msgs/StaticHostList):
 <pre>{@code
 bool disableAutoDiscovery
-Host[128] hosts
+Host[] hosts
 }</pre>
 */
 public class StaticHostList implements ROS2Message<StaticHostList>
@@ -20,17 +20,12 @@ public class StaticHostList implements ROS2Message<StaticHostList>
    public static final java.lang.String name = "logger_msgs::msg::dds_::StaticHostList_";
 
    private boolean disableAutoDiscovery_;
-   private final logger_msgs.msg.dds.Host[] hosts_;
+   private final IDLObjectSequence<logger_msgs.msg.dds.Host> hosts_;
 
    public StaticHostList()
    {
       disableAutoDiscovery_ = (boolean) false;
-      hosts_ = new logger_msgs.msg.dds.Host[128];
-      // hosts is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < hosts_.length; ++i)
-      {
-         hosts_[i] = new logger_msgs.msg.dds.Host();
-      }
+      hosts_ = new IDLObjectSequence<logger_msgs.msg.dds.Host>(logger_msgs.msg.dds.Host.class);
 
    }
 
@@ -40,10 +35,7 @@ public class StaticHostList implements ROS2Message<StaticHostList>
       int initialAlignment = currentAlignment;
 
       currentAlignment += 1 + CDRBuffer.alignment(currentAlignment, 1); // disableAutoDiscovery_
-      for (int i = 0; i < hosts_.length; ++i)
-      {
-         currentAlignment += hosts_[i].calculateSizeBytes(currentAlignment);
-      }
+      currentAlignment += hosts_.calculateSizeBytes(currentAlignment);
 
       return currentAlignment - initialAlignment;
    }
@@ -52,10 +44,7 @@ public class StaticHostList implements ROS2Message<StaticHostList>
    public void serialize(CDRBuffer buffer)
    {
       buffer.writeBoolean(disableAutoDiscovery_);
-      for (int i = 0; i < hosts_.length; ++i)
-      {
-         hosts_[i].serialize(buffer);
-      }
+      hosts_.serialize(buffer);
 
    }
 
@@ -63,10 +52,7 @@ public class StaticHostList implements ROS2Message<StaticHostList>
    public void deserialize(CDRBuffer buffer)
    {
       disableAutoDiscovery_ = buffer.readBoolean();
-      for (int i = 0; i < hosts_.length; ++i)
-      {
-         hosts_[i].deserialize(buffer);
-      }
+      hosts_.deserialize(buffer);
 
    }
 
@@ -74,10 +60,7 @@ public class StaticHostList implements ROS2Message<StaticHostList>
    public void set(StaticHostList from)
    {
       disableAutoDiscovery_ = from.disableAutoDiscovery_;
-      for (int i = 0; i < hosts_.length; ++i)
-      {
-         hosts_[i].set(from.hosts_[i]);
-      }
+      hosts_.set(from.hosts_);
 
    }
 
@@ -91,7 +74,7 @@ public class StaticHostList implements ROS2Message<StaticHostList>
       this.disableAutoDiscovery_ = disableAutoDiscovery_;
    }
 
-   public logger_msgs.msg.dds.Host[] getHosts()
+   public IDLObjectSequence<logger_msgs.msg.dds.Host> getHosts()
    {
       return hosts_;
    }

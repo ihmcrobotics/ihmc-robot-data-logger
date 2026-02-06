@@ -1,12 +1,19 @@
 package us.ihmc.robotDataLogger.jointState;
 
+import logger_msgs.msg.dds.JointType;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
-import us.ihmc.robotDataLogger.JointType;
 
 public class SiXDoFJointHolder implements JointHolder
 {
+   private static final JointType SIXDOFJOINTTYPE = new JointType();
+   static
+   {
+      SIXDOFJOINTTYPE.setType(JointType.SIXDOFJOINT);
+   }
+
+
    private final SixDoFJoint inverseDynamicsJoint;
 
    public SiXDoFJointHolder(SixDoFJoint joint)
@@ -17,7 +24,7 @@ public class SiXDoFJointHolder implements JointHolder
    @Override
    public JointType getJointType()
    {
-      return JointType.SiXDoFJoint;
+      return SIXDOFJOINTTYPE;
    }
 
    @Override
