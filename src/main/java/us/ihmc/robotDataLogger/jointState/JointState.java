@@ -1,14 +1,13 @@
 package us.ihmc.robotDataLogger.jointState;
 
+import logger_msgs.msg.dds.JointType;
+
 import java.nio.DoubleBuffer;
 import java.nio.LongBuffer;
 import java.util.List;
 
-import us.ihmc.robotDataLogger.JointType;
-
 public abstract class JointState
 {
-
    private final JointType type;
    private final String name;
 
@@ -40,11 +39,11 @@ public abstract class JointState
 
    public static int getNumberOfVariables(JointType type)
    {
-      switch (type)
+      switch (type.getType())
       {
-         case OneDoFJoint:
+         case JointType.ONEDOFJOINT:
             return OneDoFState.numberOfStateVariables;
-         case SiXDoFJoint:
+         case JointType.SIXDOFJOINT:
             return SixDoFState.numberOfStateVariables;
          default:
             throw new RuntimeException("Unknown joint type" + type);
@@ -53,11 +52,11 @@ public abstract class JointState
 
    public static JointState createJointState(String name, JointType type)
    {
-      switch (type)
+      switch (type.getType())
       {
-         case OneDoFJoint:
+         case JointType.ONEDOFJOINT:
             return new OneDoFState(name);
-         case SiXDoFJoint:
+         case JointType.SIXDOFJOINT:
             return new SixDoFState(name);
          default:
             throw new RuntimeException("Unknown joint type" + type);

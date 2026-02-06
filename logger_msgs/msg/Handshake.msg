@@ -1,0 +1,10 @@
+float64 dt
+YoRegistryDefinition[1024] registries
+YoVariableDefinition[32767] variables
+JointDefinition[128] joints
+SCS1YoGraphicObjectMessage[2048] graphicObjects
+SCS1YoGraphicObjectMessage[2048] artifacts
+SCS2YoGraphicDefinitionMessage[2048] scs2YoGraphicDefinitions
+EnumType[1024] enumTypes
+ReferenceFrameInformation referenceFrameInformation
+Summary summary

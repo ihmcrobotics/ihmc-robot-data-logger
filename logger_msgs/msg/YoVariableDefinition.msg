@@ -1,0 +1,10 @@
+string name
+string description
+uint8 type
+uint16 registry
+uint16 enumType
+bool allowNullValues
+bool isParameter
+float64 min
+float64 max
+uint8 loadStatus

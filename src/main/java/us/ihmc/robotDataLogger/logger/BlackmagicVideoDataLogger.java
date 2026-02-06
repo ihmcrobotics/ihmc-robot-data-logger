@@ -4,12 +4,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import logger_msgs.msg.dds.LogProperties;
 import us.ihmc.commons.Conversions;
 import us.ihmc.javadecklink.Capture;
 import us.ihmc.javadecklink.Capture.CodecID;
 import us.ihmc.javadecklink.CaptureHandler;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.LogProperties;
 import us.ihmc.tools.maps.CircularLongMap;
 
 public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler

@@ -1,9 +1,9 @@
 package us.ihmc.robotDataLogger.jointState;
 
+import logger_msgs.msg.dds.JointType;
+
 import java.nio.DoubleBuffer;
 import java.nio.LongBuffer;
-
-import us.ihmc.robotDataLogger.JointType;
 
 public class OneDoFState extends JointState
 {

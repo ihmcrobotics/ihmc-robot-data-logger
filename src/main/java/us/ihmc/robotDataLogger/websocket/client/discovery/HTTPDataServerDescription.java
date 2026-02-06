@@ -1,15 +1,15 @@
 package us.ihmc.robotDataLogger.websocket.client.discovery;
 
-import us.ihmc.idl.IDLSequence;
+import us.ihmc.fastddsjava.cdr.idl.IDLByteSequence;
 
 public class HTTPDataServerDescription
 {
    private final String host;
    private final int port;
    private final boolean persistant;
-   private final IDLSequence.Byte cameraList;
+   private final IDLByteSequence cameraList;
 
-   public HTTPDataServerDescription(String host, int port, IDLSequence.Byte cameraList, boolean persistant)
+   public HTTPDataServerDescription(String host, int port, IDLByteSequence cameraList, boolean persistant)
    {
       this.host = host;
       this.port = port;
@@ -32,7 +32,7 @@ public class HTTPDataServerDescription
       return persistant;
    }
    
-   public IDLSequence.Byte getCameraList()
+   public IDLByteSequence getCameraList()
    {
       return cameraList;
    }

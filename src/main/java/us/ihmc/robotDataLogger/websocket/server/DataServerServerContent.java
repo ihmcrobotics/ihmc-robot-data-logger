@@ -12,12 +12,10 @@ import java.util.stream.Collectors;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
+import logger_msgs.msg.dds.Announcement;
+import logger_msgs.msg.dds.Handshake;
 import us.ihmc.idl.serializers.extra.JSONSerializer;
 import us.ihmc.multicastLogDataProtocol.modelLoaders.LogModelProvider;
-import us.ihmc.robotDataLogger.Announcement;
-import us.ihmc.robotDataLogger.AnnouncementPubSubType;
-import us.ihmc.robotDataLogger.Handshake;
-import us.ihmc.robotDataLogger.HandshakePubSubType;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.util.HandshakeHashCalculator;
 

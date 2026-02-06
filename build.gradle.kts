@@ -1,14 +1,8 @@
-import us.ihmc.idl.generator.IDLGenerator
-
-buildscript {
-   dependencies {
-      classpath("us.ihmc:ihmc-pub-sub-generator:1.2.1")
-   }
-}
+import us.ihmc.jros2.generator.jros2GenTask
 
 plugins {
    id("us.ihmc.ihmc-build")
-   id("us.ihmc.log-tools-plugin") version "0.6.4"
+   id("us.ihmc.jros2.generator") version "1.1.6"
 }
 
 ihmc {
@@ -39,11 +33,11 @@ mainDependencies {
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-realtime:1.7.1")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
-   api("us.ihmc:ros2-library:1.2.1")
    api("us.ihmc:ihmc-commons:0.35.1")
    api("us.ihmc:ihmc-yovariables:0.13.7")
    api("us.ihmc:scs2-definition:17-0.32.0")
    api("us.ihmc:mecano:17-0.19.3")
+   api("us.ihmc:jros2:1.1.6")
 
    api("com.fasterxml.jackson.core:jackson-databind:2.18.1")
    api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.18.1")
@@ -88,7 +82,6 @@ testDependencies {
 }
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")
-app.entrypoint("BlackMagicCapture", "us.ihmc.javadecklink.Capture")
 
 tasks.register<JavaExec>("deploy") {
    dependsOn("generateMessages")
@@ -103,20 +96,11 @@ tasks.register<JavaExec>("deploy") {
    args("--logger-dist=" + p)
 }
 
-tasks.register("generateMessages") {
-   doLast {
-      generateMessages()
-   }
-}
+tasks.register<jros2GenTask>("generateMessages") {
+   packagePaths = listOf(
+      projectDir.resolve("logger_msgs").absolutePath
+   )
 
-fun generateMessages()
-{
-   val idlFiles = fileTree("src/main/idl")
-   val targetDirectory = file("src/main/java-generated")
-   val packagePrefix = ""
-
-   for (idl in idlFiles)
-   {
-      IDLGenerator.execute(idl, packagePrefix, targetDirectory, listOf(file(".")))
-   }
+   // Generated files will go in the src/main/java-generated source set
+   outputDir = sourceSets["main"].java.srcDirs.find { it.name == "java-generated" }.toString()
 }
