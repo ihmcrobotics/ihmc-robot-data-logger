@@ -70,7 +70,7 @@ public abstract class DataServerLocationBroadcast
                   {
                      Host host = addresses.getHosts().add();
                      host.setHostname(addr.getHostAddress());
-                     host.setPort(dataServerPort);
+                     host.setPort((short) dataServerPort);
                   }
                }
             }

@@ -1,24 +1,25 @@
 package us.ihmc.robotDataLogger.memoryLogger;
 
+import logger_msgs.msg.dds.Announcement;
+import logger_msgs.msg.dds.HandshakeFileType;
+import us.ihmc.fastddsjava.cdr.idl.IDLStringSequence;
+import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
+import us.ihmc.robotDataLogger.handshake.LogHandshake;
+import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
+import us.ihmc.robotDataLogger.websocket.server.DataServerServerContent;
+
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-import us.ihmc.robotDataLogger.Announcement;
-import us.ihmc.robotDataLogger.HandshakeFileType;
-import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
-import us.ihmc.robotDataLogger.handshake.LogHandshake;
-import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
-import us.ihmc.robotDataLogger.websocket.server.DataServerServerContent;
-
 public class MemoryLogWriter
 {
    /**
     * Helper method to convert IDLStringSequence to String array
     */
-   private static String[] toStringArray(us.ihmc.idl.IDLStringSequence sequence)
+   private static String[] toStringArray(IDLStringSequence sequence)
    {
       String[] result = new String[sequence.size()];
       for (int i = 0; i < sequence.size(); i++)
@@ -124,8 +125,10 @@ public class MemoryLogWriter
             logHandshake.setResourceZip(content.getResourceZip().array());
          }
       }
-     
-      IDLYoVariableHandshakeParser handshakeParser = new IDLYoVariableHandshakeParser(HandshakeFileType.IDL_YAML);
+
+      HandshakeFileType handshakeFileType = new HandshakeFileType();
+      handshakeFileType.setType(HandshakeFileType.IDL_YAML);
+      IDLYoVariableHandshakeParser handshakeParser = new IDLYoVariableHandshakeParser(handshakeFileType);
       handshakeParser.parseFrom(content.getHandshakeObject());
       
       this.listener = new MemoryLoggerListener(tempDirectory, finalDirectory, timestamp, announcement, handshakeParser);

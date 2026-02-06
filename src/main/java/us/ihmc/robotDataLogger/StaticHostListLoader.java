@@ -1,5 +1,11 @@
 package us.ihmc.robotDataLogger;
 
+import logger_msgs.msg.dds.Host;
+import logger_msgs.msg.dds.StaticHostList;
+import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
+import us.ihmc.log.LogTools;
+import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -7,12 +13,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
-import us.ihmc.log.LogTools;
-import logger_msgs.msg.dds.Host;
-import logger_msgs.msg.dds.StaticHostList;
-import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 
 public class StaticHostListLoader
 {
@@ -61,8 +61,10 @@ public class StaticHostListLoader
       {
          List<HTTPDataServerDescription> list = new ArrayList<>();
          StaticHostList hostList = loadHostList(data);
-         for (Host host : hostList.getHosts())
+
+         for (int i = 0; i < hostList.getHosts().size(); i++)
          {
+            Host host = hostList.getHosts().get(i);
             HTTPDataServerDescription description = new HTTPDataServerDescription(host.getHostnameAsString(), host.getPort(), host.getCameras(), true);
             list.add(description);
          }
@@ -85,7 +87,7 @@ public class StaticHostListLoader
       {
          Host host = staticHostList.getHosts().add();
          host.setHostname(description.getHost());
-         host.setPort(description.getPort());
+         host.setPort((short) description.getPort());
          
          if (description.getCameraList() != null)
          {

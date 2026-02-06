@@ -6,7 +6,6 @@ import java.util.concurrent.TimeUnit;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.ScheduledFuture;
 import us.ihmc.concurrent.ConcurrentRingBuffer;
-import us.ihmc.pubsub.common.SerializedPayload;
 import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataPublisherType;
 import us.ihmc.robotDataLogger.dataBuffers.LoggerDebugRegistry;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBuffer;
@@ -35,7 +34,6 @@ class WebsocketRegistryPublisher implements RegistryPublisher
    private final VariableUpdateThread variableUpdateThread = new VariableUpdateThread();
 
    private final CustomLogDataPublisherType publisherType;
-   private final SerializedPayload serializedPayload;
 
    private ScheduledFuture<?> scheduledFuture;
 
@@ -59,8 +57,6 @@ class WebsocketRegistryPublisher implements RegistryPublisher
 
       publisherType = new CustomLogDataPublisherType(builder.getNumberOfVariables(), builder.getNumberOfJointStates());
 
-      serializedPayload = new SerializedPayload(publisherType.getMaximumTypeSize());
-      
       this.bufferListener = bufferListener;
       
       if(bufferListener != null)

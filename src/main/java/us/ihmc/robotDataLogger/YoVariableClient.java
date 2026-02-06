@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.gui.DataServerSelectorGUI;
-import us.ihmc.robotDataLogger.rtps.LogProducerDisplay;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 
 /**
