@@ -1,17 +1,11 @@
 package us.ihmc.robotDataLogger;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
-
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.concurrent.ConcurrentRingBuffer;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.multicastLogDataProtocol.modelLoaders.LogModelProvider;
-import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataPublisherType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.robotDataLogger.handshake.SummaryProvider;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandShakeBuilder;
@@ -23,9 +17,12 @@ import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.websocket.server.DataServerServerContent;
 import us.ihmc.robotDataLogger.websocket.server.WebsocketDataProducer;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
-import us.ihmc.util.PeriodicThreadSchedulerFactory;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class YoVariableServer implements RobotVisualizer, VariableChangedListener
 {

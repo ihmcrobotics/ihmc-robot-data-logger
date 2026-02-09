@@ -1,24 +1,20 @@
 package us.ihmc.robotDataLogger.dataBuffers;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import us.ihmc.idl.CDR;
-import us.ihmc.idl.InterchangeSerializer;
-import us.ihmc.pubsub.TopicDataType;
-import us.ihmc.pubsub.common.SerializedPayload;
-import us.ihmc.robotDataLogger.LogDataType;
+import logger_msgs.msg.dds.LogData;
+import us.ihmc.fastddsjava.cdr.CDRBuffer;
 import us.ihmc.tools.compression.CompressionImplementation;
 import us.ihmc.tools.compression.CompressionImplementationFactory;
+
+import java.nio.ByteBuffer;
 
 /**
  * Topic data type of the struct "LogData" defined in "LogData.idl". Use this class to provide the
  * TopicDataType to a Participant. This file has been modified from the generated version to provide
  * higher performance.
  */
-public class CustomLogDataPublisherType implements TopicDataType<RegistrySendBuffer>
+public class CustomLogDataPublisherType extends LogData
 {
-   public static final String name = "us::ihmc::robotDataLogger::LogData";
+   public static final java.lang.String name = "logger_msgs::msg::dds_::LogData_";
 
    private final int numberOfVariables;
    private final int numberOfStates;
@@ -42,178 +38,21 @@ public class CustomLogDataPublisherType implements TopicDataType<RegistrySendBuf
       }
    }
 
-   private final CDR serializeCDR = new CDR();
-
-   /**
-    * Directly write the compressed data in the serialized buffer. This skips a copy compared to
-    * compressing to a temporary buffer
-    *
-    * @param databuffer
-    * @param serializedPayload
-    */
-   private void compressDirect(ByteBuffer databuffer, SerializedPayload serializedPayload)
+   @Override
+   public int calculateSizeBytes(int currentAlignment)
    {
-      ByteBuffer serializeBuffer = serializedPayload.getData();
-      serializeCDR.write_type_2(0);
-      int sizePosition = serializeBuffer.position() - 4;
-      int written = compressor.compress(databuffer, serializeBuffer);
-      serializeBuffer.putInt(sizePosition, written);
-
-   }
-
-   /**
-    * If the compression algorithm uses indirect buffers, we need to use a temporary buffer and make
-    * copy the compressed data in the serialized payload.
-    *
-    * @param databuffer
-    * @param serializedPayload
-    * @throws IOException
-    */
-   private void compressJavaBuffer(ByteBuffer databuffer, SerializedPayload serializedPayload) throws IOException
-   {
-      compressBuffer.clear();
-      compressor.compress(databuffer, compressBuffer);
-      compressBuffer.flip();
-
-      // Write compressed data length
-      serializeCDR.write_type_2(compressBuffer.remaining());
-      serializedPayload.getData().put(compressBuffer);
+      return super.calculateSizeBytes(currentAlignment);
    }
 
    @Override
-   public void serialize(RegistrySendBuffer data, SerializedPayload serializedPayload) throws IOException
+   public void serialize(CDRBuffer buffer)
    {
-      serializeCDR.serialize(serializedPayload);
-      serializeCDR.write_type_11(data.getUid());
-
-      serializeCDR.write_type_11(data.getTimestamp());
-
-      serializeCDR.write_type_11(data.getTransmitTime());
-
-      serializeCDR.write_type_c(data.getType().ordinal());
-
-      serializeCDR.write_type_2(data.getRegistryID());
-
-      serializeCDR.write_type_2(data.getNumberOfVariables());
-
-      if (data.getType() == LogDataType.DATA_PACKET)
-      {
-         if (compressor.supportsDirectOutput())
-         {
-            compressDirect(data.getBuffer(), serializedPayload);
-         }
-         else
-         {
-            compressJavaBuffer(data.getBuffer(), serializedPayload);
-         }
-
-         // Write joint states length
-         double[] jointstates = data.getJointStates();
-         serializeCDR.write_type_2(jointstates.length);
-         for (int i = 0; i < jointstates.length; i++)
-         {
-            serializeCDR.write_type_6(jointstates[i]);
-         }
-      }
-      else
-      {
-         serializeCDR.write_type_2(0);
-         serializeCDR.write_type_2(0);
-      }
-
-      serializeCDR.finishSerialize();
+      super.serialize(buffer);
    }
 
    @Override
-   public void deserialize(SerializedPayload serializedPayload, RegistrySendBuffer data) throws IOException
+   public void deserialize(CDRBuffer buffer)
    {
-      throw new RuntimeException("Not implemented");
-   }
-
-   @Override
-   public final void serialize(RegistrySendBuffer data, InterchangeSerializer ser)
-   {
-      throw new RuntimeException("Not implemented");
-
-   }
-
-   @Override
-   public final void deserialize(InterchangeSerializer ser, RegistrySendBuffer data)
-   {
-      throw new RuntimeException("Not implemented");
-
-   }
-
-   @Override
-   public RegistrySendBuffer createData()
-   {
-      return null;
-   }
-
-   public int getMaximumTypeSize()
-   {
-      return getTypeSize(compressor.maxCompressedLength(numberOfVariables * 8), numberOfStates);
-   }
-
-   @Override
-   public int getTypeSize()
-   {
-      return getTypeSize(compressor.maxCompressedLength(numberOfVariables * 8), numberOfStates);
-   }
-
-   public static int getTypeSize(int maxCompressedSize, int numberOfStates)
-   {
-
-      int current_alignment = 0;
-
-      current_alignment += 8 + CDR.alignment(current_alignment, 8);
-
-      current_alignment += 8 + CDR.alignment(current_alignment, 8);
-
-      current_alignment += 8 + CDR.alignment(current_alignment, 8);
-
-      current_alignment += 4 + CDR.alignment(current_alignment, 4);
-
-      current_alignment += 4 + CDR.alignment(current_alignment, 4);
-
-      current_alignment += 4 + CDR.alignment(current_alignment, 4);
-
-      current_alignment += 4 + CDR.alignment(current_alignment, 4);
-      current_alignment += maxCompressedSize + CDR.alignment(current_alignment, 1);
-
-      current_alignment += 4 + CDR.alignment(current_alignment, 4);
-      current_alignment += numberOfStates * 8 + CDR.alignment(current_alignment, 8);
-
-      return CDR.getTypeSize(current_alignment);
-   }
-
-   @Override
-   public String getName()
-   {
-      return name;
-   }
-
-   @Override
-   public CustomLogDataPublisherType newInstance()
-   {
-      return new CustomLogDataPublisherType(numberOfVariables, numberOfStates);
-   }
-
-   @Override
-   public void serialize(RegistrySendBuffer data, CDR cdr)
-   {
-      throw new RuntimeException("Not implemented");
-   }
-
-   @Override
-   public void deserialize(RegistrySendBuffer data, CDR cdr)
-   {
-      throw new RuntimeException("Not implemented");
-   }
-
-   @Override
-   public void copy(RegistrySendBuffer src, RegistrySendBuffer dest)
-   {
-      throw new RuntimeException("Not implemented");
+      super.deserialize(buffer);
    }
 }

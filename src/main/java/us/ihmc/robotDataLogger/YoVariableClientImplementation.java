@@ -1,5 +1,8 @@
 package us.ihmc.robotDataLogger;
 
+import logger_msgs.msg.dds.Announcement;
+import logger_msgs.msg.dds.Handshake;
+import logger_msgs.msg.dds.HandshakeFileType;
 import us.ihmc.commons.MathTools;
 import us.ihmc.fastddsjava.cdr.idl.IDLStringSequence;
 import us.ihmc.log.LogTools;
@@ -100,7 +103,9 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
       LogTools.info("Requesting handshake, model, and resource bundle from some stuff...");
       Handshake handshake = dataConsumer.getHandshake();
 
-      IDLYoVariableHandshakeParser handshakeParser = new IDLYoVariableHandshakeParser(HandshakeFileType.IDL_CDR);
+      HandshakeFileType handshakeFileType = new HandshakeFileType();
+      handshakeFileType.setType(HandshakeFileType.IDL_CDR);
+      IDLYoVariableHandshakeParser handshakeParser = new IDLYoVariableHandshakeParser(handshakeFileType);
       handshakeParser.parseFrom(handshake);
 
       LogHandshake logHandshake = new LogHandshake();

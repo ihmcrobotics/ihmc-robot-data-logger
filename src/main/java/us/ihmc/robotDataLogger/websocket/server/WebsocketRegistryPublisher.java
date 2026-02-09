@@ -1,17 +1,17 @@
 package us.ihmc.robotDataLogger.websocket.server;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.ScheduledFuture;
 import us.ihmc.concurrent.ConcurrentRingBuffer;
+import us.ihmc.fastddsjava.cdr.CDRBuffer;
 import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataPublisherType;
 import us.ihmc.robotDataLogger.dataBuffers.LoggerDebugRegistry;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBuffer;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.robotDataLogger.interfaces.BufferListenerInterface;
 import us.ihmc.robotDataLogger.interfaces.RegistryPublisher;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Publishing thread for registry data This thread reads all variables on a realtime thread, puts
@@ -34,6 +34,7 @@ class WebsocketRegistryPublisher implements RegistryPublisher
    private final VariableUpdateThread variableUpdateThread = new VariableUpdateThread();
 
    private final CustomLogDataPublisherType publisherType;
+   private final CDRBuffer publisherBuffer;
 
    private ScheduledFuture<?> scheduledFuture;
 
@@ -56,6 +57,7 @@ class WebsocketRegistryPublisher implements RegistryPublisher
       this.bufferID = bufferID;
 
       publisherType = new CustomLogDataPublisherType(builder.getNumberOfVariables(), builder.getNumberOfJointStates());
+      publisherBuffer = new CDRBuffer();
 
       this.bufferListener = bufferListener;
       
@@ -131,9 +133,14 @@ class WebsocketRegistryPublisher implements RegistryPublisher
 
                if ((buffer = ringBuffer.read()) != null)
                {
-                  serializedPayload.getData().clear();
+                  // Reset the buffer
+                  publisherBuffer.getBufferUnsafe().clear();
+
+                  // Write message into buffer
                   publisherType.serialize(buffer, serializedPayload);
-                  broadcaster.write(bufferID, buffer.getTimestamp(), serializedPayload.getData());
+
+                  // Publish the buffer over web socket
+                  broadcaster.write(bufferID, buffer.getTimestamp(), publisherBuffer.getBufferUnsafe());
 
                   if (previousUid != -1)
                   {
