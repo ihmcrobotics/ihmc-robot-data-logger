@@ -13,7 +13,7 @@ import us.ihmc.jros2.ROS2Message;
 <pre>{@code
 bool createSummary
 string summaryTriggerVariable
-string[128] summarizedVariables
+string[] summarizedVariables
 }</pre>
 */
 public class Summary implements ROS2Message<Summary>
@@ -22,18 +22,13 @@ public class Summary implements ROS2Message<Summary>
 
    private boolean createSummary_;
    private final StringBuilder summaryTriggerVariable_;
-   private final StringBuilder[] summarizedVariables_;
+   private final IDLStringSequence summarizedVariables_;
 
    public Summary()
    {
       createSummary_ = (boolean) false;
       summaryTriggerVariable_ = new StringBuilder();
-      summarizedVariables_ = new StringBuilder[128];
-      // summarizedVariables is defined as a fixed-size array, so it is pre-allocated.
-      for (int i = 0; i < summarizedVariables_.length; ++i)
-      {
-         summarizedVariables_[i] = new StringBuilder();
-      }
+      summarizedVariables_ = new IDLStringSequence();
 
    }
 
@@ -44,7 +39,7 @@ public class Summary implements ROS2Message<Summary>
 
       currentAlignment += 1 + CDRBuffer.alignment(currentAlignment, 1); // createSummary_
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4) + (1 * summaryTriggerVariable_.length()) + 1; // summaryTriggerVariable_
-      currentAlignment += (128 * 1) + CDRBuffer.alignment(currentAlignment, (128 * 1)); // summarizedVariables_
+      currentAlignment += summarizedVariables_.calculateSizeBytes(currentAlignment);
 
       return currentAlignment - initialAlignment;
    }
@@ -54,10 +49,7 @@ public class Summary implements ROS2Message<Summary>
    {
       buffer.writeBoolean(createSummary_);
       buffer.writeString(summaryTriggerVariable_);
-      for (int i = 0; i < summarizedVariables_.length; ++i)
-      {
-         buffer.writeString(summarizedVariables_[i]);
-      }
+      summarizedVariables_.serialize(buffer);
 
    }
 
@@ -66,10 +58,7 @@ public class Summary implements ROS2Message<Summary>
    {
       createSummary_ = buffer.readBoolean();
       buffer.readString(summaryTriggerVariable_);
-      for (int i = 0; i < summarizedVariables_.length; ++i)
-      {
-         buffer.readString(summarizedVariables_[i]);
-      }
+      summarizedVariables_.deserialize(buffer);
 
    }
 
@@ -79,10 +68,7 @@ public class Summary implements ROS2Message<Summary>
       createSummary_ = from.createSummary_;
       summaryTriggerVariable_.delete(0, summaryTriggerVariable_.length());
       summaryTriggerVariable_.insert(0, from.summaryTriggerVariable_);
-      for (int i = 0; i < summarizedVariables_.length; ++i)
-      {
-         summarizedVariables_[i] = from.summarizedVariables_[i];
-      }
+      summarizedVariables_.set(from.summarizedVariables_);
 
    }
 
@@ -112,7 +98,7 @@ public class Summary implements ROS2Message<Summary>
       this.summaryTriggerVariable_.insert(0, s);
    }
 
-   public StringBuilder[] getSummarizedVariables()
+   public IDLStringSequence getSummarizedVariables()
    {
       return summarizedVariables_;
    }

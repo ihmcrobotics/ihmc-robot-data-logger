@@ -11,7 +11,6 @@ import us.ihmc.jros2.ROS2Message;
 /**
 <p>Source (logger_msgs/HandshakeFileType):
 <pre>{@code
-uint8 PROTOBUFFER=0
 uint8 IDL_YAML=1
 uint8 IDL_CDR=2
 uint8 type 0}</pre>
@@ -20,7 +19,6 @@ public class HandshakeFileType implements ROS2Message<HandshakeFileType>
 {
    public static final java.lang.String name = "logger_msgs::msg::dds_::HandshakeFileType_";
 
-   public static final byte PROTOBUFFER = 0;
    public static final byte IDL_YAML = 1;
    public static final byte IDL_CDR = 2;
    private byte type_;

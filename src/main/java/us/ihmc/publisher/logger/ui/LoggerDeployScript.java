@@ -3,11 +3,11 @@ package us.ihmc.publisher.logger.ui;
 import java.io.IOException;
 
 import javafx.stage.Stage;
+import logger_msgs.msg.dds.CameraSettings;
+import logger_msgs.msg.dds.StaticHostList;
 import us.ihmc.publisher.logger.LoggerDeployConfiguration;
 import us.ihmc.publisher.logger.utils.SSHDeploy.SSHRemote;
 import us.ihmc.publisher.logger.utils.ui.FXConsole;
-import us.ihmc.robotDataLogger.CameraSettings;
-import us.ihmc.robotDataLogger.StaticHostList;
 
 public interface LoggerDeployScript
 {

@@ -1,13 +1,5 @@
 package us.ihmc.publisher.logger.ui;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
-import java.util.prefs.Preferences;
-
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -30,13 +22,21 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.converter.IntegerStringConverter;
+import logger_msgs.msg.dds.CameraConfiguration;
+import logger_msgs.msg.dds.CameraSettings;
+import logger_msgs.msg.dds.CameraType;
+import logger_msgs.msg.dds.Host;
+import logger_msgs.msg.dds.StaticHostList;
 import us.ihmc.publisher.logger.ui.HostBean.CameraHolder;
 import us.ihmc.publisher.logger.utils.ui.PreferencesHolder;
-import us.ihmc.robotDataLogger.CameraConfiguration;
-import us.ihmc.robotDataLogger.CameraSettings;
-import us.ihmc.robotDataLogger.CameraType;
-import us.ihmc.robotDataLogger.Host;
-import us.ihmc.robotDataLogger.StaticHostList;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ResourceBundle;
+import java.util.prefs.Preferences;
 
 public class LoggerDeployController implements Initializable
 {
@@ -131,7 +131,8 @@ public class LoggerDeployController implements Initializable
 
       camera_table.setEditable(true);
 
-      ObservableList<CameraType> cameraOptionsList = FXCollections.observableArrayList(CameraType.values);
+      // TODO jros2 (low pri):
+      ObservableList<CameraType> cameraOptionsList = FXCollections.observableArrayList();
       camera_type_column.setCellFactory(ComboBoxTableCell.forTableColumn(cameraOptionsList));
       camera_type_column.setCellValueFactory(new PropertyValueFactory<CameraBean, CameraType>("camera_type"));
       camera_type_column.setOnEditCommit(e ->
@@ -311,9 +312,9 @@ public class LoggerDeployController implements Initializable
 
          if (settings != null && settings.getCameras() != null)
          {
-
-            for (CameraConfiguration config : settings.getCameras())
+            for (int i = 0; i < settings.getCameras().size(); i++)
             {
+               CameraConfiguration config = settings.getCameras().get(i);
                if (config.getType() == CameraType.CAPTURE_CARD)
                {
                   CameraBean bean = new CameraBean(config);
@@ -325,8 +326,9 @@ public class LoggerDeployController implements Initializable
          if (hosts != null && hosts.getHosts() != null)
          {
 
-            for (Host host : hosts.getHosts())
+            for (int i = 0; i < hosts.getHosts().size(); i++)
             {
+               Host host = hosts.getHosts().get(i);
                HostBean bean = new HostBean(host);
                hostList.add(bean);
             }

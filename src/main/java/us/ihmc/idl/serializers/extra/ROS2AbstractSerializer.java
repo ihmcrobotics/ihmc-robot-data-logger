@@ -256,11 +256,22 @@ public abstract class ROS2AbstractSerializer<T extends ROS2Message<T>>
          CDRInterchangeSerializer serializer = new CDRInterchangeSerializer((ObjectNode) node);
          T message = ROS2Message.createInstance(messageClass);
          serializer.deserializeMessageFields(message, serializer);
+         if (customDeserializationHandler != null)
+         {
+            customDeserializationHandler.handle(node, message);
+         }
          return message;
       }
       else
       {
          return null;
       }
+   }
+
+   private CustomDeserializationHandler customDeserializationHandler = null;
+
+   public void setCustomDeserializationHandler(CustomDeserializationHandler customDeserializationHandler)
+   {
+      this.customDeserializationHandler = customDeserializationHandler;
    }
 }

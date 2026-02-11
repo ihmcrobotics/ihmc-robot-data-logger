@@ -1,15 +1,15 @@
 package us.ihmc.publisher.logger;
 
-import java.io.IOException;
-import java.net.URL;
-
+import logger_msgs.msg.dds.CameraSettings;
+import logger_msgs.msg.dds.StaticHostList;
 import us.ihmc.publisher.logger.utils.SSHDeploy;
 import us.ihmc.publisher.logger.utils.SSHDeploy.SSHRemote;
 import us.ihmc.publisher.logger.utils.ui.FXConsole;
-import us.ihmc.robotDataLogger.CameraSettings;
 import us.ihmc.robotDataLogger.CameraSettingsLoader;
-import us.ihmc.robotDataLogger.StaticHostList;
 import us.ihmc.robotDataLogger.StaticHostListLoader;
+
+import java.io.IOException;
+import java.net.URL;
 
 public class LoggerDeployConfiguration
 {

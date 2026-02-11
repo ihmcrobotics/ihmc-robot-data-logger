@@ -6,10 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Random;
 
+import logger_msgs.msg.dds.Handshake;
+import logger_msgs.msg.dds.HandshakeFileType;
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.robotDataLogger.Handshake;
-import us.ihmc.robotDataLogger.HandshakeFileType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -38,7 +38,9 @@ public class YoVariableHandShakeBuilderTest
       }
       Handshake handshake = handShakeBuilder.getHandShake();
 
-      IDLYoVariableHandshakeParser parser = new IDLYoVariableHandshakeParser(HandshakeFileType.IDL_YAML);
+      HandshakeFileType handshakeFileType = new HandshakeFileType();
+      handshakeFileType.setType(HandshakeFileType.IDL_YAML);
+      IDLYoVariableHandshakeParser parser = new IDLYoVariableHandshakeParser(handshakeFileType);
       parser.parseFrom(handshake);
 
       List<YoRegistry> parsedRegistries = parser.getRootRegistry().getChildren();

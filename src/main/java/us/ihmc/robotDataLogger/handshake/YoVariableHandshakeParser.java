@@ -21,9 +21,9 @@ public abstract class YoVariableHandshakeParser
    {
       if (type == null)
       {
-         System.err.println("Handshake file type is null. Defaulting to PROTOBUFFER");
+         System.err.println("Handshake file type is null. Defaulting to IDL_YAML");
          type = new HandshakeFileType();
-         type.setType(HandshakeFileType.PROTOBUFFER);
+         type.setType(HandshakeFileType.IDL_YAML);
       }
 
       switch (type.getType())
@@ -31,8 +31,6 @@ public abstract class YoVariableHandshakeParser
          case HandshakeFileType.IDL_CDR:
          case HandshakeFileType.IDL_YAML:
             return new IDLYoVariableHandshakeParser(type);
-         case HandshakeFileType.PROTOBUFFER:
-            return new ProtoBufferYoVariableHandshakeParser();
          default:
             throw new RuntimeException("Not implemented");
       }

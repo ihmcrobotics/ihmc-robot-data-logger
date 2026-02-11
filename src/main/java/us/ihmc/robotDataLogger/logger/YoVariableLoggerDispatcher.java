@@ -1,10 +1,10 @@
 package us.ihmc.robotDataLogger.logger;
 
 import com.martiansoftware.jsap.JSAPException;
+import logger_msgs.msg.dds.Announcement;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.StaticHostListLoader;
 import us.ihmc.robotDataLogger.interfaces.DataServerDiscoveryListener;
 import us.ihmc.robotDataLogger.websocket.DataServerLocationBroadcast;

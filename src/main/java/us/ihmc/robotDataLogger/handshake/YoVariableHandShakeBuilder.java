@@ -1,8 +1,15 @@
 package us.ihmc.robotDataLogger.handshake;
 
 import gnu.trove.map.hash.TObjectIntHashMap;
+import logger_msgs.msg.dds.EnumType;
 import logger_msgs.msg.dds.Handshake;
+import logger_msgs.msg.dds.JointDefinition;
+import logger_msgs.msg.dds.LoadStatus;
+import logger_msgs.msg.dds.ReferenceFrameInformation;
 import logger_msgs.msg.dds.SCS2YoGraphicDefinitionMessage;
+import logger_msgs.msg.dds.YoRegistryDefinition;
+import logger_msgs.msg.dds.YoType;
+import logger_msgs.msg.dds.YoVariableDefinition;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
@@ -67,7 +74,7 @@ public class YoVariableHandShakeBuilder
       {
          JointDefinition jointDefinition = handshake.getJoints().add();
          jointDefinition.setName(jointHolder.getName());
-         jointDefinition.setType(jointHolder.getJointType());
+         jointDefinition.setType(jointHolder.getJointType().getType());
 
          this.jointHolders.add(jointHolder);
       }
@@ -161,6 +168,8 @@ public class YoVariableHandShakeBuilder
       }
 
       enumTypeDescription.setName(name);
+      enumTypeDescription.getEnumValues().ensureMinCapacity(enumTypes.length);
+      handshake.getEnumTypes().ensureMinCapacity(enumTypes.length);
       if (enumTypes.length > enumTypeDescription.getEnumValues().capacity())
       {
          throw new RuntimeException("The number of enum values for " + name + " exceeds the maximum number of enum values ("
@@ -188,6 +197,7 @@ public class YoVariableHandShakeBuilder
    private void addVariables(int registryID, YoRegistry registry, List<YoVariable> variableListToPack, YoRegistry rootRegistry)
    {
       List<YoVariable> variables = registry.getVariables();
+      handshake.getVariables().ensureMinCapacity(variables.size());
       if (variables.size() > handshake.getVariables().capacity())
       {
          throw new RuntimeException("The number of variables exceeds the maximum number of variables for the logger (" + handshake.getVariables().capacity()
@@ -214,13 +224,13 @@ public class YoVariableHandShakeBuilder
             switch (loadStatus)
             {
                case UNLOADED:
-                  yoVariableDefinition.setLoadStatus(LoadStatus.Unloaded);
+                  yoVariableDefinition.setLoadStatus(LoadStatus.UNLOADED);
                   break;
                case DEFAULT:
-                  yoVariableDefinition.setLoadStatus(LoadStatus.Default);
+                  yoVariableDefinition.setLoadStatus(LoadStatus.DEFAULT);
                   break;
                case LOADED:
-                  yoVariableDefinition.setLoadStatus(LoadStatus.Loaded);
+                  yoVariableDefinition.setLoadStatus(LoadStatus.LOADED);
                   break;
                default:
                   throw new RuntimeException("Unknown load status: " + loadStatus);
@@ -228,25 +238,25 @@ public class YoVariableHandShakeBuilder
          }
          else
          {
-            yoVariableDefinition.setLoadStatus(LoadStatus.NoParameter);
+            yoVariableDefinition.setLoadStatus(LoadStatus.NOPARAMETER);
          }
 
          switch (variable.getType())
          {
             case DOUBLE:
-               yoVariableDefinition.setType(YoType.DoubleYoVariable);
+               yoVariableDefinition.setType(YoType.DOUBLEYOVARIABLE);
                break;
             case INTEGER:
-               yoVariableDefinition.setType(YoType.IntegerYoVariable);
+               yoVariableDefinition.setType(YoType.INTEGERYOVARIABLE);
                break;
             case BOOLEAN:
-               yoVariableDefinition.setType(YoType.BooleanYoVariable);
+               yoVariableDefinition.setType(YoType.BOOLEANYOVARIABLE);
                break;
             case LONG:
-               yoVariableDefinition.setType(YoType.LongYoVariable);
+               yoVariableDefinition.setType(YoType.LONGYOVARIABLE);
                break;
             case ENUM:
-               yoVariableDefinition.setType(YoType.EnumYoVariable);
+               yoVariableDefinition.setType(YoType.ENUMYOVARIABLE);
                if (((YoEnum<?>) variable).isBackedByEnum())
                {
                   yoVariableDefinition.setEnumType(getOrAddEnumType(((YoEnum<?>) variable).getEnumType().getCanonicalName(),
@@ -312,7 +322,8 @@ public class YoVariableHandShakeBuilder
          {
             ReferenceFrame frame = iterator.next();
             referenceFrameInformation.getFrameNames().add(frame.getName());
-            referenceFrameInformation.getFrameIndices().add(frame.getFrameIndex());
+            // TODO jros2:
+//            referenceFrameInformation.getFrameIndices().add(frame.getFrameIndex());
          }
 
          if (frames.size() > packetSizeLimit)

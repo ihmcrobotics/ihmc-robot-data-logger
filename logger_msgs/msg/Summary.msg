@@ -1,3 +1,3 @@
 bool createSummary
 string summaryTriggerVariable
-string[128] summarizedVariables
+string[] summarizedVariables

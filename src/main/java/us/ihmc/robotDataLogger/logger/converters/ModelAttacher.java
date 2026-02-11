@@ -1,5 +1,11 @@
 package us.ihmc.robotDataLogger.logger.converters;
 
+import logger_msgs.msg.dds.LogProperties;
+import us.ihmc.idl.serializers.extra.ROS2PropertiesSerializer;
+import us.ihmc.robotDataLogger.logger.LogPropertiesReader;
+import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
+
+import javax.swing.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -12,13 +18,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Properties;
-
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-
-import logger_msgs.msg.dds.LogProperties;
-import us.ihmc.robotDataLogger.logger.LogPropertiesReader;
-import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
 
 public class ModelAttacher extends SimpleFileVisitor<Path>
 {
@@ -196,7 +195,7 @@ public class ModelAttacher extends SimpleFileVisitor<Path>
          Files.copy(model.getResources().toPath(), resourceFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
          File log = new File(modelDirectory, YoVariableLoggerListener.propertyFile);
-         PropertiesSerializer<LogProperties> writer = new PropertiesSerializer<>(new LogPropertiesPubSubType());
+         ROS2PropertiesSerializer<LogProperties> writer = new ROS2PropertiesSerializer<>(LogProperties.class);
          writer.serialize(log, properties);
 
          System.out.println("Attached model to " + modelDirectory);

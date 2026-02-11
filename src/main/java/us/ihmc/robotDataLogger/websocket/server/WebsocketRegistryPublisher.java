@@ -69,7 +69,7 @@ class WebsocketRegistryPublisher implements RegistryPublisher
 
    public int getMaximumBufferSize()
    {
-      return publisherType.getMaximumTypeSize();
+      return publisherType.calculateSizeBytes(0);
    }
 
    /**
@@ -135,9 +135,10 @@ class WebsocketRegistryPublisher implements RegistryPublisher
                {
                   // Reset the buffer
                   publisherBuffer.getBufferUnsafe().clear();
+                  publisherBuffer.ensureRemainingCapacity(publisherType.calculateSizeBytes(0));
 
                   // Write message into buffer
-                  publisherType.serialize(buffer, serializedPayload);
+                  publisherType.serialize(buffer, publisherBuffer);
 
                   // Publish the buffer over web socket
                   broadcaster.write(bufferID, buffer.getTimestamp(), publisherBuffer.getBufferUnsafe());

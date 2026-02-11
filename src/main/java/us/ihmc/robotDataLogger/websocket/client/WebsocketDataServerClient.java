@@ -47,9 +47,12 @@ public class WebsocketDataServerClient
    private final DisconnectPromise disconnectPromise;
    private final UDPTimestampClient udpTimestampClient;
 
-   public WebsocketDataServerClient(HTTPDataServerConnection connection, IDLYoVariableHandshakeParser parser, TimestampListener timestampListener,
-                                    YoVariableClientImplementation yoVariableClient, int timeoutInMs, DebugRegistry debugRegistry)
-         throws IOException
+   public WebsocketDataServerClient(HTTPDataServerConnection connection,
+                                    IDLYoVariableHandshakeParser parser,
+                                    TimestampListener timestampListener,
+                                    YoVariableClientImplementation yoVariableClient,
+                                    int timeoutInMs,
+                                    DebugRegistry debugRegistry) throws IOException
    {
       disconnectPromise = connection.take();
       HTTPDataServerDescription target = connection.getTarget();
@@ -106,7 +109,6 @@ public class WebsocketDataServerClient
          disconnected();
          throw new IOException(e);
       }
-
    }
 
    private void disconnected()

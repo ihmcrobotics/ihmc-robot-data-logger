@@ -1,15 +1,16 @@
 package us.ihmc.robotDataLogger.logger;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
+import logger_msgs.msg.dds.LogProperties;
+import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.OpenCVFrameGrabber;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.javadecklink.CaptureHandler;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.LogProperties;
-import org.bytedeco.javacv.*;
 import us.ihmc.tools.CaptureTimeTools;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
 {
@@ -62,16 +63,16 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
          timestampWriter = new FileWriter(timestampFile);
 
          ThreadTools.startAThread(() ->
-                                  {
-                                     try
-                                     {
-                                        startCapture();
-                                     }
-                                     catch (Exception e)
-                                     {
-                                        LogTools.error("Last frame is bad for {} but who cares, shutting down gracefully because of threading", deviceNumber);
-                                     }
-                                  }, "MagewellCapture");
+         {
+            try
+            {
+               startCapture();
+            }
+            catch (Exception e)
+            {
+               LogTools.error("Last frame is bad for {} but who cares, shutting down gracefully because of threading", deviceNumber);
+            }
+         }, "MagewellCapture");
       }
       catch (IOException e)
       {

@@ -1,14 +1,13 @@
 package us.ihmc.robotDataLogger.logger;
 
-import java.io.File;
-import java.io.IOException;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import logger_msgs.msg.dds.Camera;
 import logger_msgs.msg.dds.LogProperties;
 import us.ihmc.idl.serializers.extra.CustomDeserializationHandler;
 import us.ihmc.idl.serializers.extra.ROS2PropertiesSerializer;
+
+import java.io.File;
+import java.io.IOException;
 
 public class LogPropertiesReader extends LogProperties
 {
@@ -65,5 +64,4 @@ public class LogPropertiesReader extends LogProperties
          }
       }
    }
-
 }

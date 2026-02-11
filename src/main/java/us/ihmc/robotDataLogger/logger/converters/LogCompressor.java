@@ -1,5 +1,6 @@
 package us.ihmc.robotDataLogger.logger.converters;
 
+import logger_msgs.msg.dds.HandshakeFileType;
 import logger_msgs.msg.dds.LogProperties;
 import us.ihmc.idl.serializers.extra.ROS2PropertiesSerializer;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
@@ -86,7 +87,10 @@ public class LogCompressor extends SimpleFileVisitor<Path>
       {
          System.out.println("Compressing " + directory);
 
-         YoVariableHandshakeParser handshake = ConverterUtil.getHandshake(properties.getVariables().getHandshakeFileType(),
+         HandshakeFileType handshakeFileType = new HandshakeFileType();
+         handshakeFileType.setType(properties.getVariables().getHandshakeFileType());
+
+         YoVariableHandshakeParser handshake = ConverterUtil.getHandshake(handshakeFileType,
                                                                           new File(directory, properties.getVariables().getHandshakeAsString()));
          int bufferSize = handshake.getBufferSize();
 

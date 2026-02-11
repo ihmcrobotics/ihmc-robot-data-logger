@@ -148,7 +148,8 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
          }
          else if (frame instanceof BinaryWebSocketFrame)
          {
-            CDRBuffer buffer = new CDRBuffer(); // TODO jros2: Reuse
+            // TODO jros2: Reuse
+            CDRBuffer buffer = new CDRBuffer();
             buffer.ensureRemainingCapacity(frame.content().readableBytes());
             frame.content().readBytes(buffer.getBufferUnsafe());
             request.deserialize(buffer);

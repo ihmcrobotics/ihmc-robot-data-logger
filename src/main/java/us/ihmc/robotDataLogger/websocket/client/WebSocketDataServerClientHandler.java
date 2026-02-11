@@ -1,7 +1,5 @@
 package us.ihmc.robotDataLogger.websocket.client;
 
-import java.net.SocketException;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -116,7 +114,8 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
 
          frame.content().readBytes(cdrBuffer.getBufferUnsafe());
 
-         type.deserialize(payload, buffer);
+         type.deserialize(cdrBuffer, buffer);
+
          consumer.onNewDataMessage(buffer);
 
          if (!sendConfiguration)

@@ -1,6 +1,7 @@
 package us.ihmc.robotDataLogger.dataBuffers;
 
 import logger_msgs.msg.dds.LogData;
+import logger_msgs.msg.dds.LogDataType;
 import us.ihmc.fastddsjava.cdr.CDRBuffer;
 import us.ihmc.tools.compression.CompressionImplementation;
 import us.ihmc.tools.compression.CompressionImplementationFactory;
@@ -8,14 +9,12 @@ import us.ihmc.tools.compression.CompressionImplementationFactory;
 import java.nio.ByteBuffer;
 
 /**
- * Topic data type of the struct "LogData" defined in "LogData.idl". Use this class to provide the
- * TopicDataType to a Participant. This file has been modified from the generated version to provide
- * higher performance.
+ * Custom publisher type for LogData with compression support.
+ * This class extends LogData and adds efficient serialization using CDRBuffer
+ * with optional compression for the data field.
  */
 public class CustomLogDataPublisherType extends LogData
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::LogData_";
-
    private final int numberOfVariables;
    private final int numberOfStates;
 
@@ -24,6 +23,7 @@ public class CustomLogDataPublisherType extends LogData
 
    public CustomLogDataPublisherType(int numberOfVariables, int numberOfStates)
    {
+      super();
       this.numberOfVariables = numberOfVariables;
       this.numberOfStates = numberOfStates;
 
@@ -38,21 +38,85 @@ public class CustomLogDataPublisherType extends LogData
       }
    }
 
+   /**
+    * Serialize a RegistrySendBuffer into the provided CDRBuffer.
+    * This method handles compression of the variable data.
+    */
+   public void serialize(RegistrySendBuffer buffer, CDRBuffer cdrBuffer)
+   {
+      // Set fields from the RegistrySendBuffer
+      setUid(buffer.getUid());
+      setTimestamp(buffer.getTimestamp());
+      setTransmitTime(buffer.getTransmitTime());
+      setType(buffer.getType().getType());
+      setRegistry(buffer.getRegistryID());
+      setNumberOfVariables(buffer.getNumberOfVariables());
+
+      // Compress the data
+      ByteBuffer variableBuffer = buffer.getBuffer();
+      int compressedSize;
+
+      if (compressor.supportsDirectOutput())
+      {
+         // Compress directly into the data sequence
+         getData().clear();
+         getData().ensureMinCapacity(compressor.maxCompressedLength(variableBuffer.remaining()));
+         compressedSize = compressor.compress(variableBuffer, getData().getBuffer());
+         getData().getBuffer().limit(compressedSize);
+      }
+      else
+      {
+         // Compress into temporary buffer, then copy
+         compressBuffer.clear();
+         compressedSize = compressor.compress(variableBuffer, compressBuffer);
+         compressBuffer.flip();
+
+         getData().clear();
+         getData().ensureMinCapacity(compressedSize);
+         getData().getBuffer().put(compressBuffer);
+         getData().getBuffer().limit(compressedSize);
+      }
+
+      setOffset(0);
+
+      // Copy joint states
+      double[] jointStateArray = buffer.getJointStates();
+      getJointStates().clear();
+      getJointStates().ensureMinCapacity(jointStateArray.length);
+      for (int i = 0; i < jointStateArray.length; i++)
+      {
+         getJointStates().getBuffer().put(i, jointStateArray[i]);
+      }
+
+      // Now serialize using the parent class method
+      super.serialize(cdrBuffer);
+   }
+
+   /**
+    * Calculate the maximum size in bytes for serialization.
+    * This accounts for all fields including compressed data.
+    */
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {
-      return super.calculateSizeBytes(currentAlignment);
-   }
+      int initialAlignment = currentAlignment;
 
-   @Override
-   public void serialize(CDRBuffer buffer)
-   {
-      super.serialize(buffer);
-   }
+      currentAlignment += 8 + CDRBuffer.alignment(currentAlignment, 8); // uid
+      currentAlignment += 8 + CDRBuffer.alignment(currentAlignment, 8); // timestamp
+      currentAlignment += 8 + CDRBuffer.alignment(currentAlignment, 8); // transmitTime
+      currentAlignment += 1 + CDRBuffer.alignment(currentAlignment, 1); // type
+      currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // registry
+      currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // offset
+      currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // numberOfVariables
 
-   @Override
-   public void deserialize(CDRBuffer buffer)
-   {
-      super.deserialize(buffer);
+      // Maximum compressed data size
+      currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // sequence length
+      currentAlignment += compressor.maxCompressedLength(numberOfVariables * 8);
+
+      // Joint states
+      currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // sequence length
+      currentAlignment += numberOfStates * 8; // double array
+
+      return currentAlignment - initialAlignment;
    }
 }

@@ -29,5 +29,4 @@ public class LogPropertiesWriter extends LogProperties
       ROS2PropertiesSerializer<LogProperties> serializer = new ROS2PropertiesSerializer<>(LogProperties.class);
       serializer.serialize(file, this);
    }
-
 }

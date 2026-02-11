@@ -16,12 +16,12 @@ import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
 import gnu.trove.list.array.TLongArrayList;
+import logger_msgs.msg.dds.Camera;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import us.ihmc.codecs.generated.YUVPicture;
 import us.ihmc.codecs.generated.YUVPicture.YUVSubsamplingType;
 import us.ihmc.codecs.yuv.YUVPictureConverter;
-import us.ihmc.robotDataLogger.Camera;
 import us.ihmc.robotDataLogger.logger.MagewellDemuxer;
 
 public class ExampleMagewellVideoDataPlayer
