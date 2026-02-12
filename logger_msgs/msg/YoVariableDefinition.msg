@@ -1,6 +1,6 @@
 string name
 string description
-uint8 type
+logger_msgs/YoType type
 uint16 registry
 uint16 enumType
 bool allowNullValues

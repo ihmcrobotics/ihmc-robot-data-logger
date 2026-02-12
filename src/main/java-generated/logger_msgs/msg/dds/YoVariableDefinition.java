@@ -13,7 +13,7 @@ import us.ihmc.jros2.ROS2Message;
 <pre>{@code
 string name
 string description
-uint8 type
+logger_msgs/YoType type
 uint16 registry
 uint16 enumType
 bool allowNullValues
@@ -29,7 +29,7 @@ public class YoVariableDefinition implements ROS2Message<YoVariableDefinition>
 
    private final StringBuilder name_;
    private final StringBuilder description_;
-   private byte type_;
+   private final logger_msgs.msg.dds.YoType type_;
    private short registry_;
    private short enumType_;
    private boolean allowNullValues_;
@@ -42,6 +42,7 @@ public class YoVariableDefinition implements ROS2Message<YoVariableDefinition>
    {
       name_ = new StringBuilder();
       description_ = new StringBuilder();
+      type_ = new logger_msgs.msg.dds.YoType();
       allowNullValues_ = (boolean) false;
       isParameter_ = (boolean) false;
 
@@ -54,7 +55,7 @@ public class YoVariableDefinition implements ROS2Message<YoVariableDefinition>
 
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4) + (1 * name_.length()) + 1; // name_
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4) + (1 * description_.length()) + 1; // description_
-      currentAlignment += 1 + CDRBuffer.alignment(currentAlignment, 1); // type_
+      currentAlignment += type_.calculateSizeBytes(currentAlignment);
       currentAlignment += 2 + CDRBuffer.alignment(currentAlignment, 2); // registry_
       currentAlignment += 2 + CDRBuffer.alignment(currentAlignment, 2); // enumType_
       currentAlignment += 1 + CDRBuffer.alignment(currentAlignment, 1); // allowNullValues_
@@ -71,7 +72,7 @@ public class YoVariableDefinition implements ROS2Message<YoVariableDefinition>
    {
       buffer.writeString(name_);
       buffer.writeString(description_);
-      buffer.writeByte(type_);
+      type_.serialize(buffer);
       buffer.writeShort(registry_);
       buffer.writeShort(enumType_);
       buffer.writeBoolean(allowNullValues_);
@@ -87,7 +88,7 @@ public class YoVariableDefinition implements ROS2Message<YoVariableDefinition>
    {
       buffer.readString(name_);
       buffer.readString(description_);
-      type_ = buffer.readByte();
+      type_.deserialize(buffer);
       registry_ = buffer.readShort();
       enumType_ = buffer.readShort();
       allowNullValues_ = buffer.readBoolean();
@@ -105,7 +106,7 @@ public class YoVariableDefinition implements ROS2Message<YoVariableDefinition>
       name_.insert(0, from.name_);
       description_.delete(0, description_.length());
       description_.insert(0, from.description_);
-      type_ = from.type_;
+      type_.set(from.type_);
       registry_ = from.registry_;
       enumType_ = from.enumType_;
       allowNullValues_ = from.allowNullValues_;
@@ -148,14 +149,9 @@ public class YoVariableDefinition implements ROS2Message<YoVariableDefinition>
       this.description_.insert(0, s);
    }
 
-   public byte getType()
+   public logger_msgs.msg.dds.YoType getType()
    {
       return type_;
-   }
-
-   public void setType(byte type_)
-   {
-      this.type_ = type_;
    }
 
    public short getRegistry()

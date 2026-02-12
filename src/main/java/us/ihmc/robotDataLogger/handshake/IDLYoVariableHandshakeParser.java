@@ -182,7 +182,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
             variableOffsets.put(registryIndex, i);
          }
 
-         byte type = yoVariableDefinition.getType();
+         byte type = yoVariableDefinition.getType().getType();
          if (yoVariableDefinition.getIsParameter())
          {
             YoParameter newParameter;

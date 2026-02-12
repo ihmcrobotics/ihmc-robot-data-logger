@@ -241,22 +241,24 @@ public class YoVariableHandShakeBuilder
             yoVariableDefinition.setLoadStatus(LoadStatus.NOPARAMETER);
          }
 
+         YoType yoType = new YoType();
+
          switch (variable.getType())
          {
             case DOUBLE:
-               yoVariableDefinition.setType(YoType.DOUBLEYOVARIABLE);
+               yoType.setType(YoType.DOUBLEYOVARIABLE);
                break;
             case INTEGER:
-               yoVariableDefinition.setType(YoType.INTEGERYOVARIABLE);
+               yoType.setType(YoType.INTEGERYOVARIABLE);
                break;
             case BOOLEAN:
-               yoVariableDefinition.setType(YoType.BOOLEANYOVARIABLE);
+               yoType.setType(YoType.BOOLEANYOVARIABLE);
                break;
             case LONG:
-               yoVariableDefinition.setType(YoType.LONGYOVARIABLE);
+               yoType.setType(YoType.LONGYOVARIABLE);
                break;
             case ENUM:
-               yoVariableDefinition.setType(YoType.ENUMYOVARIABLE);
+               yoType.setType(YoType.ENUMYOVARIABLE);
                if (((YoEnum<?>) variable).isBackedByEnum())
                {
                   yoVariableDefinition.setEnumType(getOrAddEnumType(((YoEnum<?>) variable).getEnumType().getCanonicalName(),
@@ -272,6 +274,9 @@ public class YoVariableHandShakeBuilder
             default:
                throw new RuntimeException("Unknown variable type: " + variable.getType());
          }
+
+         // TODO jros2:
+         yoVariableDefinition.getType().set(yoType);
 
          variableListToPack.add(variable);
          variablesAndRootRegistries.add(new ImmutablePair<YoVariable, YoRegistry>(variable, rootRegistry));
