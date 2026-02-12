@@ -17,7 +17,7 @@ uint8 type
 */
 public class JointDefinition implements ROS2Message<JointDefinition>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::JointDefinition_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::JointDefinition";
 
    private final StringBuilder name_;
    private byte type_;

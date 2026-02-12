@@ -23,7 +23,7 @@ bool log
 */
 public class Announcement implements ROS2Message<Announcement>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::Announcement_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::Announcement";
 
    private final StringBuilder identifier_;
    private final StringBuilder name_;

@@ -18,7 +18,7 @@ uint8 type 0}</pre>
 */
 public class LogDataType implements ROS2Message<LogDataType>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::LogDataType_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::LogDataType";
 
    public static final byte KEEP_ALIVE_PACKET = 0;
    public static final byte DATA_PACKET = 1;

@@ -17,7 +17,7 @@ float64 requestedValue
 */
 public class VariableChangeRequest implements ROS2Message<VariableChangeRequest>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::VariableChangeRequest_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::VariableChangeRequest";
 
    private int variableID_;
    private double requestedValue_;

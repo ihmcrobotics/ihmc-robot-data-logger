@@ -17,7 +17,7 @@ uint8 type 0}</pre>
 */
 public class HandshakeFileType implements ROS2Message<HandshakeFileType>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::HandshakeFileType_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::HandshakeFileType";
 
    public static final byte IDL_YAML = 1;
    public static final byte IDL_CDR = 2;

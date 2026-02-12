@@ -20,7 +20,7 @@ string[] resourceDirectoriesList    # List of resource directories
 */
 public class Model implements ROS2Message<Model>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::Model_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::Model";
 
    private final StringBuilder loader_; // Loader class
    private final StringBuilder path_; // Path

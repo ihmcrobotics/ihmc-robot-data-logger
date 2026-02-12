@@ -25,7 +25,7 @@ Summary summary
 */
 public class Handshake implements ROS2Message<Handshake>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::Handshake_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::Handshake";
 
    private double dt_;
    private final IDLObjectSequence<logger_msgs.msg.dds.YoRegistryDefinition> registries_;

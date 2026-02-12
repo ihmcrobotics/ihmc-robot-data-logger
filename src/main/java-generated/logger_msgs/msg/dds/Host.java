@@ -18,7 +18,7 @@ uint8[] cameras
 */
 public class Host implements ROS2Message<Host>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::Host_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::Host";
 
    private final StringBuilder hostname_;
    private short port_;

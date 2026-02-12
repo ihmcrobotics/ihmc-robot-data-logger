@@ -20,7 +20,7 @@ uint8 type 0}</pre>
 */
 public class YoType implements ROS2Message<YoType>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::YoType_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::YoType";
 
    public static final byte DOUBLEYOVARIABLE = 0;
    public static final byte BOOLEANYOVARIABLE = 1;

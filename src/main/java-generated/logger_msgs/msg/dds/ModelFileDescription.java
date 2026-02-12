@@ -24,7 +24,7 @@ int32 resourceZipSize
 */
 public class ModelFileDescription implements ROS2Message<ModelFileDescription>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::ModelFileDescription_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::ModelFileDescription";
 
    private boolean hasModel_;
    private final StringBuilder name_;

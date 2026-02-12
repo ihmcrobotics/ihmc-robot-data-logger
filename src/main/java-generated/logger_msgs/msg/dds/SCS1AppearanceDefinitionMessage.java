@@ -20,7 +20,7 @@ float64 transparency
 */
 public class SCS1AppearanceDefinitionMessage implements ROS2Message<SCS1AppearanceDefinitionMessage>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::SCS1AppearanceDefinitionMessage_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::SCS1AppearanceDefinitionMessage";
 
    private double r_;
    private double g_;

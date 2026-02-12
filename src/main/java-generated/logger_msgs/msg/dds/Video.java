@@ -17,7 +17,7 @@ bool hasTimebase
 */
 public class Video implements ROS2Message<Video>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::Video_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::Video";
 
    /**
       Old option, not used anymore for new logs

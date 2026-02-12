@@ -18,7 +18,7 @@ string[] summarizedVariables
 */
 public class Summary implements ROS2Message<Summary>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::Summary_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::Summary";
 
    private boolean createSummary_;
    private final StringBuilder summaryTriggerVariable_;

@@ -22,7 +22,7 @@ bool compressed    # Is the data compressed
 */
 public class Variables implements ROS2Message<Variables>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::Variables_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::Variables";
 
    private byte handshakeFileType_;
    private final StringBuilder handshake_; // Handshake file name

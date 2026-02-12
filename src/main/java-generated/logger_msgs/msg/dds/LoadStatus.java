@@ -19,7 +19,7 @@ uint8 Loaded=3
 */
 public class LoadStatus implements ROS2Message<LoadStatus>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::LoadStatus_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::LoadStatus";
 
    public static final byte NOPARAMETER = 0;
    public static final byte UNLOADED = 1;

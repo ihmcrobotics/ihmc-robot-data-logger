@@ -21,7 +21,7 @@ string timestampFile    # Timestamps for video file
 */
 public class Camera implements ROS2Message<Camera>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::Camera_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::Camera";
 
    /**
       Camera definition

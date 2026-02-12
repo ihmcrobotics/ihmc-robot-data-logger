@@ -25,7 +25,7 @@ uint8 loadStatus
 */
 public class YoVariableDefinition implements ROS2Message<YoVariableDefinition>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::YoVariableDefinition_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::YoVariableDefinition";
 
    private final StringBuilder name_;
    private final StringBuilder description_;

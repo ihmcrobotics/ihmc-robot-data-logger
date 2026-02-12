@@ -17,7 +17,7 @@ string[] fieldValues
 */
 public class SCS2YoGraphicDefinitionMessage implements ROS2Message<SCS2YoGraphicDefinitionMessage>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::SCS2YoGraphicDefinitionMessage_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::SCS2YoGraphicDefinitionMessage";
 
    private final IDLStringSequence fieldNames_;
    private final IDLStringSequence fieldValues_;

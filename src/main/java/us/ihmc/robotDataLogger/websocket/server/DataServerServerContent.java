@@ -88,6 +88,7 @@ public class DataServerServerContent
 
          ROS2JSONSerializer<Announcement> announcementSerializer = new ROS2JSONSerializer<>(Announcement.class);
          byte[] announcementData = announcementSerializer.serializeToBytes(announcement);
+         System.out.println(new String(announcementData, CharsetUtil.UTF_8));
          announcementBuffer = Unpooled.directBuffer(announcementData.length);
          announcementBuffer.writeBytes(announcementData);
 

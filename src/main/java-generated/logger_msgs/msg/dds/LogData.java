@@ -24,7 +24,7 @@ float64[] jointStates
 */
 public class LogData implements ROS2Message<LogData>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::LogData_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::LogData";
 
    private long uid_;
    private long timestamp_;

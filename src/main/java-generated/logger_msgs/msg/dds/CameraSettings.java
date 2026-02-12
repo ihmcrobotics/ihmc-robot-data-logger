@@ -16,7 +16,7 @@ CameraConfiguration[] cameras
 */
 public class CameraSettings implements ROS2Message<CameraSettings>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::CameraSettings_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::CameraSettings";
 
    private final IDLObjectSequence<logger_msgs.msg.dds.CameraConfiguration> cameras_;
 

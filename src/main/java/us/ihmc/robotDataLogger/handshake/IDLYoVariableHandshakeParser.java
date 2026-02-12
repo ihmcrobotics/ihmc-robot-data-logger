@@ -94,8 +94,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
       int jointStateVariables = 0;
       for (int i = 0; i < handShake.getJoints().size(); i++)
       {
-         JointType jointType = new JointType();
-         jointType.setType( handShake.getJoints().get(i).getType());
+         byte jointType = handShake.getJoints().get(i).getType();
          jointStateVariables += JointState.getNumberOfVariables(jointType);
       }
 
@@ -183,12 +182,11 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
             variableOffsets.put(registryIndex, i);
          }
 
-         YoType type = new YoType();
-         type.setType(yoVariableDefinition.getType());
+         byte type = yoVariableDefinition.getType();
          if (yoVariableDefinition.getIsParameter())
          {
             YoParameter newParameter;
-            switch (type.getType())
+            switch (type)
             {
                case YoType.DOUBLEYOVARIABLE:
                   newParameter = new DoubleParameter(name, description, parent, min, max);
@@ -214,7 +212,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
                   break;
 
                default:
-                  throw new RuntimeException("Unknown YoVariable type: " + type.getType());
+                  throw new RuntimeException("Unknown YoVariable type: " + type);
             }
 
 
@@ -246,7 +244,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
          else
          {
             YoVariable newVariable;
-            switch (type.getType())
+            switch (type)
             {
                case YoType.DOUBLEYOVARIABLE:
                   newVariable = new YoDouble(name, description, parent);
@@ -272,7 +270,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
                   break;
 
                default:
-                  throw new RuntimeException("Unknown YoVariable type: " + type.getType());
+                  throw new RuntimeException("Unknown YoVariable type: " + type);
             }
             newVariable.setVariableBounds(min, max);
             variableList.add(newVariable);
@@ -288,8 +286,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
       for (int i = 0; i < handshake.getJoints().size(); i++)
       {
          JointDefinition joint = handshake.getJoints().get(i);
-         JointType jointType = new JointType();
-         jointType.setType(joint.getType());
+         byte jointType = joint.getType();
          numberOfJointStates += JointState.getNumberOfVariables(jointType);
       }
       return numberOfJointStates;
@@ -300,8 +297,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
       for (int i = 0; i < handshake.getJoints().size(); i++)
       {
          JointDefinition joint = handshake.getJoints().get(i);
-         JointType jointType = new JointType();
-         jointType.setType(joint.getType());
+         byte jointType = joint.getType();
          jointStates.add(JointState.createJointState(joint.getNameAsString(), jointType));
       }
    }

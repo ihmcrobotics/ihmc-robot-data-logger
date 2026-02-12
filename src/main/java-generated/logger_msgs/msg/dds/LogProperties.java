@@ -27,7 +27,7 @@ ChildLog[] childLogs
 */
 public class LogProperties implements ROS2Message<LogProperties>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::LogProperties_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::LogProperties";
 
    private final StringBuilder version_; // Version of the properties
    private final StringBuilder name_; // Name of this log

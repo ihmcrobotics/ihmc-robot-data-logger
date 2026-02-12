@@ -22,7 +22,7 @@ int64 controllerTimestamp
 */
 public class ZEDSDKAnnounce implements ROS2Message<ZEDSDKAnnounce>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::ZEDSDKAnnounce_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::ZEDSDKAnnounce";
 
    private final StringBuilder sensor_name_;
    private final StringBuilder address_;

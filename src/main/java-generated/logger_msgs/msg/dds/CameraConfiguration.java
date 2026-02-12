@@ -19,7 +19,7 @@ string identifier
 */
 public class CameraConfiguration implements ROS2Message<CameraConfiguration>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::CameraConfiguration_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::CameraConfiguration";
 
    private byte type_;
    private byte camera_id_;

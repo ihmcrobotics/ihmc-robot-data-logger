@@ -17,7 +17,7 @@ uint8 type 0}</pre>
 */
 public class JointType implements ROS2Message<JointType>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::JointType_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::JointType";
 
    public static final byte SIXDOFJOINT = 0;
    public static final byte ONEDOFJOINT = 1;

@@ -17,7 +17,7 @@ Host[] hosts
 */
 public class StaticHostList implements ROS2Message<StaticHostList>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::StaticHostList_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::StaticHostList";
 
    private boolean disableAutoDiscovery_;
    private final IDLObjectSequence<logger_msgs.msg.dds.Host> hosts_;

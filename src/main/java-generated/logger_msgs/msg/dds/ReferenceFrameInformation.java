@@ -17,7 +17,7 @@ string[] frameNames
 */
 public class ReferenceFrameInformation implements ROS2Message<ReferenceFrameInformation>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::ReferenceFrameInformation_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::ReferenceFrameInformation";
 
    private final IDLIntSequence frameIndices_;
    private final IDLStringSequence frameNames_;

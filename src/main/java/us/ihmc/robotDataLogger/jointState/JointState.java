@@ -39,7 +39,12 @@ public abstract class JointState
 
    public static int getNumberOfVariables(JointType type)
    {
-      switch (type.getType())
+      return getNumberOfVariables(type.getType());
+   }
+
+   public static int getNumberOfVariables(byte type)
+   {
+      switch (type)
       {
          case JointType.ONEDOFJOINT:
             return OneDoFState.numberOfStateVariables;
@@ -52,7 +57,12 @@ public abstract class JointState
 
    public static JointState createJointState(String name, JointType type)
    {
-      switch (type.getType())
+      return createJointState(name, type.getType());
+   }
+
+   public static JointState createJointState(String name, byte type)
+   {
+      switch (type)
       {
          case JointType.ONEDOFJOINT:
             return new OneDoFState(name);

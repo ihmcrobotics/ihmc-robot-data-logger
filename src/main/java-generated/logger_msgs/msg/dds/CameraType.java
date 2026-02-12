@@ -18,7 +18,7 @@ uint8 type 0
 */
 public class CameraType implements ROS2Message<CameraType>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::CameraType_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::CameraType";
 
    public static final byte CAPTURE_CARD_MAGEWELL = 0;
    public static final byte CAPTURE_CARD = 1;

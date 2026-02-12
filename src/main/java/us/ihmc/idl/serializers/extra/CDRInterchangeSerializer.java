@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import us.ihmc.fastddsjava.cdr.CDRBuffer;
+import us.ihmc.fastddsjava.cdr.idl.IDLSequence;
+import us.ihmc.fastddsjava.cdr.idl.IDLStringSequence;
 import us.ihmc.jros2.ROS2Message;
 
 /**
@@ -209,6 +211,14 @@ class CDRInterchangeSerializer
       {
          serializeList(name, (java.util.List<?>) value);
       }
+      else if (value instanceof IDLStringSequence)
+      {
+         serializeIDLStringSequence(name, (IDLStringSequence) value);
+      }
+      else if (value instanceof IDLSequence)
+      {
+         serializeIDLSequence(name, (IDLSequence<?>) value);
+      }
       else
       {
          // Try to serialize as a nested message
@@ -325,6 +335,75 @@ class CDRInterchangeSerializer
       }
    }
 
+   private void serializeIDLStringSequence(String name, IDLStringSequence sequence)
+   {
+      ArrayNode arrayNode = node.putArray(name);
+      for (int i = 0; i < sequence.size(); i++)
+      {
+         arrayNode.add(sequence.getAsString(i));
+      }
+   }
+
+   private void serializeIDLSequence(String name, IDLSequence<?> sequence)
+   {
+      ArrayNode arrayNode = node.putArray(name);
+      // IDLSequence is a generic sequence type, we need to handle it generically
+      // For now, just serialize using reflection or toString
+      try
+      {
+         // Try to get elements using reflection
+         java.lang.reflect.Method getMethod = sequence.getClass().getMethod("get", int.class);
+         for (int i = 0; i < sequence.size(); i++)
+         {
+            Object item = getMethod.invoke(sequence, i);
+            if (item == null)
+            {
+               arrayNode.addNull();
+            }
+            else if (item instanceof Number)
+            {
+               if (item instanceof Integer) arrayNode.add((Integer) item);
+               else if (item instanceof Long) arrayNode.add((Long) item);
+               else if (item instanceof Float) arrayNode.add((Float) item);
+               else if (item instanceof Double) arrayNode.add((Double) item);
+               else if (item instanceof Short) arrayNode.add((Short) item);
+               else if (item instanceof Byte) arrayNode.add((Byte) item);
+               else arrayNode.add(item.toString());
+            }
+            else if (item instanceof String)
+            {
+               arrayNode.add((String) item);
+            }
+            else if (item instanceof StringBuilder)
+            {
+               arrayNode.add(item.toString());
+            }
+            else if (item instanceof Boolean)
+            {
+               arrayNode.add((Boolean) item);
+            }
+            else if (item instanceof ROS2Message)
+            {
+               ObjectNode childNode = arrayNode.addObject();
+               CDRInterchangeSerializer childSerializer = new CDRInterchangeSerializer(childNode);
+               childSerializer.serializeMessageFields((ROS2Message<?>) item, childSerializer);
+            }
+            else
+            {
+               arrayNode.add(item.toString());
+            }
+         }
+      }
+      catch (Exception e)
+      {
+         // Fallback: just add the toString representation
+         for (int i = 0; i < sequence.size(); i++)
+         {
+            arrayNode.add(sequence.toString());
+         }
+      }
+   }
+
    private Object deserializeField(String name, Class<?> type)
    {
       JsonNode fieldNode = node.get(name);
@@ -389,6 +468,14 @@ class CDRInterchangeSerializer
       else if (type.isArray())
       {
          return deserializeArray(fieldNode, type);
+      }
+      else if (type == IDLStringSequence.class)
+      {
+         return deserializeIDLStringSequence(fieldNode);
+      }
+      else if (IDLSequence.class.isAssignableFrom(type))
+      {
+         return deserializeIDLSequence(fieldNode, type);
       }
       else if (ROS2Message.class.isAssignableFrom(type))
       {
@@ -498,6 +585,141 @@ class CDRInterchangeSerializer
             }
          }
          return result;
+      }
+   }
+
+   private Object deserializeIDLStringSequence(JsonNode arrayNode)
+   {
+      if (!arrayNode.isArray())
+      {
+         return new IDLStringSequence();
+      }
+
+      ArrayNode array = (ArrayNode) arrayNode;
+      IDLStringSequence sequence = new IDLStringSequence(array.size());
+      for (int i = 0; i < array.size(); i++)
+      {
+         sequence.add(array.get(i).asText());
+      }
+      return sequence;
+   }
+
+   private Object deserializeIDLSequence(JsonNode arrayNode, Class<?> sequenceType)
+   {
+      if (!arrayNode.isArray())
+      {
+         try
+         {
+            return sequenceType.getDeclaredConstructor().newInstance();
+         }
+         catch (Exception e)
+         {
+            return null;
+         }
+      }
+
+      ArrayNode array = (ArrayNode) arrayNode;
+      try
+      {
+         // Create a new instance of the sequence
+         IDLSequence<?> sequence = (IDLSequence<?>) sequenceType.getDeclaredConstructor().newInstance();
+
+         // Try to find the add method
+         java.lang.reflect.Method addMethod = null;
+         for (java.lang.reflect.Method method : sequenceType.getMethods())
+         {
+            if (method.getName().equals("add") && method.getParameterCount() == 1)
+            {
+               addMethod = method;
+               break;
+            }
+         }
+
+         if (addMethod != null)
+         {
+            Class<?> paramType = addMethod.getParameterTypes()[0];
+            for (int i = 0; i < array.size(); i++)
+            {
+               JsonNode element = array.get(i);
+               Object value = deserializeValue(element, paramType);
+               if (value != null)
+               {
+                  addMethod.invoke(sequence, value);
+               }
+            }
+         }
+
+         return sequence;
+      }
+      catch (Exception e)
+      {
+         return null;
+      }
+   }
+
+   private Object deserializeValue(JsonNode node, Class<?> type)
+   {
+      if (node == null || node.isNull())
+      {
+         return null;
+      }
+
+      if (type == boolean.class || type == Boolean.class)
+      {
+         return node.asBoolean();
+      }
+      else if (type == byte.class || type == Byte.class)
+      {
+         return (byte) node.asInt();
+      }
+      else if (type == short.class || type == Short.class)
+      {
+         return (short) node.asInt();
+      }
+      else if (type == int.class || type == Integer.class)
+      {
+         return node.asInt();
+      }
+      else if (type == long.class || type == Long.class)
+      {
+         return node.asLong();
+      }
+      else if (type == float.class || type == Float.class)
+      {
+         return (float) node.asDouble();
+      }
+      else if (type == double.class || type == Double.class)
+      {
+         return node.asDouble();
+      }
+      else if (type == String.class)
+      {
+         return node.asText();
+      }
+      else if (type == StringBuilder.class)
+      {
+         return new StringBuilder(node.asText());
+      }
+      else if (ROS2Message.class.isAssignableFrom(type))
+      {
+         try
+         {
+            ROS2Message<?> message = (ROS2Message<?>) type.getDeclaredConstructor().newInstance();
+            if (node.isObject())
+            {
+               CDRInterchangeSerializer childSerializer = new CDRInterchangeSerializer((ObjectNode) node);
+               childSerializer.deserializeMessageFields(message, childSerializer);
+            }
+            return message;
+         }
+         catch (Exception e)
+         {
+            return null;
+         }
+      }
+      else
+      {
+         return null;
       }
    }
 

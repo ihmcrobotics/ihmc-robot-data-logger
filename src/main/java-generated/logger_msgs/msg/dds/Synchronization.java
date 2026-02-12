@@ -17,7 +17,7 @@ float64 jogRate    # Jog rate compared to the parent log
 */
 public class Synchronization implements ROS2Message<Synchronization>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::Synchronization_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::Synchronization";
 
    private double offset_; // Index offset from the start of the parent log
    private double jogRate_; // Jog rate compared to the parent log

@@ -16,7 +16,7 @@ int64 timestamp
 */
 public class Timestamp implements ROS2Message<Timestamp>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::Timestamp_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::Timestamp";
 
    private long timestamp_;
 

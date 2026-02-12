@@ -16,7 +16,7 @@ string guid
 */
 public class ClearLogRequest implements ROS2Message<ClearLogRequest>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::ClearLogRequest_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::ClearLogRequest";
 
    private final StringBuilder guid_;
 

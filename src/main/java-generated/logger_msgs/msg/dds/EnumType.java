@@ -17,7 +17,7 @@ string[] enumValues
 */
 public class EnumType implements ROS2Message<EnumType>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::EnumType_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::EnumType";
 
    private final StringBuilder name_;
    private final IDLStringSequence enumValues_;

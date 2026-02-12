@@ -22,7 +22,7 @@ string listName
 */
 public class SCS1YoGraphicObjectMessage implements ROS2Message<SCS1YoGraphicObjectMessage>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::SCS1YoGraphicObjectMessage_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::SCS1YoGraphicObjectMessage";
 
    private int registrationID_;
    private final StringBuilder name_;

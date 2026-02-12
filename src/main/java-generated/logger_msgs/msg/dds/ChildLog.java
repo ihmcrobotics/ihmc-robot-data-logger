@@ -18,7 +18,7 @@ LogProperties properties    # Properties of the child log
 */
 public class ChildLog implements ROS2Message<ChildLog>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::ChildLog_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::ChildLog";
 
    private final StringBuilder childName_; // Name of the child log
    private final logger_msgs.msg.dds.Synchronization synchronization_; // synchronization with the parent

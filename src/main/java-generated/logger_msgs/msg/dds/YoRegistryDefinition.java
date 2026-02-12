@@ -17,7 +17,7 @@ string name
 */
 public class YoRegistryDefinition implements ROS2Message<YoRegistryDefinition>
 {
-   public static final java.lang.String name = "logger_msgs::msg::dds_::YoRegistryDefinition_";
+   public static final java.lang.String name = "us::ihmc::robotDataLogger::YoRegistryDefinition";
 
    private short parent_;
    private final StringBuilder name_;
