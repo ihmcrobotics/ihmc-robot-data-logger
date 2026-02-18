@@ -6,6 +6,7 @@ import us.ihmc.fastddsjava.cdr.CDRBuffer;
 import us.ihmc.tools.compression.CompressionImplementation;
 import us.ihmc.tools.compression.CompressionImplementationFactory;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -38,58 +39,66 @@ public class CustomLogDataPublisherType extends LogData
       }
    }
 
-   /**
-    * Serialize a RegistrySendBuffer into the provided CDRBuffer.
-    * This method handles compression of the variable data.
-    */
-   public void serialize(RegistrySendBuffer buffer, CDRBuffer cdrBuffer)
+   private void compressDirect(ByteBuffer dataBuffer, CDRBuffer buffer)
    {
-      // Set fields from the RegistrySendBuffer
-      setUid(buffer.getUid());
-      setTimestamp(buffer.getTimestamp());
-      setTransmitTime(buffer.getTransmitTime());
-      setType(buffer.getType().getType());
-      setRegistry(buffer.getRegistryID());
-      setNumberOfVariables(buffer.getNumberOfVariables());
+      ByteBuffer serializeBuffer = buffer.getBufferUnsafe();
+      buffer.writeInt(0); // Placeholder for length of the compressed data
+      int sizePosition = serializeBuffer.position() - 4; // Position for the length of the compressed data
+      int written = compressor.compress(dataBuffer, serializeBuffer);
+      serializeBuffer.putInt(sizePosition, written); // Write the length of the compressed data in the placeholder position
+   }
 
-      // Compress the data
-      ByteBuffer variableBuffer = buffer.getBuffer();
-      int compressedSize;
+   private void compressJavaBuffer(ByteBuffer dataBuffer, CDRBuffer buffer) throws IOException
+   {
+      compressBuffer.clear();
+      compressor.compress(dataBuffer, compressBuffer);
+      compressBuffer.flip();
 
-      if (compressor.supportsDirectOutput())
+      // Write compressed data length
+      buffer.writeInt(compressBuffer.remaining());
+      buffer.getBufferUnsafe().put(compressBuffer);
+   }
+
+   public void serialize(RegistrySendBuffer data, CDRBuffer buffer) throws IOException
+   {
+      buffer.writeLong(data.getUid());
+
+      buffer.writeLong(data.getTimestamp());
+
+      buffer.writeLong(data.getTransmitTime());
+
+      buffer.writeInt(data.getType().getType());
+
+      buffer.writeInt(data.getRegistryID());
+
+      buffer.writeInt(data.getNumberOfVariables());
+
+      if (data.getType().getType() == LogDataType.DATA_PACKET)
       {
-         // Compress directly into the data sequence
-         getData().clear();
-         getData().ensureMinCapacity(compressor.maxCompressedLength(variableBuffer.remaining()));
-         compressedSize = compressor.compress(variableBuffer, getData().getBuffer());
-         getData().getBuffer().limit(compressedSize);
+         if (compressor.supportsDirectOutput())
+         {
+            compressDirect(data.getBuffer(), buffer);
+         }
+         else
+         {
+            compressJavaBuffer(data.getBuffer(), buffer);
+         }
+
+         // Write joint states length
+         double[] jointstates = data.getJointStates();
+         buffer.writeInt(jointstates.length);
+         for (int i = 0; i < jointstates.length; i++)
+         {
+            buffer.writeDouble(jointstates[i]);
+         }
       }
       else
       {
-         // Compress into temporary buffer, then copy
-         compressBuffer.clear();
-         compressedSize = compressor.compress(variableBuffer, compressBuffer);
-         compressBuffer.flip();
-
-         getData().clear();
-         getData().ensureMinCapacity(compressedSize);
-         getData().getBuffer().put(compressBuffer);
-         getData().getBuffer().limit(compressedSize);
+         buffer.writeInt(0);
+         buffer.writeInt(0);
       }
 
-      setOffset(0);
-
-      // Copy joint states
-      double[] jointStateArray = buffer.getJointStates();
-      getJointStates().clear();
-      getJointStates().ensureMinCapacity(jointStateArray.length);
-      for (int i = 0; i < jointStateArray.length; i++)
-      {
-         getJointStates().getBuffer().put(i, jointStateArray[i]);
-      }
-
-      // Now serialize using the parent class method
-      super.serialize(cdrBuffer);
+      buffer.getBufferUnsafe().flip();
    }
 
    /**
@@ -111,11 +120,11 @@ public class CustomLogDataPublisherType extends LogData
 
       // Maximum compressed data size
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // sequence length
-      currentAlignment += compressor.maxCompressedLength(numberOfVariables * 8);
+      currentAlignment += compressor.maxCompressedLength(numberOfVariables * 8) + CDRBuffer.alignment(currentAlignment, 1);
 
       // Joint states
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // sequence length
-      currentAlignment += numberOfStates * 8; // double array
+      currentAlignment += numberOfStates * 8 + CDRBuffer.alignment(currentAlignment, 8); // double array
 
       return currentAlignment - initialAlignment;
    }

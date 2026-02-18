@@ -41,10 +41,14 @@ class WebsocketRegistryPublisher implements RegistryPublisher
    private final int numberOfVariables;
 
    private final int bufferID;
-   
+
    private final BufferListenerInterface bufferListener;
 
-   public WebsocketRegistryPublisher(EventLoopGroup workerGroup, RegistrySendBufferBuilder builder, WebsocketDataBroadcaster broadcaster, int bufferID, BufferListenerInterface bufferListener)
+   public WebsocketRegistryPublisher(EventLoopGroup workerGroup,
+                                     RegistrySendBufferBuilder builder,
+                                     WebsocketDataBroadcaster broadcaster,
+                                     int bufferID,
+                                     BufferListenerInterface bufferListener)
    {
       this.broadcaster = broadcaster;
 
@@ -60,8 +64,8 @@ class WebsocketRegistryPublisher implements RegistryPublisher
       publisherBuffer = new CDRBuffer();
 
       this.bufferListener = bufferListener;
-      
-      if(bufferListener != null)
+
+      if (bufferListener != null)
       {
          bufferListener.addBuffer(bufferID, builder);
       }
@@ -69,7 +73,7 @@ class WebsocketRegistryPublisher implements RegistryPublisher
 
    public int getMaximumBufferSize()
    {
-      return publisherType.calculateSizeBytes(0);
+      return publisherType.calculateSizeBytes(0) + 4; // +4 for payload header
    }
 
    /**
@@ -134,10 +138,12 @@ class WebsocketRegistryPublisher implements RegistryPublisher
                if ((buffer = ringBuffer.read()) != null)
                {
                   // Reset the buffer
-                  publisherBuffer.getBufferUnsafe().clear();
-                  publisherBuffer.ensureRemainingCapacity(publisherType.calculateSizeBytes(0));
+                  publisherBuffer.ensureRemainingCapacity(getMaximumBufferSize());
+                  publisherBuffer.getBufferUnsafe().limit(getMaximumBufferSize());
+                  publisherBuffer.rewind();
 
                   // Write message into buffer
+                  publisherBuffer.writePayloadHeader();
                   publisherType.serialize(buffer, publisherBuffer);
 
                   // Publish the buffer over web socket
@@ -151,13 +157,13 @@ class WebsocketRegistryPublisher implements RegistryPublisher
                      }
                   }
                   previousUid = buffer.getUid();
-                  
+
                   if (bufferListener != null)
                   {
                      bufferListener.updateBuffer(bufferID, buffer);
                   }
                }
-               
+
                if (bufferListener != null)
                {
                   while ((buffer = ringBuffer.read()) != null)
@@ -167,7 +173,6 @@ class WebsocketRegistryPublisher implements RegistryPublisher
                }
                ringBuffer.flush();
             }
-
          }
          catch (Throwable e)
          {

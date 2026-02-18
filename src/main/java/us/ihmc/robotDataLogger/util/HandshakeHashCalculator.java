@@ -16,10 +16,7 @@ public class HandshakeHashCalculator
       {
          // Create a CDRBuffer to serialize the handshake
          CDRBuffer buffer = new CDRBuffer();
-
-         // Calculate the size needed for serialization
-         int size = handshake.calculateSizeBytes(0);
-         buffer.ensureRemainingCapacity(size + 4); // +4 for payload header
+         buffer.ensureRemainingCapacity(handshake.calculateSizeBytes(0) + 4); // +4 for payload header
 
          // Write payload header and serialize the handshake
          buffer.writePayloadHeader();

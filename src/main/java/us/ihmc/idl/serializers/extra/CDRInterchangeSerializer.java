@@ -84,9 +84,17 @@ class CDRInterchangeSerializer
             String methodName = method.getName();
             if (methodName.startsWith("get") && !methodName.equals("getClass") && method.getParameterCount() == 0)
             {
+               // Skip methods ending with "AsString" to avoid duplicate serialization
+//               if (methodName.endsWith("AsString"))
+//               {
+//                  continue;
+//               }
+
                String fieldName = toFieldName(methodName.substring(3));
                Object value = method.invoke(message);
-               serializer.serializeField(fieldName, value);
+
+               // Special handling for certain fields to maintain backward compatibility
+               serializer.serializeFieldWithContext(fieldName, value, message);
             }
          }
       }
@@ -145,6 +153,62 @@ class CDRInterchangeSerializer
       }
 
       return Character.toLowerCase(getterSuffix.charAt(0)) + getterSuffix.substring(1);
+   }
+
+   private void serializeFieldWithContext(String name, Object value, ROS2Message<?> message)
+   {
+      // Special handling for YoType to convert byte to string representation
+      if (value != null && value.getClass().getName().equals("logger_msgs.msg.dds.YoType"))
+      {
+         try
+         {
+            java.lang.reflect.Method getTypeMethod = value.getClass().getMethod("getType");
+            byte typeValue = (byte) getTypeMethod.invoke(value);
+            String typeName = convertYoTypeToString(typeValue);
+            node.put(name, typeName);
+            return;
+         }
+         catch (Exception e)
+         {
+            // Fall through to normal serialization
+         }
+      }
+
+      // Special handling for loadStatus field to convert byte to string
+      if (name.equals("loadStatus") && value instanceof Byte)
+      {
+         String statusName = convertLoadStatusToString((Byte) value);
+         node.put(name, statusName);
+         return;
+      }
+
+      // Default serialization
+      serializeField(name, value);
+   }
+
+   private String convertYoTypeToString(byte type)
+   {
+      switch (type)
+      {
+         case 0: return "DoubleYoVariable";
+         case 1: return "BooleanYoVariable";
+         case 2: return "IntegerYoVariable";
+         case 3: return "LongYoVariable";
+         case 4: return "EnumYoVariable";
+         default: return "DoubleYoVariable";
+      }
+   }
+
+   private String convertLoadStatusToString(byte status)
+   {
+      switch (status)
+      {
+         case 0: return "NoParameter";
+         case 1: return "Unloaded";
+         case 2: return "Default";
+         case 3: return "Loaded";
+         default: return "NoParameter";
+      }
    }
 
    private void serializeField(String name, Object value)

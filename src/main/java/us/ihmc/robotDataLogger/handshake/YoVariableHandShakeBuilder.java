@@ -323,13 +323,24 @@ public class YoVariableHandShakeBuilder
          ReferenceFrameInformation referenceFrameInformation = handshake.getReferenceFrameInformation();
          int i = 0;
          int packetSizeLimit = 8192;
-         for (Iterator<ReferenceFrame> iterator = frames.iterator(); iterator.hasNext() && i++ < packetSizeLimit;)
+         int frameCount = Math.min(frames.size(), packetSizeLimit);
+
+         // Clear and ensure capacity - following the pattern from CustomLogDataPublisherType
+         referenceFrameInformation.getFrameIndices().clear();
+         referenceFrameInformation.getFrameIndices().ensureMinCapacity(frameCount);
+
+         for (Iterator<ReferenceFrame> iterator = frames.iterator(); iterator.hasNext() && i < packetSizeLimit; i++)
          {
             ReferenceFrame frame = iterator.next();
             referenceFrameInformation.getFrameNames().add(frame.getName());
-            // TODO jros2:
-//            referenceFrameInformation.getFrameIndices().add(frame.getFrameIndex());
+
+            // Store frame index using indexed put - the parser reads using getBuffer().get(i)
+            referenceFrameInformation.getFrameIndices().getBuffer().put(i, (int) frame.getFrameIndex());
          }
+
+         // Set position to the number of elements so size() returns the correct value
+         // Do NOT set limit() - let it remain at capacity
+         referenceFrameInformation.getFrameIndices().getBuffer().position(i);
 
          if (frames.size() > packetSizeLimit)
          {

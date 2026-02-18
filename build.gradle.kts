@@ -37,7 +37,7 @@ mainDependencies {
    api("us.ihmc:ihmc-yovariables:0.13.7")
    api("us.ihmc:scs2-definition:17-0.32.0")
    api("us.ihmc:mecano:17-0.19.3")
-   api("us.ihmc:jros2:1.1.6")
+   api("us.ihmc:jros2:source")
 
    api("com.fasterxml.jackson.core:jackson-databind:2.18.1")
    api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.18.1")
