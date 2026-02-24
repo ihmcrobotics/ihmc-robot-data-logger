@@ -15,7 +15,7 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "bbfe6148144cfcd91773734a4990318710c6d90157c06c721db065f97c46a620";
+   		return "18ef42f8f93510f11c826989eaf47402650f9ad78f5fe26b491aeff6e11654cb";
    }
    
    @Override
