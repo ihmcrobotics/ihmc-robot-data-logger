@@ -3,6 +3,7 @@ module ihmc{
 module robotDataLogger{
 	struct ZEDSDKAnnounce{
 		string sensor_name;
+		int depth_mode;
 		string address;
 		short port;
 		long fps;
