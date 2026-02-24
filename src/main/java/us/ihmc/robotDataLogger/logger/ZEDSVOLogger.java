@@ -66,7 +66,7 @@ public class ZEDSVOLogger
       if (sl_is_opened(cameraID))
          sl_close_camera(cameraID);
 
-      int returnCode = sl_open_camera(cameraID, initParameters, 0, "", address, port, "", "", "");
+      int returnCode = sl_open_camera(cameraID, initParameters, 0, "", address, port, 0, "", "", "");
       if (returnCode != SL_ERROR_CODE_SUCCESS)
          LogTools.error("Could not connect to ZED SDK stream: " + ZEDTools.errorMessage(returnCode));
 
