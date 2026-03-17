@@ -8,7 +8,6 @@ import logger_msgs.msg.dds.Handshake;
 import logger_msgs.msg.dds.HandshakeFileType;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.MathTools;
-import us.ihmc.fastddsjava.cdr.idl.IDLStringSequence;
 import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.CameraSettingsLoader;
@@ -42,19 +41,6 @@ import java.util.function.Consumer;
 
 public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 {
-   /**
-    * Helper method to convert IDLStringSequence to String array
-    */
-   private static String[] toStringArray(IDLStringSequence sequence)
-   {
-      String[] result = new String[sequence.size()];
-      for (int i = 0; i < sequence.size(); i++)
-      {
-         result[i] = sequence.getAsString(i);
-      }
-      return result;
-   }
-
    /**
     * We wait this long before shutting down the logger, this prevents logging forever in the case where the server didn't
     * shut down properly.
@@ -250,7 +236,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       {
          yoVariableSummarizer = new YoVariableSummarizer(handshakeParser.getYoVariablesList(),
                                                          handshake.getHandshake().getSummary().getSummaryTriggerVariableAsString(),
-                                                         toStringArray(handshake.getHandshake().getSummary().getSummarizedVariables()));
+                                                         handshake.getHandshake().getSummary().getSummarizedVariables().toStringArray());
          logProperties.getVariables().setSummary(summaryFilename);
       }
    }

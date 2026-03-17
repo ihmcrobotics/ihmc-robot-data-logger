@@ -2,7 +2,6 @@ package us.ihmc.robotDataLogger.memoryLogger;
 
 import logger_msgs.msg.dds.Announcement;
 import logger_msgs.msg.dds.HandshakeFileType;
-import us.ihmc.fastddsjava.cdr.idl.IDLStringSequence;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
@@ -16,18 +15,6 @@ import java.util.Calendar;
 
 public class MemoryLogWriter
 {
-   /**
-    * Helper method to convert IDLStringSequence to String array
-    */
-   private static String[] toStringArray(IDLStringSequence sequence)
-   {
-      String[] result = new String[sequence.size()];
-      for (int i = 0; i < sequence.size(); i++)
-      {
-         result[i] = sequence.getAsString(i);
-      }
-      return result;
-   }
    private class MemoryLoggerListener extends YoVariableLoggerListener
    {
       private final ByteBuffer buffer;
@@ -118,7 +105,7 @@ public class MemoryLogWriter
       {
          logHandshake.setModel(content.getModel().array());
          logHandshake.setModelLoaderClass(announcement.getModelFileDescription().getModelLoaderClassAsString());
-         logHandshake.setResourceDirectories(toStringArray(announcement.getModelFileDescription().getResourceDirectories()));
+         logHandshake.setResourceDirectories(announcement.getModelFileDescription().getResourceDirectories().toStringArray());
          
          if (announcement.getModelFileDescription().getHasResourceZip())
          {

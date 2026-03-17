@@ -9,7 +9,6 @@ import logger_msgs.msg.dds.EnumType;
 import logger_msgs.msg.dds.Handshake;
 import logger_msgs.msg.dds.HandshakeFileType;
 import logger_msgs.msg.dds.JointDefinition;
-import logger_msgs.msg.dds.JointType;
 import logger_msgs.msg.dds.LoadStatus;
 import logger_msgs.msg.dds.ReferenceFrameInformation;
 import logger_msgs.msg.dds.SCS2YoGraphicDefinitionMessage;
@@ -20,7 +19,6 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.fastddsjava.cdr.idl.IDLObjectSequence;
-import us.ihmc.fastddsjava.cdr.idl.IDLStringSequence;
 import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
 import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
@@ -59,18 +57,6 @@ import static us.ihmc.yoVariables.euclid.referenceFrame.interfaces.FrameIndexMap
  */
 public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
 {
-   /**
-    * Helper method to convert IDLStringSequence to String array
-    */
-   private static String[] toStringArray(IDLStringSequence sequence)
-   {
-      String[] result = new String[sequence.size()];
-      for (int i = 0; i < sequence.size(); i++)
-      {
-         result[i] = sequence.getAsString(i);
-      }
-      return result;
-   }
    private final ROS2YAMLSerializer<Handshake> serializer;
 
    private TIntIntHashMap variableOffsets = new TIntIntHashMap();
@@ -206,7 +192,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
 
                case YoType.ENUMYOVARIABLE:
                   EnumType enumType = handshake.getEnumTypes().get(yoVariableDefinition.getEnumType());
-                  String[] names = toStringArray(enumType.getEnumValues());
+                  String[] names = enumType.getEnumValues().toStringArray();
                   boolean allowNullValues = yoVariableDefinition.getAllowNullValues();
                   newParameter = new EnumParameter<>(name, description, parent, allowNullValues, names);
                   break;
@@ -264,7 +250,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
 
                case YoType.ENUMYOVARIABLE:
                   EnumType enumType = handshake.getEnumTypes().get(yoVariableDefinition.getEnumType());
-                  String[] names = toStringArray(enumType.getEnumValues());
+                  String[] names = enumType.getEnumValues().toStringArray();
                   boolean allowNullValues = yoVariableDefinition.getAllowNullValues();
                   newVariable = new YoEnum(name, description, parent, allowNullValues, names);
                   break;

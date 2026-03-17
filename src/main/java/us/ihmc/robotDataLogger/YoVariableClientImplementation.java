@@ -4,7 +4,6 @@ import logger_msgs.msg.dds.Announcement;
 import logger_msgs.msg.dds.Handshake;
 import logger_msgs.msg.dds.HandshakeFileType;
 import us.ihmc.commons.MathTools;
-import us.ihmc.fastddsjava.cdr.idl.IDLStringSequence;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.handshake.LogHandshake;
@@ -27,18 +26,6 @@ import java.util.concurrent.Executors;
  */
 public class YoVariableClientImplementation implements YoVariableClientInterface
 {
-   /**
-    * Helper method to convert IDLStringSequence to String array
-    */
-   private static String[] toStringArray(IDLStringSequence sequence)
-   {
-      String[] result = new String[sequence.size()];
-      for (int i = 0; i < sequence.size(); i++)
-      {
-         result[i] = sequence.getAsString(i);
-      }
-      return result;
-   }
    private String serverName;
 
    private final VariableChangedProducer variableChangedProducer;
@@ -117,7 +104,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
          // Requesting model file
          logHandshake.setModel(dataConsumer.getModelFile());
          logHandshake.setModelLoaderClass(announcement.getModelFileDescription().getModelLoaderClassAsString());
-         logHandshake.setResourceDirectories(toStringArray(announcement.getModelFileDescription().getResourceDirectories()));
+         logHandshake.setResourceDirectories(announcement.getModelFileDescription().getResourceDirectories().toStringArray());
          if (announcement.getModelFileDescription().getHasResourceZip())
          {
             // Requesting resource bundle
