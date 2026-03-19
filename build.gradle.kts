@@ -28,7 +28,6 @@ mainDependencies {
    api("net.sf.trove4j:trove4j:3.0.3")
    api("org.jcommander:jcommander:3.0")
    api("com.google.guava:guava:18.0")
-   api("org.tukaani:xz:1.5")
    api("org.xerial.snappy:snappy-java:1.1.1-M1")
    api("net.jpountz.lz4:lz4:1.3.0")
    api("io.netty:netty-all:4.1.77.Final")
