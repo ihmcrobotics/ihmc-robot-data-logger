@@ -99,8 +99,8 @@ public class LoggerDeployApplication
 
    public static void main(String[] args)
    {
-      LoggerDeployApplication app = new LoggerDeployApplication();
-      JCommander jc = JCommander.newBuilder().addObject(app).build();
+      LoggerDeployApplication loggerDeployApplication = new LoggerDeployApplication();
+      JCommander jc = JCommander.newBuilder().addObject(loggerDeployApplication).build();
 
       try
       {
@@ -120,7 +120,7 @@ public class LoggerDeployApplication
          {
             try
             {
-               app.start(new Stage());
+               loggerDeployApplication.start(new Stage());
             }
             catch (IOException e)
             {
