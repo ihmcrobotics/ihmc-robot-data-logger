@@ -26,7 +26,7 @@ ihmc {
 mainDependencies {
    api("com.google.protobuf:protobuf-java:2.6.1")
    api("net.sf.trove4j:trove4j:3.0.3")
-   api("com.martiansoftware:jsap:2.1")
+   api("org.jcommander:jcommander:3.0")
    api("com.google.guava:guava:18.0")
    api("org.tukaani:xz:1.5")
    api("org.xerial.snappy:snappy-java:1.1.1-M1")
@@ -100,7 +100,7 @@ tasks.register<JavaExec>("deploy") {
 
    var p =   projectDir.toPath().resolve("build/distributions/" + project.name + "-" + project.version + ".tar").normalize()
 
-   args("--logger-dist=" + p)
+   args("--logger-dist ", p.toString())
 }
 
 tasks.register("generateMessages") {

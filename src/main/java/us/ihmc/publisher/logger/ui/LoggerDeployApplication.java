@@ -7,12 +7,9 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.util.Date;
 
-import com.martiansoftware.jsap.FlaggedOption;
-import com.martiansoftware.jsap.JSAP;
-import com.martiansoftware.jsap.JSAPException;
-import com.martiansoftware.jsap.JSAPResult;
-import com.martiansoftware.jsap.Parameter;
-import com.martiansoftware.jsap.SimpleJSAP;
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import com.sun.javafx.application.PlatformImpl;
 
 import javafx.fxml.FXMLLoader;
@@ -25,16 +22,18 @@ import us.ihmc.publisher.logger.utils.TeeStream;
 public class LoggerDeployApplication
 {
    private static final URL uiDescription = LoggerDeployApplication.class.getResource("LoggerSetup.fxml");
+
+   @Parameter(names = {"-d", "--logger-dist"}, description = "Path to deployed distribution", required = true)
    private String loggerDist;
 
-   public LoggerDeployApplication(String loggerDist)
+   public LoggerDeployApplication()
    {
-      this.loggerDist = loggerDist;
+
    }
 
    /**
     * Helper function to open this as part of another application
-    * 
+    *
     * @param loggerDistribution
     * @param deployScript
     * @param scene      Parent scene
@@ -98,36 +97,27 @@ public class LoggerDeployApplication
       System.out.println("--- " + new Date().toString() + " ---");
    }
 
-   public static void main(String[] args) throws JSAPException
+   public static void main(String[] args)
    {
-      SimpleJSAP jsap = new SimpleJSAP(LoggerDeployApplication.class.getSimpleName(),
-                                       "Logger deploy application",
-                                       new Parameter[] {new FlaggedOption("loggerDist",
-                                                                          JSAP.STRING_PARSER,
-                                                                          null,
-                                                                          JSAP.REQUIRED,
-                                                                          'd',
-                                                                          "logger-dist",
-                                                                          "Path to deployed distribution")});
-      JSAPResult config = jsap.parse(args);
+      LoggerDeployApplication app = new LoggerDeployApplication();
+      JCommander jc = JCommander.newBuilder().addObject(app).build();
 
-      if (jsap.messagePrinted())
+      try
       {
-         System.out.println(jsap.getUsage());
-         System.out.println(jsap.getHelp());
+         jc.parse(args);
+      }
+      catch (ParameterException e)
+      {
+         System.err.println(e.getMessage());
+         jc.usage();
          System.exit(-1);
       }
-
-      String loggerDist = config.getString("loggerDist");
-
-      
 
       PlatformImpl.startup(new Runnable()
       {
          @Override
          public void run()
          {
-            LoggerDeployApplication app = new LoggerDeployApplication(loggerDist);
             try
             {
                app.start(new Stage());
