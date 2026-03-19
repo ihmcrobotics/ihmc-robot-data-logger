@@ -160,7 +160,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          }
          else
          {
-            LogTools.warn("The control session has no host in the IHMCControllerParameters file, so no camera's are recording... nice work genius");
+            LogTools.warn("The control session has no camera's in the ControllerHosts.yaml file, so no camera's are recording... nice work genius");
          }
       }
       else if (options != null)
