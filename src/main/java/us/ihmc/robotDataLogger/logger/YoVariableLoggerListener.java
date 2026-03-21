@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -87,6 +88,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private List<JointState> jointStates;
    private ByteBuffer dataBuffer;
    private LongBuffer dataBufferAsLong;
+   private long[] dataAsLong;
 
    private YoVariableClientInterface yoVariableClientInterface = null;
 
@@ -320,14 +322,16 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
    protected ByteBuffer reconstructBuffer(long timestamp)
    {
-      dataBuffer.clear();
       dataBufferAsLong.clear();
 
       dataBufferAsLong.put(timestamp);
       for (int i = 0; i < variables.size(); i++)
       {
-         dataBufferAsLong.put(variables.get(i).getValueAsLongBits());
+         dataAsLong[i] = variables.get(i).getValueAsLongBits();
       }
+
+      // Avoid .put() in the loop as there is a lot of overhead involved
+      dataBufferAsLong.put(dataAsLong);
 
       for (int i = 0; i < jointStates.size(); i++)
       {
@@ -477,11 +481,14 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       int bufferSize = handshakeParser.getBufferSize();
       compressedBuffer = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize));
 
-      // Initialize disk format variables
-      dataBuffer = ByteBuffer.allocate(bufferSize);
-      dataBufferAsLong = dataBuffer.asLongBuffer();
       variables = handshakeParser.getYoVariablesList();
       jointStates = handshakeParser.getJointStates();
+
+      // Initialize disk format variables
+      // Allocate direct and native order give the best speeds
+      dataBuffer = ByteBuffer.allocateDirect(bufferSize).order(ByteOrder.nativeOrder());
+      dataBufferAsLong = dataBuffer.asLongBuffer();
+      dataAsLong = new long[variables.size()];
 
       File dataFile = new File(tempDirectory, dataFilename);
       File indexFile = new File(tempDirectory, indexFilename);
