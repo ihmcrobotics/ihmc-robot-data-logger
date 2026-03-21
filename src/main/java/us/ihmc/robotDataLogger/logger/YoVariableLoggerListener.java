@@ -486,7 +486,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       // Initialize disk format variables
       // Allocate direct and native order give the best speeds
-      dataBuffer = ByteBuffer.allocateDirect(bufferSize).order(ByteOrder.nativeOrder());
+      dataBuffer = ByteBuffer.allocate(bufferSize);
       dataBufferAsLong = dataBuffer.asLongBuffer();
       dataAsLong = new long[variables.size()];
 
