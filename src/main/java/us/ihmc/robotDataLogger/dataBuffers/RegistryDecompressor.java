@@ -8,6 +8,7 @@ import java.util.List;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.interfaces.VariableChangedProducer;
 import us.ihmc.robotDataLogger.jointState.JointState;
+import us.ihmc.robotDataLogger.logger.YoVariableLoggerOptions;
 import us.ihmc.tools.compression.CompressionImplementation;
 import us.ihmc.tools.compression.CompressionImplementationFactory;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
@@ -15,6 +16,8 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class RegistryDecompressor
 {
+   private final YoVariableLoggerOptions options;
+
    private final List<YoVariable> variables;
    private final List<JointState> jointStates;
 
@@ -23,16 +26,18 @@ public class RegistryDecompressor
 
    private Object variableSynchronizer = null;
 
-   public RegistryDecompressor(List<YoVariable> variables, List<JointState> jointStates)
+   public RegistryDecompressor(List<YoVariable> variables, List<JointState> jointStates, YoVariableLoggerOptions options)
    {
       this.variables = variables;
       this.jointStates = jointStates;
+      this.options = options;
       this.decompressBuffer = ByteBuffer.allocate(variables.size() * 8);
 
       this.compressionImplementation = CompressionImplementationFactory.instance();
 
    }
 
+   // Avoid using if possible, slow for logging realtime data
    private void setAndNotify(YoVariable variable, long newValue)
    {
       long previousValue = variable.getValueAsLongBits();
@@ -93,10 +98,21 @@ public class RegistryDecompressor
 
    private void updateVariables(RegistryReceiveBuffer buffer, int registryOffset, LongBuffer longData, int numberOfVariables)
    {
-      int offset = registryOffset;
-      for (int i = 0; i < numberOfVariables; i++)
+      // The logger doesn't need to notify listners for YoVariables
+      // This check allows updating the variables much faster since we don't need to notify listeners
+      if (options.getAllowChangedListenersForYoVariables())
       {
-         setAndNotify(variables.get(i + offset), longData.get());
+         for (int i = 0; i < numberOfVariables; i++)
+         {
+            variables.get(i + registryOffset).setValueFromLongBits(longData.get(), false);
+         }
+      }
+      else
+      {
+         for (int i = 0; i < numberOfVariables; i++)
+         {
+            setAndNotify(variables.get(i + registryOffset), longData.get());
+         }
       }
 
       double[] jointStateArray = buffer.getJointStates();

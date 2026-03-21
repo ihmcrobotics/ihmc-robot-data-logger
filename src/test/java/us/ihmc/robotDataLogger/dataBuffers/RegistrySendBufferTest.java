@@ -23,6 +23,7 @@ import us.ihmc.robotDataLogger.jointState.JointHolder;
 import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.robotDataLogger.jointState.OneDoFJointHolder;
 import us.ihmc.robotDataLogger.jointState.OneDoFState;
+import us.ihmc.robotDataLogger.logger.YoVariableLoggerOptions;
 import us.ihmc.tools.compression.CompressionImplementation;
 import us.ihmc.tools.compression.CompressionImplementationFactory;
 import us.ihmc.yoVariables.registry.YoRegistry;
@@ -160,7 +161,8 @@ public class RegistrySendBufferTest
          }
 
          // Now that the data has been generated, test the buffers, update the variables and assert that the variables in both send and receive buffers match
-         RegistryDecompressor registryDecompressor = new RegistryDecompressor(receiveRegistry.collectSubtreeVariables(), receiveJointStates);
+         YoVariableLoggerOptions options = new YoVariableLoggerOptions();
+         RegistryDecompressor registryDecompressor = new RegistryDecompressor(receiveRegistry.collectSubtreeVariables(), receiveJointStates, options);
          RegistrySendBuffer sendBuffer = new RegistrySendBuffer(1, sendRegistry.collectSubtreeVariables(), sendJointHolders);
          RegistryReceiveBuffer receiveBuffer = new RegistryReceiveBuffer(sendBuffer.getTimestamp());
 

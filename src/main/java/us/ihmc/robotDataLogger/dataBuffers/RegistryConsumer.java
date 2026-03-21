@@ -43,7 +43,7 @@ public class RegistryConsumer extends Thread
    public RegistryConsumer(IDLYoVariableHandshakeParser parser, YoVariableClientImplementation yoVariableClient, DebugRegistry debugRegistry)
    {
       this.parser = parser;
-      registryDecompressor = new RegistryDecompressor(parser.getYoVariablesList(), parser.getJointStates());
+      registryDecompressor = new RegistryDecompressor(parser.getYoVariablesList(), parser.getJointStates(), yoVariableClient.getOptions());
       listener = yoVariableClient;
 
       this.debugRegistry = debugRegistry;

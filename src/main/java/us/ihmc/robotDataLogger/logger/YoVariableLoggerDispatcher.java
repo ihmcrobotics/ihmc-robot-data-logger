@@ -45,13 +45,13 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       discoveryClient.addHosts(StaticHostListLoader.load());
 
       // We allow for multiple instances of the logger to be run on the same machine
-      if (!options.isAllowManyInstances() && discoveryClient.getBindException() != null)
-      {
-         LogTools.error("The bind multicast port (" + DataServerLocationBroadcast.announcePort + ") is in use. Is there another logger running?");
-         ThreadTools.sleep((long) Conversions.secondsToMilliseconds(3));
-         LogTools.error("Shutting down...");
-         System.exit(0);
-      }
+//      if (!options.isAllowManyInstances() && discoveryClient.getBindException() != null)
+//      {
+//         LogTools.error("The bind multicast port (" + DataServerLocationBroadcast.announcePort + ") is in use. Is there another logger running?");
+//         ThreadTools.sleep((long) Conversions.secondsToMilliseconds(3));
+//         LogTools.error("Shutting down...");
+//         System.exit(0);
+//      }
 
       Runtime.getRuntime().addShutdownHook(new Thread(() ->
       {
