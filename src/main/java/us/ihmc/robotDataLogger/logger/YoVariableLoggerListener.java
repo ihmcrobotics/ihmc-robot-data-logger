@@ -485,9 +485,10 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       jointStates = handshakeParser.getJointStates();
 
       // Initialize disk format variables
-      // Allocate direct and native order give the best speeds
       dataBuffer = ByteBuffer.allocate(bufferSize);
       dataBufferAsLong = dataBuffer.asLongBuffer();
+
+      // We can do this because once we connect to a server we don't expect the number of YoVariables to change while we are running
       dataAsLong = new long[variables.size()];
 
       File dataFile = new File(tempDirectory, dataFilename);
