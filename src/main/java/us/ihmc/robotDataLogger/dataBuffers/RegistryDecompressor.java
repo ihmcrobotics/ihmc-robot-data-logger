@@ -37,7 +37,7 @@ public class RegistryDecompressor
 
    }
 
-   // Avoid using if possible, slow for logging realtime data
+   // Avoid using, if possible, slow for logging realtime data
    private void setAndNotify(YoVariable variable, long newValue)
    {
       long previousValue = variable.getValueAsLongBits();
@@ -98,7 +98,7 @@ public class RegistryDecompressor
 
    private void updateVariables(RegistryReceiveBuffer buffer, int registryOffset, LongBuffer longData, int numberOfVariables)
    {
-      // The logger doesn't need to notify listners for YoVariables
+      // The logger doesn't need to notify listeners for YoVariables
       // This check allows updating the variables much faster since we don't need to notify listeners
       if (options.getAllowChangedListenersForYoVariables())
       {
@@ -111,6 +111,7 @@ public class RegistryDecompressor
       {
          for (int i = 0; i < numberOfVariables; i++)
          {
+            // This seems like old code, didn't want to remove it so moved it to this else by default
             setAndNotify(variables.get(i + registryOffset), longData.get());
          }
       }
