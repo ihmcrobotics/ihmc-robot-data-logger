@@ -15,7 +15,7 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "18ef42f8f93510f11c826989eaf47402650f9ad78f5fe26b491aeff6e11654cb";
+   		return "76a2c63e39c538ddf1aa897cf2d7a2ca815b4bfaa3fb141c2bb2e8a7996fd08c";
    }
    
    @Override
@@ -53,6 +53,8 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
       int initial_alignment = current_alignment;
 
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
       current_alignment += 2 + us.ihmc.idl.CDR.alignment(current_alignment, 2);
 
@@ -78,6 +80,9 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
       int initial_alignment = current_alignment;
 
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + data.getSensorName().length() + 1;
+
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+
 
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + data.getAddress().length() + 1;
 
@@ -106,6 +111,8 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
       cdr.write_type_d(data.getSensorName());else
           throw new RuntimeException("sensor_name field exceeds the maximum length: %d > %d".formatted(data.getSensorName().length(), 255));
 
+      cdr.write_type_2(data.getDepthMode());
+
       if(data.getAddress().length() <= 255)
       cdr.write_type_d(data.getAddress());else
           throw new RuntimeException("address field exceeds the maximum length: %d > %d".formatted(data.getAddress().length(), 255));
@@ -125,6 +132,8 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
    public static void read(us.ihmc.robotDataLogger.ZEDSDKAnnounce data, us.ihmc.idl.CDR cdr)
    {
       cdr.read_type_d(data.getSensorName());	
+      data.setDepthMode(cdr.read_type_2());
+      	
       cdr.read_type_d(data.getAddress());	
       data.setPort(cdr.read_type_1());
       	
@@ -143,6 +152,7 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
    public final void serialize(us.ihmc.robotDataLogger.ZEDSDKAnnounce data, us.ihmc.idl.InterchangeSerializer ser)
    {
       ser.write_type_d("sensor_name", data.getSensorName());
+      ser.write_type_2("depthMode", data.getDepthMode());
       ser.write_type_d("address", data.getAddress());
       ser.write_type_1("port", data.getPort());
       ser.write_type_2("fps", data.getFps());
@@ -155,6 +165,7 @@ public class ZEDSDKAnnouncePubSubType implements us.ihmc.pubsub.TopicDataType<us
    public final void deserialize(us.ihmc.idl.InterchangeSerializer ser, us.ihmc.robotDataLogger.ZEDSDKAnnounce data)
    {
       ser.read_type_d("sensor_name", data.getSensorName());
+      data.setDepthMode(ser.read_type_2("depthMode"));
       ser.read_type_d("address", data.getAddress());
       data.setPort(ser.read_type_1("port"));
       data.setFps(ser.read_type_2("fps"));

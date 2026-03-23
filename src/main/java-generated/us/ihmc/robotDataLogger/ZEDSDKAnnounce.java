@@ -70,7 +70,6 @@ public class ZEDSDKAnnounce extends Packet<ZEDSDKAnnounce> implements Settable<Z
    {
       depthMode_ = depthMode;
    }
-
    public int getDepthMode()
    {
       return depthMode_;
