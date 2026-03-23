@@ -85,7 +85,7 @@ public class ExampleSVOLogger
       initParameters.resolution(SL_RESOLUTION_HD720);
       initParameters.input_type(SL_INPUT_TYPE_USB);
       initParameters.camera_device_id(0);
-      int state = sl_open_camera(0, initParameters, 0, "", "", 0, "", "", "");
+      int state = sl_open_camera_from_camera_id(0, initParameters, "", "", "");
       sl_enable_streaming(0, SL_STREAMING_CODEC_H264, 8000, (short) PORT, -1, 0, 16084, 30);
       if (state != 0)
          throw new RuntimeException("Could not initialize ZED");

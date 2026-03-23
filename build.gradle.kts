@@ -71,7 +71,7 @@ mainDependencies {
    api("org.bytedeco:ffmpeg:$ffmpegVersion:windows-x86_64")
 
    // ZED SDK for logging remote ZED data streams
-   api("us.ihmc:zed-java-api:5.1.0")
+   api("us.ihmc:zed-java-api:5.2.0")
 
    api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
 
