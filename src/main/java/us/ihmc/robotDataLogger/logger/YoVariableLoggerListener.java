@@ -85,6 +85,11 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    // Reconstruction variables for disk data format
    private List<YoVariable> variables;
    private List<JointState> jointStates;
+
+   private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
+   private LogBuffer activeBuffer;
+   private LogBuffer backgroundBuffer;
+   private long globalDataOffset = 0;
    private ByteBuffer dataBuffer;
    private LongBuffer dataBufferAsLong;
    private long[] dataAsLong;
@@ -237,6 +242,8 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       connected = true;
 
+      // We perform the compression and RAM copy on the caller thread
+      // but defer the Disk I/O to the executor.
       synchronized (synchronizer)
       {
          if (!clearingLog && dataChannel != null && dataChannel.isOpen())
@@ -251,23 +258,41 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                compressedBuffer.clear();
                SnappyUtils.compress(buffer, compressedBuffer);
                compressedBuffer.flip();
+               int compressedSize = compressedBuffer.remaining();
 
                indexBuffer.clear();
                indexBuffer.putLong(timestamp);
-               indexBuffer.putLong(dataChannel.position());
+               // Note: We use the channel position + what's already in the buffer
+               // but for double buffering, we calculate final offset at write time or keep a tracker
+//               indexBuffer.putLong(-1); // We will patch this address during the write phase
+//               indexBuffer.flip();
+               indexBuffer.putLong(globalDataOffset); // Correct absolute offset
                indexBuffer.flip();
+//               indexBuffer.putLong(dataChannel.position());
+//               indexBuffer.flip();
 
-               indexChannel.write(indexBuffer);
-               dataChannel.write(compressedBuffer);
-
-               if (flushAggressivelyToDisk)
+               if (!activeBuffer.canFit(compressedSize, indexBuffer.remaining()))
                {
-                  if (++currentIndex % FLUSH_EVERY_N_PACKETS == 0)
-                  {
-                     indexChannel.force(false);
-                     dataChannel.force(false);
-                  }
+                  swapAndFlush();
                }
+
+               activeBuffer.data.put(compressedBuffer);
+               activeBuffer.index.put(indexBuffer);
+
+//               indexChannel.write(indexBuffer);
+//               dataChannel.write(compressedBuffer);
+
+//               if (flushAggressivelyToDisk)
+//               {
+//                  if (++currentIndex % FLUSH_EVERY_N_PACKETS == 0)
+//                  {
+//                     indexChannel.force(false);
+//                     dataChannel.force(false);
+//                  }
+//               }
+
+               // This ensures the NEXT packet knows exactly where it starts
+               globalDataOffset += compressedSize;
 
                if (yoVariableSummarizer != null)
                {
@@ -282,6 +307,52 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
             }
          }
       }
+   }
+
+   private void swapAndFlush()
+   {
+      // Grab the current active buffer (this one is full and ready to be written to disk).
+      // From this point on, this buffer must NOT be modified by the producer thread.
+      final LogBuffer bufferToDisk = activeBuffer;
+
+      // - The previously idle backgroundBuffer becomes the new activeBuffer
+      // - This allows the real-time thread to continue writing immediately with zero blocking
+      // IMPORTANT: This assumes the previous background write has already completed,
+      // so it's safe to reuse that buffer.
+      activeBuffer = backgroundBuffer;
+      activeBuffer.clear(); // Reset positions so we can start writing fresh data into it
+
+      // Complete the rotation:
+      // The old active buffer (now full) becomes the new backgroundBuffer,
+      // which is owned by the I/O thread until the write() finishes.
+      backgroundBuffer = bufferToDisk;
+
+      // Hand off the full buffer to a background thread for disk I/O.
+      // This keeps disk access completely off the real-time (1 kHz) thread.
+      ioExecutor.submit(() ->
+                        {
+                           try
+                           {
+                              bufferToDisk.data.flip();
+                              bufferToDisk.index.flip();
+
+                              // Write the entire 10MB chunk as one sequential operation
+                              while (bufferToDisk.data.hasRemaining())
+                                 dataChannel.write(bufferToDisk.data);
+                              while (bufferToDisk.index.hasRemaining())
+                                 indexChannel.write(bufferToDisk.index);
+
+                              if (flushAggressivelyToDisk)
+                              {
+                                 dataChannel.force(false);
+                                 indexChannel.force(false);
+                              }
+                           }
+                           catch (IOException e)
+                           {
+                              LogTools.error("Disk I/O Error: " + e.getMessage());
+                           }
+                        });
    }
 
    private void updateStatus()
@@ -484,6 +555,8 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       jointStates = handshakeParser.getJointStates();
 
       // Initialize disk format variables
+      activeBuffer = new LogBuffer();
+      backgroundBuffer = new LogBuffer();
       dataBuffer = ByteBuffer.allocate(bufferSize);
       dataBufferAsLong = dataBuffer.asLongBuffer();
 
@@ -599,6 +672,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       synchronized (synchronizer)
       {
          clearingLog = true;
+         globalDataOffset = 0;
       }
       try
       {
@@ -682,4 +756,22 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       return "robotData" + childNumber + ".log";
    }
 
+   // Helper class to hold both data and index together for a "chunk"
+   private class LogBuffer
+   {
+      // 10MB data, ~1MB index (adjust based on your typical compression ratio)
+      ByteBuffer data = ByteBuffer.allocateDirect(10 * 1024 * 1024);
+      ByteBuffer index = ByteBuffer.allocateDirect(1 * 1024 * 1024);
+
+      void clear()
+      {
+         data.clear();
+         index.clear();
+      }
+
+      boolean canFit(int dataSize, int indexSize)
+      {
+         return data.remaining() >= dataSize && index.remaining() >= indexSize;
+      }
+   }
 }
