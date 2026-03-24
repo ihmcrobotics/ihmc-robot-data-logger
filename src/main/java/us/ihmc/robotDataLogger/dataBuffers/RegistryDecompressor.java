@@ -6,19 +6,14 @@ import java.nio.LongBuffer;
 import java.util.List;
 
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.interfaces.VariableChangedProducer;
 import us.ihmc.robotDataLogger.jointState.JointState;
-import us.ihmc.robotDataLogger.logger.YoVariableLoggerOptions;
 import us.ihmc.tools.compression.CompressionImplementation;
 import us.ihmc.tools.compression.CompressionImplementationFactory;
-import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class RegistryDecompressor
 {
-   private final YoVariableLoggerOptions options;
-
-   private final List<YoVariable> variables;
+   private final YoVariable[] variables;
    private final List<JointState> jointStates;
 
    private final ByteBuffer decompressBuffer;
@@ -26,37 +21,14 @@ public class RegistryDecompressor
 
    private Object variableSynchronizer = null;
 
-   public RegistryDecompressor(List<YoVariable> variables, List<JointState> jointStates, YoVariableLoggerOptions options)
+   public RegistryDecompressor(List<YoVariable> variables, List<JointState> jointStates)
    {
-      this.variables = variables;
+      this.variables = variables.toArray(new YoVariable[0]);
       this.jointStates = jointStates;
-      this.options = options;
       this.decompressBuffer = ByteBuffer.allocate(variables.size() * 8);
 
       this.compressionImplementation = CompressionImplementationFactory.instance();
 
-   }
-
-   // Avoid using, if possible, slow for logging realtime data
-   private void setAndNotify(YoVariable variable, long newValue)
-   {
-      long previousValue = variable.getValueAsLongBits();
-      variable.setValueFromLongBits(newValue, false);
-      if (previousValue != newValue)
-      {
-         List<YoVariableChangedListener> changedListeners = variable.getListeners();
-         if (changedListeners != null)
-         {
-            for (int listener = 0; listener < changedListeners.size(); listener++)
-            {
-               YoVariableChangedListener changedListener = changedListeners.get(listener);
-               if (!(changedListener instanceof VariableChangedProducer.VariableListener))
-               {
-                  changedListener.changed(variable);
-               }
-            }
-         }
-      }
    }
 
    public void decompressSegment(RegistryReceiveBuffer buffer, int registryOffset)
@@ -96,24 +68,11 @@ public class RegistryDecompressor
       }
    }
 
-   private void updateVariables(RegistryReceiveBuffer buffer, int registryOffset, LongBuffer longData, int numberOfVariables)
+   void updateVariables(RegistryReceiveBuffer buffer, int registryOffset, LongBuffer longData, int numberOfVariables)
    {
-      // The logger doesn't need to notify listeners for YoVariables
-      // This check allows updating the variables much faster since we don't need to notify listeners
-      if (options.getAllowChangedListenersForYoVariables())
+      for (int i = 0; i < numberOfVariables; i++)
       {
-         for (int i = 0; i < numberOfVariables; i++)
-         {
-            // This seems like old code, didn't want to remove it so moved it to this else by default
-            setAndNotify(variables.get(i + registryOffset), longData.get());
-         }
-      }
-      else
-      {
-         for (int i = 0; i < numberOfVariables; i++)
-         {
-            variables.get(i + registryOffset).setValueFromLongBits(longData.get(), false);
-         }
+         variables[i + registryOffset].setValueFromLongBits(longData.get(), false);
       }
 
       double[] jointStateArray = buffer.getJointStates();

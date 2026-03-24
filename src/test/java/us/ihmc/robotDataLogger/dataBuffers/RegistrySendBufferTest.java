@@ -23,7 +23,6 @@ import us.ihmc.robotDataLogger.jointState.JointHolder;
 import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.robotDataLogger.jointState.OneDoFJointHolder;
 import us.ihmc.robotDataLogger.jointState.OneDoFState;
-import us.ihmc.robotDataLogger.logger.YoVariableLoggerOptions;
 import us.ihmc.tools.compression.CompressionImplementation;
 import us.ihmc.tools.compression.CompressionImplementationFactory;
 import us.ihmc.yoVariables.registry.YoRegistry;
@@ -114,14 +113,14 @@ public class RegistrySendBufferTest
    {
       Random random = new Random(23589735L);
 
-      for (int numberOfVariables = 1000; numberOfVariables <= 16000; numberOfVariables += 1000)
+      for (int numberOfVariables = 20000; numberOfVariables <= 40000; numberOfVariables += 2000)
       {
          ArrayList<JointHolder> sendJointHolders = new ArrayList<>();
          ArrayList<JointState> receiveJointStates = new ArrayList<>();
 
          RigidBodyBasics elevator = new RigidBody("elevator", ReferenceFrame.getWorldFrame());
 
-         int numberOfJoints = random.nextInt(4000);
+         int numberOfJoints = 2000;
          for (int j = 0; j < numberOfJoints; j++)
          {
             OneDoFJointBasics sendJoint = new RevoluteJoint("Joint" + j, elevator, new Vector3D(1, 0, 0));
@@ -161,18 +160,25 @@ public class RegistrySendBufferTest
          }
 
          // Now that the data has been generated, test the buffers, update the variables and assert that the variables in both send and receive buffers match
-         YoVariableLoggerOptions options = new YoVariableLoggerOptions();
-         RegistryDecompressor registryDecompressor = new RegistryDecompressor(receiveRegistry.collectSubtreeVariables(), receiveJointStates, options);
+         RegistryDecompressor registryDecompressor = new RegistryDecompressor(receiveRegistry.collectSubtreeVariables(), receiveJointStates);
          RegistrySendBuffer sendBuffer = new RegistrySendBuffer(1, sendRegistry.collectSubtreeVariables(), sendJointHolders);
          RegistryReceiveBuffer receiveBuffer = new RegistryReceiveBuffer(sendBuffer.getTimestamp());
 
          payload.getData().clear();
 
          // This will calculate the time taken to update the buffer with the new values for the variables
-         long start = System.nanoTime();
-         sendBuffer.updateBufferFromVariables(timestamp, uid, numberOfVariables);
+         long start;
+         long end;
+         long minTime = Long.MAX_VALUE;
+         for (int i = 0; i < 1000; i++)
+         {
+            start = System.nanoTime();
+            sendBuffer.updateBufferFromVariables(timestamp, uid, numberOfVariables);
+            end = System.nanoTime();
+            minTime = Math.min(minTime, end - start);
+         }
          LogTools.info("Time taken to update when variables and joint states total to: " + (numberOfVariables + numberOfJointStates) + " : Time: "
-                            + Conversions.nanosecondsToSeconds(System.nanoTime() - start));
+                            + Conversions.nanosecondsToMicroseconds(minTime));
 
          publisherType.serialize(sendBuffer, payload);
          subscriberType.deserialize(payload, receiveBuffer);
