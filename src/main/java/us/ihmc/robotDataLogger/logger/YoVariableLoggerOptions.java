@@ -46,9 +46,6 @@ public class YoVariableLoggerOptions
    @Parameter(names = {"-m", "--allowManyInstances"}, description = "Allow more than one instance of the logger at once")
    private boolean allowManyInstances = false;
 
-   @Parameter(names = {"-l", "--allowChangedListeners"}, description = "Allow YoVariables to activate there changed listeners")
-   private boolean allowChangedListenersForYoVariables = false;
-
    // Derived fields
    private boolean rotateLogs = false;
    private int numberOfLogsToKeep = Integer.MAX_VALUE;
@@ -147,10 +144,5 @@ public class YoVariableLoggerOptions
    public void setVideoCodec(CodecID codec)
    {
       this.videoCodecID = codec;
-   }
-
-   public boolean getAllowChangedListenersForYoVariables()
-   {
-      return allowChangedListenersForYoVariables;
    }
 }
