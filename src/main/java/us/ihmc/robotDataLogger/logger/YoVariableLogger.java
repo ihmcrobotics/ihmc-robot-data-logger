@@ -75,7 +75,7 @@ public class YoVariableLogger
                                                                      connection.getTarget(),
                                                                      options,
                                                                      doneListener);
-      YoVariableClient client = new YoVariableClient(logger, options);
+      YoVariableClient client = new YoVariableClient(logger);
 
       try
       {

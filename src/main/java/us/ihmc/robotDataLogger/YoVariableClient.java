@@ -4,8 +4,6 @@ import java.io.IOException;
 
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.gui.DataServerSelectorGUI;
-import us.ihmc.robotDataLogger.logger.YoVariableLoggerOptions;
-import us.ihmc.robotDataLogger.rtps.LogProducerDisplay;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 
 /**
@@ -26,18 +24,7 @@ public class YoVariableClient
     */
    public YoVariableClient(YoVariablesUpdatedListener listener)
    {
-      YoVariableLoggerOptions options = new YoVariableLoggerOptions();
-      yoVariableClientImplementation = new YoVariableClientImplementation(listener, options);
-   }
-
-   /**
-    * Start a new client while allowing the user to select a desired logging session
-    *
-    * @param listener
-    */
-   public YoVariableClient(YoVariablesUpdatedListener listener, YoVariableLoggerOptions options)
-   {
-      yoVariableClientImplementation = new YoVariableClientImplementation(listener, options);
+      yoVariableClientImplementation = new YoVariableClientImplementation(listener);
    }
 
    /**
