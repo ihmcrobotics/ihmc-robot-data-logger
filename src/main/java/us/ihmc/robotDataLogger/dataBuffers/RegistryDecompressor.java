@@ -104,15 +104,15 @@ public class RegistryDecompressor
       {
          for (int i = 0; i < numberOfVariables; i++)
          {
-            variables.get(i + registryOffset).setValueFromLongBits(longData.get(), false);
+            // This seems like old code, didn't want to remove it so moved it to this else by default
+            setAndNotify(variables.get(i + registryOffset), longData.get());
          }
       }
       else
       {
          for (int i = 0; i < numberOfVariables; i++)
          {
-            // This seems like old code, didn't want to remove it so moved it to this else by default
-            setAndNotify(variables.get(i + registryOffset), longData.get());
+            variables.get(i + registryOffset).setValueFromLongBits(longData.get(), false);
          }
       }
 
