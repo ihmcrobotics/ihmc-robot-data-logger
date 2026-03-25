@@ -37,6 +37,11 @@ public class RegistryReceiveBuffer extends RegistryBuffer
       return jointStates;
    }
 
+   void setJointStates(double[] jointStates)
+   {
+      this.jointStates = jointStates;
+   }
+
    public ByteBuffer getData()
    {
       return compressedVariableDataBuffer;

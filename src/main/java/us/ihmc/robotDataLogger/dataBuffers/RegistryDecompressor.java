@@ -6,16 +6,14 @@ import java.nio.LongBuffer;
 import java.util.List;
 
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.interfaces.VariableChangedProducer;
 import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.tools.compression.CompressionImplementation;
 import us.ihmc.tools.compression.CompressionImplementationFactory;
-import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class RegistryDecompressor
 {
-   private final List<YoVariable> variables;
+   private final YoVariable[] variables;
    private final List<JointState> jointStates;
 
    private final ByteBuffer decompressBuffer;
@@ -25,33 +23,12 @@ public class RegistryDecompressor
 
    public RegistryDecompressor(List<YoVariable> variables, List<JointState> jointStates)
    {
-      this.variables = variables;
+      this.variables = variables.toArray(new YoVariable[0]);
       this.jointStates = jointStates;
       this.decompressBuffer = ByteBuffer.allocate(variables.size() * 8);
 
       this.compressionImplementation = CompressionImplementationFactory.instance();
 
-   }
-
-   private void setAndNotify(YoVariable variable, long newValue)
-   {
-      long previousValue = variable.getValueAsLongBits();
-      variable.setValueFromLongBits(newValue, false);
-      if (previousValue != newValue)
-      {
-         List<YoVariableChangedListener> changedListeners = variable.getListeners();
-         if (changedListeners != null)
-         {
-            for (int listener = 0; listener < changedListeners.size(); listener++)
-            {
-               YoVariableChangedListener changedListener = changedListeners.get(listener);
-               if (!(changedListener instanceof VariableChangedProducer.VariableListener))
-               {
-                  changedListener.changed(variable);
-               }
-            }
-         }
-      }
    }
 
    public void decompressSegment(RegistryReceiveBuffer buffer, int registryOffset)
@@ -91,12 +68,11 @@ public class RegistryDecompressor
       }
    }
 
-   private void updateVariables(RegistryReceiveBuffer buffer, int registryOffset, LongBuffer longData, int numberOfVariables)
+   void updateVariables(RegistryReceiveBuffer buffer, int registryOffset, LongBuffer longData, int numberOfVariables)
    {
-      int offset = registryOffset;
       for (int i = 0; i < numberOfVariables; i++)
       {
-         setAndNotify(variables.get(i + offset), longData.get());
+         variables[i + registryOffset].setValueFromLongBits(longData.get(), false);
       }
 
       double[] jointStateArray = buffer.getJointStates();

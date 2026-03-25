@@ -23,7 +23,6 @@ import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
@@ -83,8 +82,8 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private YoVariableSummarizer yoVariableSummarizer = null;
 
    // Reconstruction variables for disk data format
-   private List<YoVariable> variables;
-   private List<JointState> jointStates;
+   private YoVariable[] variables;
+   private JointState[] jointStates;
    private ByteBuffer dataBuffer;
    private LongBuffer dataBufferAsLong;
    private long[] dataAsLong;
@@ -324,17 +323,17 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       dataBufferAsLong.clear();
 
       dataBufferAsLong.put(timestamp);
-      for (int i = 0; i < variables.size(); i++)
+      for (int i = 0; i < variables.length; i++)
       {
-         dataAsLong[i] = variables.get(i).getValueAsLongBits();
+         dataAsLong[i] = variables[i].getValueAsLongBits();
       }
 
       // Avoid .put() in the loop as there is a lot of overhead involved
       dataBufferAsLong.put(dataAsLong);
 
-      for (int i = 0; i < jointStates.size(); i++)
+      for (int i = 0; i < jointStates.length; i++)
       {
-         jointStates.get(i).get(dataBufferAsLong);
+         jointStates[i].get(dataBufferAsLong);
       }
 
       dataBufferAsLong.flip();
@@ -480,15 +479,15 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       int bufferSize = handshakeParser.getBufferSize();
       compressedBuffer = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize));
 
-      variables = handshakeParser.getYoVariablesList();
-      jointStates = handshakeParser.getJointStates();
+      variables = handshakeParser.getYoVariablesList().toArray(new YoVariable[0]);
+      jointStates = handshakeParser.getJointStates().toArray(new JointState[0]);
 
       // Initialize disk format variables
       dataBuffer = ByteBuffer.allocate(bufferSize);
       dataBufferAsLong = dataBuffer.asLongBuffer();
 
       // We can do this because once we connect to a server we don't expect the number of YoVariables to change while we are running
-      dataAsLong = new long[variables.size()];
+      dataAsLong = new long[variables.length];
 
       File dataFile = new File(tempDirectory, dataFilename);
       File indexFile = new File(tempDirectory, indexFilename);

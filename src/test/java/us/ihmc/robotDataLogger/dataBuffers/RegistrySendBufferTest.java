@@ -113,14 +113,14 @@ public class RegistrySendBufferTest
    {
       Random random = new Random(23589735L);
 
-      for (int numberOfVariables = 1000; numberOfVariables <= 16000; numberOfVariables += 1000)
+      for (int numberOfVariables = 20000; numberOfVariables <= 40000; numberOfVariables += 2000)
       {
          ArrayList<JointHolder> sendJointHolders = new ArrayList<>();
          ArrayList<JointState> receiveJointStates = new ArrayList<>();
 
          RigidBodyBasics elevator = new RigidBody("elevator", ReferenceFrame.getWorldFrame());
 
-         int numberOfJoints = random.nextInt(4000);
+         int numberOfJoints = 2000;
          for (int j = 0; j < numberOfJoints; j++)
          {
             OneDoFJointBasics sendJoint = new RevoluteJoint("Joint" + j, elevator, new Vector3D(1, 0, 0));
@@ -167,10 +167,18 @@ public class RegistrySendBufferTest
          payload.getData().clear();
 
          // This will calculate the time taken to update the buffer with the new values for the variables
-         long start = System.nanoTime();
-         sendBuffer.updateBufferFromVariables(timestamp, uid, numberOfVariables);
+         long start;
+         long end;
+         long minTime = Long.MAX_VALUE;
+         for (int i = 0; i < 1000; i++)
+         {
+            start = System.nanoTime();
+            sendBuffer.updateBufferFromVariables(timestamp, uid, numberOfVariables);
+            end = System.nanoTime();
+            minTime = Math.min(minTime, end - start);
+         }
          LogTools.info("Time taken to update when variables and joint states total to: " + (numberOfVariables + numberOfJointStates) + " : Time: "
-                            + Conversions.nanosecondsToSeconds(System.nanoTime() - start));
+                            + Conversions.nanosecondsToMicroseconds(minTime));
 
          publisherType.serialize(sendBuffer, payload);
          subscriberType.deserialize(payload, receiveBuffer);
