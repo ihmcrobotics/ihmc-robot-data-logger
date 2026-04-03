@@ -195,6 +195,16 @@ public class RegistryConsumer extends Thread
       }
    }
 
+   public long[] getCachedVariableValues()
+   {
+      return registryDecompressor.getCachedVariableValues();
+   }
+
+   public long[] getCachedJointStateValues()
+   {
+      return registryDecompressor.getCachedJointStateValues();
+   }
+
    public void setVariableSynchronizer(Object variableSynchronizer)
    {
       registryDecompressor.setVariableSynchronizer(variableSynchronizer);
