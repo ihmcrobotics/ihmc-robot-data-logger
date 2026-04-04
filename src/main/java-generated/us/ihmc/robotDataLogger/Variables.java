@@ -20,6 +20,8 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
    public boolean timestamped_;
    // Does the index contain timestamps
    public boolean compressed_;
+   // Is the data compressed
+   public int compressionBatchSize_;
 
    public Variables()
    {
@@ -54,6 +56,8 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
       timestamped_ = other.timestamped_;
 
       compressed_ = other.compressed_;
+
+      compressionBatchSize_ = other.compressionBatchSize_;
 
    }
 
@@ -157,6 +161,17 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
       return compressed_;
    }
 
+   // Is the data compressed
+   public void setCompressionBatchSize(int compressionBatchSize)
+   {
+      compressionBatchSize_ = compressionBatchSize;
+   }
+   // Is the data compressed
+   public int getCompressionBatchSize()
+   {
+      return compressionBatchSize_;
+   }
+
 
    public static Supplier<VariablesPubSubType> getPubSubType()
    {
@@ -189,6 +204,8 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
 
       if (!us.ihmc.idl.IDLTools.epsilonEqualsBoolean(this.compressed_, other.compressed_, epsilon)) return false;
 
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.compressionBatchSize_, other.compressionBatchSize_, epsilon)) return false;
+
 
       return true;
    }
@@ -216,6 +233,8 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
 
       if(this.compressed_ != otherMyClass.compressed_) return false;
 
+      if(this.compressionBatchSize_ != otherMyClass.compressionBatchSize_) return false;
+
 
       return true;
    }
@@ -239,7 +258,9 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
       builder.append("timestamped=");
       builder.append(this.timestamped_);      builder.append(", ");
       builder.append("compressed=");
-      builder.append(this.compressed_);
+      builder.append(this.compressed_);      builder.append(", ");
+      builder.append("compressionBatchSize=");
+      builder.append(this.compressionBatchSize_);
       builder.append("}");
       return builder.toString();
    }

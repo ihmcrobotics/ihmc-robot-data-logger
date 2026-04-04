@@ -15,7 +15,7 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "4d659583ed2f86114f4d8637e5aa0a58d871f3b0e594626ecd6de8a8f1a14d0e";
+   		return "33f5dfe9eb2f90731e97a3c905c6ecb7ec6cf77d8937c09ddd975d85b4e26fb6";
    }
    
    @Override
@@ -62,6 +62,8 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
 
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
 
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+
 
       return current_alignment - initial_alignment;
    }
@@ -90,6 +92,9 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
 
 
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
+
+
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
 
 
 
@@ -121,6 +126,8 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
 
       cdr.write_type_7(data.getCompressed());
 
+      cdr.write_type_2(data.getCompressionBatchSize());
+
    }
 
    public static void read(us.ihmc.robotDataLogger.Variables data, us.ihmc.idl.CDR cdr)
@@ -135,6 +142,8 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
       	
       data.setCompressed(cdr.read_type_7());
       	
+      data.setCompressionBatchSize(cdr.read_type_2());
+      	
 
    }
 
@@ -148,6 +157,7 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
       ser.write_type_d("index", data.getIndex());
       ser.write_type_7("timestamped", data.getTimestamped());
       ser.write_type_7("compressed", data.getCompressed());
+      ser.write_type_2("compressionBatchSize", data.getCompressionBatchSize());
    }
 
    @Override
@@ -161,6 +171,7 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
       ser.read_type_d("index", data.getIndex());
       data.setTimestamped(ser.read_type_7("timestamped"));
       data.setCompressed(ser.read_type_7("compressed"));
+      data.setCompressionBatchSize(ser.read_type_2("compressionBatchSize"));
    }
 
    public static void staticCopy(us.ihmc.robotDataLogger.Variables src, us.ihmc.robotDataLogger.Variables dest)
