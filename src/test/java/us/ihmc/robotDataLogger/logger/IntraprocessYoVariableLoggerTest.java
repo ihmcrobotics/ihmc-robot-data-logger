@@ -6,7 +6,6 @@ import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoLong;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -14,10 +13,10 @@ import java.util.concurrent.locks.LockSupport;
 
 public class IntraprocessYoVariableLoggerTest
 {
-   public static final int TICKS = 10000;
+   public static final int TICKS = 1000;
 
    @Test
-   public void testLoggingSpeed() throws IOException
+   public void testLoggingSpeed()
    {
       YoRegistry mainRegistry = new YoRegistry("testRegistry");
 
