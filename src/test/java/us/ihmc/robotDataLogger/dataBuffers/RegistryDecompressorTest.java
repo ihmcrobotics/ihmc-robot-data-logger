@@ -82,7 +82,7 @@ public class RegistryDecompressorTest
          }
 
          LogTools.info("Min time to updateVariables with " + numberOfVariables + " variables and "
-                       + numberOfJoints + " joints: " + (minTimeNs / 1000.0) + " µs");
+                       + numberOfJoints + " joints: " + (minTimeNs / 1000.0) + " microseconds");
       }
    }
 }

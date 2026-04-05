@@ -4,6 +4,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 import gnu.trove.map.hash.TIntLongHashMap;
 import us.ihmc.commons.thread.ThreadTools;
+import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.LogDataType;
 import us.ihmc.robotDataLogger.YoVariableClientImplementation;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
@@ -122,11 +123,16 @@ public class RegistryConsumer extends Thread
       debugRegistry.getTotalPackets().increment();
    }
 
+   private long minTickNanos = Long.MAX_VALUE;
+   private long tickCount = 0;
+   private static final int PRINT_INTERVAL = 1000;
+
    private void handlePackets() throws InterruptedException
    {
       RegistryReceiveBuffer buffer = orderedBuffers.take();
       if (buffer.getType() == LogDataType.DATA_PACKET)
       {
+         long tickStart = System.nanoTime();
 
          long timestamp = buffer.getTimestamp();
 
@@ -153,6 +159,15 @@ public class RegistryConsumer extends Thread
          else
          {
             listener.receivedTimestampAndData(timestamp);
+         }
+
+         long tickNanos = System.nanoTime() - tickStart;
+         if (tickNanos < minTickNanos)
+            minTickNanos = tickNanos;
+         if (++tickCount % PRINT_INTERVAL == 0)
+         {
+            LogTools.info("handlePackets() min tick time over last " + PRINT_INTERVAL + " ticks: " + (minTickNanos / 1000) + " us");
+            minTickNanos = Long.MAX_VALUE;
          }
       }
       else
