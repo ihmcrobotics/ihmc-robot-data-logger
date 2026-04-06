@@ -82,11 +82,14 @@ public abstract class DataServerLocationBroadcast
       return addresses;
    }
 
+   /*
+   This is what prevents the logger from running twice on the same machine, the lock socket can only be bound to one port
+    */
    protected static DatagramSocket acquirePortLock(int lockPort) throws IOException
    {
       DatagramSocket lockSocket = new DatagramSocket(null);
 
-      // ❗ MUST be false for exclusivity
+      // Needs to be false for exclusivity
       lockSocket.setReuseAddress(false);
 
       // Bind to all interfaces
@@ -109,10 +112,7 @@ public abstract class DataServerLocationBroadcast
             // - down (not active)
             // - loopback (127.0.0.1)
             // - don't support multicast (cannot send/receive multicast)
-            if (!iface.isUp() || iface.isLoopback() || !iface.supportsMulticast())
-               continue;
-
-            if (iface.getParent() != null) // ← added
+            if (!iface.isUp() || iface.isLoopback() || !iface.supportsMulticast() || iface.getParent() != null)
                continue;
 
             // Check if the interface has at least one usable IP address
@@ -134,7 +134,7 @@ public abstract class DataServerLocationBroadcast
             // Create a MulticastSocket bound to the specified port
             MulticastSocket socket = new MulticastSocket(null);
 
-            // Allow multiple sockets to bind to the same port (important for Linux)
+            // Allow multiple sockets to bind to the same port
             socket.setReuseAddress(true);
 
             socket.bind(new InetSocketAddress("0.0.0.0", bindPort));
@@ -158,7 +158,6 @@ public abstract class DataServerLocationBroadcast
          }
       }
 
-      // Return the list of ready-to-use multicast sockets
       return sockets;
    }
 
