@@ -115,10 +115,11 @@ public abstract class DataServerLocationBroadcast
                continue;
 
             // Create a MulticastSocket bound to the specified port
-            MulticastSocket socket = new MulticastSocket(bindPort);
+            MulticastSocket socket = new MulticastSocket(null);
 
             // Allow multiple sockets to bind to the same port (important for Linux)
-            socket.setReuseAddress(true);
+            socket.setReuseAddress(false);
+            socket.bind(new InetSocketAddress(bindPort));
 
             // Bind this socket to the current interface
             socket.setNetworkInterface(iface);
@@ -134,7 +135,8 @@ public abstract class DataServerLocationBroadcast
          catch (IOException e)
          {
             // Log warnings if this interface could not be used
-            LogTools.warn("Cannot join " + iface.getDisplayName() + ": " + e.getMessage());
+            LogTools.error("Cannot join " + iface.getDisplayName() + ": " + e.getMessage());
+            throw e;
          }
       }
 
