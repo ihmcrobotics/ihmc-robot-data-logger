@@ -57,7 +57,7 @@ public class DataServerLocationBroadcastSender extends DataServerLocationBroadca
    {
       try
       {
-         List<MulticastSocket> sockets = getSocketChannelList(0);
+         List<MulticastSocket> sockets = getSocketChannelList(0, InetAddress.getByName(announceGroupAddress));
          InetAddress group = InetAddress.getByName(announceGroupAddress);
 
          DatagramPacket packet = new DatagramPacket(message, message.length, group, announcePort);

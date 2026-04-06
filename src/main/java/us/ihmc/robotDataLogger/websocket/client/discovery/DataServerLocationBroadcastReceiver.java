@@ -31,7 +31,7 @@ public class DataServerLocationBroadcastReceiver extends DataServerLocationBroad
 
    public DataServerLocationBroadcastReceiver(DataServerLocationFoundListener listener) throws IOException
    {
-      List<MulticastSocket> sockets = getSocketChannelList(announcePort);
+      List<MulticastSocket> sockets = getSocketChannelList(announcePort, InetAddress.getByName(announceGroupAddress));
       for (MulticastSocket socket : sockets)
       {
          threads.add(new Thread(new DiscoveryEndpoint(socket), getClass().getSimpleName() + "DiscoveryEndpoint"));
@@ -85,7 +85,6 @@ public class DataServerLocationBroadcastReceiver extends DataServerLocationBroad
          try
          {
             InetAddress multicastAddress = InetAddress.getByName(announceGroupAddress);
-            socket.joinGroup(multicastAddress);
             socket.setSoTimeout(1000);
 
             byte[] receiveBuffer = new byte[MAXIMUM_MESSAGE_SIZE];
