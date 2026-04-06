@@ -2,6 +2,7 @@ package us.ihmc.robotDataLogger.websocket.client.discovery;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.SocketTimeoutException;
@@ -19,6 +20,8 @@ import us.ihmc.robotDataLogger.websocket.DataServerLocationBroadcast;
 
 public class DataServerLocationBroadcastReceiver extends DataServerLocationBroadcast
 {
+   private final DatagramSocket lockSocket;
+
    public interface DataServerLocationFoundListener
    {
       public void addHost(String host, int port, boolean persistant);
@@ -31,6 +34,8 @@ public class DataServerLocationBroadcastReceiver extends DataServerLocationBroad
 
    public DataServerLocationBroadcastReceiver(DataServerLocationFoundListener listener) throws IOException
    {
+      int lockPort = announcePort + 1;
+      this.lockSocket = acquirePortLock(lockPort);
       List<MulticastSocket> sockets = getSocketChannelList(announcePort, InetAddress.getByName(announceGroupAddress));
       for (MulticastSocket socket : sockets)
       {
@@ -51,6 +56,7 @@ public class DataServerLocationBroadcastReceiver extends DataServerLocationBroad
 
    public void stop()
    {
+      lockSocket.close();
       running = false;
    }
 

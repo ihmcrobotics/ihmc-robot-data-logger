@@ -9,6 +9,7 @@ import us.ihmc.robotDataLogger.Host;
 import us.ihmc.robotDataLogger.StaticHostList;
 
 import java.io.IOException;
+import java.net.DatagramSocket;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -81,6 +82,19 @@ public abstract class DataServerLocationBroadcast
       return addresses;
    }
 
+   protected static DatagramSocket acquirePortLock(int lockPort) throws IOException
+   {
+      DatagramSocket lockSocket = new DatagramSocket(null);
+
+      // ❗ MUST be false for exclusivity
+      lockSocket.setReuseAddress(false);
+
+      // Bind to all interfaces
+      lockSocket.bind(new InetSocketAddress("0.0.0.0", lockPort));
+
+      return lockSocket;
+   }
+
    protected static List<MulticastSocket> getSocketChannelList(int bindPort, InetAddress group) throws IOException
    {
       // This list will hold one MulticastSocket per network interface
@@ -96,6 +110,9 @@ public abstract class DataServerLocationBroadcast
             // - loopback (127.0.0.1)
             // - don't support multicast (cannot send/receive multicast)
             if (!iface.isUp() || iface.isLoopback() || !iface.supportsMulticast())
+               continue;
+
+            if (iface.getParent() != null) // ← added
                continue;
 
             // Check if the interface has at least one usable IP address
@@ -118,8 +135,9 @@ public abstract class DataServerLocationBroadcast
             MulticastSocket socket = new MulticastSocket(null);
 
             // Allow multiple sockets to bind to the same port (important for Linux)
-            socket.setReuseAddress(false);
-            socket.bind(new InetSocketAddress(bindPort));
+            socket.setReuseAddress(true);
+
+            socket.bind(new InetSocketAddress("0.0.0.0", bindPort));
 
             // Bind this socket to the current interface
             socket.setNetworkInterface(iface);
