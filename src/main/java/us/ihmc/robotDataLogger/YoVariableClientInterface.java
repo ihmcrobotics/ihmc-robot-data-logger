@@ -62,4 +62,12 @@ public interface YoVariableClientInterface
     */
    String getServerName();
 
+   /**
+    * @return The decompressor's cached variable values array, populated each tick during decompression.
+    * Avoids re-reading values from YoVariable objects when writing to disk.
+    */
+   long[] getCachedVariableValues();
+
+   long[] getCachedJointStateValues();
+
 }

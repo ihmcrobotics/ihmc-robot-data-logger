@@ -7,7 +7,7 @@ import us.ihmc.robotDataLogger.jointState.OneDoFState;
 import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-import java.nio.LongBuffer;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -20,8 +20,8 @@ public class RegistryDecompressorTest
       Random random = new Random(123456L);
 
       // Range of YoVariables
-      int minVariables = 16000;
-      int maxVariables = 42000;
+      int minVariables = 24000;
+      int maxVariables = 52000;
       int increment = 4000;
 
       int numberOfJoints = 2000;
@@ -47,7 +47,7 @@ public class RegistryDecompressorTest
 
       // Pre-allocate maximum long array and buffer
       long[] dataArray = new long[maxVariables];
-      LongBuffer longBuffer = LongBuffer.wrap(dataArray);
+      ByteBuffer byteBuffer = ByteBuffer.allocate(maxVariables * Long.BYTES);
 
       // Pre-allocate joint states buffer (position + velocity)
       double[] jointArray = new double[numberOfJoints * 2];
@@ -64,7 +64,7 @@ public class RegistryDecompressorTest
          // Fill long array with random values
          for (int i = 0; i < numberOfVariables; i++)
             dataArray[i] = random.nextLong();
-         longBuffer.rewind();
+         byteBuffer.rewind();
 
          long minTimeNs = Long.MAX_VALUE;
 
@@ -73,16 +73,16 @@ public class RegistryDecompressorTest
             // Randomize values each iteration
             for (int i = 0; i < numberOfVariables; i++)
                dataArray[i] = random.nextLong();
-            longBuffer.rewind();
+            byteBuffer.rewind();
 
             long start = System.nanoTime();
-            decompressor.updateVariables(buffer, 0, longBuffer, numberOfVariables);
+            decompressor.updateVariables(buffer, 0, byteBuffer, numberOfVariables);
             long end = System.nanoTime();
             minTimeNs = Math.min(minTimeNs, end - start);
          }
 
          LogTools.info("Min time to updateVariables with " + numberOfVariables + " variables and "
-                       + numberOfJoints + " joints: " + (minTimeNs / 1000.0) + " µs");
+                       + numberOfJoints + " joints: " + (minTimeNs / 1000.0) + " microseconds");
       }
    }
 }

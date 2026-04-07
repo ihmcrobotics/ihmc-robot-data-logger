@@ -190,9 +190,11 @@ public class RegistrySendBufferTest
          List<YoVariable> receiveVariables = receiveRegistry.collectSubtreeVariables();
 
          assertEquals(sendVariables.size(), receiveVariables.size());
+         // We need to use the cached variables here because we aren't updated the variables in the decompressor anymore
+         long[] receiveVariableData = registryDecompressor.getCachedVariableValues();
          for (int t = 0; t < sendVariables.size(); t++)
          {
-            assertEquals(sendVariables.get(t).getValueAsLongBits(), receiveVariables.get(t).getValueAsLongBits());
+            assertEquals(sendVariables.get(t).getValueAsLongBits(), receiveVariableData[t]);
          }
       }
    }
