@@ -242,6 +242,16 @@ public class WebsocketDataConsumer implements DataConsumer
       }
    }
 
+   public long[] getCachedVariableValues()
+   {
+      return session.getCachedVariableValues();
+   }
+
+   public long[] getCachedJointStateValues()
+   {
+      return session.getCachedJointStateValues();
+   }
+
    public void setVariableSynchronizer(Object variableSynchronizer)
    {
       session.setVariableSynchronizer(variableSynchronizer);
