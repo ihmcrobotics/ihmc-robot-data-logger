@@ -15,7 +15,7 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "33f5dfe9eb2f90731e97a3c905c6ecb7ec6cf77d8937c09ddd975d85b4e26fb6";
+   		return "3e64c8b775c71e2faf87376692ac8374ce38eef4464147e5489db474dcd881e1";
    }
    
    @Override
@@ -64,6 +64,8 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
 
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
 
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+
 
       return current_alignment - initial_alignment;
    }
@@ -92,6 +94,9 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
 
 
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
+
+
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
 
 
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
@@ -128,6 +133,8 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
 
       cdr.write_type_2(data.getCompressionBatchSize());
 
+      cdr.write_type_2(data.getValidTicksInLastBatch());
+
    }
 
    public static void read(us.ihmc.robotDataLogger.Variables data, us.ihmc.idl.CDR cdr)
@@ -144,6 +151,8 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
       	
       data.setCompressionBatchSize(cdr.read_type_2());
       	
+      data.setValidTicksInLastBatch(cdr.read_type_2());
+      	
 
    }
 
@@ -158,6 +167,7 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
       ser.write_type_7("timestamped", data.getTimestamped());
       ser.write_type_7("compressed", data.getCompressed());
       ser.write_type_2("compressionBatchSize", data.getCompressionBatchSize());
+      ser.write_type_2("validTicksInLastBatch", data.getValidTicksInLastBatch());
    }
 
    @Override
@@ -172,6 +182,7 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
       data.setTimestamped(ser.read_type_7("timestamped"));
       data.setCompressed(ser.read_type_7("compressed"));
       data.setCompressionBatchSize(ser.read_type_2("compressionBatchSize"));
+      data.setValidTicksInLastBatch(ser.read_type_2("validTicksInLastBatch"));
    }
 
    public static void staticCopy(us.ihmc.robotDataLogger.Variables src, us.ihmc.robotDataLogger.Variables dest)

@@ -281,6 +281,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
             if (batchTickCount == COMPRESSION_BATCH_SIZE)
             {
+               currentBatchBuffer.flip();
                batchRingBuffer.commit();
                currentBatchBuffer = null;
                batchTickCount = 0;
@@ -414,10 +415,13 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       LogTools.info("Finalizing log from host: " + request.getHostNameAsString());
 
       // Commit any partial batch so the compression thread can write it
+      int validTicksInLastBatch;
       synchronized (synchronizer)
       {
+         validTicksInLastBatch = batchTickCount;
          if (batchTickCount > 0 && currentBatchBuffer != null)
          {
+            currentBatchBuffer.flip();
             batchRingBuffer.commit();
             currentBatchBuffer = null;
             batchTickCount = 0;
@@ -511,6 +515,16 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          if (yoVariableSummarizer != null)
          {
             yoVariableSummarizer.writeData(new File(tempDirectory, summaryFilename));
+         }
+
+         logProperties.getVariables().setValidTicksInLastBatch(validTicksInLastBatch);
+         try
+         {
+            logProperties.store();
+         }
+         catch (IOException e)
+         {
+            e.printStackTrace();
          }
 
          doneListener.accept(request);

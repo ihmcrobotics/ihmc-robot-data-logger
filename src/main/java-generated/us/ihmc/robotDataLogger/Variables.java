@@ -22,6 +22,8 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
    public boolean compressed_;
    // Is the data compressed
    public int compressionBatchSize_;
+   // Number of ticks per compressed block; 0 or 1 means per-tick (legacy)
+   public int validTicksInLastBatch_;
 
    public Variables()
    {
@@ -58,6 +60,8 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
       compressed_ = other.compressed_;
 
       compressionBatchSize_ = other.compressionBatchSize_;
+
+      validTicksInLastBatch_ = other.validTicksInLastBatch_;
 
    }
 
@@ -172,6 +176,17 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
       return compressionBatchSize_;
    }
 
+   // Number of ticks per compressed block; 0 or 1 means per-tick (legacy)
+   public void setValidTicksInLastBatch(int validTicksInLastBatch)
+   {
+      validTicksInLastBatch_ = validTicksInLastBatch;
+   }
+   // Number of ticks per compressed block; 0 or 1 means per-tick (legacy)
+   public int getValidTicksInLastBatch()
+   {
+      return validTicksInLastBatch_;
+   }
+
 
    public static Supplier<VariablesPubSubType> getPubSubType()
    {
@@ -206,6 +221,8 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
 
       if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.compressionBatchSize_, other.compressionBatchSize_, epsilon)) return false;
 
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.validTicksInLastBatch_, other.validTicksInLastBatch_, epsilon)) return false;
+
 
       return true;
    }
@@ -235,6 +252,8 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
 
       if(this.compressionBatchSize_ != otherMyClass.compressionBatchSize_) return false;
 
+      if(this.validTicksInLastBatch_ != otherMyClass.validTicksInLastBatch_) return false;
+
 
       return true;
    }
@@ -260,7 +279,9 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
       builder.append("compressed=");
       builder.append(this.compressed_);      builder.append(", ");
       builder.append("compressionBatchSize=");
-      builder.append(this.compressionBatchSize_);
+      builder.append(this.compressionBatchSize_);      builder.append(", ");
+      builder.append("validTicksInLastBatch=");
+      builder.append(this.validTicksInLastBatch_);
       builder.append("}");
       return builder.toString();
    }
