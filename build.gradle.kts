@@ -88,7 +88,7 @@ testDependencies {
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")
 app.entrypoint("IHMCLoggerDebug5005", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher", listOf
-("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005",
+("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005",
 ))
 app.entrypoint("BlackMagicCapture", "us.ihmc.javadecklink.Capture")
 

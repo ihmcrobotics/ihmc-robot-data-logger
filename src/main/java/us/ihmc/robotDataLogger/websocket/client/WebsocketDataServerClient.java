@@ -177,6 +177,16 @@ public class WebsocketDataServerClient
       }
    }
 
+   public long[] getCachedVariableValues()
+   {
+      return consumer.getCachedVariableValues();
+   }
+
+   public long[] getCachedJointStateValues()
+   {
+      return consumer.getCachedJointStateValues();
+   }
+
    public void setVariableSynchronizer(Object variableSynchronizer)
    {
       consumer.setVariableSynchronizer(variableSynchronizer);

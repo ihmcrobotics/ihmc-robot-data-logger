@@ -100,6 +100,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private ByteBuffer dataBuffer;
    private LongBuffer dataBufferAsLong;
    private long[] dataAsLong;
+   private long[] cachedJointStateValues;
 
    private YoVariableClientInterface yoVariableClientInterface = null;
 
@@ -415,18 +416,8 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       dataBufferAsLong.clear();
 
       dataBufferAsLong.put(timestamp);
-      for (int i = 0; i < variables.length; i++)
-      {
-         dataAsLong[i] = variables[i].getValueAsLongBits();
-      }
-
-      // Avoid .put() in the loop as there is a lot of overhead involved
       dataBufferAsLong.put(dataAsLong);
-
-      for (int i = 0; i < jointStates.length; i++)
-      {
-         jointStates[i].get(dataBufferAsLong);
-      }
+      dataBufferAsLong.put(cachedJointStateValues);
 
       dataBufferAsLong.flip();
       dataBuffer.clear();
@@ -784,7 +775,9 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    @Override
    public void connected()
    {
-
+      // Cached data so that when we receive a timestamp we already have the data ready to go
+      dataAsLong = yoVariableClientInterface.getCachedVariableValues();
+      cachedJointStateValues = yoVariableClientInterface.getCachedJointStateValues();
    }
 
    @Override

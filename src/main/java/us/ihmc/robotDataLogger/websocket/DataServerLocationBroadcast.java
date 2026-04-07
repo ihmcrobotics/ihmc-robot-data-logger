@@ -7,11 +7,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.Host;
 import us.ihmc.robotDataLogger.StaticHostList;
-import us.ihmc.robotDataLogger.util.SocketUtils;
 
 import java.io.IOException;
+import java.net.DatagramSocket;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
@@ -81,28 +82,79 @@ public abstract class DataServerLocationBroadcast
       return addresses;
    }
 
-   protected static List<MulticastSocket> getSocketChannelList(int bindPort) throws IOException
+   /*
+   This is what prevents the logger from running twice on the same machine, the lock socket can only be bound to one port
+    */
+   protected static DatagramSocket acquirePortLock(int lockPort) throws IOException
    {
+      DatagramSocket lockSocket = new DatagramSocket(null);
+
+      // Needs to be false for exclusivity
+      lockSocket.setReuseAddress(false);
+
+      // Bind to all interfaces
+      lockSocket.bind(new InetSocketAddress("0.0.0.0", lockPort));
+
+      return lockSocket;
+   }
+
+   protected static List<MulticastSocket> getSocketChannelList(int bindPort, InetAddress group) throws IOException
+   {
+      // This list will hold one MulticastSocket per network interface
       List<MulticastSocket> sockets = new ArrayList<>();
+
+      // Loop through all network interfaces on the machine
       for (NetworkInterface iface : Collections.list(NetworkInterface.getNetworkInterfaces()))
       {
-         if (!iface.isLoopback() && bindPort != 0 && SocketUtils.isUDPPortInUse(iface, bindPort))
-         {
-            throw new IOException("Port " + bindPort + " is in use by another socket.");
-         }
-
          try
          {
-            if (iface.isUp() && !iface.isLoopback() && iface.supportsMulticast() && !iface.isVirtual())
+            // Skip interfaces that are:
+            // - down (not active)
+            // - loopback (127.0.0.1)
+            // - don't support multicast (cannot send/receive multicast)
+            if (!iface.isUp() || iface.isLoopback() || !iface.supportsMulticast() || iface.getParent() != null)
+               continue;
+
+            // Check if the interface has at least one usable IP address
+            boolean hasUsableAddress = false;
+            for (InetAddress addr : Collections.list(iface.getInetAddresses()))
             {
-               MulticastSocket socket = new MulticastSocket(bindPort);
-               socket.setNetworkInterface(iface);
-               sockets.add(socket);
+               // Skip loopback (127.0.0.1) and link-local addresses (169.254.x.x / fe80::)
+               if (addr.isLoopbackAddress() || addr.isLinkLocalAddress())
+                  continue;
+
+               hasUsableAddress = true;
+               break; // found a usable address, no need to check more
             }
+
+            // Skip interface if it has no usable IP
+            if (!hasUsableAddress)
+               continue;
+
+            // Create a MulticastSocket bound to the specified port
+            MulticastSocket socket = new MulticastSocket(null);
+
+            // Allow multiple sockets to bind to the same port
+            socket.setReuseAddress(true);
+
+            socket.bind(new InetSocketAddress("0.0.0.0", bindPort));
+
+            // Bind this socket to the current interface
+            socket.setNetworkInterface(iface);
+
+            // Join the multicast group on this interface
+            // - new InetSocketAddress(group, bindPort) specifies the group + port
+            // - iface specifies which network interface to use
+            socket.joinGroup(new InetSocketAddress(group, bindPort), iface);
+
+            // Add the socket to the list for use by the receiver
+            sockets.add(socket);
          }
          catch (IOException e)
          {
-            LogTools.warn("Cannot add " + iface.getDisplayName() + " to list of broadcast sockets. " + e.getMessage());
+            // Log warnings if this interface could not be used
+            LogTools.error("Cannot join " + iface.getDisplayName() + ": " + e.getMessage());
+            throw e;
          }
       }
 

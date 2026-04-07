@@ -1,8 +1,6 @@
 package us.ihmc.robotDataLogger.dataBuffers;
 
 import java.nio.ByteBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.LongBuffer;
 import java.util.List;
 
 import us.ihmc.log.LogTools;
@@ -13,8 +11,8 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class RegistryDecompressor
 {
-   private final YoVariable[] variables;
-   private final List<JointState> jointStates;
+   private final long[] cachedVariableValues;
+   private final long[] cachedJointStateValues;
 
    private final ByteBuffer decompressBuffer;
    private final CompressionImplementation compressionImplementation;
@@ -23,20 +21,27 @@ public class RegistryDecompressor
 
    public RegistryDecompressor(List<YoVariable> variables, List<JointState> jointStates)
    {
-      this.variables = variables.toArray(new YoVariable[0]);
-      this.jointStates = jointStates;
+      this.cachedVariableValues = new long[variables.size()];
+
+      // Each joint state contains more then one variable
+      int totalJointStateVariables = 0;
+      for (JointState jointState : jointStates)
+      {
+         totalJointStateVariables += jointState.getNumberOfStateVariables();
+      }
+      this.cachedJointStateValues = new long[totalJointStateVariables];
+
       this.decompressBuffer = ByteBuffer.allocate(variables.size() * 8);
-
       this.compressionImplementation = CompressionImplementationFactory.instance();
-
    }
 
    public void decompressSegment(RegistryReceiveBuffer buffer, int registryOffset)
    {
       decompressBuffer.clear();
+      int expectedBytes = buffer.getNumberOfVariables() * 8;
       try
       {
-         compressionImplementation.decompress(buffer.getData(), decompressBuffer, buffer.getNumberOfVariables() * 8);
+         compressionImplementation.decompress(buffer.getData(), decompressBuffer, expectedBytes);
       }
       catch (Throwable e)
       {
@@ -45,10 +50,9 @@ public class RegistryDecompressor
          return;
       }
       decompressBuffer.flip();
-      LongBuffer longData = decompressBuffer.asLongBuffer();
 
       // Sanity check
-      if (longData.remaining() != buffer.getNumberOfVariables())
+      if (decompressBuffer.remaining() != expectedBytes)
       {
          LogTools.error("Number of variables in incoming message does not match stated number of variables. Skipping packet.");
          return;
@@ -59,31 +63,40 @@ public class RegistryDecompressor
       {
          synchronized (variableSynchronizer)
          {
-            updateVariables(buffer, registryOffset, longData, numberOfVariables);
+            updateVariables(buffer, registryOffset, decompressBuffer, numberOfVariables);
          }
       }
       else
       {
-         updateVariables(buffer, registryOffset, longData, numberOfVariables);
+         updateVariables(buffer, registryOffset, decompressBuffer, numberOfVariables);
       }
    }
 
-   void updateVariables(RegistryReceiveBuffer buffer, int registryOffset, LongBuffer longData, int numberOfVariables)
+   void updateVariables(RegistryReceiveBuffer buffer, int registryOffset, ByteBuffer byteData, int numberOfVariables)
    {
       for (int i = 0; i < numberOfVariables; i++)
       {
-         variables[i + registryOffset].setValueFromLongBits(longData.get(), false);
+         cachedVariableValues[i + registryOffset] = byteData.getLong();
       }
 
       double[] jointStateArray = buffer.getJointStates();
       if (jointStateArray.length > 0)
       {
-         DoubleBuffer jointStateBuffer = DoubleBuffer.wrap(jointStateArray);
-         for (int i = 0; i < jointStates.size(); i++)
+         for (int i = 0; i < cachedJointStateValues.length; i++)
          {
-            jointStates.get(i).update(jointStateBuffer);
+            cachedJointStateValues[i] = Double.doubleToLongBits(jointStateArray[i]);
          }
       }
+   }
+
+   public long[] getCachedVariableValues()
+   {
+      return cachedVariableValues;
+   }
+
+   public long[] getCachedJointStateValues()
+   {
+      return cachedJointStateValues;
    }
 
    public void setVariableSynchronizer(Object variableSynchronizer)

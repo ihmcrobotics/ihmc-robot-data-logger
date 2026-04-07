@@ -246,6 +246,18 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
       }
    }
 
+   @Override
+   public long[] getCachedVariableValues()
+   {
+      return dataConsumer.getCachedVariableValues();
+   }
+
+   @Override
+   public long[] getCachedJointStateValues()
+   {
+      return dataConsumer.getCachedJointStateValues();
+   }
+
    public void setVariableSynchronizer(Object variableSynchronizer)
    {
       dataConsumer.setVariableSynchronizer(variableSynchronizer);
