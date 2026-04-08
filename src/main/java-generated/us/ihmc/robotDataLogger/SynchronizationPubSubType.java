@@ -15,7 +15,7 @@ public class SynchronizationPubSubType implements us.ihmc.pubsub.TopicDataType<u
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "3e64c8b775c71e2faf87376692ac8374ce38eef4464147e5489db474dcd881e1";
+   		return "409da809df88ed676d55bc70ef65fa47757edb9806850332ae504ddbf53e2d6a";
    }
    
    @Override

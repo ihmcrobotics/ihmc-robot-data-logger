@@ -33,6 +33,7 @@ module robotDataLogger{
 		boolean compressed;	// Is the data compressed
 		long compressionBatchSize;	// Number of ticks per compressed block; 0 or 1 means per-tick (legacy)
 		long validTicksInLastBatch;	// Number of valid ticks in the last compressed block; 0 means all ticks are valid (legacy)
+		string compressionType;	// Compression codec used: "zstd" or empty/absent means snappy (legacy)
 	};
 
 	struct Synchronization{
