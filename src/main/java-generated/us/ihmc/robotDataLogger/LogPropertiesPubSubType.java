@@ -15,7 +15,7 @@ public class LogPropertiesPubSubType implements us.ihmc.pubsub.TopicDataType<us.
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "4d659583ed2f86114f4d8637e5aa0a58d871f3b0e594626ecd6de8a8f1a14d0e";
+   		return "409da809df88ed676d55bc70ef65fa47757edb9806850332ae504ddbf53e2d6a";
    }
    
    @Override

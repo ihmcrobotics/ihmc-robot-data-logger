@@ -15,7 +15,7 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "4d659583ed2f86114f4d8637e5aa0a58d871f3b0e594626ecd6de8a8f1a14d0e";
+   		return "409da809df88ed676d55bc70ef65fa47757edb9806850332ae504ddbf53e2d6a";
    }
    
    @Override
@@ -62,6 +62,11 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
 
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
 
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + 255 + 1;
 
       return current_alignment - initial_alignment;
    }
@@ -92,6 +97,14 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
 
 
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+
+
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+
+
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + data.getCompressionType().length() + 1;
+
 
       return current_alignment - initial_alignment;
    }
@@ -121,6 +134,14 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
 
       cdr.write_type_7(data.getCompressed());
 
+      cdr.write_type_2(data.getCompressionBatchSize());
+
+      cdr.write_type_2(data.getValidTicksInLastBatch());
+
+      if(data.getCompressionType().length() <= 255)
+      cdr.write_type_d(data.getCompressionType());else
+          throw new RuntimeException("compressionType field exceeds the maximum length: %d > %d".formatted(data.getCompressionType().length(), 255));
+
    }
 
    public static void read(us.ihmc.robotDataLogger.Variables data, us.ihmc.idl.CDR cdr)
@@ -135,6 +156,11 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
       	
       data.setCompressed(cdr.read_type_7());
       	
+      data.setCompressionBatchSize(cdr.read_type_2());
+      	
+      data.setValidTicksInLastBatch(cdr.read_type_2());
+      	
+      cdr.read_type_d(data.getCompressionType());	
 
    }
 
@@ -148,6 +174,9 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
       ser.write_type_d("index", data.getIndex());
       ser.write_type_7("timestamped", data.getTimestamped());
       ser.write_type_7("compressed", data.getCompressed());
+      ser.write_type_2("compressionBatchSize", data.getCompressionBatchSize());
+      ser.write_type_2("validTicksInLastBatch", data.getValidTicksInLastBatch());
+      ser.write_type_d("compressionType", data.getCompressionType());
    }
 
    @Override
@@ -161,6 +190,9 @@ public class VariablesPubSubType implements us.ihmc.pubsub.TopicDataType<us.ihmc
       ser.read_type_d("index", data.getIndex());
       data.setTimestamped(ser.read_type_7("timestamped"));
       data.setCompressed(ser.read_type_7("compressed"));
+      data.setCompressionBatchSize(ser.read_type_2("compressionBatchSize"));
+      data.setValidTicksInLastBatch(ser.read_type_2("validTicksInLastBatch"));
+      ser.read_type_d("compressionType", data.getCompressionType());
    }
 
    public static void staticCopy(us.ihmc.robotDataLogger.Variables src, us.ihmc.robotDataLogger.Variables dest)
