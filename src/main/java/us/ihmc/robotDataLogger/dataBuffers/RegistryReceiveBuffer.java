@@ -5,12 +5,16 @@ import java.util.Arrays;
 
 public class RegistryReceiveBuffer extends RegistryBuffer
 {
-
-   private final long receivedTimestamp;
+   private long receivedTimestamp;
    private ByteBuffer compressedVariableDataBuffer;
    private double[] jointStates;
 
    public RegistryReceiveBuffer(long receivedTimestamp)
+   {
+      this.receivedTimestamp = receivedTimestamp;
+   }
+
+   public void setReceivedTimestamp(long receivedTimestamp)
    {
       this.receivedTimestamp = receivedTimestamp;
    }
@@ -22,13 +26,16 @@ public class RegistryReceiveBuffer extends RegistryBuffer
 
    public ByteBuffer allocateBuffer(int size)
    {
-      compressedVariableDataBuffer = ByteBuffer.allocate(size);
+      if (compressedVariableDataBuffer == null || compressedVariableDataBuffer.capacity() < size)
+         compressedVariableDataBuffer = ByteBuffer.allocate(size);
+      compressedVariableDataBuffer.clear();
       return compressedVariableDataBuffer;
    }
 
    public double[] allocateStates(int stateLength)
    {
-      jointStates = new double[stateLength];
+      if (jointStates == null || jointStates.length < stateLength)
+         jointStates = new double[stateLength];
       return jointStates;
    }
 
