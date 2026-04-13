@@ -8,11 +8,9 @@ module robotDataLogger{
 		IDL_CDR
 	};
 	
-
 	struct Video{
 		boolean hasTimebase;	// Old option, not used anymore for new logs
 	};
-	
 	
 	struct Camera{	// Camera definition
 		string type;    // Type of capture method used
@@ -20,7 +18,6 @@ module robotDataLogger{
 		boolean interlaced;	// Is the input interlaced
 		string videoFile;	// Video file
 		string timestampFile;	// Timestamps for video file
-		
 	};
 	
 	struct Variables{
