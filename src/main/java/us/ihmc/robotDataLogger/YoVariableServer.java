@@ -2,6 +2,7 @@ package us.ihmc.robotDataLogger;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -11,7 +12,6 @@ import us.ihmc.concurrent.ConcurrentRingBuffer;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.multicastLogDataProtocol.modelLoaders.LogModelProvider;
-import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataPublisherType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.robotDataLogger.handshake.SummaryProvider;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandShakeBuilder;
@@ -23,7 +23,6 @@ import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.websocket.server.DataServerServerContent;
 import us.ihmc.robotDataLogger.websocket.server.WebsocketDataProducer;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
-import us.ihmc.util.PeriodicThreadSchedulerFactory;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -43,6 +42,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    private final ArrayList<RegistrySendBufferBuilder> registeredBuffers = new ArrayList<>();
 
    private final ArrayList<RegistryHolder> registryHolders = new ArrayList<>();
+   private final HashMap<YoRegistry, RegistryHolder> registryHolderMap = new HashMap<>();
 
    // State
    private boolean started = false;
@@ -182,7 +182,9 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
                ConcurrentRingBuffer<VariableChangedMessage> variableChangeData = new ConcurrentRingBuffer<>(new VariableChangedMessage.Builder(), CHANGED_BUFFER_CAPACITY);
                RegistryPublisher publisher = dataProducer.createRegistryPublisher(builder, bufferListener);
 
-               registryHolders.add(new RegistryHolder(registry, publisher, variableChangeData));
+               RegistryHolder holder = new RegistryHolder(registry, publisher, variableChangeData);
+               registryHolders.add(holder);
+               registryHolderMap.put(registry, holder);
 
                publisher.start();
             }
@@ -215,17 +217,12 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
    public RegistryHolder getRegistryHolder(YoRegistry registry)
    {
-      for (int i = 0; i < registryHolders.size(); i++)
-      {
-         RegistryHolder registryHolder = registryHolders.get(i);
+      RegistryHolder holder = registryHolderMap.get(registry);
 
-         if (registryHolder.registry == registry)
-         {
-            return registryHolder;
-         }
-      }
+      if (holder == null)
+         throw new RuntimeException("Registry " + registry.getName() + " not registered with addRegistry() or setMainRegistry()");
 
-      throw new RuntimeException("Registry " + registry.getName() + " not registered with addRegistry() or setMainRegistry()");
+      return holder;
    }
 
    @Override
