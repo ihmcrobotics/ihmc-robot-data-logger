@@ -136,6 +136,8 @@ class WebsocketRegistryPublisher implements RegistryPublisher
                if ((buffer = ringBuffer.read()) != null)
                {
                   serializedPayload.getData().clear();
+                  // Time right before we transmit the message, better here then in the RT thread
+                  buffer.setTransmitTime(System.nanoTime());
                   publisherType.serialize(buffer, serializedPayload);
                   broadcaster.write(bufferID, buffer.getTimestamp(), serializedPayload.getData());
 
