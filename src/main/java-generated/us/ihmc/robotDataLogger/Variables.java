@@ -24,6 +24,8 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
    public int compressionBatchSize_;
    // Number of ticks per compressed block; 0 or 1 means per-tick (legacy)
    public int validTicksInLastBatch_;
+   // Number of valid ticks in the last compressed block; 0 means all ticks are valid (legacy)
+   public java.lang.StringBuilder compressionType_;
 
    public Variables()
    {
@@ -31,6 +33,7 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
       data_ = new java.lang.StringBuilder(255);
       summary_ = new java.lang.StringBuilder(255);
       index_ = new java.lang.StringBuilder(255);
+      compressionType_ = new java.lang.StringBuilder(255);
    }
 
    public Variables(Variables other)
@@ -62,6 +65,9 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
       compressionBatchSize_ = other.compressionBatchSize_;
 
       validTicksInLastBatch_ = other.validTicksInLastBatch_;
+
+      compressionType_.setLength(0);
+      compressionType_.append(other.compressionType_);
 
    }
 
@@ -187,6 +193,24 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
       return validTicksInLastBatch_;
    }
 
+   // Number of valid ticks in the last compressed block; 0 means all ticks are valid (legacy)
+   public void setCompressionType(java.lang.String compressionType)
+   {
+      compressionType_.setLength(0);
+      compressionType_.append(compressionType);
+   }
+
+   // Number of valid ticks in the last compressed block; 0 means all ticks are valid (legacy)
+   public java.lang.String getCompressionTypeAsString()
+   {
+      return getCompressionType().toString();
+   }
+   // Number of valid ticks in the last compressed block; 0 means all ticks are valid (legacy)
+   public java.lang.StringBuilder getCompressionType()
+   {
+      return compressionType_;
+   }
+
 
    public static Supplier<VariablesPubSubType> getPubSubType()
    {
@@ -223,6 +247,8 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
 
       if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.validTicksInLastBatch_, other.validTicksInLastBatch_, epsilon)) return false;
 
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsStringBuilder(this.compressionType_, other.compressionType_, epsilon)) return false;
+
 
       return true;
    }
@@ -254,6 +280,8 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
 
       if(this.validTicksInLastBatch_ != otherMyClass.validTicksInLastBatch_) return false;
 
+      if (!us.ihmc.idl.IDLTools.equals(this.compressionType_, otherMyClass.compressionType_)) return false;
+
 
       return true;
    }
@@ -281,7 +309,9 @@ public class Variables extends Packet<Variables> implements Settable<Variables>,
       builder.append("compressionBatchSize=");
       builder.append(this.compressionBatchSize_);      builder.append(", ");
       builder.append("validTicksInLastBatch=");
-      builder.append(this.validTicksInLastBatch_);
+      builder.append(this.validTicksInLastBatch_);      builder.append(", ");
+      builder.append("compressionType=");
+      builder.append(this.compressionType_);
       builder.append("}");
       return builder.toString();
    }
