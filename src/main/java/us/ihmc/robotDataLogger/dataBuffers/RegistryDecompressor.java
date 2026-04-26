@@ -1,6 +1,8 @@
 package us.ihmc.robotDataLogger.dataBuffers;
 
 import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.LongBuffer;
 import java.util.List;
 
 import us.ihmc.log.LogTools;
@@ -11,6 +13,8 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class RegistryDecompressor
 {
+   private final YoVariable[] variables;
+   private final List<JointState> jointStates;
    private final long[] cachedVariableValues;
    private final long[] cachedJointStateValues;
 
@@ -21,6 +25,8 @@ public class RegistryDecompressor
 
    public RegistryDecompressor(List<YoVariable> variables, List<JointState> jointStates)
    {
+      this.variables = variables.toArray(new YoVariable[0]);
+      this.jointStates = jointStates;
       this.cachedVariableValues = new long[variables.size()];
 
       // Each joint state contains more then one variable
@@ -50,6 +56,12 @@ public class RegistryDecompressor
          return;
       }
       decompressBuffer.flip();
+      LongBuffer longData = decompressBuffer.asLongBuffer();
+      if (longData.remaining() != buffer.getNumberOfVariables())
+      {
+         LogTools.error("Number of variables in incoming message does not match stated number of variables. Skipping packet.");
+         return;
+      }
 
       // Sanity check
       if (decompressBuffer.remaining() != expectedBytes)
@@ -63,25 +75,32 @@ public class RegistryDecompressor
       {
          synchronized (variableSynchronizer)
          {
-            updateVariables(buffer, registryOffset, decompressBuffer, numberOfVariables);
+            updateVariables(buffer, registryOffset, longData, numberOfVariables);
          }
       }
       else
       {
-         updateVariables(buffer, registryOffset, decompressBuffer, numberOfVariables);
+         updateVariables(buffer, registryOffset, longData, numberOfVariables);
       }
    }
 
-   void updateVariables(RegistryReceiveBuffer buffer, int registryOffset, ByteBuffer byteData, int numberOfVariables)
+   void updateVariables(RegistryReceiveBuffer buffer, int registryOffset, LongBuffer longData, int numberOfVariables)
    {
       for (int i = 0; i < numberOfVariables; i++)
       {
-         cachedVariableValues[i + registryOffset] = byteData.getLong();
+         long value = longData.get();
+         variables[i + registryOffset].setValueFromLongBits(value, false);
+         cachedVariableValues[i + registryOffset] = value;
       }
 
       double[] jointStateArray = buffer.getJointStates();
       if (jointStateArray.length > 0)
       {
+         DoubleBuffer jointStateBuffer = DoubleBuffer.wrap(jointStateArray);
+         for (int i = 0; i < jointStates.size(); i++)
+         {
+            jointStates.get(i).update(jointStateBuffer);
+         }
          for (int i = 0; i < cachedJointStateValues.length; i++)
          {
             cachedJointStateValues[i] = Double.doubleToLongBits(jointStateArray[i]);
