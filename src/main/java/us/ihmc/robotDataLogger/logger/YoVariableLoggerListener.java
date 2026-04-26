@@ -37,6 +37,10 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
     * shut down properly.
     */
    private static final int TICKS_WITHOUT_DATA_BEFORE_SHUTDOWN = 5000;
+   /**
+    * Create a buffer ring of 8 buffers. This keeps data in case the logger is slow.
+    */
+   private static final int BATCH_RING_BUFFER_SIZE = 8;
 
    private static final int FLUSH_EVERY_N_PACKETS = 250;
    static final int COMPRESSION_BATCH_SIZE = 10;
@@ -583,7 +587,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       int bufferSize = handshakeParser.getBufferSize();
       compressedBuffer = ByteBuffer.allocate((int) Zstd.compressBound(bufferSize * COMPRESSION_BATCH_SIZE));
-      batchRingBuffer = new ConcurrentRingBuffer<>(() -> ByteBuffer.allocate(bufferSize * COMPRESSION_BATCH_SIZE), 18);
+      batchRingBuffer = new ConcurrentRingBuffer<>(() -> ByteBuffer.allocate(bufferSize * COMPRESSION_BATCH_SIZE), BATCH_RING_BUFFER_SIZE);
 
       compressionThreadRunning = true;
       compressionThread = new Thread(this::runCompressionThread, "LoggerCompressionThread");
