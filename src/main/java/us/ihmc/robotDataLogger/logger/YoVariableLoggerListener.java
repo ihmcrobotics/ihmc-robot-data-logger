@@ -42,7 +42,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private static final int BATCH_RING_BUFFER_SIZE = 8;
 
    private static final int FLUSH_EVERY_N_PACKETS = 250;
-   static final int COMPRESSION_BATCH_SIZE = 10;
+   private static final int COMPRESSION_BATCH_SIZE = 10;
    public static final long STATUS_PACKET_RATE = Conversions.secondsToNanoseconds(5.0);
    private static final long VIDEO_RECORDING_TIMEOUT = Conversions.secondsToNanoseconds(1.0);
 
@@ -76,7 +76,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private ConcurrentRingBuffer<ByteBuffer> batchRingBuffer;
    private ByteBuffer currentBatchBuffer = null;
    private int batchTickCount = 0;
-   private long firstTickTimestamp;
 
    private volatile boolean connected = false;
 
@@ -276,10 +275,9 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                   return;
                }
                currentBatchBuffer.clear();
-               firstTickTimestamp = timestamp;
             }
 
-            buffer.clear();
+            // Buffer should have already been .clear() so its ready for reading from
             currentBatchBuffer.put(buffer);
             batchTickCount++;
 
@@ -400,6 +398,9 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       }
    }
 
+   /**
+    * @return ByteBuffer that is prepared for reading as its position is set to zero and the limit is set to its capacity
+    */
    protected ByteBuffer reconstructBuffer(long timestamp)
    {
       dataBufferAsLong.clear();
