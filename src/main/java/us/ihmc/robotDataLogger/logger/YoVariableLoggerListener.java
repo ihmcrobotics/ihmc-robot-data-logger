@@ -13,6 +13,8 @@ import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 import us.ihmc.tools.compression.SnappyUtils;
+import com.github.luben.zstd.Zstd;
+import com.github.luben.zstd.ZstdException;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 import us.ihmc.concurrent.ConcurrentRingBuffer;
@@ -43,6 +45,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
    private static final int FLUSH_EVERY_N_PACKETS = 250;
    private static final int COMPRESSION_BATCH_SIZE = 10;
+   private static final int ZSTD_COMPRESSION_LEVEL = 1;
    public static final long STATUS_PACKET_RATE = Conversions.secondsToNanoseconds(5.0);
    private static final long VIDEO_RECORDING_TIMEOUT = Conversions.secondsToNanoseconds(1.0);
 
@@ -150,6 +153,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       logProperties.getVariables().setCompressed(true);
       logProperties.getVariables().setTimestamped(true);
       logProperties.getVariables().setCompressionBatchSize(COMPRESSION_BATCH_SIZE);
+      logProperties.getVariables().setCompressionType("zstd");
       logProperties.getVariables().setIndex(indexFilename);
       logProperties.getVariables().setHandshakeFileType(HandshakeFileType.IDL_YAML);
 
@@ -322,15 +326,27 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          batch.rewind();
          compressedBuffer.clear();
 
+         int compressedSize;
          try
          {
-            SnappyUtils.compress(batch, compressedBuffer);
+            compressedSize = (int) Zstd.compressByteArray(compressedBuffer.array(), 0, compressedBuffer.capacity(),
+                                                          batch.array(), batch.position(), batch.remaining(),
+                                                          ZSTD_COMPRESSION_LEVEL);
          }
-         catch (IOException e)
+         catch (ZstdException e)
          {
-            throw new RuntimeException(e);
+            LogTools.error("Zstd compression failed, skipping batch: " + e.getMessage());
+            continue;
          }
-         compressedBuffer.flip();
+
+         if (Zstd.isError(compressedSize))
+         {
+            LogTools.error("Zstd compression failed, skipping batch: " + Zstd.getErrorName(compressedSize));
+            continue;
+         }
+         
+         compressedBuffer.limit(compressedSize);
+         compressedBuffer.position(0);
 
          synchronized (synchronizer)
          {
@@ -586,7 +602,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       logHandshake(handshake, handshakeParser);
 
       int bufferSize = handshakeParser.getBufferSize();
-      compressedBuffer = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize * COMPRESSION_BATCH_SIZE));
+      compressedBuffer = ByteBuffer.allocate((int) Zstd.compressBound(bufferSize * COMPRESSION_BATCH_SIZE));
       batchRingBuffer = new ConcurrentRingBuffer<>(() -> ByteBuffer.allocate(bufferSize * COMPRESSION_BATCH_SIZE), BATCH_RING_BUFFER_SIZE);
 
       compressionThreadRunning = true;
