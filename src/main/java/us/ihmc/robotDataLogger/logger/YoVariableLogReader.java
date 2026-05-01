@@ -26,6 +26,7 @@ public class YoVariableLogReader
 
    private int logLineLength;
    private int numberOfEntries;
+   private int batchSize;
 
    protected final File handshake;
    private FileChannel logChannel;
@@ -107,9 +108,12 @@ public class YoVariableLogReader
             logChannel = logInputStream.getChannel();
 
             logIndex = new LogIndex(index, logChannel.size());
+            batchSize = logProperties.getVariables().getCompressionBatchSize();
+            if (batchSize <= 0)
+               batchSize = 1;
             int bufferSize = logLineLength * 8;
-            compressedData = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize));
-            uncompressedData = ByteBuffer.allocate(bufferSize);
+            compressedData = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize * batchSize));
+            uncompressedData = ByteBuffer.allocate(bufferSize * batchSize);
 
             numberOfEntries = logIndex.getNumberOfEntries();
             initialized = true;
@@ -130,6 +134,16 @@ public class YoVariableLogReader
    public int getNumberOfEntries()
    {
       return numberOfEntries;
+   }
+
+   public int getBatchSize()
+   {
+      return batchSize;
+   }
+
+   public int getSingleTickSize()
+   {
+      return logLineLength * 8;
    }
 
    public void close()
