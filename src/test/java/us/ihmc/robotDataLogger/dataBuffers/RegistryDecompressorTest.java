@@ -7,7 +7,7 @@ import us.ihmc.robotDataLogger.jointState.OneDoFState;
 import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-import java.nio.ByteBuffer;
+import java.nio.LongBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -45,9 +45,8 @@ public class RegistryDecompressorTest
       // Create decompressor
       RegistryDecompressor decompressor = new RegistryDecompressor(yoVariables, jointStates);
 
-      // Pre-allocate maximum long array and buffer
-      long[] dataArray = new long[maxVariables];
-      ByteBuffer byteBuffer = ByteBuffer.allocate(maxVariables * Long.BYTES);
+      // Pre-allocate maximum long buffer
+      LongBuffer longBuffer = LongBuffer.allocate(maxVariables);
 
       // Pre-allocate joint states buffer (position + velocity)
       double[] jointArray = new double[numberOfJoints * 2];
@@ -61,22 +60,18 @@ public class RegistryDecompressorTest
       // Loop over variable counts
       for (int numberOfVariables = minVariables; numberOfVariables <= maxVariables; numberOfVariables += increment)
       {
-         // Fill long array with random values
-         for (int i = 0; i < numberOfVariables; i++)
-            dataArray[i] = random.nextLong();
-         byteBuffer.rewind();
-
          long minTimeNs = Long.MAX_VALUE;
 
          for (int iter = 0; iter < 1000; iter++)
          {
             // Randomize values each iteration
+            longBuffer.rewind();
             for (int i = 0; i < numberOfVariables; i++)
-               dataArray[i] = random.nextLong();
-            byteBuffer.rewind();
+               longBuffer.put(random.nextLong());
+            longBuffer.rewind();
 
             long start = System.nanoTime();
-            decompressor.updateVariables(buffer, 0, byteBuffer, numberOfVariables);
+            decompressor.updateVariables(buffer, 0, longBuffer, numberOfVariables);
             long end = System.nanoTime();
             minTimeNs = Math.min(minTimeNs, end - start);
          }

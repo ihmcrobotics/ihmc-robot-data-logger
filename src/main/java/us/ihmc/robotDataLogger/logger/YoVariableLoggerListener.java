@@ -37,6 +37,10 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
     * shut down properly.
     */
    private static final int TICKS_WITHOUT_DATA_BEFORE_SHUTDOWN = 5000;
+   /**
+    * Create a buffer ring of 8 buffers. This keeps data in case the logger is slow.
+    */
+   private static final int BATCH_RING_BUFFER_SIZE = 8;
 
    private static final int FLUSH_EVERY_N_PACKETS = 250;
    static final int COMPRESSION_BATCH_SIZE = 10;
@@ -74,7 +78,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private ConcurrentRingBuffer<ByteBuffer> batchRingBuffer;
    private ByteBuffer currentBatchBuffer = null;
    private int batchTickCount = 0;
-   private long firstTickTimestamp;
 
    private volatile boolean connected = false;
 
@@ -275,10 +278,9 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                   return;
                }
                currentBatchBuffer.clear();
-               firstTickTimestamp = timestamp;
             }
 
-            buffer.clear();
+            // Buffer should have already been .clear() so its ready for reading from
             currentBatchBuffer.put(buffer);
             batchTickCount++;
 
@@ -397,6 +399,9 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       }
    }
 
+   /**
+    * @return ByteBuffer that is prepared for reading as its position is set to zero and the limit is set to its capacity
+    */
    protected ByteBuffer reconstructBuffer(long timestamp)
    {
       dataBufferAsLong.clear();
@@ -583,7 +588,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       int bufferSize = handshakeParser.getBufferSize();
       compressedBuffer = ByteBuffer.allocate((int) Zstd.compressBound(bufferSize * COMPRESSION_BATCH_SIZE));
-      batchRingBuffer = new ConcurrentRingBuffer<>(() -> ByteBuffer.allocate(bufferSize * COMPRESSION_BATCH_SIZE), 18);
+      batchRingBuffer = new ConcurrentRingBuffer<>(() -> ByteBuffer.allocate(bufferSize * COMPRESSION_BATCH_SIZE), BATCH_RING_BUFFER_SIZE);
 
       compressionThreadRunning = true;
       compressionThread = new Thread(this::runCompressionThread, "LoggerCompressionThread");
