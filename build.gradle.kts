@@ -29,7 +29,6 @@ mainDependencies {
    api("org.jcommander:jcommander:3.0")
    api("com.google.guava:guava:18.0")
    api("org.xerial.snappy:snappy-java:1.1.10.8")
-   api("com.github.luben:zstd-jni:1.5.6-3")
    api("net.jpountz.lz4:lz4:1.3.0")
    api("com.github.luben:zstd-jni:1.5.6-3")
    api("io.netty:netty-all:4.1.77.Final")

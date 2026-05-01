@@ -14,6 +14,7 @@ import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescript
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 import us.ihmc.tools.compression.SnappyUtils;
 import com.github.luben.zstd.Zstd;
+import com.github.luben.zstd.ZstdException;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 import us.ihmc.concurrent.ConcurrentRingBuffer;
@@ -325,11 +326,25 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          batch.rewind();
          compressedBuffer.clear();
 
-         int compressedSize = (int) Zstd.compressByteArray(compressedBuffer.array(), 0, compressedBuffer.capacity(),
-                                                            batch.array(), batch.position(), batch.remaining(),
-                                                            ZSTD_COMPRESSION_LEVEL);
+         int compressedSize;
+         try
+         {
+            compressedSize = (int) Zstd.compressByteArray(compressedBuffer.array(), 0, compressedBuffer.capacity(),
+                                                          batch.array(), batch.position(), batch.remaining(),
+                                                          ZSTD_COMPRESSION_LEVEL);
+         }
+         catch (ZstdException e)
+         {
+            LogTools.error("Zstd compression failed, skipping batch: " + e.getMessage());
+            continue;
+         }
+
          if (Zstd.isError(compressedSize))
-            throw new RuntimeException("Zstd compression failed: " + Zstd.getErrorName(compressedSize));
+         {
+            LogTools.error("Zstd compression failed, skipping batch: " + Zstd.getErrorName(compressedSize));
+            continue;
+         }
+         
          compressedBuffer.limit(compressedSize);
          compressedBuffer.position(0);
 
