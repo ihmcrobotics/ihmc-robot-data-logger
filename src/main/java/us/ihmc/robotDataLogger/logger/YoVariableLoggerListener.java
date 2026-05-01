@@ -44,7 +44,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private static final int BATCH_RING_BUFFER_SIZE = 8;
 
    private static final int FLUSH_EVERY_N_PACKETS = 250;
-   static final int COMPRESSION_BATCH_SIZE = 10;
+   private static final int COMPRESSION_BATCH_SIZE = 10;
    private static final int ZSTD_COMPRESSION_LEVEL = 1;
    public static final long STATUS_PACKET_RATE = Conversions.secondsToNanoseconds(5.0);
    private static final long VIDEO_RECORDING_TIMEOUT = Conversions.secondsToNanoseconds(1.0);
