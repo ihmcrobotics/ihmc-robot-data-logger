@@ -15,6 +15,8 @@ import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 import us.ihmc.tools.compression.SnappyUtils;
 import us.ihmc.yoVariables.variable.YoVariable;
 
+import us.ihmc.concurrent.ConcurrentRingBuffer;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -24,6 +26,7 @@ import java.nio.LongBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 
 public class YoVariableLoggerListener implements YoVariablesUpdatedListener
@@ -33,8 +36,13 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
     * shut down properly.
     */
    private static final int TICKS_WITHOUT_DATA_BEFORE_SHUTDOWN = 5000;
+   /**
+    * Create a buffer ring of 8 buffers. This keeps data in case the logger is slow.
+    */
+   private static final int BATCH_RING_BUFFER_SIZE = 8;
 
    private static final int FLUSH_EVERY_N_PACKETS = 250;
+   private static final int COMPRESSION_BATCH_SIZE = 10;
    public static final long STATUS_PACKET_RATE = Conversions.secondsToNanoseconds(5.0);
    private static final long VIDEO_RECORDING_TIMEOUT = Conversions.secondsToNanoseconds(1.0);
 
@@ -58,8 +66,16 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private FileChannel dataChannel;
    private FileChannel indexChannel;
 
+   // Background compression thread — owns these exclusively (never touched by RT thread)
    private final ByteBuffer indexBuffer = ByteBuffer.allocate(16);
    private ByteBuffer compressedBuffer;
+   private Thread compressionThread;
+   private volatile boolean compressionThreadRunning = false;
+
+   // Batch state — written by RT thread, consumed by compression thread via batchRing
+   private ConcurrentRingBuffer<ByteBuffer> batchRingBuffer;
+   private ByteBuffer currentBatchBuffer = null;
+   private int batchTickCount = 0;
 
    private volatile boolean connected = false;
 
@@ -133,6 +149,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       logProperties.getVariables().setData(dataFilename);
       logProperties.getVariables().setCompressed(true);
       logProperties.getVariables().setTimestamped(true);
+      logProperties.getVariables().setCompressionBatchSize(COMPRESSION_BATCH_SIZE);
       logProperties.getVariables().setIndex(indexFilename);
       logProperties.getVariables().setHandshakeFileType(HandshakeFileType.IDL_YAML);
 
@@ -241,47 +258,109 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       {
          if (!clearingLog && dataChannel != null && dataChannel.isOpen())
          {
-            try
+            if (yoVariableSummarizer != null)
+               yoVariableSummarizer.setBuffer(buffer);
+
+            if (batchTickCount == 0)
             {
-               if (yoVariableSummarizer != null)
+               currentBatchBuffer = batchRingBuffer.next();
+
+               // In the case where the compression thread is too slow we drop this tick
+               if (currentBatchBuffer == null)
                {
-                  yoVariableSummarizer.setBuffer(buffer);
+                  LogTools.warn("Logger compression thread can't keep up, dropping ticks.");
+                  if (yoVariableSummarizer != null)
+                     yoVariableSummarizer.update();
+                  updateStatus();
+                  return;
                }
-               buffer.clear();
-               compressedBuffer.clear();
-               SnappyUtils.compress(buffer, compressedBuffer);
-               compressedBuffer.flip();
+               currentBatchBuffer.clear();
+            }
 
-               indexBuffer.clear();
-               indexBuffer.putLong(timestamp);
-               indexBuffer.putLong(dataChannel.position());
-               indexBuffer.flip();
+            // Buffer should have already been .clear() so its ready for reading from
+            currentBatchBuffer.put(buffer);
+            batchTickCount++;
 
-               indexChannel.write(indexBuffer);
-               dataChannel.write(compressedBuffer);
+            if (batchTickCount == COMPRESSION_BATCH_SIZE)
+            {
+               currentBatchBuffer.flip();
+               batchRingBuffer.commit();
+               currentBatchBuffer = null;
+               batchTickCount = 0;
+            }
 
-               if (flushAggressivelyToDisk)
+            if (yoVariableSummarizer != null)
+               yoVariableSummarizer.update();
+
+            updateStatus();
+         }
+      }
+
+   }
+
+   private void runCompressionThread()
+   {
+      while (compressionThreadRunning)
+      {
+         writePendingBatches();
+         LockSupport.parkNanos(1_000_000L); // 1ms
+      }
+      // Drain on exit, when the logger shuts down
+      writePendingBatches();
+   }
+
+   private void writePendingBatches()
+   {
+      // Make sure we have a buffer to use
+      if (!batchRingBuffer.poll())
+         return;
+
+      ByteBuffer batch;
+      while ((batch = batchRingBuffer.read()) != null)
+      {
+         long batchTimestamp = batch.getLong(0);
+         batch.rewind();
+         compressedBuffer.clear();
+
+         try
+         {
+            SnappyUtils.compress(batch, compressedBuffer);
+         }
+         catch (IOException e)
+         {
+            throw new RuntimeException(e);
+         }
+         compressedBuffer.flip();
+
+         synchronized (synchronizer)
+         {
+            if (!clearingLog && dataChannel != null && dataChannel.isOpen())
+            {
+               try
                {
-                  if (++currentIndex % FLUSH_EVERY_N_PACKETS == 0)
+                  indexBuffer.clear();
+                  indexBuffer.putLong(batchTimestamp);
+                  indexBuffer.putLong(dataChannel.position());
+                  indexBuffer.flip();
+
+                  indexChannel.write(indexBuffer);
+                  dataChannel.write(compressedBuffer);
+
+                  if (flushAggressivelyToDisk && ++currentIndex % FLUSH_EVERY_N_PACKETS == 0)
                   {
                      indexChannel.force(false);
                      dataChannel.force(false);
                   }
                }
-
-               if (yoVariableSummarizer != null)
+               catch (IOException e)
                {
-                  yoVariableSummarizer.update();
+                  throw new RuntimeException(e);
                }
-
-               updateStatus();
-            }
-            catch (IOException e)
-            {
-               throw new RuntimeException(e);
             }
          }
       }
+
+      batchRingBuffer.flush();
    }
 
    private void updateStatus()
@@ -319,6 +398,9 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       }
    }
 
+   /**
+    * @return ByteBuffer that is prepared for reading as its position is set to zero and the limit is set to its capacity
+    */
    protected ByteBuffer reconstructBuffer(long timestamp)
    {
       dataBufferAsLong.clear();
@@ -336,6 +418,32 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    public void disconnected()
    {
       LogTools.info("Finalizing log from host: " + request.getHostNameAsString());
+
+      // Commit any partial batch so the compression thread can write it
+      int validTicksInLastBatch;
+      synchronized (synchronizer)
+      {
+         validTicksInLastBatch = batchTickCount;
+         if (batchTickCount > 0 && currentBatchBuffer != null)
+         {
+            currentBatchBuffer.flip();
+            batchRingBuffer.commit();
+            currentBatchBuffer = null;
+            batchTickCount = 0;
+         }
+      }
+
+      // Stop compression thread and wait for it to drain all pending batches
+      compressionThreadRunning = false;
+      LockSupport.unpark(compressionThread);
+      try
+      {
+         compressionThread.join(5000);
+      }
+      catch (InterruptedException e)
+      {
+         Thread.currentThread().interrupt();
+      }
 
       try
       {
@@ -414,6 +522,16 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
             yoVariableSummarizer.writeData(new File(tempDirectory, summaryFilename));
          }
 
+         logProperties.getVariables().setValidTicksInLastBatch(validTicksInLastBatch);
+         try
+         {
+            logProperties.store();
+         }
+         catch (IOException e)
+         {
+            e.printStackTrace();
+         }
+
          doneListener.accept(request);
 
          tempDirectory.renameTo(finalDirectory);
@@ -468,7 +586,13 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       logHandshake(handshake, handshakeParser);
 
       int bufferSize = handshakeParser.getBufferSize();
-      compressedBuffer = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize));
+      compressedBuffer = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize * COMPRESSION_BATCH_SIZE));
+      batchRingBuffer = new ConcurrentRingBuffer<>(() -> ByteBuffer.allocate(bufferSize * COMPRESSION_BATCH_SIZE), BATCH_RING_BUFFER_SIZE);
+
+      compressionThreadRunning = true;
+      compressionThread = new Thread(this::runCompressionThread, "LoggerCompressionThread");
+      compressionThread.setDaemon(true);
+      compressionThread.start();
 
       variables = handshakeParser.getYoVariablesList().toArray(new YoVariable[0]);
       jointStates = handshakeParser.getJointStates().toArray(new JointState[0]);
@@ -586,10 +710,33 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
    private void clearLog()
    {
+      // Discard any partial batch and stop accepting new ones
       synchronized (synchronizer)
       {
          clearingLog = true;
+         batchTickCount = 0;
+         currentBatchBuffer = null;
       }
+
+      // Stop compression thread so it can't race with the truncate
+      compressionThreadRunning = false;
+      LockSupport.unpark(compressionThread);
+      try
+      {
+         compressionThread.join(2000);
+      }
+      catch (InterruptedException e)
+      {
+         Thread.currentThread().interrupt();
+      }
+
+      // Drain and discard any pending batches in the ring (they are pre-clear data)
+      if (batchRingBuffer.poll())
+      {
+         while (batchRingBuffer.read() != null) { }
+         batchRingBuffer.flush();
+      }
+
       try
       {
          LogTools.info("Clearing log.");
@@ -604,16 +751,22 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       {
          e.printStackTrace();
       }
+
       if (yoVariableSummarizer != null)
       {
          yoVariableSummarizer.restart();
       }
+
+      // Restart compression thread for new data
       synchronized (synchronizer)
       {
          clearingLog = false;
-
          logStartedTimestamp = System.nanoTime();
       }
+      compressionThreadRunning = true;
+      compressionThread = new Thread(this::runCompressionThread, "LoggerCompressionThread");
+      compressionThread.setDaemon(true);
+      compressionThread.start();
    }
 
    @Override
