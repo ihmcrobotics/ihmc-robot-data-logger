@@ -52,7 +52,9 @@ public class MagewellDemuxer
     {
         try
         {
-            grabber.setTimestamp(videoTimestamp);
+            // Frame-accurate seek: seeks to the preceding keyframe, then decodes forward to the requested
+            // timestamp. Required because the muxer no longer encodes every frame as a keyframe.
+            grabber.setVideoTimestamp(videoTimestamp);
         }
         catch (FFmpegFrameGrabber.Exception e)
         {
