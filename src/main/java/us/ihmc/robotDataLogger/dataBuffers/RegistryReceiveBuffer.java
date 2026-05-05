@@ -8,6 +8,7 @@ public class RegistryReceiveBuffer extends RegistryBuffer
    private long receivedTimestamp;
    private ByteBuffer compressedVariableDataBuffer;
    private double[] jointStates;
+   private int jointStateCount = 0;
 
    public RegistryReceiveBuffer(long receivedTimestamp)
    {
@@ -34,9 +35,15 @@ public class RegistryReceiveBuffer extends RegistryBuffer
 
    public double[] allocateStates(int stateLength)
    {
+      jointStateCount = stateLength;
       if (jointStates == null || jointStates.length < stateLength)
          jointStates = new double[stateLength];
       return jointStates;
+   }
+
+   public int getJointStateCount()
+   {
+      return jointStateCount;
    }
 
    public double[] getJointStates()

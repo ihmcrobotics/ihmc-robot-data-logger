@@ -103,9 +103,10 @@ public class RegistryDecompressor
       }
 
       double[] jointStateArray = buffer.getJointStates();
-      if (jointStateArray.length > 0)
+      int jointStateCount = buffer.getJointStateCount();
+      if (jointStateCount > 0)
       {
-         System.arraycopy(jointStateArray, 0, jointStateData, 0, jointStateArray.length);
+         System.arraycopy(jointStateArray, 0, jointStateData, 0, jointStateCount);
          jointStateDoubleBuffer.rewind();
          for (int i = 0; i < jointStates.size(); i++)
          {
