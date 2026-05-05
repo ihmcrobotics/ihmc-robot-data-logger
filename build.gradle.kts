@@ -87,7 +87,9 @@ testDependencies {
    api("us.ihmc:ihmc-commons-testing:0.35.1")
 }
 
-app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher")
+app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher", listOf(
+   "-Xlog:gc*:file=/opt/ihmc/logger/gc.log:time,uptime:filecount=5,filesize=20m",
+))
 app.entrypoint("IHMCLoggerDebug5005", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher", listOf
 ("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005",
 ))
