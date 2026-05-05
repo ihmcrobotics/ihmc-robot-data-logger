@@ -88,14 +88,10 @@ testDependencies {
 }
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher", listOf(
-   "-Xlog:gc*:file=/opt/ihmc/logger/gc.log:time,uptime:filecount=5,filesize=20m",
-))
-app.entrypoint("IHMCLoggerLowLatency", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher", listOf(
    "-XX:+UseZGC",
    "-XX:+AlwaysPreTouch",
-   "-Xms512m",
-   "-Xmx512m",
-   "-Xlog:gc*:file=/opt/ihmc/logger/gc.log:time,uptime:filecount=5,filesize=20m",
+   "-Xms1g",
+   "-Xmx1g",
 ))
 app.entrypoint("IHMCLoggerDebug5005", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher", listOf(
    "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005",
