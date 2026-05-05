@@ -344,7 +344,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
             LogTools.error("Zstd compression failed, skipping batch: " + Zstd.getErrorName(compressedSize));
             continue;
          }
-         
+
          compressedBuffer.limit(compressedSize);
          compressedBuffer.position(0);
 

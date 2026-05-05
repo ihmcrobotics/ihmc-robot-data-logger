@@ -23,12 +23,12 @@ public class MagewellMuxer
       // For information about these settings visit https://trac.ffmpeg.org/wiki/Encode/H.264
       recorder.setVideoOption("preset", "ultrafast");
       recorder.setVideoOption("crf", "27");
+      // g=1 forces every frame to be a keyframe (all-intra), so random-access seeking in the demuxer works correctly
+      recorder.setVideoOption("g", "1");
       recorder.setVideoBitrate(60000000); // 6000 kb/s
 
-      // This video codec is deprecated, so in order to use it without errors we have to set the pixel format and strictly allow FFMPEG to use it
-      recorder.setVideoCodec(avcodec.AV_CODEC_ID_MJPEG);
+      recorder.setVideoCodec(avcodec.AV_CODEC_ID_H264);
       recorder.setPixelFormat(avutil.AV_PIX_FMT_YUV420P);
-      recorder.setVideoOption("strict", "-2");
       // Frame rate of video recordings
       recorder.setFrameRate(60);
    }
