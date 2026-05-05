@@ -19,6 +19,10 @@ public class RegistryDecompressor
    private final long[] cachedJointStateValues;
 
    private final ByteBuffer decompressBuffer;
+   private final LongBuffer decompressLongBuffer;
+   private final double[] jointStateData;
+   private final DoubleBuffer jointStateDoubleBuffer;
+
    private final CompressionImplementation compressionImplementation;
 
    private Object variableSynchronizer = null;
@@ -38,6 +42,9 @@ public class RegistryDecompressor
       this.cachedJointStateValues = new long[totalJointStateVariables];
 
       this.decompressBuffer = ByteBuffer.allocate(variables.size() * 8);
+      this.decompressLongBuffer = decompressBuffer.asLongBuffer();
+      this.jointStateData = new double[totalJointStateVariables];
+      this.jointStateDoubleBuffer = DoubleBuffer.wrap(jointStateData);
       this.compressionImplementation = CompressionImplementationFactory.instance();
    }
 
@@ -56,8 +63,10 @@ public class RegistryDecompressor
          return;
       }
       decompressBuffer.flip();
-      LongBuffer longData = decompressBuffer.asLongBuffer();
-      if (longData.remaining() != buffer.getNumberOfVariables())
+      decompressLongBuffer.clear();
+      // LongBuffer is a shared view and doesn't track ByteBuffer's limit automatically after flip()
+      decompressLongBuffer.limit(decompressBuffer.limit() / 8);
+      if (decompressLongBuffer.remaining() != buffer.getNumberOfVariables())
       {
          LogTools.error("Number of variables in incoming message does not match stated number of variables. Skipping packet.");
          return;
@@ -75,12 +84,12 @@ public class RegistryDecompressor
       {
          synchronized (variableSynchronizer)
          {
-            updateVariables(buffer, registryOffset, longData, numberOfVariables);
+            updateVariables(buffer, registryOffset, decompressLongBuffer, numberOfVariables);
          }
       }
       else
       {
-         updateVariables(buffer, registryOffset, longData, numberOfVariables);
+         updateVariables(buffer, registryOffset, decompressLongBuffer, numberOfVariables);
       }
    }
 
@@ -96,14 +105,15 @@ public class RegistryDecompressor
       double[] jointStateArray = buffer.getJointStates();
       if (jointStateArray.length > 0)
       {
-         DoubleBuffer jointStateBuffer = DoubleBuffer.wrap(jointStateArray);
+         System.arraycopy(jointStateArray, 0, jointStateData, 0, jointStateArray.length);
+         jointStateDoubleBuffer.rewind();
          for (int i = 0; i < jointStates.size(); i++)
          {
-            jointStates.get(i).update(jointStateBuffer);
+            jointStates.get(i).update(jointStateDoubleBuffer);
          }
          for (int i = 0; i < cachedJointStateValues.length; i++)
          {
-            cachedJointStateValues[i] = Double.doubleToLongBits(jointStateArray[i]);
+            cachedJointStateValues[i] = Double.doubleToLongBits(jointStateData[i]);
          }
       }
    }
