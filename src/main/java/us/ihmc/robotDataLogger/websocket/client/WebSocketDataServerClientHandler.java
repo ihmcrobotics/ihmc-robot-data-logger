@@ -111,7 +111,8 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
       }
       else if (frame instanceof BinaryWebSocketFrame)
       {
-         RegistryReceiveBuffer buffer = new RegistryReceiveBuffer(System.nanoTime());
+         RegistryReceiveBuffer buffer = consumer.acquire();
+         buffer.setReceivedTimestamp(System.nanoTime());
          payload.getData().clear();
          payload.getData().limit(frame.content().readableBytes());
          frame.content().readBytes(payload.getData());

@@ -39,12 +39,12 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
     */
    private static final int TICKS_WITHOUT_DATA_BEFORE_SHUTDOWN = 5000;
    /**
-    * Create a buffer ring of 8 buffers. This keeps data in case the logger is slow.
+    * Create a buffer ring of 8 buffers. This keeps data in case the logger is slow. This is really needed because of garbage collection on the old logging machine
     */
-   private static final int BATCH_RING_BUFFER_SIZE = 8;
+   private static final int BATCH_RING_BUFFER_SIZE = 12;
 
    private static final int FLUSH_EVERY_N_PACKETS = 250;
-   private static final int COMPRESSION_BATCH_SIZE = 10;
+   private static final int COMPRESSION_BATCH_SIZE = 25;
    private static final int ZSTD_COMPRESSION_LEVEL = 1;
    public static final long STATUS_PACKET_RATE = Conversions.secondsToNanoseconds(5.0);
    private static final long VIDEO_RECORDING_TIMEOUT = Conversions.secondsToNanoseconds(1.0);
