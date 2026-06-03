@@ -1,12 +1,6 @@
 package us.ihmc.robotDataLogger;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
-
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.concurrent.ConcurrentRingBuffer;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -26,6 +20,10 @@ import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 public class YoVariableServer implements RobotVisualizer, VariableChangedListener
 {
    private static final int CHANGED_BUFFER_CAPACITY = 128;
@@ -42,7 +40,6 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    private final ArrayList<RegistrySendBufferBuilder> registeredBuffers = new ArrayList<>();
 
    private final ArrayList<RegistryHolder> registryHolders = new ArrayList<>();
-   private final HashMap<YoRegistry, RegistryHolder> registryHolderMap = new HashMap<>();
 
    // State
    private boolean started = false;
@@ -182,9 +179,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
                ConcurrentRingBuffer<VariableChangedMessage> variableChangeData = new ConcurrentRingBuffer<>(new VariableChangedMessage.Builder(), CHANGED_BUFFER_CAPACITY);
                RegistryPublisher publisher = dataProducer.createRegistryPublisher(builder, bufferListener);
 
-               RegistryHolder holder = new RegistryHolder(registry, publisher, variableChangeData);
-               registryHolders.add(holder);
-               registryHolderMap.put(registry, holder);
+               registryHolders.add(new RegistryHolder(registry, publisher, variableChangeData));
 
                publisher.start();
             }
@@ -217,12 +212,17 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
    public RegistryHolder getRegistryHolder(YoRegistry registry)
    {
-      RegistryHolder holder = registryHolderMap.get(registry);
+      for (int i = 0; i < registryHolders.size(); i++)
+      {
+         RegistryHolder registryHolder = registryHolders.get(i);
 
-      if (holder == null)
-         throw new RuntimeException("Registry " + registry.getName() + " not registered with addRegistry() or setMainRegistry()");
+         if (registryHolder.registry == registry)
+         {
+            return registryHolder;
+         }
+      }
 
-      return holder;
+      throw new RuntimeException("Registry " + registry.getName() + " not registered with addRegistry() or setMainRegistry()");
    }
 
    @Override

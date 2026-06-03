@@ -1,0 +1,9 @@
+int64 uid
+int64 timestamp
+int64 transmitTime
+uint8 type
+int32 registry
+int32 offset
+int32 numberOfVariables
+uint8[] data
+float64[] jointStates

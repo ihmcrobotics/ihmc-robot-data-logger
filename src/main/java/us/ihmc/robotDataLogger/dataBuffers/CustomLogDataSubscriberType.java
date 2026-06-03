@@ -1,25 +1,20 @@
 package us.ihmc.robotDataLogger.dataBuffers;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import us.ihmc.idl.CDR;
-import us.ihmc.idl.InterchangeSerializer;
-import us.ihmc.pubsub.TopicDataType;
-import us.ihmc.pubsub.common.SerializedPayload;
-import us.ihmc.robotDataLogger.LogDataType;
+import logger_msgs.LogData;
+import logger_msgs.LogDataType;
+import us.ihmc.fastddsjava.cdr.CDRBuffer;
 import us.ihmc.tools.compression.CompressionImplementation;
 import us.ihmc.tools.compression.CompressionImplementationFactory;
 
-/**
- * Topic data type of the struct "LogData" defined in "LogData.idl". Use this class to provide the
- * TopicDataType to a Participant. This file has been modified from the generated version to provide
- * higher performance.
- */
-public class CustomLogDataSubscriberType implements TopicDataType<RegistryReceiveBuffer>
-{
-   public static final String name = "us::ihmc::robotDataLogger::LogData";
+import java.nio.ByteBuffer;
 
+/**
+ * Custom subscriber type for LogData with decompression support.
+ * This class extends LogData and adds efficient deserialization using CDRBuffer
+ * with decompression for the data field.
+ */
+public class CustomLogDataSubscriberType extends LogData
+{
    private final int numberOfVariables;
    private final int numberOfStates;
 
@@ -27,109 +22,78 @@ public class CustomLogDataSubscriberType implements TopicDataType<RegistryReceiv
 
    public CustomLogDataSubscriberType(int maxNumberOfVariables, int maxNumberOfStates)
    {
-      numberOfVariables = maxNumberOfVariables;
-      numberOfStates = maxNumberOfStates;
+      super();
+      this.numberOfVariables = maxNumberOfVariables;
+      this.numberOfStates = maxNumberOfStates;
 
       compressor = CompressionImplementationFactory.instance();
    }
 
-   private final CDR deserializeCDR = new CDR();
-
-   @Override
-   public void serialize(RegistryReceiveBuffer data, SerializedPayload serializedPayload) throws IOException
+   /**
+    * Deserialize from CDRBuffer into a RegistryReceiveBuffer.
+    * This method handles decompression of the variable data.
+    */
+   public void deserialize(CDRBuffer cdrBuffer, RegistryReceiveBuffer buffer)
    {
-      throw new RuntimeException("Not implemented");
-   }
+      // Deserialize using parent class method
+      super.deserialize(cdrBuffer);
 
-   @Override
-   public void deserialize(SerializedPayload serializedPayload, RegistryReceiveBuffer data) throws IOException
-   {
-      deserializeCDR.deserialize(serializedPayload);
+      // Copy fields to RegistryReceiveBuffer
+      buffer.setUid(getUid());
+      buffer.setTimestamp(getTimestamp());
+      buffer.setTransmitTime(getTransmitTime());
+      buffer.getType().setType(getType());
+      buffer.setRegistryID(getRegistry());
+      buffer.setNumberOfVariables(getNumberOfVariables());
 
-      data.setUid(deserializeCDR.read_type_11());
-
-      data.setTimestamp(deserializeCDR.read_type_11());
-
-      data.setTransmitTime(deserializeCDR.read_type_11());
-
-      data.setType(us.ihmc.robotDataLogger.LogDataType.values[deserializeCDR.read_type_c()]);
-
-      data.setRegistryID(deserializeCDR.read_type_2());
-
-      data.setNumberOfVariables(deserializeCDR.read_type_2());
-
-      if (data.getType() == LogDataType.DATA_PACKET)
+      // Handle data decompression for DATA_PACKET types
+      if (getType() == LogDataType.DATA_PACKET)
       {
-         int dataLength = deserializeCDR.read_type_2();
-         ByteBuffer buffer = data.allocateBuffer(dataLength);
-         serializedPayload.getData().get(buffer.array(), 0, dataLength);
-         buffer.limit(dataLength);
+         // Get compressed data
+         int compressedSize = getData().size();
+         ByteBuffer compressedBuffer = buffer.allocateBuffer(compressedSize);
 
-         int stateLength = deserializeCDR.read_type_2();
-         double[] states = data.allocateStates(stateLength);
+         // Copy compressed data from IDLByteSequence to ByteBuffer
+         ByteBuffer sourceBuffer = getData().getBuffer();
+         sourceBuffer.position(0);
+         sourceBuffer.limit(compressedSize);
+         compressedBuffer.put(sourceBuffer);
+         compressedBuffer.flip();
+
+         // Copy joint states
+         int stateLength = getJointStates().size();
+         double[] states = buffer.allocateStates(stateLength);
          for (int i = 0; i < stateLength; i++)
          {
-            states[i] = deserializeCDR.read_type_6();
+            states[i] = getJointStates().getBuffer().get(i);
          }
       }
-
-      deserializeCDR.finishDeserialize();
    }
 
+   /**
+    * Calculate the maximum size in bytes for deserialization.
+    */
    @Override
-   public final void serialize(RegistryReceiveBuffer data, InterchangeSerializer ser)
+   public int calculateSizeBytes(int currentAlignment)
    {
-      throw new RuntimeException("Not implemented");
+      int initialAlignment = currentAlignment;
 
-   }
+      currentAlignment += 8 + CDRBuffer.alignment(currentAlignment, 8); // uid
+      currentAlignment += 8 + CDRBuffer.alignment(currentAlignment, 8); // timestamp
+      currentAlignment += 8 + CDRBuffer.alignment(currentAlignment, 8); // transmitTime
+      currentAlignment += 1 + CDRBuffer.alignment(currentAlignment, 1); // type
+      currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // registry
+      currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // offset
+      currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // numberOfVariables
 
-   @Override
-   public final void deserialize(InterchangeSerializer ser, RegistryReceiveBuffer data)
-   {
-      throw new RuntimeException("Not implemented");
+      // Maximum compressed data size
+      currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // sequence length
+      currentAlignment += compressor.maxCompressedLength(numberOfVariables * 8);
 
-   }
+      // Joint states
+      currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // sequence length
+      currentAlignment += numberOfStates * 8; // double array
 
-   @Override
-   public RegistryReceiveBuffer createData()
-   {
-      return null;
-   }
-
-   @Override
-   public int getTypeSize()
-   {
-      return CustomLogDataPublisherType.getTypeSize(compressor.maxCompressedLength(numberOfVariables * 8), numberOfStates);
-
-   }
-
-   @Override
-   public String getName()
-   {
-      return name;
-   }
-
-   @Override
-   public CustomLogDataSubscriberType newInstance()
-   {
-      return new CustomLogDataSubscriberType(numberOfVariables, numberOfStates);
-   }
-
-   @Override
-   public void serialize(RegistryReceiveBuffer data, CDR cdr)
-   {
-      throw new RuntimeException("Not implemented");
-   }
-
-   @Override
-   public void deserialize(RegistryReceiveBuffer data, CDR cdr)
-   {
-      throw new RuntimeException("Not implemented");
-   }
-
-   @Override
-   public void copy(RegistryReceiveBuffer src, RegistryReceiveBuffer dest)
-   {
-      throw new RuntimeException("Not implemented");
+      return currentAlignment - initialAlignment;
    }
 }

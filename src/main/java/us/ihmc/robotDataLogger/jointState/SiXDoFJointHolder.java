@@ -1,9 +1,10 @@
 package us.ihmc.robotDataLogger.jointState;
 
+import logger_msgs.JointType;
+import logger_msgs.MessageTypes;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
-import us.ihmc.robotDataLogger.JointType;
 
 public class SiXDoFJointHolder implements JointHolder
 {
@@ -11,19 +12,19 @@ public class SiXDoFJointHolder implements JointHolder
 
    public SiXDoFJointHolder(SixDoFJoint joint)
    {
-      inverseDynamicsJoint = joint;
+      this.inverseDynamicsJoint = joint;
    }
 
    @Override
    public JointType getJointType()
    {
-      return JointType.SiXDoFJoint;
+      return MessageTypes.SIXDOF_JOINT;
    }
 
    @Override
    public int getNumberOfStateVariables()
    {
-      return 13; // quaternion + position + angular velocity + linear velocity
+      return 13;
    }
 
    @Override

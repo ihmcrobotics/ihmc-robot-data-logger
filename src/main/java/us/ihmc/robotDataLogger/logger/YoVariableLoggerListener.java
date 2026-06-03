@@ -1,23 +1,26 @@
 package us.ihmc.robotDataLogger.logger;
 
+import logger_msgs.Announcement;
+import logger_msgs.CameraConfiguration;
+import logger_msgs.CameraSettings;
+import logger_msgs.CameraType;
+import logger_msgs.Handshake;
+import logger_msgs.HandshakeFileType;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.MathTools;
-import us.ihmc.idl.serializers.extra.YAMLSerializer;
+import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.*;
+import us.ihmc.robotDataLogger.CameraSettingsLoader;
+import us.ihmc.robotDataLogger.YoVariableClientInterface;
+import us.ihmc.robotDataLogger.YoVariablesUpdatedListener;
 import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.jointState.JointState;
-import us.ihmc.robotDataLogger.rtps.LogParticipantSettings;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 import us.ihmc.tools.compression.SnappyUtils;
-import com.github.luben.zstd.Zstd;
-import com.github.luben.zstd.ZstdException;
 import us.ihmc.yoVariables.variable.YoVariable;
-
-import us.ihmc.concurrent.ConcurrentRingBuffer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,8 +30,13 @@ import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.concurrent.*;
-import java.util.concurrent.locks.LockSupport;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 public class YoVariableLoggerListener implements YoVariablesUpdatedListener
@@ -38,14 +46,8 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
     * shut down properly.
     */
    private static final int TICKS_WITHOUT_DATA_BEFORE_SHUTDOWN = 5000;
-   /**
-    * Create a buffer ring of 8 buffers. This keeps data in case the logger is slow. This is really needed because of garbage collection on the old logging machine
-    */
-   private static final int BATCH_RING_BUFFER_SIZE = 12;
 
    private static final int FLUSH_EVERY_N_PACKETS = 250;
-   private static final int COMPRESSION_BATCH_SIZE = 25;
-   private static final int ZSTD_COMPRESSION_LEVEL = 1;
    public static final long STATUS_PACKET_RATE = Conversions.secondsToNanoseconds(5.0);
    private static final long VIDEO_RECORDING_TIMEOUT = Conversions.secondsToNanoseconds(1.0);
 
@@ -69,16 +71,8 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private FileChannel dataChannel;
    private FileChannel indexChannel;
 
-   // Background compression thread — owns these exclusively (never touched by RT thread)
    private final ByteBuffer indexBuffer = ByteBuffer.allocate(16);
    private ByteBuffer compressedBuffer;
-   private Thread compressionThread;
-   private volatile boolean compressionThreadRunning = false;
-
-   // Batch state — written by RT thread, consumed by compression thread via batchRing
-   private ConcurrentRingBuffer<ByteBuffer> batchRingBuffer;
-   private ByteBuffer currentBatchBuffer = null;
-   private int batchTickCount = 0;
 
    private volatile boolean connected = false;
 
@@ -101,12 +95,10 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private YoVariableSummarizer yoVariableSummarizer = null;
 
    // Reconstruction variables for disk data format
-   private YoVariable[] variables;
-   private JointState[] jointStates;
+   private List<YoVariable> variables;
+   private List<JointState> jointStates;
    private ByteBuffer dataBuffer;
    private LongBuffer dataBufferAsLong;
-   private long[] dataAsLong;
-   private long[] cachedJointStateValues;
 
    private YoVariableClientInterface yoVariableClientInterface = null;
 
@@ -152,8 +144,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       logProperties.getVariables().setData(dataFilename);
       logProperties.getVariables().setCompressed(true);
       logProperties.getVariables().setTimestamped(true);
-      logProperties.getVariables().setCompressionBatchSize(COMPRESSION_BATCH_SIZE);
-      logProperties.getVariables().setCompressionType("zstd");
       logProperties.getVariables().setIndex(indexFilename);
       logProperties.getVariables().setHandshakeFileType(HandshakeFileType.IDL_YAML);
 
@@ -168,10 +158,12 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          {
             for (int i = 0; i < target.getCameraList().size(); i++)
             {
-               byte camera_id = target.getCameraList().get(i);
+               byte camera_id = target.getCameraList().getBuffer().get(i);
 
-               for (CameraConfiguration camera : cameras.getCameras())
+               for (int i1 = 0; i1 < cameras.getCameras().size(); i1++)
                {
+                  CameraConfiguration camera = cameras.getCameras().get(i1);
+
                   if (camera.getCameraId() == camera_id)
                   {
                      LogTools.info("Adding camera " + camera.toString());
@@ -182,7 +174,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          }
          else
          {
-            LogTools.warn("The control session has no camera's in the ControllerHosts.yaml file, so no camera's are recording... nice work genius");
+            LogTools.warn("The control session has no host in the IHMCControllerParameters file, so no camera's are recording... nice work genius");
          }
       }
       else if (options != null)
@@ -202,7 +194,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       File handshakeFile = new File(tempDirectory, handshakeFilename);
       try
       {
-         YAMLSerializer<Handshake> serializer = new YAMLSerializer<>(new HandshakePubSubType());
+         ROS2YAMLSerializer<Handshake> serializer = new ROS2YAMLSerializer<>(Handshake.class);
          serializer.serialize(handshakeFile, handshake.getHandshake());
       }
       catch (IOException e)
@@ -262,121 +254,47 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       {
          if (!clearingLog && dataChannel != null && dataChannel.isOpen())
          {
-            if (yoVariableSummarizer != null)
-               yoVariableSummarizer.setBuffer(buffer);
-
-            if (batchTickCount == 0)
+            try
             {
-               currentBatchBuffer = batchRingBuffer.next();
-
-               // In the case where the compression thread is too slow we drop this tick
-               if (currentBatchBuffer == null)
+               if (yoVariableSummarizer != null)
                {
-                  LogTools.warn("Logger compression thread can't keep up, dropping ticks.");
-                  if (yoVariableSummarizer != null)
-                     yoVariableSummarizer.update();
-                  updateStatus();
-                  return;
+                  yoVariableSummarizer.setBuffer(buffer);
                }
-               currentBatchBuffer.clear();
-            }
+               buffer.clear();
+               compressedBuffer.clear();
+               SnappyUtils.compress(buffer, compressedBuffer);
+               compressedBuffer.flip();
 
-            // Buffer should have already been .clear() so its ready for reading from
-            currentBatchBuffer.put(buffer);
-            batchTickCount++;
+               indexBuffer.clear();
+               indexBuffer.putLong(timestamp);
+               indexBuffer.putLong(dataChannel.position());
+               indexBuffer.flip();
 
-            if (batchTickCount == COMPRESSION_BATCH_SIZE)
-            {
-               currentBatchBuffer.flip();
-               batchRingBuffer.commit();
-               currentBatchBuffer = null;
-               batchTickCount = 0;
-            }
+               indexChannel.write(indexBuffer);
+               dataChannel.write(compressedBuffer);
 
-            if (yoVariableSummarizer != null)
-               yoVariableSummarizer.update();
-
-            updateStatus();
-         }
-      }
-
-   }
-
-   private void runCompressionThread()
-   {
-      while (compressionThreadRunning)
-      {
-         writePendingBatches();
-         LockSupport.parkNanos(1_000_000L); // 1ms
-      }
-      // Drain on exit, when the logger shuts down
-      writePendingBatches();
-   }
-
-   private void writePendingBatches()
-   {
-      // Make sure we have a buffer to use
-      if (!batchRingBuffer.poll())
-         return;
-
-      ByteBuffer batch;
-      while ((batch = batchRingBuffer.read()) != null)
-      {
-         long batchTimestamp = batch.getLong(0);
-         batch.rewind();
-         compressedBuffer.clear();
-
-         int compressedSize;
-         try
-         {
-            compressedSize = (int) Zstd.compressByteArray(compressedBuffer.array(), 0, compressedBuffer.capacity(),
-                                                          batch.array(), batch.position(), batch.remaining(),
-                                                          ZSTD_COMPRESSION_LEVEL);
-         }
-         catch (ZstdException e)
-         {
-            LogTools.error("Zstd compression failed, skipping batch: " + e.getMessage());
-            continue;
-         }
-
-         if (Zstd.isError(compressedSize))
-         {
-            LogTools.error("Zstd compression failed, skipping batch: " + Zstd.getErrorName(compressedSize));
-            continue;
-         }
-
-         compressedBuffer.limit(compressedSize);
-         compressedBuffer.position(0);
-
-         synchronized (synchronizer)
-         {
-            if (!clearingLog && dataChannel != null && dataChannel.isOpen())
-            {
-               try
+               if (flushAggressivelyToDisk)
                {
-                  indexBuffer.clear();
-                  indexBuffer.putLong(batchTimestamp);
-                  indexBuffer.putLong(dataChannel.position());
-                  indexBuffer.flip();
-
-                  indexChannel.write(indexBuffer);
-                  dataChannel.write(compressedBuffer);
-
-                  if (flushAggressivelyToDisk && ++currentIndex % FLUSH_EVERY_N_PACKETS == 0)
+                  if (++currentIndex % FLUSH_EVERY_N_PACKETS == 0)
                   {
                      indexChannel.force(false);
                      dataChannel.force(false);
                   }
                }
-               catch (IOException e)
+
+               if (yoVariableSummarizer != null)
                {
-                  throw new RuntimeException(e);
+                  yoVariableSummarizer.update();
                }
+
+               updateStatus();
+            }
+            catch (IOException e)
+            {
+               throw new RuntimeException(e);
             }
          }
       }
-
-      batchRingBuffer.flush();
    }
 
    private void updateStatus()
@@ -414,16 +332,21 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       }
    }
 
-   /**
-    * @return ByteBuffer that is prepared for reading as its position is set to zero and the limit is set to its capacity
-    */
    protected ByteBuffer reconstructBuffer(long timestamp)
    {
+      dataBuffer.clear();
       dataBufferAsLong.clear();
 
       dataBufferAsLong.put(timestamp);
-      dataBufferAsLong.put(dataAsLong);
-      dataBufferAsLong.put(cachedJointStateValues);
+      for (int i = 0; i < variables.size(); i++)
+      {
+         dataBufferAsLong.put(variables.get(i).getValueAsLongBits());
+      }
+
+      for (int i = 0; i < jointStates.size(); i++)
+      {
+         jointStates.get(i).get(dataBufferAsLong);
+      }
 
       dataBufferAsLong.flip();
       dataBuffer.clear();
@@ -434,32 +357,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    public void disconnected()
    {
       LogTools.info("Finalizing log from host: " + request.getHostNameAsString());
-
-      // Commit any partial batch so the compression thread can write it
-      int validTicksInLastBatch;
-      synchronized (synchronizer)
-      {
-         validTicksInLastBatch = batchTickCount;
-         if (batchTickCount > 0 && currentBatchBuffer != null)
-         {
-            currentBatchBuffer.flip();
-            batchRingBuffer.commit();
-            currentBatchBuffer = null;
-            batchTickCount = 0;
-         }
-      }
-
-      // Stop compression thread and wait for it to drain all pending batches
-      compressionThreadRunning = false;
-      LockSupport.unpark(compressionThread);
-      try
-      {
-         compressionThread.join(5000);
-      }
-      catch (InterruptedException e)
-      {
-         Thread.currentThread().interrupt();
-      }
 
       try
       {
@@ -538,16 +435,6 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
             yoVariableSummarizer.writeData(new File(tempDirectory, summaryFilename));
          }
 
-         logProperties.getVariables().setValidTicksInLastBatch(validTicksInLastBatch);
-         try
-         {
-            logProperties.store();
-         }
-         catch (IOException e)
-         {
-            e.printStackTrace();
-         }
-
          doneListener.accept(request);
 
          tempDirectory.renameTo(finalDirectory);
@@ -602,23 +489,13 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       logHandshake(handshake, handshakeParser);
 
       int bufferSize = handshakeParser.getBufferSize();
-      compressedBuffer = ByteBuffer.allocate((int) Zstd.compressBound(bufferSize * COMPRESSION_BATCH_SIZE));
-      batchRingBuffer = new ConcurrentRingBuffer<>(() -> ByteBuffer.allocate(bufferSize * COMPRESSION_BATCH_SIZE), BATCH_RING_BUFFER_SIZE);
-
-      compressionThreadRunning = true;
-      compressionThread = new Thread(this::runCompressionThread, "LoggerCompressionThread");
-      compressionThread.setDaemon(true);
-      compressionThread.start();
-
-      variables = handshakeParser.getYoVariablesList().toArray(new YoVariable[0]);
-      jointStates = handshakeParser.getJointStates().toArray(new JointState[0]);
+      compressedBuffer = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize));
 
       // Initialize disk format variables
       dataBuffer = ByteBuffer.allocate(bufferSize);
       dataBufferAsLong = dataBuffer.asLongBuffer();
-
-      // We can do this because once we connect to a server we don't expect the number of YoVariables to change while we are running
-      dataAsLong = new long[variables.length];
+      variables = handshakeParser.getYoVariablesList();
+      jointStates = handshakeParser.getJointStates();
 
       File dataFile = new File(tempDirectory, dataFilename);
       File indexFile = new File(tempDirectory, indexFilename);
@@ -643,28 +520,21 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                {
                   switch (camera.getType())
                   {
-                     case CAPTURE_CARD_MAGEWELL:
+                     case CameraType.CAPTURE_CARD_MAGEWELL:
                         videoDataLoggers.add(new MagewellVideoDataLogger(camera.getNameAsString(),
-                                                                         camera.getType().name(),
+                                                                         "Magewell",
                                                                          tempDirectory,
                                                                          logProperties,
                                                                          Byte.parseByte(camera.getIdentifierAsString()),
                                                                          options));
                         break;
-                     case CAPTURE_CARD:
+                     case CameraType.CAPTURE_CARD:
                         videoDataLoggers.add(new BlackmagicVideoDataLogger(camera.getNameAsString(),
-                                                                           camera.getType().name(),
+                                                                           "Capture Card",
                                                                            tempDirectory,
                                                                            logProperties,
                                                                            Byte.parseByte(camera.getIdentifierAsString()),
                                                                            options));
-                        break;
-                     case NETWORK_STREAM:
-                        videoDataLoggers.add(new NetworkStreamVideoDataLogger(tempDirectory,
-                                                                              camera.getType().name(),
-                                                                              logProperties,
-                                                                              LogParticipantSettings.videoDomain,
-                                                                              camera.getIdentifierAsString()));
                         break;
                   }
                }
@@ -726,33 +596,10 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
    private void clearLog()
    {
-      // Discard any partial batch and stop accepting new ones
       synchronized (synchronizer)
       {
          clearingLog = true;
-         batchTickCount = 0;
-         currentBatchBuffer = null;
       }
-
-      // Stop compression thread so it can't race with the truncate
-      compressionThreadRunning = false;
-      LockSupport.unpark(compressionThread);
-      try
-      {
-         compressionThread.join(2000);
-      }
-      catch (InterruptedException e)
-      {
-         Thread.currentThread().interrupt();
-      }
-
-      // Drain and discard any pending batches in the ring (they are pre-clear data)
-      if (batchRingBuffer.poll())
-      {
-         while (batchRingBuffer.read() != null) { }
-         batchRingBuffer.flush();
-      }
-
       try
       {
          LogTools.info("Clearing log.");
@@ -767,30 +614,22 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       {
          e.printStackTrace();
       }
-
       if (yoVariableSummarizer != null)
       {
          yoVariableSummarizer.restart();
       }
-
-      // Restart compression thread for new data
       synchronized (synchronizer)
       {
          clearingLog = false;
+
          logStartedTimestamp = System.nanoTime();
       }
-      compressionThreadRunning = true;
-      compressionThread = new Thread(this::runCompressionThread, "LoggerCompressionThread");
-      compressionThread.setDaemon(true);
-      compressionThread.start();
    }
 
    @Override
    public void connected()
    {
-      // Cached data so that when we receive a timestamp we already have the data ready to go
-      dataAsLong = yoVariableClientInterface.getCachedVariableValues();
-      cachedJointStateValues = yoVariableClientInterface.getCachedJointStateValues();
+
    }
 
    @Override
@@ -817,13 +656,13 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       builder.append("Announcement {");
       builder.append("\n  identifier = ");
-      builder.append(announcement.identifier_);
+      builder.append(announcement.getIdentifierAsString());
       builder.append("\n  name = ");
-      builder.append(announcement.name_);
+      builder.append(announcement.getNameAsString());
       builder.append("\n  hostName = ");
-      builder.append(announcement.hostName_);
+      builder.append(announcement.getNameAsString());
       builder.append("\n  log = ");
-      builder.append(announcement.log_);
+      builder.append(announcement.getLog());
       builder.append("\n}");
 
       return builder.toString();

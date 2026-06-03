@@ -12,12 +12,10 @@ import java.util.stream.Collectors;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
-import us.ihmc.idl.serializers.extra.JSONSerializer;
+import logger_msgs.Announcement;
+import logger_msgs.Handshake;
+import us.ihmc.idl.serializers.extra.ROS2JSONSerializer;
 import us.ihmc.multicastLogDataProtocol.modelLoaders.LogModelProvider;
-import us.ihmc.robotDataLogger.Announcement;
-import us.ihmc.robotDataLogger.AnnouncementPubSubType;
-import us.ihmc.robotDataLogger.Handshake;
-import us.ihmc.robotDataLogger.HandshakePubSubType;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.util.HandshakeHashCalculator;
 
@@ -88,14 +86,12 @@ public class DataServerServerContent
             resourceZip = null;
          }
 
-         AnnouncementPubSubType announcementPubSubType = new AnnouncementPubSubType();
-         JSONSerializer<Announcement> announcementSerializer = new JSONSerializer<>(announcementPubSubType);
+         ROS2JSONSerializer<Announcement> announcementSerializer = new ROS2JSONSerializer<>(Announcement.class);
          byte[] announcementData = announcementSerializer.serializeToBytes(announcement);
          announcementBuffer = Unpooled.directBuffer(announcementData.length);
          announcementBuffer.writeBytes(announcementData);
 
-         HandshakePubSubType handshakeType = new HandshakePubSubType();
-         JSONSerializer<Handshake> handshakeSerializer = new JSONSerializer<>(handshakeType);
+         ROS2JSONSerializer<Handshake> handshakeSerializer = new ROS2JSONSerializer<>(Handshake.class);
          byte[] handshakeData = handshakeSerializer.serializeToBytes(handshake);
          this.handshake = handshake;
          handshakeBuffer = Unpooled.directBuffer(handshakeData.length);

@@ -1,12 +1,12 @@
 package us.ihmc.robotDataLogger.logger;
 
 import org.bytedeco.javacpp.BytePointer;
+import logger_msgs.ZEDSDKAnnounce;
 import us.ihmc.commons.exception.DefaultExceptionHandler;
 import us.ihmc.commons.exception.ExceptionTools;
 import us.ihmc.commons.thread.RepeatingTaskThread;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.ZEDSDKAnnounce;
 import us.ihmc.zed.SL_InitParameters;
 import us.ihmc.zed.SL_RuntimeParameters;
 import us.ihmc.zed.ZEDTools;

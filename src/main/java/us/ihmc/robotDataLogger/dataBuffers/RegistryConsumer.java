@@ -1,14 +1,13 @@
 package us.ihmc.robotDataLogger.dataBuffers;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.PriorityBlockingQueue;
-
 import gnu.trove.map.hash.TIntLongHashMap;
+import logger_msgs.LogDataType;
 import us.ihmc.commons.thread.ThreadTools;
-import us.ihmc.robotDataLogger.LogDataType;
 import us.ihmc.robotDataLogger.YoVariableClientImplementation;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
+
+import java.util.concurrent.PriorityBlockingQueue;
 
 public class RegistryConsumer extends Thread
 {
@@ -16,7 +15,6 @@ public class RegistryConsumer extends Thread
 
    //   private final ConcurrentSkipListSet<RegistryReceiveBuffer> orderedBuffers = new ConcurrentSkipListSet<>();
    private final PriorityBlockingQueue<RegistryReceiveBuffer> orderedBuffers = new PriorityBlockingQueue<>();
-   private final ConcurrentLinkedQueue<RegistryReceiveBuffer> bufferPool = new ConcurrentLinkedQueue<>();
    private volatile boolean running = true;
 
    private boolean firstSample = true;
@@ -124,35 +122,20 @@ public class RegistryConsumer extends Thread
       debugRegistry.getTotalPackets().increment();
    }
 
-   public RegistryReceiveBuffer acquire()
-   {
-      RegistryReceiveBuffer buffer = bufferPool.poll();
-      if (buffer == null)
-         buffer = new RegistryReceiveBuffer(0);
-      return buffer;
-   }
-
-   public void release(RegistryReceiveBuffer buffer)
-   {
-      bufferPool.offer(buffer);
-   }
-
    private void handlePackets() throws InterruptedException
    {
       RegistryReceiveBuffer buffer = orderedBuffers.take();
-      if (buffer.getType() == LogDataType.DATA_PACKET)
+      if (buffer.getType().getType() == LogDataType.DATA_PACKET)
       {
 
          long timestamp = buffer.getTimestamp();
 
          decompressBuffer(buffer);
-         release(buffer);
 
          while (!orderedBuffers.isEmpty() && orderedBuffers.peek().getTimestamp() == timestamp)
          {
             RegistryReceiveBuffer next = orderedBuffers.take();
             decompressBuffer(next);
-            release(next);
             debugRegistry.getMergedPackets().increment();
          }
 
@@ -175,7 +158,6 @@ public class RegistryConsumer extends Thread
       else
       {
          //Received keep alive, ignore
-         release(buffer);
       }
    }
 

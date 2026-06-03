@@ -1,15 +1,14 @@
 package us.ihmc.robotDataLogger.logger;
 
+import logger_msgs.LogProperties;
+import us.ihmc.idl.serializers.extra.ROS2PropertiesSerializer;
+
 import java.io.File;
 import java.io.IOException;
 
-import us.ihmc.idl.serializers.extra.PropertiesSerializer;
-import us.ihmc.robotDataLogger.LogProperties;
-import us.ihmc.robotDataLogger.LogPropertiesPubSubType;
-
 public class LogPropertiesWriter extends LogProperties
 {
-   private final static String version = "5.0";
+   private final static String version = "4.0";
    private final File file;
 
    public LogPropertiesWriter(File file)
@@ -27,8 +26,7 @@ public class LogPropertiesWriter extends LogProperties
 
    public void store() throws IOException
    {
-      PropertiesSerializer<LogProperties> serializer = new PropertiesSerializer<>(new LogPropertiesPubSubType());
+      ROS2PropertiesSerializer<LogProperties> serializer = new ROS2PropertiesSerializer<>(LogProperties.class);
       serializer.serialize(file, this);
    }
-
 }

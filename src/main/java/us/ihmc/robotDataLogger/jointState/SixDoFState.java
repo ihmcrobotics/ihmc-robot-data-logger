@@ -1,8 +1,7 @@
 package us.ihmc.robotDataLogger.jointState;
 
-import java.nio.DoubleBuffer;
-import java.nio.LongBuffer;
-
+import logger_msgs.MessageTypes;
+import logger_msgs.JointType;
 import us.ihmc.euclid.orientation.interfaces.Orientation3DBasics;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
@@ -10,7 +9,9 @@ import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.mecano.spatial.Twist;
-import us.ihmc.robotDataLogger.JointType;
+
+import java.nio.DoubleBuffer;
+import java.nio.LongBuffer;
 
 public class SixDoFState extends JointState
 {
@@ -23,7 +24,7 @@ public class SixDoFState extends JointState
 
    public SixDoFState(String name)
    {
-      super(name, JointType.SiXDoFJoint);
+      super(name, MessageTypes.SIXDOF_JOINT);
    }
 
    @Override

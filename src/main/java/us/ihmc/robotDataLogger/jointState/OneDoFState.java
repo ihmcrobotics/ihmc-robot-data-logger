@@ -1,9 +1,10 @@
 package us.ihmc.robotDataLogger.jointState;
 
+import logger_msgs.MessageTypes;
+import logger_msgs.JointType;
+
 import java.nio.DoubleBuffer;
 import java.nio.LongBuffer;
-
-import us.ihmc.robotDataLogger.JointType;
 
 public class OneDoFState extends JointState
 {
@@ -14,7 +15,7 @@ public class OneDoFState extends JointState
 
    public OneDoFState(String name)
    {
-      super(name, JointType.OneDoFJoint);
+      super(name, MessageTypes.ONEDOF_JOINT);
    }
 
    @Override

@@ -1,21 +1,19 @@
 package us.ihmc.robotDataLogger.logger;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import logger_msgs.Camera;
+import logger_msgs.LogProperties;
+import us.ihmc.idl.serializers.extra.CustomDeserializationHandler;
+import us.ihmc.idl.serializers.extra.ROS2PropertiesSerializer;
+
 import java.io.File;
 import java.io.IOException;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import us.ihmc.idl.serializers.extra.CustomDeserializationHandler;
-import us.ihmc.idl.serializers.extra.PropertiesSerializer;
-import us.ihmc.robotDataLogger.Camera;
-import us.ihmc.robotDataLogger.LogProperties;
-import us.ihmc.robotDataLogger.LogPropertiesPubSubType;
 
 public class LogPropertiesReader extends LogProperties
 {
    public LogPropertiesReader(File file)
    {
-      PropertiesSerializer<LogProperties> serializer = new PropertiesSerializer<>(new LogPropertiesPubSubType());
+      ROS2PropertiesSerializer<LogProperties> serializer = new ROS2PropertiesSerializer<>(LogProperties.class);
       serializer.setCustomDeserializationHandler(new LegacyFileHandler());
       try
       {
@@ -33,14 +31,15 @@ public class LogPropertiesReader extends LogProperties
       public void handle(JsonNode node, LogProperties data)
       {
          JsonNode resourceDirectories = node.with("model").get("resourceDirectories");
-         if (resourceDirectories != null)
+         if (resourceDirectories != null && resourceDirectories.isTextual() && data.getModel().getResourceDirectoriesList().size() == 0)
          {
-            System.out.println("Handling legacy resource directories");
-            for (String directory : resourceDirectories.asText().split(","))
-            {
-               System.out.println("Adding directory " + directory);
-               data.getModel().getResourceDirectoriesList().add(directory);
-            }
+            addResourceDirectories(data, resourceDirectories.asText());
+         }
+
+         JsonNode resourceDirectoriesList = node.with("model").get("resourceDirectoriesList");
+         if (resourceDirectoriesList != null && resourceDirectoriesList.isTextual() && data.getModel().getResourceDirectoriesList().size() == 0)
+         {
+            addResourceDirectories(data, resourceDirectoriesList.asText());
          }
 
          JsonNode videoStreams = node.get("videoStreams");
@@ -65,6 +64,16 @@ public class LogPropertiesReader extends LogProperties
             }
          }
       }
-   }
 
+      private static void addResourceDirectories(LogProperties data, String commaSeparatedDirectories)
+      {
+         for (String directory : commaSeparatedDirectories.split(","))
+         {
+            if (!directory.isEmpty())
+            {
+               data.getModel().getResourceDirectoriesList().add(directory);
+            }
+         }
+      }
+   }
 }

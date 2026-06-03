@@ -1,17 +1,18 @@
 package us.ihmc.robotDataLogger.memoryLogger;
 
+import logger_msgs.Announcement;
+import logger_msgs.MessageTypes;
+import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
+import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
+import us.ihmc.robotDataLogger.handshake.LogHandshake;
+import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
+import us.ihmc.robotDataLogger.websocket.server.DataServerServerContent;
+
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-
-import us.ihmc.robotDataLogger.Announcement;
-import us.ihmc.robotDataLogger.HandshakeFileType;
-import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
-import us.ihmc.robotDataLogger.handshake.LogHandshake;
-import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
-import us.ihmc.robotDataLogger.websocket.server.DataServerServerContent;
 
 public class MemoryLogWriter
 {
@@ -112,8 +113,8 @@ public class MemoryLogWriter
             logHandshake.setResourceZip(content.getResourceZip().array());
          }
       }
-     
-      IDLYoVariableHandshakeParser handshakeParser = new IDLYoVariableHandshakeParser(HandshakeFileType.IDL_YAML);
+
+      IDLYoVariableHandshakeParser handshakeParser = (IDLYoVariableHandshakeParser) YoVariableHandshakeParser.create(MessageTypes.IDL_YAML);
       handshakeParser.parseFrom(content.getHandshakeObject());
       
       this.listener = new MemoryLoggerListener(tempDirectory, finalDirectory, timestamp, announcement, handshakeParser);

@@ -1,22 +1,19 @@
 package us.ihmc.robotDataLogger.logger;
 
+import com.google.common.io.Files;
+import logger_msgs.HandshakeFileType;
+import logger_msgs.LogProperties;
+import us.ihmc.idl.serializers.extra.ROS2PropertiesSerializer;
+import us.ihmc.robotDataLogger.LogIndex;
+import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
+import us.ihmc.tools.compression.SnappyUtils;
+
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-
-import com.github.luben.zstd.Zstd;
-import com.google.common.io.Files;
-
-import us.ihmc.idl.serializers.extra.PropertiesSerializer;
-import us.ihmc.robotDataLogger.LogIndex;
-import us.ihmc.robotDataLogger.LogProperties;
-import us.ihmc.robotDataLogger.LogPropertiesPubSubType;
-import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
-import us.ihmc.tools.compression.SnappyUtils;
 
 public class YoVariableLogReader
 {
@@ -27,8 +24,6 @@ public class YoVariableLogReader
 
    private int logLineLength;
    private int numberOfEntries;
-   private int batchSize;
-   private LogCompressionType compressionType;
 
    protected final File handshake;
    private FileChannel logChannel;
@@ -79,6 +74,7 @@ public class YoVariableLogReader
       {
          throw new RuntimeException("Cannot find " + logProperties.getVariables().getHandshakeAsString() + " in " + logDirectory.getAbsolutePath());
       }
+
    }
 
    protected boolean initialize()
@@ -109,18 +105,9 @@ public class YoVariableLogReader
             logChannel = logInputStream.getChannel();
 
             logIndex = new LogIndex(index, logChannel.size());
-            batchSize = logProperties.getVariables().getCompressionBatchSize();
-            if (batchSize <= 0)
-               batchSize = 1;
-            compressionType = logProperties.getVariables().getCompressed() ?
-                  LogCompressionType.fromString(logProperties.getVariables().getCompressionTypeAsString()) :
-                  LogCompressionType.NONE;
             int bufferSize = logLineLength * 8;
-            int rawBatchBytes = bufferSize * batchSize;
-            int maxCompressedBytes =
-                  compressionType == LogCompressionType.ZSTD ? (int) Zstd.compressBound(rawBatchBytes) : SnappyUtils.maxCompressedLength(rawBatchBytes);
-            compressedData = ByteBuffer.allocate(maxCompressedBytes);
-            uncompressedData = ByteBuffer.allocate(rawBatchBytes);
+            compressedData = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize));
+            uncompressedData = ByteBuffer.allocate(bufferSize);
 
             numberOfEntries = logIndex.getNumberOfEntries();
             initialized = true;
@@ -141,16 +128,6 @@ public class YoVariableLogReader
    public int getNumberOfEntries()
    {
       return numberOfEntries;
-   }
-
-   public int getBatchSize()
-   {
-      return batchSize;
-   }
-
-   public int getSingleTickSize()
-   {
-      return logLineLength * 8;
    }
 
    public void close()
@@ -197,28 +174,14 @@ public class YoVariableLogReader
       compressedData.flip();
 
       return compressedData;
+
    }
 
    protected ByteBuffer readData(int position) throws IOException
    {
       ByteBuffer compressedData = readCompressedData(position);
       uncompressedData.clear();
-      switch (compressionType)
-      {
-         case ZSTD ->
-         {
-            long result = Zstd.decompressByteArray(uncompressedData.array(),
-                                                   0,
-                                                   uncompressedData.capacity(),
-                                                   compressedData.array(),
-                                                   compressedData.position(),
-                                                   compressedData.remaining());
-            if (Zstd.isError(result))
-               throw new IOException("Zstd decompression failed: " + Zstd.getErrorName(result));
-            uncompressedData.position((int) result);
-         }
-         default -> SnappyUtils.uncompress(compressedData, uncompressedData);
-      }
+      SnappyUtils.uncompress(compressedData, uncompressedData);
       uncompressedData.flip();
       return uncompressedData;
    }
@@ -226,7 +189,7 @@ public class YoVariableLogReader
    protected void copyMetaData(File destination) throws IOException
    {
       File propertiesDestination = new File(destination, YoVariableLoggerListener.propertyFile);
-      PropertiesSerializer<LogProperties> serializer = new PropertiesSerializer<>(new LogPropertiesPubSubType());
+      ROS2PropertiesSerializer<LogProperties> serializer = new ROS2PropertiesSerializer<>(LogProperties.class);
       serializer.serialize(propertiesDestination, logProperties);
 
       File handShakeDestination = new File(destination, logProperties.getVariables().getHandshakeAsString());
@@ -249,4 +212,5 @@ public class YoVariableLogReader
          Files.copy(summary, summaryDestination);
       }
    }
+
 }

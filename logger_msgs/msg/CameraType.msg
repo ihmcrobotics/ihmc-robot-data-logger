@@ -1,0 +1,3 @@
+uint8 CAPTURE_CARD_MAGEWELL=0
+uint8 CAPTURE_CARD=1
+uint8 type 0

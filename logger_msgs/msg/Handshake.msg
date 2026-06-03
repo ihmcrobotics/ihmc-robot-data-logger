@@ -1,0 +1,10 @@
+float64 dt
+YoRegistryDefinition[] registries
+YoVariableDefinition[] variables
+JointDefinition[] joints
+SCS1YoGraphicObjectMessage[] graphicObjects
+SCS1YoGraphicObjectMessage[] artifacts
+SCS2YoGraphicDefinitionMessage[] scs2YoGraphicDefinitions
+EnumType[] enumTypes
+ReferenceFrameInformation referenceFrameInformation
+Summary summary

@@ -1,5 +1,12 @@
 package us.ihmc.robotDataLogger.logger.converters;
 
+import logger_msgs.LogProperties;
+import us.ihmc.idl.serializers.extra.ROS2PropertiesSerializer;
+import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
+import us.ihmc.robotDataLogger.logger.LogPropertiesReader;
+import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
+import us.ihmc.tools.compression.SnappyUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,14 +23,6 @@ import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-
-import us.ihmc.idl.serializers.extra.PropertiesSerializer;
-import us.ihmc.robotDataLogger.LogProperties;
-import us.ihmc.robotDataLogger.LogPropertiesPubSubType;
-import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
-import us.ihmc.robotDataLogger.logger.LogPropertiesReader;
-import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
-import us.ihmc.tools.compression.SnappyUtils;
 
 public class LogCompressor extends SimpleFileVisitor<Path>
 {
@@ -155,7 +154,7 @@ public class LogCompressor extends SimpleFileVisitor<Path>
          logChannel.close();
 
          File log = new File(directory, "robotData.log");
-         PropertiesSerializer<LogProperties> writer = new PropertiesSerializer<>(new LogPropertiesPubSubType());
+         ROS2PropertiesSerializer<LogProperties> writer = new ROS2PropertiesSerializer<>(LogProperties.class);
          writer.serialize(log, properties);
 
          logdata.delete();

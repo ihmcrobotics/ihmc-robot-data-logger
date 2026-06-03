@@ -1,16 +1,15 @@
 package us.ihmc.robotDataLogger.logger;
 
+import logger_msgs.Handshake;
+import logger_msgs.HandshakeFileType;
 import us.ihmc.commons.exception.DefaultExceptionHandler;
 import us.ihmc.commons.nio.FileTools;
 import us.ihmc.commons.thread.RepeatingTaskThread;
 import us.ihmc.concurrent.ConcurrentRingBuffer;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.idl.serializers.extra.YAMLSerializer;
+import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
 import us.ihmc.log.LogTools;
 import us.ihmc.multicastLogDataProtocol.modelLoaders.LogModelProvider;
-import us.ihmc.robotDataLogger.Handshake;
-import us.ihmc.robotDataLogger.HandshakeFileType;
-import us.ihmc.robotDataLogger.HandshakePubSubType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandShakeBuilder;
 import us.ihmc.robotDataLogger.jointState.JointHolder;
@@ -122,7 +121,7 @@ public class IntraprocessYoVariableLogger
 
          Handshake handshake = handshakeBuilder.getHandShake();
 
-         YAMLSerializer<Handshake> serializer = new YAMLSerializer<>(new HandshakePubSubType());
+         ROS2YAMLSerializer<Handshake> serializer = new ROS2YAMLSerializer<>(Handshake.class);
          serializer.serialize(createFileInLogFolder(HANDSHAKE_FILENAME), handshake);
 
          LogPropertiesWriter logProperties = new LogPropertiesWriter(createFileInLogFolder(PROPERTY_FILE));

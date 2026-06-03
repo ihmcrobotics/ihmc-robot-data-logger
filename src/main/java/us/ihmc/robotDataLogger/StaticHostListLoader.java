@@ -1,5 +1,11 @@
 package us.ihmc.robotDataLogger;
 
+import logger_msgs.Host;
+import logger_msgs.StaticHostList;
+import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
+import us.ihmc.log.LogTools;
+import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -7,10 +13,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import us.ihmc.idl.serializers.extra.YAMLSerializer;
-import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 
 public class StaticHostListLoader
 {
@@ -45,7 +47,7 @@ public class StaticHostListLoader
    
    public static StaticHostList loadHostList(String data) throws IOException
    {
-      YAMLSerializer<StaticHostList> ser = new YAMLSerializer<>(new StaticHostListPubSubType());
+      ROS2YAMLSerializer<StaticHostList> ser = new ROS2YAMLSerializer<>(StaticHostList.class);
       ser.setAddTypeAsRootNode(false);
 
       return ser.deserialize(data);
@@ -59,8 +61,10 @@ public class StaticHostListLoader
       {
          List<HTTPDataServerDescription> list = new ArrayList<>();
          StaticHostList hostList = loadHostList(data);
-         for (Host host : hostList.getHosts())
+
+         for (int i = 0; i < hostList.getHosts().size(); i++)
          {
+            Host host = hostList.getHosts().get(i);
             HTTPDataServerDescription description = new HTTPDataServerDescription(host.getHostnameAsString(), host.getPort(), host.getCameras(), true);
             list.add(description);
          }
@@ -83,13 +87,14 @@ public class StaticHostListLoader
       {
          Host host = staticHostList.getHosts().add();
          host.setHostname(description.getHost());
-         host.setPort(description.getPort());
+         host.setPort((short) description.getPort());
          
          if (description.getCameraList() != null)
          {
+            host.getCameras().ensureMinCapacity(description.getCameraList().size());
             for (int i = 0; i < description.getCameraList().size(); i++)
             {
-               host.getCameras().add(description.getCameraList().get(i));
+               host.getCameras().getBuffer().put(i, description.getCameraList().getBuffer().get(i));
             }
          }
       }
@@ -100,7 +105,7 @@ public class StaticHostListLoader
 
    public static String toString(StaticHostList staticHostList) throws IOException
    {
-      YAMLSerializer<StaticHostList> ser = new YAMLSerializer<>(new StaticHostListPubSubType());
+      ROS2YAMLSerializer<StaticHostList> ser = new ROS2YAMLSerializer<>(StaticHostList.class);
       ser.setAddTypeAsRootNode(false);
       return ser.serializeToString(staticHostList);
    }

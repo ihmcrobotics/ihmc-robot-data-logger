@@ -1,9 +1,10 @@
 package us.ihmc.robotDataLogger.logger;
 
+import com.martiansoftware.jsap.JSAPException;
+import logger_msgs.Announcement;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.StaticHostListLoader;
 import us.ihmc.robotDataLogger.interfaces.DataServerDiscoveryListener;
 import us.ihmc.robotDataLogger.websocket.DataServerLocationBroadcast;
@@ -44,18 +45,13 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       discoveryClient = new DataServerDiscoveryClient(this, enableAutoDiscovery);
       discoveryClient.addHosts(StaticHostListLoader.load());
 
-      //TODO (intern) - Ideally we could still prevent two loggers running on windows at the same time but the creation of the socket needs to be modified.
-      String os = System.getProperty("os.name").toLowerCase();
-      if (!os.contains("win"))
+      // We allow for multiple instances of the logger to be run on the same machine
+      if (!options.isAllowManyInstances() && discoveryClient.getBindException() != null)
       {
-         // We allow for multiple instances of the logger to be run on the same machine
-         if (!options.isAllowManyInstances() && discoveryClient.getBindException() != null)
-         {
-            LogTools.error("The bind multicast port (" + DataServerLocationBroadcast.announcePort + ") is in use. Is there another logger running?");
-            ThreadTools.sleep((long) Conversions.secondsToMilliseconds(3));
-            LogTools.error("Shutting down...");
-            System.exit(0);
-         }
+         LogTools.error("The bind multicast port (" + DataServerLocationBroadcast.announcePort + ") is in use. Is there another logger running?");
+         ThreadTools.sleep((long) Conversions.secondsToMilliseconds(3));
+         LogTools.error("Shutting down...");
+         System.exit(0);
       }
 
       Runtime.getRuntime().addShutdownHook(new Thread(() ->
@@ -68,7 +64,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       ThreadTools.sleepForever();
    }
 
-   public static void main(String[] args) throws IOException, InterruptedException
+   public static void main(String[] args) throws JSAPException, IOException, InterruptedException
    {
       YoVariableLoggerOptions options = YoVariableLoggerOptions.parse(args);
       new YoVariableLoggerDispatcher(options);
