@@ -35,6 +35,15 @@ import us.ihmc.jros2.ROS2Message;
  */
 class CDRInterchangeSerializer
 {
+   private static final String[] LOGGER_MSGS_BYTE_ENUM_CLASSES = {
+         "logger_msgs.CameraType",
+         "logger_msgs.JointType",
+         "logger_msgs.YoType",
+         "logger_msgs.HandshakeFileType",
+         "logger_msgs.LoadStatus",
+         "logger_msgs.LogDataType",
+   };
+
    private final ObjectNode node;
 
    CDRInterchangeSerializer(ObjectNode node)
@@ -827,8 +836,34 @@ class CDRInterchangeSerializer
       }
       catch (NumberFormatException e)
       {
+         Byte resolved = lookupLoggerMsgsByteConstant(value);
+         if (resolved != null)
+         {
+            return resolved;
+         }
          throw new RuntimeException("Cannot parse byte field " + fieldName + " from value: " + value, e);
       }
+   }
+
+   private Byte lookupLoggerMsgsByteConstant(String constantName)
+   {
+      for (String className : LOGGER_MSGS_BYTE_ENUM_CLASSES)
+      {
+         try
+         {
+            java.lang.reflect.Field field = Class.forName(className).getField(constantName);
+            if (field.getType() == byte.class
+                && java.lang.reflect.Modifier.isStatic(field.getModifiers())
+                && java.lang.reflect.Modifier.isFinal(field.getModifiers()))
+            {
+               return field.getByte(null);
+            }
+         }
+         catch (ReflectiveOperationException ignored)
+         {
+         }
+      }
+      return null;
    }
 
    private Object deserializeArray(JsonNode arrayNode, Class<?> arrayType)
