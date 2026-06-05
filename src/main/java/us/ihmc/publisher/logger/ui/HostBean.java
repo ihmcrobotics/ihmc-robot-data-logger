@@ -84,12 +84,11 @@ public class HostBean
    {
       host.setHostname(getHostname());
       host.setPort((short) getPort());
-      host.getCameras().ensureMinCapacity(getCameras().cameras.size());
+      host.getCameras().clear();
 
       for (int i = 0; i < getCameras().cameras.size(); i++)
       {
-         byte camera = getCameras().cameras.get(i);
-         host.getCameras().getBuffer().put(i, camera);
+         host.getCameras().add(getCameras().cameras.get(i));
       }
    }
 }

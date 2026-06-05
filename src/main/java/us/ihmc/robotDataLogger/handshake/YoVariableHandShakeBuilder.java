@@ -330,13 +330,8 @@ public class YoVariableHandShakeBuilder
             ReferenceFrame frame = iterator.next();
             referenceFrameInformation.getFrameNames().add(frame.getName());
 
-            // Store frame index using indexed put - the parser reads using getBuffer().get(i)
-            referenceFrameInformation.getFrameIndices().getBuffer().put(i, (int) frame.getFrameIndex());
+            referenceFrameInformation.getFrameIndices().add((int) frame.getFrameIndex());
          }
-
-         // Set position to the number of elements so size() returns the correct value
-         // Do NOT set limit() - let it remain at capacity
-         referenceFrameInformation.getFrameIndices().getBuffer().position(i);
 
          if (frames.size() > packetSizeLimit)
          {
