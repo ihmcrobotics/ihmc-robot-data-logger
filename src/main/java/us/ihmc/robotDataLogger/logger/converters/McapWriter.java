@@ -107,14 +107,9 @@ class McapWriter implements Closeable
       byte[] recordData = buf.array();
       writeRecord(OP_SCHEMA, recordData);
 
-      // Minimal version for the summary: same id/name/encoding but zero data bytes.
-      int minLen = 2 + nameBytes.length + encodingBytes.length + 4; // 4 = uint32 data-length field
-      ByteBuffer min = ByteBuffer.allocate(minLen).order(ByteOrder.LITTLE_ENDIAN);
-      min.putShort((short) id);
-      min.put(nameBytes);
-      min.put(encodingBytes);
-      min.putInt(0);
-      summarySchemaRecords.add(min.array());
+      // Summary section must carry full schema data so readers (e.g. Foxglove) can decode
+      // messages using the index without scanning the data section — required for CDR.
+      summarySchemaRecords.add(recordData);
 
       schemaCount++;
    }

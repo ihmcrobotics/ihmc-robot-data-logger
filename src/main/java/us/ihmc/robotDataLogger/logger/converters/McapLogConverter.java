@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedHashMap;
@@ -37,7 +39,7 @@ import us.ihmc.yoVariables.variable.YoVariable;
  *   <li>One channel per YoRegistry that contains variables, topic = full registry path.</li>
  *   <li>One channel per joint, topic = {@code /joints/<jointName>}.</li>
  * </ul>
- * All messages use JSON encoding with a JSON Schema declaration so Foxglove can
+ * All messages use CDR binary encoding with ros2msg schema declarations so Foxglove can
  * display and plot fields without any additional configuration.
  * <p>
  * The output file is non-indexed (no chunk records), so Foxglove will scan from the
@@ -87,10 +89,11 @@ public class McapLogConverter extends YoVariableLogReader
             YoRegistry       registry   = entry.getKey();
             List<Integer>    varIndices = entry.getValue();
             int              channelId  = nextId++;
-            byte[]           schema     = buildRegistrySchema(registry, varIndices, variables);
+            String           topic      = registryTopic(registry);
+            byte[]           schema     = buildRegistrySchemaRos2(varIndices, variables);
 
-            mcap.addSchema(channelId, registry.getName(), "jsonschema", schema);
-            mcap.addChannel(channelId, channelId, registryTopic(registry), "json", Collections.emptyMap());
+            mcap.addSchema(channelId, topic, "ros2msg", schema);
+            mcap.addChannel(channelId, channelId, topic, "cdr", Collections.emptyMap());
             registryChannelIds.put(registry, channelId);
          }
 
@@ -99,10 +102,11 @@ public class McapLogConverter extends YoVariableLogReader
          for (JointState joint : jointStates)
          {
             int    channelId = nextId++;
-            byte[] schema    = buildJointSchema(joint);
+            String topic     = "/joints/" + joint.getName();
+            byte[] schema    = buildJointSchemaRos2(joint);
 
-            mcap.addSchema(channelId, joint.getName(), "jsonschema", schema);
-            mcap.addChannel(channelId, channelId, "/joints/" + joint.getName(), "json", Collections.emptyMap());
+            mcap.addSchema(channelId, topic, "ros2msg", schema);
+            mcap.addChannel(channelId, channelId, topic, "cdr", Collections.emptyMap());
             jointChannelIds.put(joint, channelId);
          }
 
@@ -136,18 +140,18 @@ public class McapLogConverter extends YoVariableLogReader
                for (int i = 0; i < numberOfJointStateVars; i++)
                   jointValues[i] = batchData.getLong();
 
-               // Write one JSON message per registry channel.
+               // Write one CDR message per registry channel.
                for (Map.Entry<YoRegistry, List<Integer>> entry : registryToVarIndices.entrySet())
                {
-                  byte[] msgBytes = buildRegistryMessage(entry.getValue(), variables);
+                  byte[] msgBytes = buildRegistryCdrMessage(entry.getValue(), variables);
                   mcap.writeMessage(registryChannelIds.get(entry.getKey()), timestamp, timestamp, msgBytes);
                }
 
-               // Write one JSON message per joint channel.
+               // Write one CDR message per joint channel.
                int jointOffset = 0;
                for (JointState joint : jointStates)
                {
-                  byte[] msgBytes = buildJointMessage(joint, jointValues, jointOffset);
+                  byte[] msgBytes = buildJointCdrMessage(joint, jointValues, jointOffset);
                   mcap.writeMessage(jointChannelIds.get(joint), timestamp, timestamp, msgBytes);
                   jointOffset += joint.getNumberOfStateVariables();
                }
@@ -160,142 +164,129 @@ public class McapLogConverter extends YoVariableLogReader
 
    // ── Schema builders ──────────────────────────────────────────────────────────
 
-   private static byte[] buildRegistrySchema(YoRegistry registry, List<Integer> varIndices, List<YoVariable> variables)
+   private static byte[] buildRegistrySchemaRos2(List<Integer> varIndices, List<YoVariable> variables)
    {
-      StringBuilder sb = new StringBuilder("{\"title\":\"")
-            .append(escapeJson(registry.getName()))
-            .append("\",\"type\":\"object\",\"properties\":{");
-      boolean first = true;
+      StringBuilder sb = new StringBuilder();
       for (int idx : varIndices)
       {
-         if (!first) sb.append(',');
          YoVariable v = variables.get(idx);
-         sb.append('"').append(escapeJson(v.getName())).append("\":").append(jsonSchemaType(v));
-         first = false;
+         sb.append(ros2MsgType(v)).append(' ').append(toSnakeCase(v.getName())).append('\n');
       }
-      sb.append("}}");
       return sb.toString().getBytes(StandardCharsets.UTF_8);
    }
 
-   private static String jsonSchemaType(YoVariable v)
+   private static String toSnakeCase(String name)
    {
-      if (v instanceof YoDouble)  return "{\"type\":\"number\"}";
-      if (v instanceof YoBoolean) return "{\"type\":\"boolean\"}";
-      if (v instanceof YoInteger) return "{\"type\":\"integer\"}";
-      if (v instanceof YoLong)    return "{\"type\":\"integer\"}";
-      if (v instanceof YoEnum)    return "{\"type\":\"string\"}";
-      return "{\"type\":\"string\"}";
+      String s = name
+            .replaceAll("([a-z0-9])([A-Z])", "$1_$2")    // fooBar → foo_Bar
+            .replaceAll("([A-Z]+)([A-Z][a-z])", "$1_$2") // XMLParser → XML_Parser
+            .toLowerCase()
+            .replaceAll("_+", "_");                        // collapse any consecutive underscores
+      while (s.startsWith("_")) s = s.substring(1);
+      while (s.endsWith("_"))   s = s.substring(0, s.length() - 1);
+      if (!s.isEmpty() && Character.isDigit(s.charAt(0)))
+         s = "f_" + s;
+      return s;
    }
 
-   private static byte[] buildJointSchema(JointState joint)
+   private static String ros2MsgType(YoVariable v)
    {
-      String json;
+      if (v instanceof YoDouble)  return "float64";
+      if (v instanceof YoBoolean) return "bool";
+      if (v instanceof YoInteger) return "int32";
+      if (v instanceof YoLong)    return "int64";
+      return "string"; // YoEnum and unknown types
+   }
+
+   private static byte[] buildJointSchemaRos2(JointState joint)
+   {
+      String schema;
       if (joint instanceof OneDoFState)
       {
-         json = "{\"title\":\"" + escapeJson(joint.getName()) + "\","
-               + "\"type\":\"object\","
-               + "\"properties\":{"
-               + "\"q\":{\"type\":\"number\",\"description\":\"Position (rad)\"},"
-               + "\"qd\":{\"type\":\"number\",\"description\":\"Velocity (rad/s)\"}}}";
+         schema = "float64 q\nfloat64 qd\n";
       }
       else
       {
          // SixDoFState layout in buffer: qs,qx,qy,qz | tx,ty,tz | angX,angY,angZ | linX,linY,linZ
-         json = "{\"title\":\"" + escapeJson(joint.getName()) + "\","
-               + "\"type\":\"object\","
-               + "\"properties\":{"
-               + "\"rotation\":{\"type\":\"object\",\"properties\":{\"s\":{\"type\":\"number\"},\"x\":{\"type\":\"number\"},\"y\":{\"type\":\"number\"},\"z\":{\"type\":\"number\"}}},"
-               + "\"translation\":{\"type\":\"object\",\"properties\":{\"x\":{\"type\":\"number\"},\"y\":{\"type\":\"number\"},\"z\":{\"type\":\"number\"}}},"
-               + "\"angularTwist\":{\"type\":\"object\",\"properties\":{\"x\":{\"type\":\"number\"},\"y\":{\"type\":\"number\"},\"z\":{\"type\":\"number\"}}},"
-               + "\"linearTwist\":{\"type\":\"object\",\"properties\":{\"x\":{\"type\":\"number\"},\"y\":{\"type\":\"number\"},\"z\":{\"type\":\"number\"}}}"
-               + "}}";
+         schema = "float64 rotation_s\nfloat64 rotation_x\nfloat64 rotation_y\nfloat64 rotation_z\n"
+               + "float64 translation_x\nfloat64 translation_y\nfloat64 translation_z\n"
+               + "float64 angular_twist_x\nfloat64 angular_twist_y\nfloat64 angular_twist_z\n"
+               + "float64 linear_twist_x\nfloat64 linear_twist_y\nfloat64 linear_twist_z\n";
       }
-      return json.getBytes(StandardCharsets.UTF_8);
+      return schema.getBytes(StandardCharsets.UTF_8);
    }
 
    // ── Message builders ─────────────────────────────────────────────────────────
 
-   private static byte[] buildRegistryMessage(List<Integer> varIndices, List<YoVariable> variables)
+   private static byte[] buildRegistryCdrMessage(List<Integer> varIndices, List<YoVariable> variables)
    {
-      StringBuilder sb = new StringBuilder("{");
-      boolean first = true;
+      // Upper bound: 4-byte header + per variable: 8 alignment + 8 data (or 269 for enum strings)
+      int maxSize = 4;
+      for (int idx : varIndices)
+         maxSize += (variables.get(idx) instanceof YoEnum) ? 269 : 15;
+
+      ByteBuffer buf = ByteBuffer.allocate(maxSize).order(ByteOrder.LITTLE_ENDIAN);
+      buf.put((byte) 0x00); buf.put((byte) 0x01); buf.put((byte) 0x00); buf.put((byte) 0x00);
+
       for (int idx : varIndices)
       {
-         if (!first) sb.append(',');
          YoVariable v = variables.get(idx);
-         sb.append('"').append(escapeJson(v.getName())).append("\":").append(jsonValue(v));
-         first = false;
+         if (v instanceof YoDouble)
+         {
+            cdrAlign(buf, 8);
+            buf.putDouble(((YoDouble) v).getValue());
+         }
+         else if (v instanceof YoBoolean)
+         {
+            buf.put(((YoBoolean) v).getValue() ? (byte) 1 : (byte) 0);
+         }
+         else if (v instanceof YoInteger)
+         {
+            cdrAlign(buf, 4);
+            buf.putInt(((YoInteger) v).getValue());
+         }
+         else if (v instanceof YoLong)
+         {
+            cdrAlign(buf, 8);
+            buf.putLong(((YoLong) v).getValue());
+         }
+         else if (v instanceof YoEnum)
+         {
+            cdrAlign(buf, 4);
+            String s = v.getValueAsString();
+            byte[] strBytes = (s != null ? s : "").getBytes(StandardCharsets.UTF_8);
+            buf.putInt(strBytes.length + 1); // CDR string length includes null terminator
+            buf.put(strBytes);
+            buf.put((byte) 0);
+         }
       }
-      sb.append('}');
-      return sb.toString().getBytes(StandardCharsets.UTF_8);
+
+      return Arrays.copyOf(buf.array(), buf.position());
    }
 
-   private static String jsonValue(YoVariable v)
+   private static byte[] buildJointCdrMessage(JointState joint, long[] jointValues, int offset)
    {
-      if (v instanceof YoDouble)
-      {
-         double d = ((YoDouble) v).getValue();
-         if (Double.isNaN(d) || Double.isInfinite(d)) return "null";
-         return Double.toString(d);
-      }
-      if (v instanceof YoBoolean) return Boolean.toString(((YoBoolean) v).getValue());
-      if (v instanceof YoInteger) return Integer.toString(((YoInteger) v).getValue());
-      if (v instanceof YoLong)    return Long.toString(((YoLong) v).getValue());
-      if (v instanceof YoEnum)
-      {
-         String s = v.getValueAsString();
-         if (s == null) return "null";
-         return "\"" + escapeJson(s) + "\"";
-      }
-      return "null";
-   }
-
-   private static byte[] buildJointMessage(JointState joint, long[] jointValues, int offset)
-   {
-      StringBuilder sb = new StringBuilder("{");
-      if (joint instanceof OneDoFState)
-      {
-         double q  = Double.longBitsToDouble(jointValues[offset]);
-         double qd = Double.longBitsToDouble(jointValues[offset + 1]);
-         sb.append("\"q\":").append(doubleOrNull(q))
-           .append(",\"qd\":").append(doubleOrNull(qd));
-      }
-      else
-      {
-         // SixDoFState: 13 values (see SixDoFState.update)
-         double qs   = Double.longBitsToDouble(jointValues[offset]);
-         double qx   = Double.longBitsToDouble(jointValues[offset + 1]);
-         double qy   = Double.longBitsToDouble(jointValues[offset + 2]);
-         double qz   = Double.longBitsToDouble(jointValues[offset + 3]);
-         double tx   = Double.longBitsToDouble(jointValues[offset + 4]);
-         double ty   = Double.longBitsToDouble(jointValues[offset + 5]);
-         double tz   = Double.longBitsToDouble(jointValues[offset + 6]);
-         double angX = Double.longBitsToDouble(jointValues[offset + 7]);
-         double angY = Double.longBitsToDouble(jointValues[offset + 8]);
-         double angZ = Double.longBitsToDouble(jointValues[offset + 9]);
-         double linX = Double.longBitsToDouble(jointValues[offset + 10]);
-         double linY = Double.longBitsToDouble(jointValues[offset + 11]);
-         double linZ = Double.longBitsToDouble(jointValues[offset + 12]);
-
-         sb.append("\"rotation\":{\"s\":").append(doubleOrNull(qs))
-           .append(",\"x\":").append(doubleOrNull(qx))
-           .append(",\"y\":").append(doubleOrNull(qy))
-           .append(",\"z\":").append(doubleOrNull(qz)).append('}');
-         sb.append(",\"translation\":{\"x\":").append(doubleOrNull(tx))
-           .append(",\"y\":").append(doubleOrNull(ty))
-           .append(",\"z\":").append(doubleOrNull(tz)).append('}');
-         sb.append(",\"angularTwist\":{\"x\":").append(doubleOrNull(angX))
-           .append(",\"y\":").append(doubleOrNull(angY))
-           .append(",\"z\":").append(doubleOrNull(angZ)).append('}');
-         sb.append(",\"linearTwist\":{\"x\":").append(doubleOrNull(linX))
-           .append(",\"y\":").append(doubleOrNull(linY))
-           .append(",\"z\":").append(doubleOrNull(linZ)).append('}');
-      }
-      sb.append('}');
-      return sb.toString().getBytes(StandardCharsets.UTF_8);
+      int numFields = joint.getNumberOfStateVariables();
+      // 4-byte header + 4-byte alignment pad + numFields float64s
+      ByteBuffer buf = ByteBuffer.allocate(4 + 4 + numFields * 8).order(ByteOrder.LITTLE_ENDIAN);
+      buf.put((byte) 0x00); buf.put((byte) 0x01); buf.put((byte) 0x00); buf.put((byte) 0x00);
+      cdrAlign(buf, 8);
+      for (int i = 0; i < numFields; i++)
+         buf.putDouble(Double.longBitsToDouble(jointValues[offset + i]));
+      return buf.array();
    }
 
    // ── Utilities ────────────────────────────────────────────────────────────────
+
+   private static void cdrAlign(ByteBuffer buf, int alignment)
+   {
+      int rem = buf.position() % alignment;
+      if (rem != 0)
+      {
+         int pad = alignment - rem;
+         for (int i = 0; i < pad; i++) buf.put((byte) 0);
+      }
+   }
 
    private static String registryTopic(YoRegistry registry)
    {
@@ -309,20 +300,10 @@ public class McapLogConverter extends YoVariableLogReader
       return "/" + String.join("/", parts);
    }
 
-   private static String doubleOrNull(double d)
-   {
-      return (Double.isNaN(d) || Double.isInfinite(d)) ? "null" : Double.toString(d);
-   }
-
-   private static String escapeJson(String s)
-   {
-      return s.replace("\\", "\\\\").replace("\"", "\\\"");
-   }
-
    // ── Entry point ───────────────────────────────────────────────────────────────
 
    // Set this to the log directory you want to convert, then run main().
-   private static final String LOG_DIRECTORY = "/Users/wayne/Documents/20260529_152027_WalkingAttemptTwoStepsFailure/p";
+   private static final String LOG_DIRECTORY = "/Users/wayne/Documents/20260529_152027_WalkingAttemptTwoStepsFailure/";
 
    public static void main(String[] args) throws IOException
    {
