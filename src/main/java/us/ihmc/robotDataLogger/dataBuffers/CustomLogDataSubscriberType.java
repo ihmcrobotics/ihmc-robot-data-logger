@@ -31,41 +31,38 @@ public class CustomLogDataSubscriberType extends LogData
 
    /**
     * Deserialize from CDRBuffer into a RegistryReceiveBuffer.
-    * This method handles decompression of the variable data.
+    * Wire format matches {@link CustomLogDataPublisherType}, not generated {@link LogData#deserialize}.
     */
    public void deserialize(CDRBuffer cdrBuffer, RegistryReceiveBuffer buffer)
    {
-      // Deserialize using parent class method
-      super.deserialize(cdrBuffer);
+      cdrBuffer.readPayloadHeader();
 
-      // Copy fields to RegistryReceiveBuffer
-      buffer.setUid(getUid());
-      buffer.setTimestamp(getTimestamp());
-      buffer.setTransmitTime(getTransmitTime());
-      buffer.getType().setType(getType());
-      buffer.setRegistryID(getRegistry());
-      buffer.setNumberOfVariables(getNumberOfVariables());
+      buffer.setUid(cdrBuffer.readLong());
+      buffer.setTimestamp(cdrBuffer.readLong());
+      buffer.setTransmitTime(cdrBuffer.readLong());
 
-      // Handle data decompression for DATA_PACKET types
-      if (getType() == LogDataType.DATA_PACKET)
+      byte packetType = cdrBuffer.readByte();
+      buffer.getType().setType(packetType);
+
+      buffer.setRegistryID(cdrBuffer.readInt());
+      buffer.setNumberOfVariables(cdrBuffer.readInt());
+
+      if (packetType == LogDataType.DATA_PACKET)
       {
-         // Get compressed data
-         int compressedSize = getData().size();
+         int compressedSize = cdrBuffer.readInt();
          ByteBuffer compressedBuffer = buffer.allocateBuffer(compressedSize);
-
-         // Copy compressed data from IDLByteSequence to ByteBuffer
-         ByteBuffer sourceBuffer = getData().getBuffer();
-         sourceBuffer.position(0);
-         sourceBuffer.limit(compressedSize);
-         compressedBuffer.put(sourceBuffer);
+         ByteBuffer sourceBuffer = cdrBuffer.getBufferUnsafe();
+         for (int i = 0; i < compressedSize; i++)
+         {
+            compressedBuffer.put(sourceBuffer.get());
+         }
          compressedBuffer.flip();
 
-         // Copy joint states
-         int stateLength = getJointStates().size();
+         int stateLength = cdrBuffer.readInt();
          double[] states = buffer.allocateStates(stateLength);
          for (int i = 0; i < stateLength; i++)
          {
-            states[i] = getJointStates().getBuffer().get(i);
+            states[i] = cdrBuffer.readDouble();
          }
       }
    }
@@ -83,7 +80,6 @@ public class CustomLogDataSubscriberType extends LogData
       currentAlignment += 8 + CDRBuffer.alignment(currentAlignment, 8); // transmitTime
       currentAlignment += 1 + CDRBuffer.alignment(currentAlignment, 1); // type
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // registry
-      currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // offset
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // numberOfVariables
 
       // Maximum compressed data size

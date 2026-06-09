@@ -67,7 +67,7 @@ public class CustomLogDataPublisherType extends LogData
 
       buffer.writeLong(data.getTransmitTime());
 
-      buffer.writeInt(data.getType().getType());
+      buffer.writeByte(data.getType().getType());
 
       buffer.writeInt(data.getRegistryID());
 
