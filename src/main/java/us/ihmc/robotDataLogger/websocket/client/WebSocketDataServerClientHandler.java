@@ -25,6 +25,8 @@ import us.ihmc.robotDataLogger.dataBuffers.RegistryConsumer;
 import us.ihmc.robotDataLogger.dataBuffers.RegistryReceiveBuffer;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 
+import java.nio.ByteBuffer;
+
 public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandler<Object>
 {
    private final WebSocketClientHandshaker handshaker;
@@ -108,11 +110,14 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
       {
          RegistryReceiveBuffer buffer = new RegistryReceiveBuffer(System.nanoTime());
 
-         // TODO jros2: Ensure garbage free?
+         int readableBytes = frame.content().readableBytes();
          CDRBuffer cdrBuffer = new CDRBuffer();
-         cdrBuffer.ensureRemainingCapacity(frame.content().readableBytes());
-
-         frame.content().readBytes(cdrBuffer.getBufferUnsafe());
+         cdrBuffer.ensureRemainingCapacity(readableBytes);
+         ByteBuffer payloadBuffer = cdrBuffer.getBufferUnsafe();
+         payloadBuffer.position(0);
+         payloadBuffer.limit(readableBytes);
+         frame.content().readBytes(payloadBuffer);
+         payloadBuffer.flip();
 
          type.deserialize(cdrBuffer, buffer);
 
@@ -163,7 +168,7 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
    @Override
    public void exceptionCaught(ChannelHandlerContext context, Throwable cause)
    {
-      LogTools.warn("Connection closed: " + cause.getMessage());
+      LogTools.warn("Connection closed: {} ({})", cause.getClass().getSimpleName(), cause.getMessage(), cause);
       if (!handshakeFuture.isDone())
       {
          handshakeFuture.setFailure(cause);
