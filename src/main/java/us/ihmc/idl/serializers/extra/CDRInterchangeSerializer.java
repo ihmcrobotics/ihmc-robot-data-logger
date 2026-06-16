@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import us.ihmc.fastddsjava.cdr.CDRBuffer;
+import us.ihmc.fastddsjava.cdr.idl.IDLFloatSequence;
 import us.ihmc.fastddsjava.cdr.idl.IDLIntSequence;
 import us.ihmc.fastddsjava.cdr.idl.IDLObjectSequence;
 import us.ihmc.fastddsjava.cdr.idl.IDLSequence;
@@ -140,7 +141,7 @@ class CDRInterchangeSerializer
                continue;
             }
 
-            String setterName = "set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+            String setterName = "set" + toJavaMemberName(fieldName, true);
 
             java.lang.reflect.Method[] methods = message.getClass().getMethods();
             for (java.lang.reflect.Method method : methods)
@@ -172,7 +173,7 @@ class CDRInterchangeSerializer
          return false;
       }
 
-      String getterName = "get" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+      String getterName = "get" + toJavaMemberName(fieldName, true);
       for (java.lang.reflect.Method method : message.getClass().getMethods())
       {
          if (method.getName().equals(getterName) && method.getParameterCount() == 0
@@ -196,7 +197,7 @@ class CDRInterchangeSerializer
          return false;
       }
 
-      String getterName = "get" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+      String getterName = "get" + toJavaMemberName(fieldName, true);
       for (java.lang.reflect.Method method : message.getClass().getMethods())
       {
          if (!method.getName().equals(getterName) || method.getParameterCount() != 0)
@@ -239,6 +240,23 @@ class CDRInterchangeSerializer
             for (int i = 0; i < array.size(); i++)
             {
                sequence.add(array.get(i).asInt());
+            }
+            return true;
+         }
+
+         if (IDLFloatSequence.class.isAssignableFrom(returnType))
+         {
+            if (!fieldNode.isArray())
+            {
+               return false;
+            }
+
+            IDLFloatSequence sequence = (IDLFloatSequence) method.invoke(message);
+            sequence.clear();
+            ArrayNode array = (ArrayNode) fieldNode;
+            for (int i = 0; i < array.size(); i++)
+            {
+               sequence.add((float) array.get(i).asDouble());
             }
             return true;
          }
@@ -393,6 +411,37 @@ class CDRInterchangeSerializer
       }
 
       return Character.toLowerCase(getterSuffix.charAt(0)) + getterSuffix.substring(1);
+   }
+
+   /**
+    * Converts JSON field names (snake_case or camelCase) to Java member names (PascalCase when capitalizeFirst is true).
+    */
+   private static String toJavaMemberName(String fieldName, boolean capitalizeFirst)
+   {
+      StringBuilder memberName = new StringBuilder();
+      boolean capitalizeNext = capitalizeFirst;
+
+      for (int i = 0; i < fieldName.length(); i++)
+      {
+         char character = fieldName.charAt(i);
+         if (character == '_')
+         {
+            capitalizeNext = true;
+            continue;
+         }
+
+         if (capitalizeNext)
+         {
+            memberName.append(Character.toUpperCase(character));
+            capitalizeNext = false;
+         }
+         else
+         {
+            memberName.append(character);
+         }
+      }
+
+      return memberName.toString();
    }
 
    private void serializeFieldWithContext(String name, Object value, ROS2Message<?> message)
