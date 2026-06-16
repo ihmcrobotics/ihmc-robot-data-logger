@@ -9,7 +9,10 @@ import logger_msgs.CameraType;
 
 public class CameraBean
 {
-   public final ObjectProperty<CameraType> camera_type = new SimpleObjectProperty<>();
+   public static final CameraType CAPTURE_CARD_MAGEWELL = cameraType(CameraType.CAPTURE_CARD_MAGEWELL);
+   public static final CameraType CAPTURE_CARD = cameraType(CameraType.CAPTURE_CARD);
+
+   public final ObjectProperty<CameraType> camera_type = new SimpleObjectProperty<>(CAPTURE_CARD_MAGEWELL);
    public final SimpleStringProperty camera_name = new SimpleStringProperty();
    public final SimpleIntegerProperty camera_id = new SimpleIntegerProperty();
    public final SimpleIntegerProperty camera_input = new SimpleIntegerProperty();
@@ -25,6 +28,14 @@ public class CameraBean
       camera_id.set(config.getCameraId());
       camera_input.set(Integer.valueOf(config.getIdentifierAsString()));
       camera_name.set(config.getNameAsString());
+      camera_type.set(config.getType() == CameraType.CAPTURE_CARD ? CAPTURE_CARD : CAPTURE_CARD_MAGEWELL);
+   }
+
+   private static CameraType cameraType(byte type)
+   {
+      CameraType cameraType = new CameraType();
+      cameraType.setType(type);
+      return cameraType;
    }
 
    public CameraType getCamera_type()

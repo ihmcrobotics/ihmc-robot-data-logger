@@ -47,6 +47,7 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
    private RecyclingByteBufAllocator alloc = null;
 
    private final VariableChangeRequest request = new VariableChangeRequest();
+   private final CDRBuffer requestBuffer = new CDRBuffer();
 
    private final UDPTimestampServer udpTimestampServer;
 
@@ -148,11 +149,11 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
          }
          else if (frame instanceof BinaryWebSocketFrame)
          {
-            // TODO jros2: Reuse
-            CDRBuffer buffer = new CDRBuffer();
-            buffer.ensureRemainingCapacity(frame.content().readableBytes());
-            frame.content().readBytes(buffer.getBufferUnsafe());
-            request.deserialize(buffer);
+            requestBuffer.getBufferUnsafe().clear();
+            requestBuffer.ensureRemainingCapacity(frame.content().readableBytes());
+            frame.content().readBytes(requestBuffer.getBufferUnsafe());
+            requestBuffer.getBufferUnsafe().flip();
+            request.deserialize(requestBuffer);
             variableChangedListener.changeVariable(request.getVariableID(), request.getRequestedValue());
          }
          else if (frame instanceof PingWebSocketFrame)

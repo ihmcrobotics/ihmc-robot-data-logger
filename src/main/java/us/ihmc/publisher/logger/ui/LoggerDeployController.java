@@ -131,8 +131,7 @@ public class LoggerDeployController implements Initializable
 
       camera_table.setEditable(true);
 
-      // TODO jros2 (low pri):
-      ObservableList<CameraType> cameraOptionsList = FXCollections.observableArrayList();
+      ObservableList<CameraType> cameraOptionsList = FXCollections.observableArrayList(CameraBean.CAPTURE_CARD_MAGEWELL, CameraBean.CAPTURE_CARD);
       camera_type_column.setCellFactory(ComboBoxTableCell.forTableColumn(cameraOptionsList));
       camera_type_column.setCellValueFactory(new PropertyValueFactory<CameraBean, CameraType>("camera_type"));
       camera_type_column.setOnEditCommit(e ->

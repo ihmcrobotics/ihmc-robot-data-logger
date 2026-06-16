@@ -46,6 +46,8 @@ public class WebsocketDataServerClient
 
    private final DisconnectPromise disconnectPromise;
    private final UDPTimestampClient udpTimestampClient;
+   private final VariableChangeRequest variableChangeRequest = new VariableChangeRequest();
+   private final CDRBuffer variableChangeRequestBuffer = new CDRBuffer();
 
    public WebsocketDataServerClient(HTTPDataServerConnection connection,
                                     IDLYoVariableHandshakeParser parser,
@@ -141,18 +143,17 @@ public class WebsocketDataServerClient
    {
       try
       {
-         VariableChangeRequest msg = new VariableChangeRequest();
-         msg.setVariableID(identifier);
-         msg.setRequestedValue(valueAsDouble);
+         variableChangeRequest.setVariableID(identifier);
+         variableChangeRequest.setRequestedValue(valueAsDouble);
 
-         // TODO jros2: Make allocation free?
+         variableChangeRequestBuffer.getBufferUnsafe().clear();
+         int sizeBytes = variableChangeRequest.calculateSizeBytes(0);
+         variableChangeRequestBuffer.ensureRemainingCapacity(sizeBytes);
+         variableChangeRequest.serialize(variableChangeRequestBuffer);
 
-         CDRBuffer buffer = new CDRBuffer();
-         buffer.ensureRemainingCapacity(msg.calculateSizeBytes(0));
-         msg.serialize(buffer);
-
-         ByteBuf data = ch.alloc().buffer(buffer.getBufferUnsafe().capacity());
-         data.writeBytes(buffer.getBufferUnsafe());
+         ByteBuf data = ch.alloc().buffer(sizeBytes);
+         variableChangeRequestBuffer.getBufferUnsafe().flip();
+         data.writeBytes(variableChangeRequestBuffer.getBufferUnsafe());
          BinaryWebSocketFrame frame = new BinaryWebSocketFrame(data);
          ch.writeAndFlush(frame);
       }
