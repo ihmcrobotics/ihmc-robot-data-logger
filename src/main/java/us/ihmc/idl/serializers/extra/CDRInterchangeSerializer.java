@@ -24,6 +24,11 @@ import us.ihmc.fastddsjava.cdr.idl.IDLIntSequence;
 import us.ihmc.fastddsjava.cdr.idl.IDLObjectSequence;
 import us.ihmc.fastddsjava.cdr.idl.IDLSequence;
 import us.ihmc.fastddsjava.cdr.idl.IDLStringSequence;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionBasics;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.jros2.ROS2Message;
 
 /**
@@ -87,6 +92,11 @@ class CDRInterchangeSerializer
     */
    void serializeMessageFields(ROS2Message<?> message, CDRInterchangeSerializer serializer)
    {
+      if (serializer.serializeEuclidWrapperMessageFields(message))
+      {
+         return;
+      }
+
       try
       {
          // Use reflection to access getters and serialize fields
@@ -122,6 +132,11 @@ class CDRInterchangeSerializer
     */
    void deserializeMessageFields(ROS2Message<?> message, CDRInterchangeSerializer serializer)
    {
+      if (serializer.deserializeEuclidWrapperMessageFields(message))
+      {
+         return;
+      }
+
       try
       {
          java.util.Iterator<String> fieldNames = serializer.node.fieldNames();
@@ -176,13 +191,27 @@ class CDRInterchangeSerializer
       String getterName = "get" + toJavaMemberName(fieldName, true);
       for (java.lang.reflect.Method method : message.getClass().getMethods())
       {
-         if (method.getName().equals(getterName) && method.getParameterCount() == 0
-             && ROS2Message.class.isAssignableFrom(method.getReturnType()))
+         if (method.getName().equals(getterName) && method.getParameterCount() == 0)
          {
-            ROS2Message<?> nestedMessage = (ROS2Message<?>) method.invoke(message);
-            CDRInterchangeSerializer childSerializer = new CDRInterchangeSerializer((ObjectNode) fieldNode);
-            childSerializer.deserializeMessageFields(nestedMessage, childSerializer);
-            return true;
+            if (ROS2Message.class.isAssignableFrom(method.getReturnType()))
+            {
+               ROS2Message<?> nestedMessage = (ROS2Message<?>) method.invoke(message);
+               CDRInterchangeSerializer childSerializer = new CDRInterchangeSerializer((ObjectNode) fieldNode);
+               childSerializer.deserializeMessageFields(nestedMessage, childSerializer);
+               return true;
+            }
+
+            Object nestedValue = method.invoke(message);
+            if (nestedValue instanceof Tuple3DBasics)
+            {
+               populateTuple3DFromNode((Tuple3DBasics) nestedValue, (ObjectNode) fieldNode, legacyNestedKeyForTuple3D(nestedValue));
+               return true;
+            }
+            if (nestedValue instanceof QuaternionBasics)
+            {
+               populateQuaternionFromNode((QuaternionBasics) nestedValue, (ObjectNode) fieldNode, "quaternion");
+               return true;
+            }
          }
       }
 
@@ -549,6 +578,23 @@ class CDRInterchangeSerializer
       else if (value instanceof Enum)
       {
          node.put(name, ((Enum<?>) value).name());
+      }
+      else if (value instanceof Tuple3DReadOnly)
+      {
+         Tuple3DReadOnly tuple = (Tuple3DReadOnly) value;
+         ObjectNode childNode = node.putObject(name);
+         childNode.put("x", tuple.getX());
+         childNode.put("y", tuple.getY());
+         childNode.put("z", tuple.getZ());
+      }
+      else if (value instanceof QuaternionReadOnly)
+      {
+         QuaternionReadOnly quaternion = (QuaternionReadOnly) value;
+         ObjectNode childNode = node.putObject(name);
+         childNode.put("x", quaternion.getX());
+         childNode.put("y", quaternion.getY());
+         childNode.put("z", quaternion.getZ());
+         childNode.put("w", quaternion.getS());
       }
       else if (value instanceof ROS2Message)
       {
@@ -1136,6 +1182,147 @@ class CDRInterchangeSerializer
       {
          return null;
       }
+   }
+
+   private boolean serializeEuclidWrapperMessageFields(ROS2Message<?> message)
+   {
+      String simpleName = message.getClass().getSimpleName();
+      try
+      {
+         if (simpleName.endsWith("EuclidPoint3DMessage"))
+         {
+            Tuple3DReadOnly point = (Tuple3DReadOnly) message.getClass().getMethod("getPoint").invoke(message);
+            node.put("x", point.getX());
+            node.put("y", point.getY());
+            node.put("z", point.getZ());
+            return true;
+         }
+         if (simpleName.endsWith("EuclidVector3DMessage"))
+         {
+            Tuple3DReadOnly vector = (Tuple3DReadOnly) message.getClass().getMethod("getVector").invoke(message);
+            node.put("x", vector.getX());
+            node.put("y", vector.getY());
+            node.put("z", vector.getZ());
+            return true;
+         }
+         if (simpleName.endsWith("EuclidQuaternionMessage"))
+         {
+            QuaternionReadOnly quaternion = (QuaternionReadOnly) message.getClass().getMethod("getQuaternion").invoke(message);
+            node.put("x", quaternion.getX());
+            node.put("y", quaternion.getY());
+            node.put("z", quaternion.getZ());
+            node.put("w", quaternion.getS());
+            return true;
+         }
+      }
+      catch (ReflectiveOperationException e)
+      {
+         throw new RuntimeException("Failed to serialize Euclid wrapper message " + simpleName, e);
+      }
+
+      return false;
+   }
+
+   private boolean deserializeEuclidWrapperMessageFields(ROS2Message<?> message)
+   {
+      String simpleName = message.getClass().getSimpleName();
+      try
+      {
+         if (simpleName.endsWith("EuclidPoint3DMessage"))
+         {
+            Tuple3DBasics point = (Tuple3DBasics) message.getClass().getMethod("getPoint").invoke(message);
+            populateTuple3DFromNode(point, node, "point");
+            return true;
+         }
+         if (simpleName.endsWith("EuclidVector3DMessage"))
+         {
+            Tuple3DBasics vector = (Tuple3DBasics) message.getClass().getMethod("getVector").invoke(message);
+            populateTuple3DFromNode(vector, node, "vector");
+            return true;
+         }
+         if (simpleName.endsWith("EuclidQuaternionMessage"))
+         {
+            QuaternionBasics quaternion = (QuaternionBasics) message.getClass().getMethod("getQuaternion").invoke(message);
+            populateQuaternionFromNode(quaternion, node, "quaternion");
+            return true;
+         }
+      }
+      catch (ReflectiveOperationException e)
+      {
+         throw new RuntimeException("Failed to deserialize Euclid wrapper message " + simpleName, e);
+      }
+
+      return false;
+   }
+
+   private static String legacyNestedKeyForTuple3D(Object tuple)
+   {
+      return tuple instanceof Vector3DBasics ? "vector" : "point";
+   }
+
+   private static void populateTuple3DFromNode(Tuple3DBasics tuple, ObjectNode node, String legacyNestedKey)
+   {
+      JsonNode source = resolveTuple3DSourceNode(node, legacyNestedKey);
+      if (source.has("x"))
+      {
+         tuple.setX(source.get("x").asDouble());
+      }
+      if (source.has("y"))
+      {
+         tuple.setY(source.get("y").asDouble());
+      }
+      if (source.has("z"))
+      {
+         tuple.setZ(source.get("z").asDouble());
+      }
+   }
+
+   private static void populateQuaternionFromNode(QuaternionBasics quaternion, ObjectNode node, String legacyNestedKey)
+   {
+      JsonNode source = resolveQuaternionSourceNode(node, legacyNestedKey);
+      double x = source.has("x") ? source.get("x").asDouble() : quaternion.getX();
+      double y = source.has("y") ? source.get("y").asDouble() : quaternion.getY();
+      double z = source.has("z") ? source.get("z").asDouble() : quaternion.getZ();
+      double w = source.has("w") ? source.get("w").asDouble() : quaternion.getS();
+      quaternion.set(x, y, z, w);
+   }
+
+   private static JsonNode resolveTuple3DSourceNode(ObjectNode node, String legacyNestedKey)
+   {
+      if (node.has("x"))
+      {
+         return node;
+      }
+
+      if (legacyNestedKey != null && node.has(legacyNestedKey))
+      {
+         JsonNode nested = node.get(legacyNestedKey);
+         if (nested.isObject())
+         {
+            return nested;
+         }
+      }
+
+      return node;
+   }
+
+   private static JsonNode resolveQuaternionSourceNode(ObjectNode node, String legacyNestedKey)
+   {
+      if (node.has("x") || node.has("w"))
+      {
+         return node;
+      }
+
+      if (legacyNestedKey != null && node.has(legacyNestedKey))
+      {
+         JsonNode nested = node.get(legacyNestedKey);
+         if (nested.isObject())
+         {
+            return nested;
+         }
+      }
+
+      return node;
    }
 
    ObjectNode getNode()
