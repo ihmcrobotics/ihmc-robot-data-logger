@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import us.ihmc.fastddsjava.cdr.CDRBuffer;
+import us.ihmc.fastddsjava.cdr.idl.IDLByteSequence;
 import us.ihmc.fastddsjava.cdr.idl.IDLFloatSequence;
 import us.ihmc.fastddsjava.cdr.idl.IDLIntSequence;
 import us.ihmc.fastddsjava.cdr.idl.IDLObjectSequence;
@@ -269,6 +270,23 @@ class CDRInterchangeSerializer
             for (int i = 0; i < array.size(); i++)
             {
                sequence.add(array.get(i).asInt());
+            }
+            return true;
+         }
+
+         if (IDLByteSequence.class.isAssignableFrom(returnType))
+         {
+            if (!fieldNode.isArray())
+            {
+               return false;
+            }
+
+            IDLByteSequence sequence = (IDLByteSequence) method.invoke(message);
+            sequence.clear();
+            ArrayNode array = (ArrayNode) fieldNode;
+            for (int i = 0; i < array.size(); i++)
+            {
+               sequence.add((byte) array.get(i).asInt());
             }
             return true;
          }

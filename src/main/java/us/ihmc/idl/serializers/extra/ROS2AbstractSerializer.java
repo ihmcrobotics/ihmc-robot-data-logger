@@ -264,6 +264,27 @@ public abstract class ROS2AbstractSerializer<T extends ROS2Message<T>>
    {
       if (!addTypeAsRootNode)
       {
+         JsonNode legacyNode = root.get(legacyIdlRootName(messageClass));
+         if (legacyNode != null)
+         {
+            return legacyNode;
+         }
+
+         JsonNode typedNode = root.get(messageName);
+         if (typedNode != null)
+         {
+            return typedNode;
+         }
+
+         if (root.isObject() && root.size() == 1)
+         {
+            JsonNode onlyEntry = root.elements().next();
+            if (onlyEntry.isObject())
+            {
+               return onlyEntry;
+            }
+         }
+
          return root;
       }
 
