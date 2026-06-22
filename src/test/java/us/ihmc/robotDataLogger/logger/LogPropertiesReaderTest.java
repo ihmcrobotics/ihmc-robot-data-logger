@@ -38,6 +38,23 @@ public class LogPropertiesReaderTest
    }
 
    @Test
+   void readsNumericHandshakeFileType(@TempDir File tempDir) throws IOException
+   {
+      File propertiesFile = new File(tempDir, YoVariableLoggerListener.propertyFile);
+      Files.writeString(propertiesFile.toPath(), """
+            version=4.0
+            name=testLog
+            variables.handshakeFileType=1
+            variables.handshake=handshake.yaml
+            variables.data=robotData.bsz
+            """);
+
+      LogPropertiesReader properties = new LogPropertiesReader(propertiesFile);
+
+      assertEquals(HandshakeFileType.IDL_YAML, properties.getVariables().getHandshakeFileType());
+   }
+
+   @Test
    void readsCommaSeparatedResourceDirectories(@TempDir File tempDir) throws IOException
    {
       File propertiesFile = new File(tempDir, YoVariableLoggerListener.propertyFile);

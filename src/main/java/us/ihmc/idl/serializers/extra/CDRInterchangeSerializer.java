@@ -938,8 +938,15 @@ class CDRInterchangeSerializer
                return logger_msgs.HandshakeFileType.IDL_CDR;
             case "PROTOBUFFER":
                return 0;
-            default:
-               throw new RuntimeException("Unknown handshake file type: " + value);
+         }
+
+         try
+         {
+            return (byte) Integer.parseInt(value);
+         }
+         catch (NumberFormatException e)
+         {
+            throw new RuntimeException("Unknown handshake file type: " + value);
          }
       }
 
