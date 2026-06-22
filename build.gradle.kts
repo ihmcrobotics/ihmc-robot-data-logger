@@ -115,7 +115,3 @@ tasks.register<jros2GenTask>("generateMessages") {
 
    outputDir = projectDir.resolve("src/main/java-generated").absolutePath
 }
-
-tasks.named("compileJava") {
-   dependsOn("generateMessages")
-}
