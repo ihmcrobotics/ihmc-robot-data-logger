@@ -1,5 +1,8 @@
 package us.ihmc.robotDataLogger.dataBuffers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.junit.jupiter.api.Test;
 import us.ihmc.fastddsjava.cdr.CDRBuffer;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandShakeBuilder;
@@ -9,9 +12,6 @@ import us.ihmc.yoVariables.variable.YoLong;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Random;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class CustomLogDataWebSocketRoundTripTest
 {

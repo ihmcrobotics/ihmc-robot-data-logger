@@ -1,13 +1,13 @@
 package us.ihmc.publisher.logger.ui;
 
-import java.io.IOException;
-
 import javafx.stage.Stage;
 import logger_msgs.CameraSettings;
 import logger_msgs.StaticHostList;
 import us.ihmc.publisher.logger.LoggerDeployConfiguration;
 import us.ihmc.publisher.logger.utils.SSHDeploy.SSHRemote;
 import us.ihmc.publisher.logger.utils.ui.FXConsole;
+
+import java.io.IOException;
 
 public interface LoggerDeployScript
 {

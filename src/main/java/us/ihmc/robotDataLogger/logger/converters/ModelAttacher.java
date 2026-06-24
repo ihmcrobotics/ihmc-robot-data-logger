@@ -5,7 +5,6 @@ import us.ihmc.idl.serializers.extra.ROS2PropertiesSerializer;
 import us.ihmc.robotDataLogger.logger.LogPropertiesReader;
 import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -18,6 +17,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Properties;
+import javax.swing.*;
 
 public class ModelAttacher extends SimpleFileVisitor<Path>
 {

@@ -4,17 +4,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
 import logger_msgs.Handshake;
 import logger_msgs.MessageTypes;
 import org.junit.jupiter.api.Test;
-
 import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class IDLYoVariableHandshakeParserYamlTest
 {

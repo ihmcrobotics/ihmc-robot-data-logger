@@ -16,7 +16,6 @@
 package us.ihmc.idl.serializers.extra;
 
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-
 import us.ihmc.jros2.ROS2Message;
 
 /**

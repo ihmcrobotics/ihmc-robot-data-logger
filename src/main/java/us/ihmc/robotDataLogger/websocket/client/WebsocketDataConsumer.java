@@ -1,14 +1,10 @@
 package us.ihmc.robotDataLogger.websocket.client;
 
-import java.io.IOException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.util.CharsetUtil;
-import us.ihmc.idl.serializers.extra.ROS2JSONSerializer;
 import logger_msgs.Announcement;
 import logger_msgs.Handshake;
+import us.ihmc.idl.serializers.extra.ROS2JSONSerializer;
 import us.ihmc.robotDataLogger.YoVariableClientImplementation;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.interfaces.CommandListener;
@@ -20,6 +16,10 @@ import us.ihmc.robotDataLogger.websocket.HTTPDataServerPaths;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
+
+import java.io.IOException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class WebsocketDataConsumer implements DataConsumer
 {

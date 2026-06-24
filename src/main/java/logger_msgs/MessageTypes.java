@@ -1,5 +1,6 @@
 package logger_msgs;
 
+
 /**
  * Helpers for ROS 2 enum messages generated as {@code uint8 type} wrappers.
  */

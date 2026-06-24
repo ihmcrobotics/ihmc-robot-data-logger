@@ -17,7 +17,6 @@ package us.ihmc.idl.serializers.extra;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import us.ihmc.jros2.ROS2Message;
 
 /**

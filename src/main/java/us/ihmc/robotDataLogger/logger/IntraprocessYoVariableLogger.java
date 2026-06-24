@@ -17,7 +17,6 @@ import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.tools.compression.SnappyUtils;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -32,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import javax.annotation.Nullable;
 
 public class IntraprocessYoVariableLogger
 {

@@ -1,7 +1,7 @@
 package us.ihmc.robotDataLogger.jointState;
 
-import logger_msgs.MessageTypes;
 import logger_msgs.JointType;
+import logger_msgs.MessageTypes;
 
 import java.nio.DoubleBuffer;
 import java.nio.LongBuffer;

@@ -1,5 +1,7 @@
 package us.ihmc.robotDataLogger.dataBuffers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
 import us.ihmc.commons.Conversions;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -25,8 +27,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RegistrySendBufferTest
 {

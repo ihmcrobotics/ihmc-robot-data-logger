@@ -1,13 +1,13 @@
 package us.ihmc.robotDataLogger;
 
+import logger_msgs.CameraSettings;
+import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
+import us.ihmc.log.LogTools;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-
-import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
-import us.ihmc.log.LogTools;
-import logger_msgs.CameraSettings;
 
 public class CameraSettingsLoader
 {

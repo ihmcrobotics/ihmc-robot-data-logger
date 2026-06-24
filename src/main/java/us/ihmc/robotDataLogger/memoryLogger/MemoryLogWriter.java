@@ -3,8 +3,8 @@ package us.ihmc.robotDataLogger.memoryLogger;
 import logger_msgs.Announcement;
 import logger_msgs.MessageTypes;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
-import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.handshake.LogHandshake;
+import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
 import us.ihmc.robotDataLogger.websocket.server.DataServerServerContent;
 

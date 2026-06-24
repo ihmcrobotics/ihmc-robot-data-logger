@@ -1,9 +1,5 @@
 package us.ihmc.robotDataLogger.logger;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
 import logger_msgs.LogProperties;
 import us.ihmc.commons.Conversions;
 import us.ihmc.javadecklink.Capture;
@@ -11,6 +7,10 @@ import us.ihmc.javadecklink.Capture.CodecID;
 import us.ihmc.javadecklink.CaptureHandler;
 import us.ihmc.log.LogTools;
 import us.ihmc.tools.maps.CircularLongMap;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
 {

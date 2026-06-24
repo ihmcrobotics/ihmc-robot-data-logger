@@ -1,5 +1,7 @@
 package us.ihmc.robotDataLogger.websocket.client;
 
+import static io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory.newHandshaker;
+
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -34,8 +36,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
-
-import static io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory.newHandshaker;
 
 public class WebsocketDataServerClient
 {

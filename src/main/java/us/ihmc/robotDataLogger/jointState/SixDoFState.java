@@ -1,7 +1,7 @@
 package us.ihmc.robotDataLogger.jointState;
 
-import logger_msgs.MessageTypes;
 import logger_msgs.JointType;
+import logger_msgs.MessageTypes;
 import us.ihmc.euclid.orientation.interfaces.Orientation3DBasics;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;

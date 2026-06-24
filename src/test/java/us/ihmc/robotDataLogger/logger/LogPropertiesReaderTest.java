@@ -2,13 +2,13 @@ package us.ihmc.robotDataLogger.logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-
 import logger_msgs.HandshakeFileType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 public class LogPropertiesReaderTest
 {

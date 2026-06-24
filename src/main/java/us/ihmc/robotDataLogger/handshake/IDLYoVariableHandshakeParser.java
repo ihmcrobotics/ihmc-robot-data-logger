@@ -1,5 +1,9 @@
 package us.ihmc.robotDataLogger.handshake;
 
+import static gnu.trove.impl.Constants.DEFAULT_CAPACITY;
+import static gnu.trove.impl.Constants.DEFAULT_LOAD_FACTOR;
+import static us.ihmc.yoVariables.euclid.referenceFrame.interfaces.FrameIndexMap.NO_ENTRY_KEY;
+
 import gnu.trove.map.TLongObjectMap;
 import gnu.trove.map.TObjectLongMap;
 import gnu.trove.map.hash.TIntIntHashMap;
@@ -45,10 +49,6 @@ import us.ihmc.yoVariables.variable.YoVariable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static gnu.trove.impl.Constants.DEFAULT_CAPACITY;
-import static gnu.trove.impl.Constants.DEFAULT_LOAD_FACTOR;
-import static us.ihmc.yoVariables.euclid.referenceFrame.interfaces.FrameIndexMap.NO_ENTRY_KEY;
 
 /**
  * Class to decode variable data from handshakes

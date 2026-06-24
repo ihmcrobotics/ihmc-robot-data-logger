@@ -3,11 +3,10 @@ package us.ihmc.robotDataLogger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
-
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
+
+import java.util.List;
 
 public class StaticHostListLoaderTest
 {

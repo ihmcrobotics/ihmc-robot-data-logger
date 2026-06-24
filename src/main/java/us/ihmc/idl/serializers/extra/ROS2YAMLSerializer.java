@@ -18,7 +18,6 @@ package us.ihmc.idl.serializers.extra;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.yaml.snakeyaml.LoaderOptions;
-
 import us.ihmc.jros2.ROS2Message;
 
 /**

@@ -3,18 +3,17 @@ package us.ihmc.robotDataLogger.handshake;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
-import java.util.Random;
-
 import logger_msgs.Handshake;
 import logger_msgs.MessageTypes;
 import org.junit.jupiter.api.Test;
-
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
+
+import java.util.List;
+import java.util.Random;
 
 public class YoVariableHandShakeBuilderTest
 {

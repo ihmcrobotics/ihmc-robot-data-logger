@@ -18,6 +18,11 @@ package us.ihmc.idl.serializers.extra;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionBasics;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.fastddsjava.cdr.CDRBuffer;
 import us.ihmc.fastddsjava.cdr.idl.IDLByteSequence;
 import us.ihmc.fastddsjava.cdr.idl.IDLFloatSequence;
@@ -25,11 +30,6 @@ import us.ihmc.fastddsjava.cdr.idl.IDLIntSequence;
 import us.ihmc.fastddsjava.cdr.idl.IDLObjectSequence;
 import us.ihmc.fastddsjava.cdr.idl.IDLSequence;
 import us.ihmc.fastddsjava.cdr.idl.IDLStringSequence;
-import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
-import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
-import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
-import us.ihmc.euclid.tuple4D.interfaces.QuaternionBasics;
-import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.jros2.ROS2Message;
 
 /**

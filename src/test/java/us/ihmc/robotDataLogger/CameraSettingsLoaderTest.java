@@ -3,12 +3,12 @@ package us.ihmc.robotDataLogger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.io.IOException;
-
 import logger_msgs.CameraConfiguration;
 import logger_msgs.CameraSettings;
 import logger_msgs.CameraType;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
 
 public class CameraSettingsLoaderTest
 {

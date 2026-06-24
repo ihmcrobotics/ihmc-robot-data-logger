@@ -1,14 +1,5 @@
 package us.ihmc.robotDataLogger.websocket.server;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
@@ -18,6 +9,15 @@ import us.ihmc.idl.serializers.extra.ROS2JSONSerializer;
 import us.ihmc.multicastLogDataProtocol.modelLoaders.LogModelProvider;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.util.HandshakeHashCalculator;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * This class holds all the static content that is available on the HTTP server. This includes the
