@@ -128,4 +128,27 @@ public class CustomLogDataPublisherType extends LogData
 
       return currentAlignment - initialAlignment;
    }
+
+   public int getMaximumTypeSize()
+   {
+      return getTypeSize(compressor.maxCompressedLength(numberOfVariables * 8), numberOfStates);
+   }
+
+   public static int getTypeSize(int maxCompressedSize, int numberOfStates)
+   {
+      int currentAlignment = 0;
+
+      currentAlignment += 8 + CDRBuffer.alignment(currentAlignment, 8);
+      currentAlignment += 8 + CDRBuffer.alignment(currentAlignment, 8);
+      currentAlignment += 8 + CDRBuffer.alignment(currentAlignment, 8);
+      currentAlignment += 1 + CDRBuffer.alignment(currentAlignment, 1);
+      currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4);
+      currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4);
+      currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4);
+      currentAlignment += maxCompressedSize + CDRBuffer.alignment(currentAlignment, 1);
+      currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4);
+      currentAlignment += numberOfStates * 8 + CDRBuffer.alignment(currentAlignment, 8);
+
+      return currentAlignment;
+   }
 }

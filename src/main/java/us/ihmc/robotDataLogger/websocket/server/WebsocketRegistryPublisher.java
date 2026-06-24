@@ -137,6 +137,9 @@ class WebsocketRegistryPublisher implements RegistryPublisher
 
                if ((buffer = ringBuffer.read()) != null)
                {
+                  // Time right before we transmit the message, better here then in the RT thread
+                  buffer.setTransmitTime(System.nanoTime());
+
                   // Reset the buffer
                   publisherBuffer.ensureRemainingCapacity(getMaximumBufferSize());
                   publisherBuffer.getBufferUnsafe().limit(getMaximumBufferSize());

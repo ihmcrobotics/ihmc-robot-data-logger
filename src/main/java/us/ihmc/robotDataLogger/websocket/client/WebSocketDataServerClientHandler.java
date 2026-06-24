@@ -34,6 +34,7 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
    private final YoVariableClientImplementation yoVariableClient;
 
    private final CustomLogDataSubscriberType type;
+   private final CDRBuffer payload;
 
    private final int timestampPort;
 
@@ -54,6 +55,7 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
       this.consumer = consumer;
       this.type = type;
       this.timestampPort = timestampPort;
+      payload = new CDRBuffer();
    }
 
    public ChannelFuture handshakeFuture()
@@ -108,18 +110,18 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
       }
       else if (frame instanceof BinaryWebSocketFrame)
       {
-         RegistryReceiveBuffer buffer = new RegistryReceiveBuffer(System.nanoTime());
+         RegistryReceiveBuffer buffer = consumer.acquire();
+         buffer.setReceivedTimestamp(System.nanoTime());
 
          int readableBytes = frame.content().readableBytes();
-         CDRBuffer cdrBuffer = new CDRBuffer();
-         cdrBuffer.ensureRemainingCapacity(readableBytes);
-         ByteBuffer payloadBuffer = cdrBuffer.getBufferUnsafe();
-         payloadBuffer.position(0);
+         payload.ensureRemainingCapacity(readableBytes);
+         ByteBuffer payloadBuffer = payload.getBufferUnsafe();
+         payloadBuffer.clear();
          payloadBuffer.limit(readableBytes);
          frame.content().readBytes(payloadBuffer);
          payloadBuffer.flip();
 
-         type.deserialize(cdrBuffer, buffer);
+         type.deserialize(payload, buffer);
 
          consumer.onNewDataMessage(buffer);
 
