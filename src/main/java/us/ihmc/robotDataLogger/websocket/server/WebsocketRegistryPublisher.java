@@ -11,6 +11,7 @@ import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.robotDataLogger.interfaces.BufferListenerInterface;
 import us.ihmc.robotDataLogger.interfaces.RegistryPublisher;
 
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -73,7 +74,7 @@ class WebsocketRegistryPublisher implements RegistryPublisher
 
    public int getMaximumBufferSize()
    {
-      return publisherType.calculateSizeBytes(0) + 4; // +4 for payload header
+      return publisherType.getMaximumTypeSize() + 4; // +4 for payload header
    }
 
    /**
@@ -88,15 +89,23 @@ class WebsocketRegistryPublisher implements RegistryPublisher
    @Override
    public void stop()
    {
-      scheduledFuture.cancel(false);
+      if (scheduledFuture == null || eventLoopGroup.isShutdown())
+      {
+         return;
+      }
 
       try
       {
+         scheduledFuture.cancel(false);
          scheduledFuture.await(5, TimeUnit.SECONDS);
       }
       catch (InterruptedException e)
       {
-         e.printStackTrace();
+         Thread.currentThread().interrupt();
+      }
+      catch (RejectedExecutionException ignored)
+      {
+         // Shared worker event loop already shut down.
       }
    }
 
