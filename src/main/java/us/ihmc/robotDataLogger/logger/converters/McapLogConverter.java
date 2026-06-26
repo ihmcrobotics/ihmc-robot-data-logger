@@ -267,10 +267,9 @@ public class McapLogConverter extends YoVariableLogReader
    private static byte[] buildJointCdrMessage(JointState joint, long[] jointValues, int offset)
    {
       int numFields = joint.getNumberOfStateVariables();
-      // 4-byte header + 4-byte alignment pad + numFields float64s
-      ByteBuffer buf = ByteBuffer.allocate(4 + 4 + numFields * 8).order(ByteOrder.LITTLE_ENDIAN);
+      // 4-byte header + numFields float64s (all naturally 8-byte aligned from payload start)
+      ByteBuffer buf = ByteBuffer.allocate(4 + numFields * 8).order(ByteOrder.LITTLE_ENDIAN);
       buf.put((byte) 0x00); buf.put((byte) 0x01); buf.put((byte) 0x00); buf.put((byte) 0x00);
-      cdrAlign(buf, 8);
       for (int i = 0; i < numFields; i++)
          buf.putDouble(Double.longBitsToDouble(jointValues[offset + i]));
       return buf.array();
@@ -280,7 +279,7 @@ public class McapLogConverter extends YoVariableLogReader
 
    private static void cdrAlign(ByteBuffer buf, int alignment)
    {
-      int rem = buf.position() % alignment;
+      int rem = (buf.position() - 4) % alignment; // CDR aligns from payload start, not buffer start
       if (rem != 0)
       {
          int pad = alignment - rem;
@@ -303,7 +302,7 @@ public class McapLogConverter extends YoVariableLogReader
    // ── Entry point ───────────────────────────────────────────────────────────────
 
    // Set this to the log directory you want to convert, then run main().
-   private static final String LOG_DIRECTORY = "/Users/wayne/Documents/20260529_152027_WalkingAttemptTwoStepsFailure/";
+   private static final String LOG_DIRECTORY = "/opt/ihmc/LogData/_Issues/20260626_104940_Alex002_AutomaticEstopFromFortRobotics/";
 
    public static void main(String[] args) throws IOException
    {
