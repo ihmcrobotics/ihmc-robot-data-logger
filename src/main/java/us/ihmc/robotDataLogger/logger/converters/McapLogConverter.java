@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,11 +15,14 @@ import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import us.ihmc.robotDataLogger.LogProperties;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.robotDataLogger.jointState.OneDoFState;
+import us.ihmc.robotDataLogger.jointState.SixDoFState;
 import us.ihmc.robotDataLogger.logger.LogPropertiesReader;
 import us.ihmc.robotDataLogger.logger.YoVariableLogReader;
 import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
@@ -36,6 +40,8 @@ import us.ihmc.yoVariables.variable.YoVariable;
  * <p>
  * Channel layout:
  * <ul>
+ *   <li>{@code /robot_description} — URDF content as a latched std_msgs/String for Foxglove's 3D panel.</li>
+ *   <li>{@code /joint_states} — sensor_msgs/JointState with all OneDoF joints per tick.</li>
  *   <li>One channel per YoRegistry that contains variables, topic = full registry path.</li>
  *   <li>One channel per joint, topic = {@code /joints/<jointName>}.</li>
  * </ul>
@@ -78,9 +84,84 @@ public class McapLogConverter extends YoVariableLogReader
          registryToVarIndices.computeIfAbsent(reg, k -> new ArrayList<>()).add(i);
       }
 
+      // Read the URDF model if present (model.sdf is actually URDF format).
+      File modelFile = new File(logDirectory, logProperties.getModel().getPathAsString());
+      String urdfContent = null;
+      if (modelFile.exists())
+      {
+         String raw = new String(Files.readAllBytes(modelFile.toPath()), StandardCharsets.UTF_8);
+         // Extract meshes into the same directory as the output MCAP file.
+         File resourcesZip = new File(logDirectory, logProperties.getModel().getResourceBundleAsString());
+         File meshDestDir  = outputFile.getParentFile();
+         if (resourcesZip.exists())
+            extractZipIfNeeded(resourcesZip, meshDestDir);
+         urdfContent = stripNonUrdfExtensions(rewriteMeshPaths(raw));
+
+         // Write the cleaned URDF as a standalone file so Foxglove can load it via URL source.
+         File urdfFile = new File(meshDestDir, "robot.urdf");
+         Files.write(urdfFile.toPath(), urdfContent.getBytes(StandardCharsets.UTF_8));
+
+         System.out.println("Robot model ready. To load in Foxglove:");
+         System.out.println("  1. Run in a terminal:  python3 -m http.server " + HTTP_PORT + " --directory \"" + meshDestDir.getAbsolutePath() + "\"");
+         System.out.println("  2. Foxglove 3D panel → Custom layers → URDF → Source: URL → http://localhost:" + HTTP_PORT + "/robot.urdf");
+      }
+
+      // Precompute OneDoF joints and the SixDoF (floating-base) joint with their jointValues offsets.
+      List<JointState> oneDoFJoints    = new ArrayList<>();
+      List<byte[]>     oneDoFNameBytes = new ArrayList<>();
+      int[]            oneDoFOffsets;
+      SixDoFState      sixDoFJoint     = null;
+      int              sixDoFOffset    = -1;
+      {
+         List<Integer> offsets = new ArrayList<>();
+         int cumOffset = 0;
+         for (JointState joint : jointStates)
+         {
+            if (joint instanceof OneDoFState)
+            {
+               oneDoFJoints.add(joint);
+               oneDoFNameBytes.add(joint.getName().getBytes(StandardCharsets.UTF_8));
+               offsets.add(cumOffset);
+            }
+            else if (joint instanceof SixDoFState && sixDoFJoint == null)
+            {
+               sixDoFJoint  = (SixDoFState) joint;
+               sixDoFOffset = cumOffset;
+            }
+            cumOffset += joint.getNumberOfStateVariables();
+         }
+         oneDoFOffsets = offsets.stream().mapToInt(Integer::intValue).toArray();
+      }
+
+      // Root link name from URDF — used as the TF child frame so Foxglove anchors the model.
+      String urdfRootLink = urdfContent != null ? findUrdfRootLink(urdfContent) : null;
+
       try (McapWriter mcap = new McapWriter(new FileOutputStream(outputFile)))
       {
          int nextId = 1;
+
+         // Register /robot_description channel (std_msgs/String).
+         int robotDescriptionChannelId = -1;
+         if (urdfContent != null)
+         {
+            robotDescriptionChannelId = nextId++;
+            mcap.addSchema(robotDescriptionChannelId, "std_msgs/String", "ros2msg", "string data\n".getBytes(StandardCharsets.UTF_8));
+            mcap.addChannel(robotDescriptionChannelId, robotDescriptionChannelId, "/robot_description", "cdr", Collections.emptyMap());
+         }
+
+         // Register /joint_states channel (sensor_msgs/JointState).
+         int jointStatesChannelId = nextId++;
+         mcap.addSchema(jointStatesChannelId, "sensor_msgs/msg/JointState", "ros2msg", JOINT_STATE_SCHEMA.getBytes(StandardCharsets.UTF_8));
+         mcap.addChannel(jointStatesChannelId, jointStatesChannelId, "/joint_states", "cdr", Collections.emptyMap());
+
+         // Register /tf channel (tf2_msgs/TFMessage) for the floating-base pelvis pose.
+         int tfChannelId = -1;
+         if (sixDoFJoint != null && urdfRootLink != null)
+         {
+            tfChannelId = nextId++;
+            mcap.addSchema(tfChannelId, "tf2_msgs/msg/TFMessage", "ros2msg", TF_SCHEMA.getBytes(StandardCharsets.UTF_8));
+            mcap.addChannel(tfChannelId, tfChannelId, "/tf", "cdr", Collections.emptyMap());
+         }
 
          // Register one schema + channel per registry.
          Map<YoRegistry, Integer> registryChannelIds = new LinkedHashMap<>();
@@ -111,8 +192,9 @@ public class McapLogConverter extends YoVariableLogReader
          }
 
          // Iterate all compressed batches and write one MCAP message per channel per tick.
-         int batchSize = getBatchSize();
-         int numBatches = getNumberOfEntries();
+         int     batchSize  = getBatchSize();
+         int     numBatches = getNumberOfEntries();
+         boolean firstTick  = true;
          System.out.printf("Converting %d batches (%d ticks/batch) → %s%n", numBatches, batchSize, outputFile.getName());
 
          for (int batchIdx = 0; batchIdx < numBatches; batchIdx++)
@@ -140,6 +222,33 @@ public class McapLogConverter extends YoVariableLogReader
                for (int i = 0; i < numberOfJointStateVars; i++)
                   jointValues[i] = batchData.getLong();
 
+               // Write /robot_description once at the first tick's timestamp.
+               if (firstTick)
+               {
+                  firstTick = false;
+                  if (urdfContent != null)
+                     mcap.writeMessage(robotDescriptionChannelId, timestamp, timestamp, buildRobotDescriptionMessage(urdfContent));
+               }
+
+               // Write /joint_states.
+               mcap.writeMessage(jointStatesChannelId, timestamp, timestamp,
+                                 buildJointStateCdrMessage(oneDoFNameBytes, oneDoFOffsets, jointValues, timestamp));
+
+               // Write /tf with the floating-base (pelvis) pose in the world frame.
+               // SixDoFState layout: qs,qx,qy,qz | tx,ty,tz | ...
+               if (tfChannelId >= 0)
+               {
+                  double tx = Double.longBitsToDouble(jointValues[sixDoFOffset + 4]);
+                  double ty = Double.longBitsToDouble(jointValues[sixDoFOffset + 5]);
+                  double tz = Double.longBitsToDouble(jointValues[sixDoFOffset + 6]);
+                  double rx = Double.longBitsToDouble(jointValues[sixDoFOffset + 1]);
+                  double ry = Double.longBitsToDouble(jointValues[sixDoFOffset + 2]);
+                  double rz = Double.longBitsToDouble(jointValues[sixDoFOffset + 3]);
+                  double rw = Double.longBitsToDouble(jointValues[sixDoFOffset + 0]); // qs = w
+                  mcap.writeMessage(tfChannelId, timestamp, timestamp,
+                                    buildTfMessage(timestamp, "map", urdfRootLink, tx, ty, tz, rx, ry, rz, rw));
+               }
+
                // Write one CDR message per registry channel.
                for (Map.Entry<YoRegistry, List<Integer>> entry : registryToVarIndices.entrySet())
                {
@@ -161,6 +270,56 @@ public class McapLogConverter extends YoVariableLogReader
          System.out.println("Done. Output: " + outputFile.getAbsolutePath());
       }
    }
+
+   // ── Constants ────────────────────────────────────────────────────────────────
+
+   private static final int HTTP_PORT = 8765;
+
+   private static final String TF_SCHEMA =
+         "geometry_msgs/TransformStamped[] transforms\n" +
+         "\n================================================================================\n" +
+         "MSG: geometry_msgs/TransformStamped\n" +
+         "std_msgs/Header header\n" +
+         "string child_frame_id\n" +
+         "geometry_msgs/Transform transform\n" +
+         "\n================================================================================\n" +
+         "MSG: std_msgs/Header\n" +
+         "builtin_interfaces/Time stamp\n" +
+         "string frame_id\n" +
+         "\n================================================================================\n" +
+         "MSG: builtin_interfaces/Time\n" +
+         "int32 sec\n" +
+         "uint32 nanosec\n" +
+         "\n================================================================================\n" +
+         "MSG: geometry_msgs/Transform\n" +
+         "geometry_msgs/Vector3 translation\n" +
+         "geometry_msgs/Quaternion rotation\n" +
+         "\n================================================================================\n" +
+         "MSG: geometry_msgs/Vector3\n" +
+         "float64 x\n" +
+         "float64 y\n" +
+         "float64 z\n" +
+         "\n================================================================================\n" +
+         "MSG: geometry_msgs/Quaternion\n" +
+         "float64 x\n" +
+         "float64 y\n" +
+         "float64 z\n" +
+         "float64 w\n";
+
+   private static final String JOINT_STATE_SCHEMA =
+         "std_msgs/Header header\n" +
+         "string[] name\n" +
+         "float64[] position\n" +
+         "float64[] velocity\n" +
+         "float64[] effort\n" +
+         "\n================================================================================\n" +
+         "MSG: std_msgs/Header\n" +
+         "builtin_interfaces/Time stamp\n" +
+         "string frame_id\n" +
+         "\n================================================================================\n" +
+         "MSG: builtin_interfaces/Time\n" +
+         "int32 sec\n" +
+         "uint32 nanosec\n";
 
    // ── Schema builders ──────────────────────────────────────────────────────────
 
@@ -217,6 +376,106 @@ public class McapLogConverter extends YoVariableLogReader
    }
 
    // ── Message builders ─────────────────────────────────────────────────────────
+
+   private static byte[] buildTfMessage(long timestampNs, String parentFrame, String childFrame,
+                                         double tx, double ty, double tz,
+                                         double rx, double ry, double rz, double rw)
+   {
+      byte[] parentBytes = parentFrame.getBytes(StandardCharsets.UTF_8);
+      byte[] childBytes  = childFrame.getBytes(StandardCharsets.UTF_8);
+      ByteBuffer buf = ByteBuffer.allocate(256 + parentBytes.length + childBytes.length).order(ByteOrder.LITTLE_ENDIAN);
+      buf.put((byte) 0x00); buf.put((byte) 0x01); buf.put((byte) 0x00); buf.put((byte) 0x00);
+
+      buf.putInt(1); // sequence: one TransformStamped
+
+      // header.stamp
+      buf.putInt((int) (timestampNs / 1_000_000_000L));
+      buf.putInt((int) (timestampNs % 1_000_000_000L));
+
+      // header.frame_id
+      cdrAlign(buf, 4);
+      buf.putInt(parentBytes.length + 1);
+      buf.put(parentBytes);
+      buf.put((byte) 0);
+
+      // child_frame_id
+      cdrAlign(buf, 4);
+      buf.putInt(childBytes.length + 1);
+      buf.put(childBytes);
+      buf.put((byte) 0);
+
+      // transform.translation
+      cdrAlign(buf, 8);
+      buf.putDouble(tx);
+      buf.putDouble(ty);
+      buf.putDouble(tz);
+
+      // transform.rotation (x,y,z,w)
+      buf.putDouble(rx);
+      buf.putDouble(ry);
+      buf.putDouble(rz);
+      buf.putDouble(rw);
+
+      return Arrays.copyOf(buf.array(), buf.position());
+   }
+
+   private static byte[] buildRobotDescriptionMessage(String urdf)
+   {
+      byte[] strBytes = urdf.getBytes(StandardCharsets.UTF_8);
+      ByteBuffer buf = ByteBuffer.allocate(4 + 4 + strBytes.length + 1).order(ByteOrder.LITTLE_ENDIAN);
+      buf.put((byte) 0x00); buf.put((byte) 0x01); buf.put((byte) 0x00); buf.put((byte) 0x00);
+      buf.putInt(strBytes.length + 1);
+      buf.put(strBytes);
+      buf.put((byte) 0);
+      return buf.array();
+   }
+
+   private static byte[] buildJointStateCdrMessage(List<byte[]> nameBytes, int[] offsets, long[] jointValues, long timestampNs)
+   {
+      int numJoints = nameBytes.size();
+      int maxSize = 64 + numJoints * 64 + numJoints * 8 * 2; // generous upper bound
+      ByteBuffer buf = ByteBuffer.allocate(maxSize).order(ByteOrder.LITTLE_ENDIAN);
+      buf.put((byte) 0x00); buf.put((byte) 0x01); buf.put((byte) 0x00); buf.put((byte) 0x00);
+
+      // header.stamp
+      buf.putInt((int) (timestampNs / 1_000_000_000L)); // sec
+      buf.putInt((int) (timestampNs % 1_000_000_000L)); // nanosec
+
+      // header.frame_id: empty string
+      buf.putInt(1);
+      buf.put((byte) 0);
+
+      // name[]
+      cdrAlign(buf, 4);
+      buf.putInt(numJoints);
+      for (byte[] nb : nameBytes)
+      {
+         cdrAlign(buf, 4);
+         buf.putInt(nb.length + 1);
+         buf.put(nb);
+         buf.put((byte) 0);
+      }
+
+      // position[]
+      cdrAlign(buf, 4);
+      buf.putInt(numJoints);
+      cdrAlign(buf, 8);
+      for (int i = 0; i < numJoints; i++)
+         buf.putDouble(Double.longBitsToDouble(jointValues[offsets[i]]));
+
+      // velocity[]
+      cdrAlign(buf, 4);
+      buf.putInt(numJoints);
+      cdrAlign(buf, 8);
+      for (int i = 0; i < numJoints; i++)
+         buf.putDouble(Double.longBitsToDouble(jointValues[offsets[i] + 1]));
+
+      // effort[]: empty
+      cdrAlign(buf, 4);
+      buf.putInt(0);
+
+      return Arrays.copyOf(buf.array(), buf.position());
+   }
 
    private static byte[] buildRegistryCdrMessage(List<Integer> varIndices, List<YoVariable> variables)
    {
@@ -277,6 +536,96 @@ public class McapLogConverter extends YoVariableLogReader
 
    // ── Utilities ────────────────────────────────────────────────────────────────
 
+   private static String findUrdfRootLink(String urdf)
+   {
+      Pattern linkPat  = Pattern.compile("<link\\s+name=\"([^\"]+)\"");
+      Pattern childPat = Pattern.compile("<child\\s+link=\"([^\"]+)\"");
+      java.util.Set<String> links    = new java.util.LinkedHashSet<>();
+      java.util.Set<String> children = new java.util.LinkedHashSet<>();
+      Matcher m = linkPat.matcher(urdf);
+      while (m.find()) links.add(m.group(1));
+      m = childPat.matcher(urdf);
+      while (m.find()) children.add(m.group(1));
+      links.removeAll(children);
+      return links.isEmpty() ? null : links.iterator().next();
+   }
+
+   private static String stripNonUrdfExtensions(String urdf)
+   {
+      try
+      {
+         javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+         factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
+         javax.xml.parsers.DocumentBuilder builder = factory.newDocumentBuilder();
+         org.w3c.dom.Document doc = builder.parse(new java.io.ByteArrayInputStream(urdf.getBytes(StandardCharsets.UTF_8)));
+
+         // Remove <gazebo> elements — Gazebo-specific extensions not in the URDF spec.
+         org.w3c.dom.NodeList gazeboNodes = doc.getElementsByTagName("gazebo");
+         List<org.w3c.dom.Node> toRemove = new ArrayList<>();
+         for (int i = 0; i < gazeboNodes.getLength(); i++)
+            toRemove.add(gazeboNodes.item(i));
+         for (org.w3c.dom.Node node : toRemove)
+            node.getParentNode().removeChild(node);
+
+         // Replace <capsule> with <cylinder> — capsule is non-standard; cylinder is the closest URDF primitive.
+         org.w3c.dom.NodeList capsules = doc.getElementsByTagName("capsule");
+         List<org.w3c.dom.Node> capsuleList = new ArrayList<>();
+         for (int i = 0; i < capsules.getLength(); i++)
+            capsuleList.add(capsules.item(i));
+         for (org.w3c.dom.Node capsule : capsuleList)
+         {
+            org.w3c.dom.Element cylinder = doc.createElement("cylinder");
+            org.w3c.dom.NamedNodeMap attrs = capsule.getAttributes();
+            for (int i = 0; i < attrs.getLength(); i++)
+               cylinder.setAttribute(attrs.item(i).getNodeName(), attrs.item(i).getNodeValue());
+            capsule.getParentNode().replaceChild(cylinder, capsule);
+         }
+
+         javax.xml.transform.Transformer transformer = javax.xml.transform.TransformerFactory.newInstance().newTransformer();
+         transformer.setOutputProperty(javax.xml.transform.OutputKeys.ENCODING, "UTF-8");
+         java.io.StringWriter writer = new java.io.StringWriter();
+         transformer.transform(new javax.xml.transform.dom.DOMSource(doc), new javax.xml.transform.stream.StreamResult(writer));
+         return writer.toString();
+      }
+      catch (Exception e)
+      {
+         System.err.println("Warning: could not strip Gazebo extensions from URDF, using raw content: " + e.getMessage());
+         return urdf;
+      }
+   }
+
+   private static String rewriteMeshPaths(String urdf)
+   {
+      // Relative mesh paths already start with the package directory name (e.g. "alex_V1_description/meshes/…").
+      // Rewrite them to absolute HTTP URLs so the same server that serves the URDF also serves the meshes —
+      // no additional Foxglove configuration required.
+      return urdf.replaceAll(
+            "filename=\"(?!file:|package:|http:|https:)([^\"]+)\"",
+            "filename=\"http://localhost:" + HTTP_PORT + "/$1\"");
+   }
+
+   private static void extractZipIfNeeded(File zipFile, File destDir) throws IOException
+   {
+      try (java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(Files.newInputStream(zipFile.toPath())))
+      {
+         java.util.zip.ZipEntry entry;
+         while ((entry = zis.getNextEntry()) != null)
+         {
+            File out = new File(destDir, entry.getName());
+            if (entry.isDirectory())
+            {
+               out.mkdirs();
+            }
+            else if (!out.exists())
+            {
+               out.getParentFile().mkdirs();
+               Files.copy(zis, out.toPath());
+            }
+            zis.closeEntry();
+         }
+      }
+   }
+
    private static void cdrAlign(ByteBuffer buf, int alignment)
    {
       int rem = (buf.position() - 4) % alignment; // CDR aligns from payload start, not buffer start
@@ -302,7 +651,7 @@ public class McapLogConverter extends YoVariableLogReader
    // ── Entry point ───────────────────────────────────────────────────────────────
 
    // Set this to the log directory you want to convert, then run main().
-   private static final String LOG_DIRECTORY = "/opt/ihmc/LogData/_Issues/20260626_104940_Alex002_AutomaticEstopFromFortRobotics/";
+   private static final String LOG_DIRECTORY = "/home/tomatoes/workspaces/logger2/repository-group/20260626_104940_Alex002_AutomaticEstopFromFortRobotics/";
 
    public static void main(String[] args) throws IOException
    {
@@ -310,7 +659,11 @@ public class McapLogConverter extends YoVariableLogReader
       if (!logDirectory.isDirectory())
          throw new IllegalArgumentException("Not a directory: " + logDirectory.getAbsolutePath());
 
-      File outputFile = new File(logDirectory, logDirectory.getName() + ".mcap");
+      // Write the MCAP and mesh resources into a dedicated sibling directory that can be
+      // copied and shared as a single unit — nothing else ends up in there.
+      File outputDir = new File(logDirectory.getParentFile(), logDirectory.getName() + "_foxglove");
+      outputDir.mkdirs();
+      File outputFile = new File(outputDir, logDirectory.getName() + ".mcap");
 
       File propertyFile = new File(logDirectory, YoVariableLoggerListener.propertyFile);
       LogProperties properties = new LogPropertiesReader(propertyFile);
