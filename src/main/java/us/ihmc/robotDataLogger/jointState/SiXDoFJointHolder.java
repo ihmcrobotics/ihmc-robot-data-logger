@@ -24,7 +24,7 @@ public class SiXDoFJointHolder implements JointHolder
    @Override
    public int getNumberOfStateVariables()
    {
-      return 13;
+      return 13; // quaternion + position + angular velocity + linear velocity
    }
 
    @Override

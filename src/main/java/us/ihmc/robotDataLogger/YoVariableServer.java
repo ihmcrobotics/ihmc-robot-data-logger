@@ -22,6 +22,7 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class YoVariableServer implements RobotVisualizer, VariableChangedListener
@@ -40,6 +41,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    private final ArrayList<RegistrySendBufferBuilder> registeredBuffers = new ArrayList<>();
 
    private final ArrayList<RegistryHolder> registryHolders = new ArrayList<>();
+   private final HashMap<YoRegistry, RegistryHolder> registryHolderMap = new HashMap<>();
 
    // State
    private boolean started = false;
@@ -179,7 +181,9 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
                ConcurrentRingBuffer<VariableChangedMessage> variableChangeData = new ConcurrentRingBuffer<>(new VariableChangedMessage.Builder(), CHANGED_BUFFER_CAPACITY);
                RegistryPublisher publisher = dataProducer.createRegistryPublisher(builder, bufferListener);
 
-               registryHolders.add(new RegistryHolder(registry, publisher, variableChangeData));
+               RegistryHolder holder = new RegistryHolder(registry, publisher, variableChangeData);
+               registryHolders.add(holder);
+               registryHolderMap.put(registry, holder);
 
                publisher.start();
             }
@@ -212,14 +216,10 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
 
    public RegistryHolder getRegistryHolder(YoRegistry registry)
    {
-      for (int i = 0; i < registryHolders.size(); i++)
+      RegistryHolder holder = registryHolderMap.get(registry);
+      if (holder != null)
       {
-         RegistryHolder registryHolder = registryHolders.get(i);
-
-         if (registryHolder.registry == registry)
-         {
-            return registryHolder;
-         }
+         return holder;
       }
 
       throw new RuntimeException("Registry " + registry.getName() + " not registered with addRegistry() or setMainRegistry()");
