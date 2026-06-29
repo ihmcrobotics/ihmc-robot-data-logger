@@ -28,6 +28,12 @@ public class JointDefinition implements ROS2Message<JointDefinition>
 
    }
 
+   public JointDefinition(JointDefinition from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

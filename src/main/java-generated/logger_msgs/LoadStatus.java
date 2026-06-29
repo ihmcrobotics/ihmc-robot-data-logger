@@ -30,6 +30,12 @@ public class LoadStatus implements ROS2Message<LoadStatus>
    {
    }
 
+   public LoadStatus(LoadStatus from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

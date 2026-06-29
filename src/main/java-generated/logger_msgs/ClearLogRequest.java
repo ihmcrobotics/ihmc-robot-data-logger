@@ -26,6 +26,12 @@ public class ClearLogRequest implements ROS2Message<ClearLogRequest>
 
    }
 
+   public ClearLogRequest(ClearLogRequest from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

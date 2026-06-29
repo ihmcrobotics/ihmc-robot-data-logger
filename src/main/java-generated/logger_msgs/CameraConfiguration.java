@@ -33,6 +33,12 @@ public class CameraConfiguration implements ROS2Message<CameraConfiguration>
 
    }
 
+   public CameraConfiguration(CameraConfiguration from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

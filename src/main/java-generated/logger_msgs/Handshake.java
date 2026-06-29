@@ -52,6 +52,12 @@ public class Handshake implements ROS2Message<Handshake>
 
    }
 
+   public Handshake(Handshake from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

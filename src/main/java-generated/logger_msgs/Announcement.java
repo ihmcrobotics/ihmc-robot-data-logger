@@ -43,6 +43,12 @@ public class Announcement implements ROS2Message<Announcement>
 
    }
 
+   public Announcement(Announcement from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

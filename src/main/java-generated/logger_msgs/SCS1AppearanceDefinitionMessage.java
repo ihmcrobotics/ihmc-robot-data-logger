@@ -31,6 +31,12 @@ public class SCS1AppearanceDefinitionMessage implements ROS2Message<SCS1Appearan
    {
    }
 
+   public SCS1AppearanceDefinitionMessage(SCS1AppearanceDefinitionMessage from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

@@ -30,6 +30,12 @@ public class Video implements ROS2Message<Video>
 
    }
 
+   public Video(Video from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

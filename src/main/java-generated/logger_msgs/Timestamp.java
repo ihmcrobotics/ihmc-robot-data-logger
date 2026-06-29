@@ -24,6 +24,12 @@ public class Timestamp implements ROS2Message<Timestamp>
    {
    }
 
+   public Timestamp(Timestamp from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

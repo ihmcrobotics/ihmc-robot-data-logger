@@ -41,6 +41,12 @@ public class SCS1YoGraphicObjectMessage implements ROS2Message<SCS1YoGraphicObje
 
    }
 
+   public SCS1YoGraphicObjectMessage(SCS1YoGraphicObjectMessage from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

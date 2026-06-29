@@ -43,6 +43,12 @@ public class LogData implements ROS2Message<LogData>
 
    }
 
+   public LogData(LogData from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

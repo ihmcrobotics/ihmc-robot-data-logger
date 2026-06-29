@@ -35,6 +35,12 @@ public class YoType implements ROS2Message<YoType>
 
    }
 
+   public YoType(YoType from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

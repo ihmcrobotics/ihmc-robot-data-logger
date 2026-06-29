@@ -29,6 +29,12 @@ public class ReferenceFrameInformation implements ROS2Message<ReferenceFrameInfo
 
    }
 
+   public ReferenceFrameInformation(ReferenceFrameInformation from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

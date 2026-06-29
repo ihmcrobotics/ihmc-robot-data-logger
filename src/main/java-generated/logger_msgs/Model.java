@@ -38,6 +38,12 @@ public class Model implements ROS2Message<Model>
 
    }
 
+   public Model(Model from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

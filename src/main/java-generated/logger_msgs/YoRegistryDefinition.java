@@ -28,6 +28,12 @@ public class YoRegistryDefinition implements ROS2Message<YoRegistryDefinition>
 
    }
 
+   public YoRegistryDefinition(YoRegistryDefinition from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

@@ -44,6 +44,12 @@ public class ModelFileDescription implements ROS2Message<ModelFileDescription>
 
    }
 
+   public ModelFileDescription(ModelFileDescription from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

@@ -29,6 +29,12 @@ public class StaticHostList implements ROS2Message<StaticHostList>
 
    }
 
+   public StaticHostList(StaticHostList from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

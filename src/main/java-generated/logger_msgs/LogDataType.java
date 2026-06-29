@@ -31,6 +31,12 @@ public class LogDataType implements ROS2Message<LogDataType>
 
    }
 
+   public LogDataType(LogDataType from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

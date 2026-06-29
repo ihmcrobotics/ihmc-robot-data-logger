@@ -41,6 +41,12 @@ public class ZEDSDKAnnounce implements ROS2Message<ZEDSDKAnnounce>
 
    }
 
+   public ZEDSDKAnnounce(ZEDSDKAnnounce from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

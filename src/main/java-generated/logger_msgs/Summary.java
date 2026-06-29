@@ -32,6 +32,12 @@ public class Summary implements ROS2Message<Summary>
 
    }
 
+   public Summary(Summary from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

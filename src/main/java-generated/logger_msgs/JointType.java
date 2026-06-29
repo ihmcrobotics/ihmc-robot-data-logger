@@ -29,6 +29,12 @@ public class JointType implements ROS2Message<JointType>
 
    }
 
+   public JointType(JointType from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

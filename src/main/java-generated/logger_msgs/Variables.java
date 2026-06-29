@@ -50,6 +50,12 @@ public class Variables implements ROS2Message<Variables>
 
    }
 
+   public Variables(Variables from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

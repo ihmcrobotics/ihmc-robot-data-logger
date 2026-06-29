@@ -32,6 +32,12 @@ public class ChildLog implements ROS2Message<ChildLog>
 
    }
 
+   public ChildLog(ChildLog from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

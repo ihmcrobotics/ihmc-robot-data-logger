@@ -26,6 +26,12 @@ public class Synchronization implements ROS2Message<Synchronization>
    {
    }
 
+   public Synchronization(Synchronization from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

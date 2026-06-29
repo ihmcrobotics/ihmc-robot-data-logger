@@ -26,6 +26,12 @@ public class VariableChangeRequest implements ROS2Message<VariableChangeRequest>
    {
    }
 
+   public VariableChangeRequest(VariableChangeRequest from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

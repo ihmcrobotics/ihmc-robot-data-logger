@@ -29,6 +29,12 @@ public class SCS2YoGraphicDefinitionMessage implements ROS2Message<SCS2YoGraphic
 
    }
 
+   public SCS2YoGraphicDefinitionMessage(SCS2YoGraphicDefinitionMessage from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

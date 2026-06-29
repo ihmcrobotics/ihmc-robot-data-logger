@@ -29,6 +29,12 @@ public class HandshakeFileType implements ROS2Message<HandshakeFileType>
 
    }
 
+   public HandshakeFileType(HandshakeFileType from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

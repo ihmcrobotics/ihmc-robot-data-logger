@@ -31,6 +31,12 @@ public class Host implements ROS2Message<Host>
 
    }
 
+   public Host(Host from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

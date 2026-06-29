@@ -29,6 +29,12 @@ public class EnumType implements ROS2Message<EnumType>
 
    }
 
+   public EnumType(EnumType from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {

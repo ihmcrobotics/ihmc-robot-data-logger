@@ -54,6 +54,12 @@ public class LogProperties implements ROS2Message<LogProperties>
 
    }
 
+   public LogProperties(LogProperties from)
+   {
+      this();
+      set(from);
+   }
+
    @Override
    public int calculateSizeBytes(int currentAlignment)
    {
