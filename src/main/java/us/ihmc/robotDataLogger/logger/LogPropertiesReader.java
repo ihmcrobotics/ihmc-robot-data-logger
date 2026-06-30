@@ -33,6 +33,7 @@ public class LogPropertiesReader extends LogProperties
          JsonNode resourceDirectories = node.with("model").get("resourceDirectories");
          if (resourceDirectories != null && resourceDirectories.isTextual() && data.getModel().getResourceDirectoriesList().size() == 0)
          {
+            System.out.println("Handling legacy resource directories");
             addResourceDirectories(data, resourceDirectories.asText());
          }
 
@@ -71,6 +72,7 @@ public class LogPropertiesReader extends LogProperties
          {
             if (!directory.isEmpty())
             {
+               System.out.println("Adding directory " + directory);
                data.getModel().getResourceDirectoriesList().add(directory);
             }
          }

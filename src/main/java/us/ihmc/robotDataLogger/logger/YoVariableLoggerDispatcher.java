@@ -1,6 +1,5 @@
 package us.ihmc.robotDataLogger.logger;
 
-import com.martiansoftware.jsap.JSAPException;
 import logger_msgs.Announcement;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
@@ -69,7 +68,7 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
       ThreadTools.sleepForever();
    }
 
-   public static void main(String[] args) throws JSAPException, IOException, InterruptedException
+   public static void main(String[] args) throws IOException, InterruptedException
    {
       YoVariableLoggerOptions options = YoVariableLoggerOptions.parse(args);
       new YoVariableLoggerDispatcher(options);
