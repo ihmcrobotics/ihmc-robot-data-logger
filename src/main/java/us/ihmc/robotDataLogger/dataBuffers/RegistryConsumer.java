@@ -36,12 +36,6 @@ public class RegistryConsumer extends Thread
 
    private volatile int jitterBufferSamples = 1;
 
-   // The adaptive jitter buffer can grow up to MAXIMUM_ELEMENTS / 2 frames, which at a high publish rate is
-   // tens of seconds of latency before the consumer starts draining. That suits the lossy UDP realtime logger,
-   // but a live SCS2 viewer connected over an ordered TCP websocket wants minimal latency. The cap is lowered
-   // via -Dscs2.remote.maxJitterBufferSamples for the viewer; the default preserves the original behavior.
-   private static final int MAX_JITTER_BUFFER_SAMPLES = Integer.getInteger("scs2.remote.maxJitterBufferSamples", MAXIMUM_ELEMENTS / 2);
-
    private long previousTimestamp = -1;
 
    private long lastPacketReceived;
@@ -201,9 +195,9 @@ public class RegistryConsumer extends Thread
 
          jitterBufferSamples = (int) (Math.ceil(jitterEstimate / averageTimeBetweenPackets) + 1);
 
-         if (jitterBufferSamples > MAX_JITTER_BUFFER_SAMPLES)
+         if (jitterBufferSamples > MAXIMUM_ELEMENTS / 2)
          {
-            jitterBufferSamples = MAX_JITTER_BUFFER_SAMPLES;
+            jitterBufferSamples = MAXIMUM_ELEMENTS / 2;
          }
       }
       previousTransmitTime = buffer.getTransmitTime();
