@@ -1,7 +1,7 @@
 package us.ihmc.robotDataLogger.logger;
 
+import com.github.luben.zstd.Zstd;
 import com.google.common.io.Files;
-import logger_msgs.HandshakeFileType;
 import logger_msgs.LogProperties;
 import us.ihmc.idl.serializers.extra.ROS2PropertiesSerializer;
 import us.ihmc.robotDataLogger.LogIndex;
@@ -24,6 +24,8 @@ public class YoVariableLogReader
 
    private int logLineLength;
    private int numberOfEntries;
+   private int batchSize;
+   private LogCompressionType compressionType;
 
    protected final File handshake;
    private FileChannel logChannel;
@@ -105,9 +107,17 @@ public class YoVariableLogReader
             logChannel = logInputStream.getChannel();
 
             logIndex = new LogIndex(index, logChannel.size());
+            long storedBatchSize = logProperties.getVariables().getCompressionBatchSize();
+            batchSize = storedBatchSize <= 0 ? 1 : Math.toIntExact(storedBatchSize);
+            compressionType = logProperties.getVariables().getCompressed() ?
+                  LogCompressionType.fromString(logProperties.getVariables().getCompressionTypeAsString()) :
+                  LogCompressionType.NONE;
             int bufferSize = logLineLength * 8;
-            compressedData = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize));
-            uncompressedData = ByteBuffer.allocate(bufferSize);
+            int rawBatchBytes = bufferSize * batchSize;
+            int maxCompressedBytes =
+                  compressionType == LogCompressionType.ZSTD ? (int) Zstd.compressBound(rawBatchBytes) : SnappyUtils.maxCompressedLength(rawBatchBytes);
+            compressedData = ByteBuffer.allocate(maxCompressedBytes);
+            uncompressedData = ByteBuffer.allocate(rawBatchBytes);
 
             numberOfEntries = logIndex.getNumberOfEntries();
             initialized = true;
@@ -128,6 +138,16 @@ public class YoVariableLogReader
    public int getNumberOfEntries()
    {
       return numberOfEntries;
+   }
+
+   public int getBatchSize()
+   {
+      return batchSize;
+   }
+
+   public int getSingleTickSize()
+   {
+      return logLineLength * 8;
    }
 
    public void close()
@@ -181,7 +201,22 @@ public class YoVariableLogReader
    {
       ByteBuffer compressedData = readCompressedData(position);
       uncompressedData.clear();
-      SnappyUtils.uncompress(compressedData, uncompressedData);
+      switch (compressionType)
+      {
+         case ZSTD ->
+         {
+            long result = Zstd.decompressByteArray(uncompressedData.array(),
+                                                   0,
+                                                   uncompressedData.capacity(),
+                                                   compressedData.array(),
+                                                   compressedData.position(),
+                                                   compressedData.remaining());
+            if (Zstd.isError(result))
+               throw new IOException("Zstd decompression failed: " + Zstd.getErrorName(result));
+            uncompressedData.position((int) result);
+         }
+         default -> SnappyUtils.uncompress(compressedData, uncompressedData);
+      }
       uncompressedData.flip();
       return uncompressedData;
    }
