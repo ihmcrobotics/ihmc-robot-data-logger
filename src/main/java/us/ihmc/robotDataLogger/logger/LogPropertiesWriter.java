@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class LogPropertiesWriter extends LogProperties
 {
-   private final static String version = "4.0";
+   private final static String version = "5.0";
    private final File file;
 
    public LogPropertiesWriter(File file)
@@ -29,4 +29,5 @@ public class LogPropertiesWriter extends LogProperties
       ROS2PropertiesSerializer<LogProperties> serializer = new ROS2PropertiesSerializer<>(LogProperties.class);
       serializer.serialize(file, this);
    }
+
 }

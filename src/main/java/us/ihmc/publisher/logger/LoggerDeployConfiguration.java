@@ -1,5 +1,8 @@
 package us.ihmc.publisher.logger;
 
+import java.io.IOException;
+import java.net.URL;
+
 import logger_msgs.CameraSettings;
 import logger_msgs.StaticHostList;
 import us.ihmc.publisher.logger.utils.SSHDeploy;
@@ -7,9 +10,6 @@ import us.ihmc.publisher.logger.utils.SSHDeploy.SSHRemote;
 import us.ihmc.publisher.logger.utils.ui.FXConsole;
 import us.ihmc.robotDataLogger.CameraSettingsLoader;
 import us.ihmc.robotDataLogger.StaticHostListLoader;
-
-import java.io.IOException;
-import java.net.URL;
 
 public class LoggerDeployConfiguration
 {
@@ -65,7 +65,8 @@ public class LoggerDeployConfiguration
       URL crontab = loader.getResource("ihmc-logger-cron");
       
       deploy.addBinaryFile("DIST", dist, "/tmp/logger.tar", false);
-      deploy.addTextFile("LOGGER_SERVICE", "ihmc-logger.service", loggerService, "/etc/systemd/system/ihmc-logger.service", true);
+      if (logger_service)
+         deploy.addTextFile("LOGGER_SERVICE", "ihmc-logger.service", loggerService, "/etc/systemd/system/ihmc-logger.service", true);
       deploy.addTextFile("CRON_ENTRY", "ihmc-logger-cron", crontab, "/tmp/ihmc-logger-cron", true);
       
       deploy.addVariable("NIGHTLY_RESTART", restartNightly ? "true" : "false");
