@@ -11,16 +11,20 @@ import us.ihmc.jros2.ROS2Message;
 /**
 <p>Source (logger_msgs/LogProperties):
 <pre>{@code
-string version    # Version of the properties
-string name    # Name of this log
+# Version of the properties
+string version
+# Name of this log
+string name
 Variables variables
 Model model
-string timestamp    # When was this log taken
+# When was this log taken
+string timestamp
 
 Camera[] cameras
 
 # Backward compatibility options
-Video video    # Old timebase option
+# Old timebase option
+Video video
 
 ChildLog[] childLogs
 }</pre>
@@ -29,16 +33,26 @@ public class LogProperties implements ROS2Message<LogProperties>
 {
    public static final java.lang.String name = "logger_msgs::msg::dds_::LogProperties_";
 
-   private final StringBuilder version_; // Version of the properties
-   private final StringBuilder name_; // Name of this log
+   /**
+      Version of the properties
+   */
+   private final StringBuilder version_;
+   /**
+      Name of this log
+   */
+   private final StringBuilder name_;
    private final logger_msgs.Variables variables_;
    private final logger_msgs.Model model_;
-   private final StringBuilder timestamp_; // When was this log taken
+   /**
+      When was this log taken
+   */
+   private final StringBuilder timestamp_;
    private final IDLObjectSequence<logger_msgs.Camera> cameras_;
    /**
       Backward compatibility options
+      Old timebase option
    */
-   private final logger_msgs.Video video_; // Old timebase option
+   private final logger_msgs.Video video_;
    private final IDLObjectSequence<logger_msgs.ChildLog> childLogs_;
 
    public LogProperties()

@@ -12,15 +12,24 @@ import us.ihmc.jros2.ROS2Message;
 <p>Source (logger_msgs/Variables):
 <pre>{@code
 uint8 handshakeFileType
-string handshake    # Handshake file name
-string data    # Data file name
-string summary    # Summary file name
-string index    # Variable index file
-bool timestamped    # Does the index contain timestamps
-bool compressed    # Is the data compressed
-int64 compressionBatchSize    # Number of ticks per compressed block; 0 or 1 means per-tick (legacy)
-int64 validTicksInLastBatch    # Number of valid ticks in the last compressed block; 0 means all ticks are valid (legacy)
-string compressionType    # Compression codec used: "zstd" or empty/absent means snappy (legacy)
+# Handshake file name
+string handshake
+# Data file name
+string data
+# Summary file name
+string summary
+# Variable index file
+string index
+# Does the index contain timestamps
+bool timestamped
+# Is the data compressed
+bool compressed
+# Number of ticks per compressed block; 0 or 1 means per-tick (legacy)
+int64 compressionBatchSize
+# Number of valid ticks in the last compressed block; 0 means all ticks are valid (legacy)
+int64 validTicksInLastBatch
+# Compression codec used: "zstd" or empty/absent means snappy (legacy)
+string compressionType
 }</pre>
 */
 public class Variables implements ROS2Message<Variables>
@@ -28,15 +37,42 @@ public class Variables implements ROS2Message<Variables>
    public static final java.lang.String name = "logger_msgs::msg::dds_::Variables_";
 
    private byte handshakeFileType_;
-   private final StringBuilder handshake_; // Handshake file name
-   private final StringBuilder data_; // Data file name
-   private final StringBuilder summary_; // Summary file name
-   private final StringBuilder index_; // Variable index file
-   private boolean timestamped_; // Does the index contain timestamps
-   private boolean compressed_; // Is the data compressed
-   private long compressionBatchSize_; // Number of ticks per compressed block; 0 or 1 means per-tick (legacy)
-   private long validTicksInLastBatch_; // Number of valid ticks in the last compressed block; 0 means all ticks are valid (legacy)
-   private final StringBuilder compressionType_; // Compression codec used: "zstd" or empty/absent means snappy (legacy)
+   /**
+      Handshake file name
+   */
+   private final StringBuilder handshake_;
+   /**
+      Data file name
+   */
+   private final StringBuilder data_;
+   /**
+      Summary file name
+   */
+   private final StringBuilder summary_;
+   /**
+      Variable index file
+   */
+   private final StringBuilder index_;
+   /**
+      Does the index contain timestamps
+   */
+   private boolean timestamped_;
+   /**
+      Is the data compressed
+   */
+   private boolean compressed_;
+   /**
+      Number of ticks per compressed block; 0 or 1 means per-tick (legacy)
+   */
+   private long compressionBatchSize_;
+   /**
+      Number of valid ticks in the last compressed block; 0 means all ticks are valid (legacy)
+   */
+   private long validTicksInLastBatch_;
+   /**
+      Compression codec used: "zstd" or empty/absent means snappy (legacy)
+   */
+   private final StringBuilder compressionType_;
 
    public Variables()
    {

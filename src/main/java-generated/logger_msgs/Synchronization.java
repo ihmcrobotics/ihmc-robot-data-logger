@@ -11,16 +11,24 @@ import us.ihmc.jros2.ROS2Message;
 /**
 <p>Source (logger_msgs/Synchronization):
 <pre>{@code
-float64 offset    # Index offset from the start of the parent log
-float64 jogRate    # Jog rate compared to the parent log
+# Index offset from the start of the parent log
+float64 offset
+# Jog rate compared to the parent log
+float64 jogRate
 }</pre>
 */
 public class Synchronization implements ROS2Message<Synchronization>
 {
    public static final java.lang.String name = "logger_msgs::msg::dds_::Synchronization_";
 
-   private double offset_; // Index offset from the start of the parent log
-   private double jogRate_; // Jog rate compared to the parent log
+   /**
+      Index offset from the start of the parent log
+   */
+   private double offset_;
+   /**
+      Jog rate compared to the parent log
+   */
+   private double jogRate_;
 
    public Synchronization()
    {

@@ -1,3 +1,6 @@
-string childName    # Name of the child log
-Synchronization synchronization    # synchronization with the parent
-LogProperties properties    # Properties of the child log
+# Name of the child log
+string childName
+# synchronization with the parent
+Synchronization synchronization
+# Properties of the child log
+LogProperties properties

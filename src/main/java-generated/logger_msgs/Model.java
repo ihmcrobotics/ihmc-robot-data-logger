@@ -11,22 +11,42 @@ import us.ihmc.jros2.ROS2Message;
 /**
 <p>Source (logger_msgs/Model):
 <pre>{@code
-string loader    # Loader class
-string path    # Path
-string name    # Model file name
-string resourceBundle    # Resource bundle zip file name
-string[] resourceDirectoriesList    # List of resource directories
+# Loader class
+string loader
+# Path
+string path
+# Model file name
+string name
+# Resource bundle zip file name
+string resourceBundle
+# List of resource directories
+string[] resourceDirectoriesList
 }</pre>
 */
 public class Model implements ROS2Message<Model>
 {
    public static final java.lang.String name = "logger_msgs::msg::dds_::Model_";
 
-   private final StringBuilder loader_; // Loader class
-   private final StringBuilder path_; // Path
-   private final StringBuilder name_; // Model file name
-   private final StringBuilder resourceBundle_; // Resource bundle zip file name
-   private final IDLStringSequence resourceDirectoriesList_; // List of resource directories
+   /**
+      Loader class
+   */
+   private final StringBuilder loader_;
+   /**
+      Path
+   */
+   private final StringBuilder path_;
+   /**
+      Model file name
+   */
+   private final StringBuilder name_;
+   /**
+      Resource bundle zip file name
+   */
+   private final StringBuilder resourceBundle_;
+   /**
+      List of resource directories
+   */
+   private final IDLStringSequence resourceDirectoriesList_;
 
    public Model()
    {

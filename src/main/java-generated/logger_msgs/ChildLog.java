@@ -11,18 +11,30 @@ import us.ihmc.jros2.ROS2Message;
 /**
 <p>Source (logger_msgs/ChildLog):
 <pre>{@code
-string childName    # Name of the child log
-Synchronization synchronization    # synchronization with the parent
-LogProperties properties    # Properties of the child log
+# Name of the child log
+string childName
+# synchronization with the parent
+Synchronization synchronization
+# Properties of the child log
+LogProperties properties
 }</pre>
 */
 public class ChildLog implements ROS2Message<ChildLog>
 {
    public static final java.lang.String name = "logger_msgs::msg::dds_::ChildLog_";
 
-   private final StringBuilder childName_; // Name of the child log
-   private final logger_msgs.Synchronization synchronization_; // synchronization with the parent
-   private final logger_msgs.LogProperties properties_; // Properties of the child log
+   /**
+      Name of the child log
+   */
+   private final StringBuilder childName_;
+   /**
+      synchronization with the parent
+   */
+   private final logger_msgs.Synchronization synchronization_;
+   /**
+      Properties of the child log
+   */
+   private final logger_msgs.LogProperties properties_;
 
    public ChildLog()
    {

@@ -1,12 +1,16 @@
-string version    # Version of the properties
-string name    # Name of this log
+# Version of the properties
+string version
+# Name of this log
+string name
 Variables variables
 Model model
-string timestamp    # When was this log taken
+# When was this log taken
+string timestamp
 
 Camera[] cameras
 
 # Backward compatibility options
-Video video    # Old timebase option
+# Old timebase option
+Video video
 
 ChildLog[] childLogs

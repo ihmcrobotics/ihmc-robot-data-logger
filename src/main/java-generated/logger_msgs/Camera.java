@@ -12,11 +12,16 @@ import us.ihmc.jros2.ROS2Message;
 <p>Source (logger_msgs/Camera):
 <pre>{@code
 # Camera definition
-string type    # Type of capture method used
-string name    # Human readable camera name
-bool interlaced    # Is the input interlaced
-string videoFile    # Video file
-string timestampFile    # Timestamps for video file
+# Type of capture method used
+string type
+# Human readable camera name
+string name
+# Is the input interlaced
+bool interlaced
+# Video file
+string videoFile
+# Timestamps for video file
+string timestampFile
 }</pre>
 */
 public class Camera implements ROS2Message<Camera>
@@ -25,12 +30,25 @@ public class Camera implements ROS2Message<Camera>
 
    /**
       Camera definition
+      Type of capture method used
    */
-   private final StringBuilder type_; // Type of capture method used
-   private final StringBuilder name_; // Human readable camera name
-   private boolean interlaced_; // Is the input interlaced
-   private final StringBuilder videoFile_; // Video file
-   private final StringBuilder timestampFile_; // Timestamps for video file
+   private final StringBuilder type_;
+   /**
+      Human readable camera name
+   */
+   private final StringBuilder name_;
+   /**
+      Is the input interlaced
+   */
+   private boolean interlaced_;
+   /**
+      Video file
+   */
+   private final StringBuilder videoFile_;
+   /**
+      Timestamps for video file
+   */
+   private final StringBuilder timestampFile_;
 
    public Camera()
    {

@@ -1,6 +1,11 @@
 # Camera definition
-string type    # Type of capture method used
-string name    # Human readable camera name
-bool interlaced    # Is the input interlaced
-string videoFile    # Video file
-string timestampFile    # Timestamps for video file
+# Type of capture method used
+string type
+# Human readable camera name
+string name
+# Is the input interlaced
+bool interlaced
+# Video file
+string videoFile
+# Timestamps for video file
+string timestampFile
