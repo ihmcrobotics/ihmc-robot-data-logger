@@ -6,8 +6,8 @@ package logger_msgs;
  */
 public final class MessageTypes
 {
-   public static final JointType ONEDOF_JOINT = jointType(JointType.ONEDOFJOINT);
-   public static final JointType SIXDOF_JOINT = jointType(JointType.SIXDOFJOINT);
+   public static final JointType ONE_DOF_JOINT = jointType(JointType.ONEDOFJOINT);
+   public static final JointType SIX_DOF_JOINT = jointType(JointType.SIXDOFJOINT);
 
    public static final HandshakeFileType IDL_YAML = handshakeFileType(HandshakeFileType.IDL_YAML);
    public static final HandshakeFileType IDL_CDR = handshakeFileType(HandshakeFileType.IDL_CDR);

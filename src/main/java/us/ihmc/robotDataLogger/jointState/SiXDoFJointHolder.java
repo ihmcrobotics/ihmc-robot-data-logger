@@ -18,7 +18,7 @@ public class SiXDoFJointHolder implements JointHolder
    @Override
    public JointType getJointType()
    {
-      return MessageTypes.SIXDOF_JOINT;
+      return MessageTypes.SIX_DOF_JOINT;
    }
 
    @Override

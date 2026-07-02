@@ -16,7 +16,7 @@ public class OneDoFJointHolder implements JointHolder
    @Override
    public JointType getJointType()
    {
-      return MessageTypes.ONEDOF_JOINT;
+      return MessageTypes.ONE_DOF_JOINT;
    }
 
    @Override

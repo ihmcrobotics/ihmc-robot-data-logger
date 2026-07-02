@@ -1,6 +1,5 @@
 package us.ihmc.robotDataLogger.jointState;
 
-import logger_msgs.JointType;
 import logger_msgs.MessageTypes;
 import us.ihmc.euclid.orientation.interfaces.Orientation3DBasics;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -24,7 +23,7 @@ public class SixDoFState extends JointState
 
    public SixDoFState(String name)
    {
-      super(name, MessageTypes.SIXDOF_JOINT);
+      super(name, MessageTypes.SIX_DOF_JOINT);
    }
 
    @Override
