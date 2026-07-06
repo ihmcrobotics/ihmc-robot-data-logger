@@ -1,18 +1,24 @@
 package us.ihmc.robotDataLogger.logger;
 
+import logger_msgs.Announcement;
+import logger_msgs.CameraConfiguration;
+import logger_msgs.CameraSettings;
+import logger_msgs.CameraType;
+import logger_msgs.Handshake;
+import logger_msgs.HandshakeFileType;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.MathTools;
-import us.ihmc.idl.serializers.extra.YAMLSerializer;
+import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.*;
+import us.ihmc.robotDataLogger.CameraSettingsLoader;
+import us.ihmc.robotDataLogger.YoVariableClientInterface;
+import us.ihmc.robotDataLogger.YoVariablesUpdatedListener;
 import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.jointState.JointState;
-import us.ihmc.robotDataLogger.rtps.LogParticipantSettings;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
-import us.ihmc.tools.compression.SnappyUtils;
 import com.github.luben.zstd.Zstd;
 import com.github.luben.zstd.ZstdException;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -168,10 +174,12 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          {
             for (int i = 0; i < target.getCameraList().size(); i++)
             {
-               byte camera_id = target.getCameraList().get(i);
+               byte camera_id = target.getCameraList().getBuffer().get(i);
 
-               for (CameraConfiguration camera : cameras.getCameras())
+               for (int i1 = 0; i1 < cameras.getCameras().size(); i1++)
                {
+                  CameraConfiguration camera = cameras.getCameras().get(i1);
+
                   if (camera.getCameraId() == camera_id)
                   {
                      LogTools.info("Adding camera " + camera.toString());
@@ -202,7 +210,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       File handshakeFile = new File(tempDirectory, handshakeFilename);
       try
       {
-         YAMLSerializer<Handshake> serializer = new YAMLSerializer<>(new HandshakePubSubType());
+         ROS2YAMLSerializer<Handshake> serializer = new ROS2YAMLSerializer<>(Handshake.class);
          serializer.serialize(handshakeFile, handshake.getHandshake());
       }
       catch (IOException e)
@@ -643,28 +651,21 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
                {
                   switch (camera.getType())
                   {
-                     case CAPTURE_CARD_MAGEWELL:
+                     case CameraType.CAPTURE_CARD_MAGEWELL:
                         videoDataLoggers.add(new MagewellVideoDataLogger(camera.getNameAsString(),
-                                                                         camera.getType().name(),
+                                                                         "Magewell",
                                                                          tempDirectory,
                                                                          logProperties,
                                                                          Byte.parseByte(camera.getIdentifierAsString()),
                                                                          options));
                         break;
-                     case CAPTURE_CARD:
+                     case CameraType.CAPTURE_CARD:
                         videoDataLoggers.add(new BlackmagicVideoDataLogger(camera.getNameAsString(),
-                                                                           camera.getType().name(),
+                                                                           "Capture Card",
                                                                            tempDirectory,
                                                                            logProperties,
                                                                            Byte.parseByte(camera.getIdentifierAsString()),
                                                                            options));
-                        break;
-                     case NETWORK_STREAM:
-                        videoDataLoggers.add(new NetworkStreamVideoDataLogger(tempDirectory,
-                                                                              camera.getType().name(),
-                                                                              logProperties,
-                                                                              LogParticipantSettings.videoDomain,
-                                                                              camera.getIdentifierAsString()));
                         break;
                   }
                }
@@ -817,13 +818,13 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       builder.append("Announcement {");
       builder.append("\n  identifier = ");
-      builder.append(announcement.identifier_);
+      builder.append(announcement.getIdentifierAsString());
       builder.append("\n  name = ");
-      builder.append(announcement.name_);
+      builder.append(announcement.getNameAsString());
       builder.append("\n  hostName = ");
-      builder.append(announcement.hostName_);
+      builder.append(announcement.getHostNameAsString());
       builder.append("\n  log = ");
-      builder.append(announcement.log_);
+      builder.append(announcement.getLog());
       builder.append("\n}");
 
       return builder.toString();

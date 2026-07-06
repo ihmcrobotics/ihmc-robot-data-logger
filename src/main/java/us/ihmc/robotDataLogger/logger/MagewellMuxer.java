@@ -23,8 +23,9 @@ public class MagewellMuxer
       // For information about these settings visit https://trac.ffmpeg.org/wiki/Encode/H.264
       recorder.setVideoOption("preset", "ultrafast");
       recorder.setVideoOption("crf", "27");
-      // g=1 forces every frame to be a keyframe (all-intra), so random-access seeking in the demuxer works correctly
-      recorder.setVideoOption("g", "1");
+      // GOP size: keyframe every ~1 second at 60 fps. The demuxer must use frame-accurate seeking
+      // (FFmpegFrameGrabber.setVideoTimestamp) to land on a non-keyframe.
+      recorder.setVideoOption("g", "60");
       recorder.setVideoBitrate(60000000); // 6000 kb/s
 
       recorder.setVideoCodec(avcodec.AV_CODEC_ID_H264);

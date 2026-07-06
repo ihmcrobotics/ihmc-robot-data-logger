@@ -1,24 +1,18 @@
-import us.ihmc.idl.generator.IDLGenerator
-
-buildscript {
-   dependencies {
-      classpath("us.ihmc:ihmc-pub-sub-generator:1.2.1")
-   }
-}
+import us.ihmc.jros2.generator.jros2GenTask
 
 plugins {
    id("us.ihmc.ihmc-build")
    id("us.ihmc.log-tools-plugin") version "0.6.4"
+   id("us.ihmc.jros2.generator") version "1.4.0"
 }
 
 ihmc {
    group = "us.ihmc"
-   version = "0.37.3"
+   version = "0.39.0"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
    configureDependencyResolution()
-   resourceDirectory("main", "idl")
    javaDirectory("main", "java-generated")
    configurePublications()
 }
@@ -39,7 +33,7 @@ mainDependencies {
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-realtime:1.7.1")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
-   api("us.ihmc:ros2-library:1.2.1")
+   api("us.ihmc:jros2:1.4.0")
    api("us.ihmc:ihmc-commons:0.35.1")
    api("us.ihmc:ihmc-yovariables:0.13.7")
    api("us.ihmc:scs2-definition:17-0.32.0")
@@ -72,7 +66,7 @@ mainDependencies {
    api("org.bytedeco:ffmpeg:$ffmpegVersion:windows-x86_64")
 
    // ZED SDK for logging remote ZED data streams
-   api("us.ihmc:zed-java-api:5.1.0")
+   api("us.ihmc:zed-java-api:5.4.0")
 
    api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
 
@@ -111,20 +105,13 @@ tasks.register<JavaExec>("deploy") {
    args("--logger-dist ", p.toString())
 }
 
-tasks.register("generateMessages") {
-   doLast {
-      generateMessages()
-   }
-}
+tasks.register<jros2GenTask>("generateMessages") {
+   description = "Generate logger ROS 2 interfaces using jros2"
+   group = "build"
 
-fun generateMessages()
-{
-   val idlFiles = fileTree("src/main/idl")
-   val targetDirectory = file("src/main/java-generated")
-   val packagePrefix = ""
+   packagePaths = listOf(
+      projectDir.resolve("logger_msgs").absolutePath,
+   )
 
-   for (idl in idlFiles)
-   {
-      IDLGenerator.execute(idl, packagePrefix, targetDirectory, listOf(file(".")))
-   }
+   outputDir = projectDir.resolve("src/main/java-generated").absolutePath
 }

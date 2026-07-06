@@ -1,9 +1,5 @@
 package us.ihmc.robotDataLogger.websocket.server;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,13 +12,16 @@ import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler.HandshakeComplete;
+import logger_msgs.VariableChangeRequest;
 import us.ihmc.commons.Conversions;
-import us.ihmc.pubsub.common.SerializedPayload;
-import us.ihmc.robotDataLogger.VariableChangeRequest;
-import us.ihmc.robotDataLogger.VariableChangeRequestPubSubType;
+import us.ihmc.fastddsjava.cdr.CDRBuffer;
 import us.ihmc.robotDataLogger.listeners.VariableChangedListener;
 import us.ihmc.robotDataLogger.logger.LogAliveListener;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 
 /**
  * Handler for websocket connection - Handles writing data to channel - Passes incoming
@@ -47,9 +46,8 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
    private VoidChannelPromise channelPromise = null;
    private RecyclingByteBufAllocator alloc = null;
 
-   private final VariableChangeRequestPubSubType variableChangeRequestType = new VariableChangeRequestPubSubType();
-   private final SerializedPayload variableChangeRequestPayload = new SerializedPayload(variableChangeRequestType.getTypeSize());
    private final VariableChangeRequest request = new VariableChangeRequest();
+   private final CDRBuffer requestBuffer = new CDRBuffer();
 
    private final UDPTimestampServer udpTimestampServer;
 
@@ -151,13 +149,12 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
          }
          else if (frame instanceof BinaryWebSocketFrame)
          {
-            variableChangeRequestPayload.getData().clear();
-            variableChangeRequestPayload.getData().limit(frame.content().readableBytes());
-            frame.content().readBytes(variableChangeRequestPayload.getData());
-            variableChangeRequestPayload.getData().flip();
-            variableChangeRequestType.deserialize(variableChangeRequestPayload, request);
+            requestBuffer.getBufferUnsafe().clear();
+            requestBuffer.ensureRemainingCapacity(frame.content().readableBytes());
+            frame.content().readBytes(requestBuffer.getBufferUnsafe());
+            requestBuffer.getBufferUnsafe().flip();
+            request.deserialize(requestBuffer);
             variableChangedListener.changeVariable(request.getVariableID(), request.getRequestedValue());
-
          }
          else if (frame instanceof PingWebSocketFrame)
          {

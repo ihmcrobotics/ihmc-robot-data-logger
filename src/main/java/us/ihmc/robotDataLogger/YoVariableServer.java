@@ -1,12 +1,6 @@
 package us.ihmc.robotDataLogger;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
-
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.concurrent.ConcurrentRingBuffer;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -25,6 +19,11 @@ import us.ihmc.robotDataLogger.websocket.server.WebsocketDataProducer;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class YoVariableServer implements RobotVisualizer, VariableChangedListener
 {
@@ -218,11 +217,12 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    public RegistryHolder getRegistryHolder(YoRegistry registry)
    {
       RegistryHolder holder = registryHolderMap.get(registry);
+      if (holder != null)
+      {
+         return holder;
+      }
 
-      if (holder == null)
-         throw new RuntimeException("Registry " + registry.getName() + " not registered with addRegistry() or setMainRegistry()");
-
-      return holder;
+      throw new RuntimeException("Registry " + registry.getName() + " not registered with addRegistry() or setMainRegistry()");
    }
 
    @Override

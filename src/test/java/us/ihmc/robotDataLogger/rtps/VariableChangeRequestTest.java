@@ -1,241 +1,139 @@
 package us.ihmc.robotDataLogger.rtps;
 
-import com.eprosima.xmlschemas.fastrtps_profiles.ReliabilityQosKindPolicyType;
+import logger_msgs.VariableChangeRequest;
 import org.junit.jupiter.api.Test;
 import us.ihmc.commons.thread.ThreadTools;
-import us.ihmc.pubsub.Domain;
-import us.ihmc.pubsub.DomainFactory;
-import us.ihmc.pubsub.attributes.ParticipantProfile;
-import us.ihmc.pubsub.common.LogLevel;
-import us.ihmc.pubsub.common.MatchingInfo;
-import us.ihmc.pubsub.common.SampleInfo;
-import us.ihmc.pubsub.participant.Participant;
-import us.ihmc.pubsub.publisher.Publisher;
-import us.ihmc.pubsub.subscriber.Subscriber;
-import us.ihmc.pubsub.subscriber.SubscriberListener;
-import us.ihmc.robotDataLogger.VariableChangeRequest;
-import us.ihmc.robotDataLogger.VariableChangeRequestPubSubType;
+import us.ihmc.jros2.ROS2Node;
+import us.ihmc.jros2.ROS2Publisher;
+import us.ihmc.jros2.ROS2QoSProfile;
+import us.ihmc.jros2.ROS2Topic;
 
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class VariableChangeRequestTest
 {
+   private static final ROS2Topic<VariableChangeRequest> TEST_TOPIC = new ROS2Topic<VariableChangeRequest>().withType(VariableChangeRequest.class)
+                                                                                                            .appendedWith("variable_change_request_test");
 
    @Test
-   public void testReceiveChangedVariablesOneMessage() throws IOException
+   public void testReceiveChangedVariablesOneMessage()
    {
-      final VariableChangeRequest requestCopy = new VariableChangeRequest();
       AtomicInteger receivedMessages = new AtomicInteger(0);
-      VariableChangeRequestPubSubType type = new VariableChangeRequestPubSubType();
+      AtomicReference<VariableChangeRequest> lastReceived = new AtomicReference<>(new VariableChangeRequest());
 
-      // The SubscriberListener listens for any updates being sent to the domain channel its listening on
-      SubscriberListener<Double> listener = new SubscriberListener<>()
+      try (ROS2Node node = new ROS2Node("test_node_one_message", 1))
       {
-         final VariableChangeRequest request = new VariableChangeRequest();
-
-         @Override
-         public void onSubscriptionMatched(Subscriber subscriber, MatchingInfo info)
+         node.createSubscriptionSampler(TEST_TOPIC, message ->
          {
-            if (info.getStatus() == MatchingInfo.MatchingStatus.MATCHED_MATCHING)
-            {
-               System.out.println("Connected " + info.getGuid());
-            }
-            else
-            {
-               System.out.println("Disconnected " + info.getGuid());
-            }
-         }
+            VariableChangeRequest copy = new VariableChangeRequest();
+            copy.set(message);
+            lastReceived.set(copy);
+            receivedMessages.incrementAndGet();
+            System.out.println("Received: " + message);
+         }, ROS2QoSProfile.RELIABLE);
 
-         // If any update on the domain channel is detected, this method will be called
-         @Override
-         public void onNewDataMessage(Subscriber subscriber)
-         {
-            if (subscriber.takeNextData(request, new SampleInfo()))
-            {
-               // Increment the amount or messages that have been received and copy the value to use with the asserts in the test
-               receivedMessages.incrementAndGet();
-               requestCopy.set(request);
-            }
-
-            System.out.println("Received: " + request);
-         }
-      };
-
-      // The domain is how the subscriber and publisher talk to each other. If this isn't set up correctly then the message won't be received
-      Domain domain = DomainFactory.getDomain();
-
-      // Where on the domain the publishers and subscribers will be listening on
-      Participant participant = domain.createParticipant(domain.createParticipantAttributes(1, "TestParticipant"));
-
-      // Publisher and Subscriber are created here on the Participant with specific unique names in order to talk back and forth
-      Publisher publisher = domain.createPublisher(participant, domain.createPublisherAttributes(participant,
-                                                                                                 type,
-                                                                                                 "testTopic",
-                                                                                                 ReliabilityQosKindPolicyType.RELIABLE,
-                                                                                                 "us.ihmc"));
-      domain.createSubscriber(participant, domain.createSubscriberAttributes(participant,
-                                                                             type,
-                                                                             "testTopic",
-                                                                             ReliabilityQosKindPolicyType.RELIABLE,
-                                                                             "us.ihmc"), listener);
-
-      ThreadTools.sleep(1000);
-
-      // This is where the messages are updates and sent to the receiver, the test also checks that the sent and received values are the same
-      VariableChangeRequest sentMessage = new VariableChangeRequest();
-
-      for (int i = 0; i < 10; i++)
-      {
-         sentMessage.variableID_ = i + 100;
-         sentMessage.requestedValue_ = i * 13.37;
-
-         publisher.write(sentMessage);
-         System.out.println("Writing: " + sentMessage);
+         ROS2Publisher<VariableChangeRequest> publisher = node.createPublisher(TEST_TOPIC, ROS2QoSProfile.RELIABLE);
 
          ThreadTools.sleep(1000);
 
-         assertEquals(sentMessage.getRequestedValue(), requestCopy.getRequestedValue());
-      }
+         VariableChangeRequest sentMessage = new VariableChangeRequest();
 
-      assertEquals(10, receivedMessages.get());
+         for (int i = 0; i < 10; i++)
+         {
+            sentMessage.setVariableID(i + 100);
+            sentMessage.setRequestedValue(i * 13.37);
+
+            publisher.publish(sentMessage);
+            System.out.println("Writing: " + sentMessage);
+
+            ThreadTools.sleep(1000);
+
+            assertEquals(sentMessage.getRequestedValue(), lastReceived.get().getRequestedValue());
+         }
+
+         assertEquals(10, receivedMessages.get());
+      }
    }
 
-
    @Test
-   public void testReceiveChangedVariablesMultipleMessages() throws IOException
+   public void testReceiveChangedVariablesMultipleMessages()
    {
       AtomicInteger receivedMessages = new AtomicInteger(0);
-      VariableChangeRequestPubSubType type = new VariableChangeRequestPubSubType();
-      VariableChangeRequest requestCopy = new VariableChangeRequest();
+      AtomicReference<VariableChangeRequest> lastReceived = new AtomicReference<>(new VariableChangeRequest());
 
-      // The SubscriberListener listens for any updates being sent to the domain channel its listening on
-      SubscriberListener<Double> listener = new SubscriberListener<>()
+      try (ROS2Node node = new ROS2Node("test_node_multiple_messages", 1))
       {
-
-         @Override
-         public void onSubscriptionMatched(Subscriber subscriber, MatchingInfo info)
+         node.createSubscriptionSampler(TEST_TOPIC, message ->
          {
-            if (info.getStatus() == MatchingInfo.MatchingStatus.MATCHED_MATCHING)
-            {
-               System.out.println("Connected " + info.getGuid());
-            }
-            else
-            {
-               System.out.println("Disconnected " + info.getGuid());
-            }
+            VariableChangeRequest copy = new VariableChangeRequest();
+            copy.set(message);
+            lastReceived.set(copy);
+            receivedMessages.incrementAndGet();
+            System.out.println("Received: " + message);
+         }, ROS2QoSProfile.RELIABLE);
+
+         ROS2Publisher<VariableChangeRequest> publisher1 = node.createPublisher(TEST_TOPIC, ROS2QoSProfile.RELIABLE);
+         ROS2Publisher<VariableChangeRequest> publisher2 = node.createPublisher(TEST_TOPIC, ROS2QoSProfile.RELIABLE);
+         ROS2Publisher<VariableChangeRequest> publisher3 = node.createPublisher(TEST_TOPIC, ROS2QoSProfile.RELIABLE);
+
+         ThreadTools.sleep(1000);
+
+         VariableChangeRequest messageFirst = new VariableChangeRequest();
+         VariableChangeRequest messageSecond = new VariableChangeRequest();
+         VariableChangeRequest messageThird = new VariableChangeRequest();
+
+         for (int i = 0; i < 10; i++)
+         {
+            messageFirst.setVariableID(i + 100);
+            messageFirst.setRequestedValue(i * 1.1);
+
+            System.out.println("Writing First: " + messageFirst);
+            publisher1.publish(messageFirst);
+            ThreadTools.sleep(100);
+
+            assertEquals(messageFirst.getRequestedValue(), lastReceived.get().getRequestedValue());
+
+            messageSecond.setVariableID(i + 200);
+            messageSecond.setRequestedValue(i * 2.2);
+
+            System.out.println("Writing Second: " + messageSecond);
+            publisher2.publish(messageSecond);
+            ThreadTools.sleep(100);
+
+            assertEquals(messageSecond.getRequestedValue(), lastReceived.get().getRequestedValue());
+
+            messageThird.setVariableID(i + 300);
+            messageThird.setRequestedValue(i * 4.4);
+
+            System.out.println("Writing Third: " + messageThird);
+            publisher3.publish(messageThird);
+            ThreadTools.sleep(100);
+
+            assertEquals(messageThird.getRequestedValue(), lastReceived.get().getRequestedValue());
          }
 
-         @Override
-         public void onNewDataMessage(Subscriber subscriber)
-         {
-            VariableChangeRequest request = new VariableChangeRequest();
-            SampleInfo info = new SampleInfo();
-            if (subscriber.takeNextData(request, info))
-            {
-               receivedMessages.incrementAndGet();
-               requestCopy.set(request);
-            }
-
-            // Even with multiple publishers, the subscriber if its listening to the same channel will receive updates from both
-            System.out.println("Received: " + request);
-         }
-      };
-
-      Domain domain = DomainFactory.getDomain();
-      domain.setLogLevel(LogLevel.WARNING);
-
-      ParticipantProfile attr = domain.createParticipantAttributes(1, "TestParticipant");
-      attr.useOnlySharedMemoryTransport();
-
-      Participant participant = domain.createParticipant(attr);
-
-      // The amount of publishers can increase with just the need for one subscriber
-      Publisher publisher1 = domain.createPublisher(participant, domain.createPublisherAttributes(participant,
-                                                                                                  type,
-                                                                                                  "testTopic",
-                                                                                                  ReliabilityQosKindPolicyType.RELIABLE,
-                                                                                                  "us/ihmc"));
-      Publisher publisher2 = domain.createPublisher(participant, domain.createPublisherAttributes(participant,
-                                                                                                  type,
-                                                                                                  "testTopic",
-                                                                                                  ReliabilityQosKindPolicyType.RELIABLE,
-                                                                                                  "us/ihmc"));
-
-      Publisher publisher3 = domain.createPublisher(participant, domain.createPublisherAttributes(participant,
-                                                                                                  type,
-                                                                                                  "testTopic",
-                                                                                                  ReliabilityQosKindPolicyType.RELIABLE,
-                                                                                                  "us/ihmc"));
-
-      domain.createSubscriber(participant, domain.createSubscriberAttributes(participant,
-                                                                             type,
-                                                                             "testTopic",
-                                                                             ReliabilityQosKindPolicyType.RELIABLE,
-                                                                             "us/ihmc"), listener);
-
-      ThreadTools.sleep(1000);
-
-      // This is where the testing is happening, messages are sent to the subscriber and checks are done to see if the messages are correct
-      VariableChangeRequest messageFirst = new VariableChangeRequest();
-      VariableChangeRequest messageSecond = new VariableChangeRequest();
-      VariableChangeRequest messageThird = new VariableChangeRequest();
-
-      for (int i = 0; i < 10; i++)
-      {
-         messageFirst.setVariableID(i + 100);
-         messageFirst.setRequestedValue(i * 1.1);
-
-         // Send the values for the first message, and check that the received values are the same
-         System.out.println("Writing First: " + messageFirst);
-         publisher1.write(messageFirst);
-         ThreadTools.sleep(100);
-
-         assertEquals(messageFirst.getRequestedValue(), requestCopy.getRequestedValue());
-
-         messageSecond.setVariableID(i + 200);
-         messageSecond.setRequestedValue(i * 2.2);
-
-         // Send the values for the next message, and check that the received values are the same
-         System.out.println("Writing Second: " + messageSecond);
-         publisher2.write(messageSecond);
-         ThreadTools.sleep(100);
-
-         assertEquals(messageSecond.getRequestedValue(), requestCopy.getRequestedValue());
-
-         messageThird.setVariableID(i + 300);
-         messageThird.setRequestedValue(i * 4.4);
-
-         // Send the values for the next message, and check that the received values are the same
-         System.out.println("Writing Third: " + messageSecond);
-         publisher3.write(messageThird);
-         ThreadTools.sleep(100);
-
-         assertEquals(messageThird.getRequestedValue(), requestCopy.getRequestedValue());
+         assertEquals(30, receivedMessages.get());
       }
-
-      assertEquals(30, receivedMessages.get());
    }
 
    @Test
-   public void testCheckEquals()
+   public void testCheckCopy()
    {
-      boolean result;
       VariableChangeRequest dataOne = new VariableChangeRequest();
-      VariableChangeRequest dataTwo;
+      VariableChangeRequest dataTwo = new VariableChangeRequest();
 
       for (int i = 0; i < 12; i++)
       {
          dataOne.setVariableID(i + 24);
          dataOne.setRequestedValue(i * 3.6);
 
-         dataTwo = new VariableChangeRequest(dataOne);
+         dataTwo.set(dataOne);
 
-         result = dataOne.equals(dataTwo);
-
-         assertTrue(result);
+         assertEquals(dataOne.getVariableID(), dataTwo.getVariableID());
+         assertEquals(dataOne.getRequestedValue(), dataTwo.getRequestedValue());
       }
    }
 }

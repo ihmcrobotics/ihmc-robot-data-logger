@@ -1,19 +1,20 @@
 package us.ihmc.robotDataLogger.handshake;
 
 import gnu.trove.map.hash.TObjectIntHashMap;
+import logger_msgs.EnumType;
+import logger_msgs.Handshake;
+import logger_msgs.JointDefinition;
+import logger_msgs.LoadStatus;
+import logger_msgs.MessageTypes;
+import logger_msgs.ReferenceFrameInformation;
+import logger_msgs.SCS2YoGraphicDefinitionMessage;
+import logger_msgs.YoRegistryDefinition;
+import logger_msgs.YoType;
+import logger_msgs.YoVariableDefinition;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.EnumType;
-import us.ihmc.robotDataLogger.Handshake;
-import us.ihmc.robotDataLogger.JointDefinition;
-import us.ihmc.robotDataLogger.LoadStatus;
-import us.ihmc.robotDataLogger.ReferenceFrameInformation;
-import us.ihmc.robotDataLogger.SCS2YoGraphicDefinitionMessage;
-import us.ihmc.robotDataLogger.YoRegistryDefinition;
-import us.ihmc.robotDataLogger.YoType;
-import us.ihmc.robotDataLogger.YoVariableDefinition;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.robotDataLogger.jointState.JointHolder;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
@@ -74,7 +75,7 @@ public class YoVariableHandShakeBuilder
       {
          JointDefinition jointDefinition = handshake.getJoints().add();
          jointDefinition.setName(jointHolder.getName());
-         jointDefinition.setType(jointHolder.getJointType());
+         jointDefinition.setType(jointHolder.getJointType().getType());
 
          this.jointHolders.add(jointHolder);
       }
@@ -168,6 +169,8 @@ public class YoVariableHandShakeBuilder
       }
 
       enumTypeDescription.setName(name);
+      enumTypeDescription.getEnumValues().ensureMinCapacity(enumTypes.length);
+      handshake.getEnumTypes().ensureMinCapacity(enumTypes.length);
       if (enumTypes.length > enumTypeDescription.getEnumValues().capacity())
       {
          throw new RuntimeException("The number of enum values for " + name + " exceeds the maximum number of enum values ("
@@ -195,6 +198,7 @@ public class YoVariableHandShakeBuilder
    private void addVariables(int registryID, YoRegistry registry, List<YoVariable> variableListToPack, YoRegistry rootRegistry)
    {
       List<YoVariable> variables = registry.getVariables();
+      handshake.getVariables().ensureMinCapacity(variables.size());
       if (variables.size() > handshake.getVariables().capacity())
       {
          throw new RuntimeException("The number of variables exceeds the maximum number of variables for the logger (" + handshake.getVariables().capacity()
@@ -221,13 +225,13 @@ public class YoVariableHandShakeBuilder
             switch (loadStatus)
             {
                case UNLOADED:
-                  yoVariableDefinition.setLoadStatus(LoadStatus.Unloaded);
+                  yoVariableDefinition.setLoadStatus(LoadStatus.UNLOADED);
                   break;
                case DEFAULT:
-                  yoVariableDefinition.setLoadStatus(LoadStatus.Default);
+                  yoVariableDefinition.setLoadStatus(LoadStatus.DEFAULT);
                   break;
                case LOADED:
-                  yoVariableDefinition.setLoadStatus(LoadStatus.Loaded);
+                  yoVariableDefinition.setLoadStatus(LoadStatus.LOADED);
                   break;
                default:
                   throw new RuntimeException("Unknown load status: " + loadStatus);
@@ -235,25 +239,25 @@ public class YoVariableHandShakeBuilder
          }
          else
          {
-            yoVariableDefinition.setLoadStatus(LoadStatus.NoParameter);
+            yoVariableDefinition.setLoadStatus(LoadStatus.NOPARAMETER);
          }
 
          switch (variable.getType())
          {
             case DOUBLE:
-               yoVariableDefinition.setType(YoType.DoubleYoVariable);
+               yoVariableDefinition.getType().set(MessageTypes.yoType(YoType.DOUBLEYOVARIABLE));
                break;
             case INTEGER:
-               yoVariableDefinition.setType(YoType.IntegerYoVariable);
+               yoVariableDefinition.getType().set(MessageTypes.yoType(YoType.INTEGERYOVARIABLE));
                break;
             case BOOLEAN:
-               yoVariableDefinition.setType(YoType.BooleanYoVariable);
+               yoVariableDefinition.getType().set(MessageTypes.yoType(YoType.BOOLEANYOVARIABLE));
                break;
             case LONG:
-               yoVariableDefinition.setType(YoType.LongYoVariable);
+               yoVariableDefinition.getType().set(MessageTypes.yoType(YoType.LONGYOVARIABLE));
                break;
             case ENUM:
-               yoVariableDefinition.setType(YoType.EnumYoVariable);
+               yoVariableDefinition.getType().set(MessageTypes.yoType(YoType.ENUMYOVARIABLE));
                if (((YoEnum<?>) variable).isBackedByEnum())
                {
                   yoVariableDefinition.setEnumType(getOrAddEnumType(((YoEnum<?>) variable).getEnumType().getCanonicalName(),
@@ -315,11 +319,18 @@ public class YoVariableHandShakeBuilder
          ReferenceFrameInformation referenceFrameInformation = handshake.getReferenceFrameInformation();
          int i = 0;
          int packetSizeLimit = 8192;
-         for (Iterator<ReferenceFrame> iterator = frames.iterator(); iterator.hasNext() && i++ < packetSizeLimit;)
+         int frameCount = Math.min(frames.size(), packetSizeLimit);
+
+         // Clear and ensure capacity - following the pattern from CustomLogDataPublisherType
+         referenceFrameInformation.getFrameIndices().clear();
+         referenceFrameInformation.getFrameIndices().ensureMinCapacity(frameCount);
+
+         for (Iterator<ReferenceFrame> iterator = frames.iterator(); iterator.hasNext() && i < packetSizeLimit; i++)
          {
             ReferenceFrame frame = iterator.next();
             referenceFrameInformation.getFrameNames().add(frame.getName());
-            referenceFrameInformation.getFrameIndices().add(frame.getFrameIndex());
+
+            referenceFrameInformation.getFrameIndices().add((int) frame.getFrameIndex());
          }
 
          if (frames.size() > packetSizeLimit)

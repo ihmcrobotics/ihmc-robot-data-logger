@@ -1,15 +1,10 @@
 package us.ihmc.robotDataLogger.websocket.client;
 
-import java.io.IOException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.util.CharsetUtil;
-import us.ihmc.idl.serializers.extra.JSONSerializer;
-import us.ihmc.robotDataLogger.Announcement;
-import us.ihmc.robotDataLogger.Handshake;
-import us.ihmc.robotDataLogger.HandshakePubSubType;
+import logger_msgs.Announcement;
+import logger_msgs.Handshake;
+import us.ihmc.idl.serializers.extra.ROS2JSONSerializer;
 import us.ihmc.robotDataLogger.YoVariableClientImplementation;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.interfaces.CommandListener;
@@ -21,6 +16,10 @@ import us.ihmc.robotDataLogger.websocket.HTTPDataServerPaths;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
+
+import java.io.IOException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class WebsocketDataConsumer implements DataConsumer
 {
@@ -90,7 +89,7 @@ public class WebsocketDataConsumer implements DataConsumer
    {
       ByteBuf handshake = getResource(HTTPDataServerPaths.handshake);
 
-      JSONSerializer<Handshake> serializer = new JSONSerializer<>(new HandshakePubSubType());
+      ROS2JSONSerializer<Handshake> serializer = new ROS2JSONSerializer<>(Handshake.class);
       return serializer.deserialize(handshake.toString(CharsetUtil.UTF_8));
    }
 
