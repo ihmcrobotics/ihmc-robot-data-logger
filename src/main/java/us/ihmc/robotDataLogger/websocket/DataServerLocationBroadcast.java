@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import logger_msgs.Host;
+import logger_msgs.StaticHostList;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.Host;
-import us.ihmc.robotDataLogger.StaticHostList;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -71,7 +71,7 @@ public abstract class DataServerLocationBroadcast
                   {
                      Host host = addresses.getHosts().add();
                      host.setHostname(addr.getHostAddress());
-                     host.setPort(dataServerPort);
+                     host.setPort((short) dataServerPort);
                   }
                }
             }

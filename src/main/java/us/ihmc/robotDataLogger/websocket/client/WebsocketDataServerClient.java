@@ -1,9 +1,6 @@
 package us.ihmc.robotDataLogger.websocket.client;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.concurrent.TimeUnit;
+import static io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory.newHandshaker;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -21,9 +18,8 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
 import io.netty.handler.timeout.IdleStateHandler;
-import us.ihmc.pubsub.common.SerializedPayload;
-import us.ihmc.robotDataLogger.VariableChangeRequest;
-import us.ihmc.robotDataLogger.VariableChangeRequestPubSubType;
+import logger_msgs.VariableChangeRequest;
+import us.ihmc.fastddsjava.cdr.CDRBuffer;
 import us.ihmc.robotDataLogger.YoVariableClientImplementation;
 import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataSubscriberType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistryConsumer;
@@ -36,24 +32,29 @@ import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnecti
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 
-import static io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory.newHandshaker;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.concurrent.TimeUnit;
 
 public class WebsocketDataServerClient
 {
    private final EventLoopGroup group = NettyUtils.createEventGroundLoop();
    private final RegistryConsumer consumer;
 
-   private final VariableChangeRequestPubSubType variableChangeRequestType = new VariableChangeRequestPubSubType();
-   private final SerializedPayload variableChangeRequestPayload = new SerializedPayload(variableChangeRequestType.getTypeSize());
-
    private final Channel ch;
 
    private final DisconnectPromise disconnectPromise;
    private final UDPTimestampClient udpTimestampClient;
+   private final VariableChangeRequest variableChangeRequest = new VariableChangeRequest();
+   private final CDRBuffer variableChangeRequestBuffer = new CDRBuffer();
 
-   public WebsocketDataServerClient(HTTPDataServerConnection connection, IDLYoVariableHandshakeParser parser, TimestampListener timestampListener,
-                                    YoVariableClientImplementation yoVariableClient, int timeoutInMs, DebugRegistry debugRegistry)
-         throws IOException
+   public WebsocketDataServerClient(HTTPDataServerConnection connection,
+                                    IDLYoVariableHandshakeParser parser,
+                                    TimestampListener timestampListener,
+                                    YoVariableClientImplementation yoVariableClient,
+                                    int timeoutInMs,
+                                    DebugRegistry debugRegistry) throws IOException
    {
       disconnectPromise = connection.take();
       HTTPDataServerDescription target = connection.getTarget();
@@ -110,7 +111,6 @@ public class WebsocketDataServerClient
          disconnected();
          throw new IOException(e);
       }
-
    }
 
    private void disconnected()
@@ -143,15 +143,17 @@ public class WebsocketDataServerClient
    {
       try
       {
-         VariableChangeRequest msg = new VariableChangeRequest();
-         msg.setVariableID(identifier);
-         msg.setRequestedValue(valueAsDouble);
+         variableChangeRequest.setVariableID(identifier);
+         variableChangeRequest.setRequestedValue(valueAsDouble);
 
-         variableChangeRequestPayload.getData().clear();
-         variableChangeRequestType.serialize(msg, variableChangeRequestPayload);
+         variableChangeRequestBuffer.getBufferUnsafe().clear();
+         int sizeBytes = variableChangeRequest.calculateSizeBytes(0);
+         variableChangeRequestBuffer.ensureRemainingCapacity(sizeBytes);
+         variableChangeRequest.serialize(variableChangeRequestBuffer);
 
-         ByteBuf data = ch.alloc().buffer(variableChangeRequestPayload.getLength());
-         data.writeBytes(variableChangeRequestPayload.getData());
+         ByteBuf data = ch.alloc().buffer(sizeBytes);
+         variableChangeRequestBuffer.getBufferUnsafe().flip();
+         data.writeBytes(variableChangeRequestBuffer.getBufferUnsafe());
          BinaryWebSocketFrame frame = new BinaryWebSocketFrame(data);
          ch.writeAndFlush(frame);
       }

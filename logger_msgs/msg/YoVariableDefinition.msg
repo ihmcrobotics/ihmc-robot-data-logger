@@ -1,0 +1,10 @@
+string name
+string description
+logger_msgs/YoType type
+uint16 registry
+uint16 enumType
+bool allowNullValues
+bool isParameter
+float64 min
+float64 max
+uint8 loadStatus

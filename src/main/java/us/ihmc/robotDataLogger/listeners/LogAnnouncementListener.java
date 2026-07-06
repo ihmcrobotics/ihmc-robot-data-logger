@@ -1,6 +1,6 @@
 package us.ihmc.robotDataLogger.listeners;
 
-import us.ihmc.robotDataLogger.Announcement;
+import logger_msgs.Announcement;
 
 /**
  * Interface to show notify logging sessions coming and going

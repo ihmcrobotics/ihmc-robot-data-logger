@@ -1,12 +1,14 @@
 package us.ihmc.robotDataLogger.logger;
 
+import static us.ihmc.zed.global.zed.*;
+
+import logger_msgs.ZEDSDKAnnounce;
 import org.bytedeco.javacpp.BytePointer;
 import us.ihmc.commons.exception.DefaultExceptionHandler;
 import us.ihmc.commons.exception.ExceptionTools;
 import us.ihmc.commons.thread.RepeatingTaskThread;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.ZEDSDKAnnounce;
 import us.ihmc.zed.SL_InitParameters;
 import us.ihmc.zed.SL_RuntimeParameters;
 import us.ihmc.zed.ZEDTools;
@@ -14,8 +16,6 @@ import us.ihmc.zed.global.zed;
 
 import java.io.FileWriter;
 import java.io.IOException;
-
-import static us.ihmc.zed.global.zed.*;
 
 /**
  * Connects to a remote ZED SDK and logs an SVO file.

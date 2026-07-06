@@ -1,19 +1,23 @@
 package us.ihmc.robotDataLogger;
 
-import java.io.IOException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
+import logger_msgs.Announcement;
+import logger_msgs.Handshake;
+import logger_msgs.MessageTypes;
 import us.ihmc.commons.MathTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.handshake.LogHandshake;
+import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.interfaces.VariableChangedProducer;
 import us.ihmc.robotDataLogger.util.DaemonThreadFactory;
 import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.client.WebsocketDataConsumer;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
+
+import java.io.IOException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * Client for the logger This is a general client for a logging sessions. A listener can be attached
@@ -87,7 +91,7 @@ public class YoVariableClientImplementation implements YoVariableClientInterface
       LogTools.info("Requesting handshake, model, and resource bundle from some stuff...");
       Handshake handshake = dataConsumer.getHandshake();
 
-      IDLYoVariableHandshakeParser handshakeParser = new IDLYoVariableHandshakeParser(HandshakeFileType.IDL_CDR);
+      IDLYoVariableHandshakeParser handshakeParser = (IDLYoVariableHandshakeParser) YoVariableHandshakeParser.create(MessageTypes.IDL_CDR);
       handshakeParser.parseFrom(handshake);
 
       LogHandshake logHandshake = new LogHandshake();
