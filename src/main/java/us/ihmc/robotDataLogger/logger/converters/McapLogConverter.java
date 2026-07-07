@@ -1,5 +1,6 @@
 package us.ihmc.robotDataLogger.logger.converters;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import logger_msgs.LogProperties;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
+import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.robotDataLogger.jointState.OneDoFState;
@@ -26,6 +35,9 @@ import us.ihmc.robotDataLogger.jointState.SixDoFState;
 import us.ihmc.robotDataLogger.logger.LogPropertiesReader;
 import us.ihmc.robotDataLogger.logger.YoVariableLogReader;
 import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
+import us.ihmc.scs2.definition.robot.RobotDefinition;
+import us.ihmc.scs2.definition.robot.urdf.URDFTools;
+import us.ihmc.scs2.definition.robot.urdf.items.URDFModel;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -136,6 +148,12 @@ public class McapLogConverter extends YoVariableLogReader
       // Root link name from URDF — used as the TF child frame so Foxglove anchors the model.
       String urdfRootLink = urdfContent != null ? findUrdfRootLink(urdfContent) : null;
 
+      // Kinematic tree used to compute a parent-link -> child-link transform for every joint (not just the
+      // floating pelvis), so consumers that build a full TF tree (e.g. SCS2) can animate the whole robot.
+      MecanoKinematics mecanoKinematics = urdfContent != null && urdfRootLink != null
+            ? buildMecanoKinematics(urdfContent, urdfRootLink, oneDoFJoints)
+            : null;
+
       try (McapWriter mcap = new McapWriter(new FileOutputStream(outputFile)))
       {
          int nextId = 1;
@@ -234,7 +252,8 @@ public class McapLogConverter extends YoVariableLogReader
                mcap.writeMessage(jointStatesChannelId, timestamp, timestamp,
                                  buildJointStateCdrMessage(oneDoFNameBytes, oneDoFOffsets, jointValues, timestamp));
 
-               // Write /tf with the floating-base (pelvis) pose in the world frame.
+               // Write /tf: the floating-base (pelvis) pose in the world frame, plus a parent->child
+               // transform for every other joint in the robot (computed via the URDF kinematic tree).
                // SixDoFState layout: qs,qx,qy,qz | tx,ty,tz | ...
                if (tfChannelId >= 0)
                {
@@ -245,8 +264,39 @@ public class McapLogConverter extends YoVariableLogReader
                   double ry = Double.longBitsToDouble(jointValues[sixDoFOffset + 2]);
                   double rz = Double.longBitsToDouble(jointValues[sixDoFOffset + 3]);
                   double rw = Double.longBitsToDouble(jointValues[sixDoFOffset + 0]); // qs = w
-                  mcap.writeMessage(tfChannelId, timestamp, timestamp,
-                                    buildTfMessage(timestamp, "map", urdfRootLink, tx, ty, tz, rx, ry, rz, rw));
+
+                  List<TfEntry> tfEntries = new ArrayList<>();
+                  tfEntries.add(new TfEntry("map", urdfRootLink, tx, ty, tz, rx, ry, rz, rw));
+
+                  if (mecanoKinematics != null)
+                  {
+                     OneDoFJointBasics[] mecanoOneDoFJoints = mecanoKinematics.mecanoOneDoFJoints();
+                     for (int i = 0; i < mecanoOneDoFJoints.length; i++)
+                     {
+                        if (mecanoOneDoFJoints[i] != null)
+                           mecanoOneDoFJoints[i].setQ(Double.longBitsToDouble(jointValues[oneDoFOffsets[i]]));
+                     }
+                     mecanoKinematics.elevator().updateFramesRecursively();
+
+                     for (JointBasics joint : mecanoKinematics.jointsToPublish())
+                     {
+                        RigidBodyTransformReadOnly transformToParent = joint.getSuccessor()
+                                                                             .getBodyFixedFrame()
+                                                                             .getTransformToDesiredFrame(joint.getPredecessor().getBodyFixedFrame());
+                        Quaternion rotation = new Quaternion(transformToParent.getRotation());
+                        tfEntries.add(new TfEntry(joint.getPredecessor().getName(),
+                                                  joint.getSuccessor().getName(),
+                                                  transformToParent.getTranslation().getX(),
+                                                  transformToParent.getTranslation().getY(),
+                                                  transformToParent.getTranslation().getZ(),
+                                                  rotation.getX(),
+                                                  rotation.getY(),
+                                                  rotation.getZ(),
+                                                  rotation.getS()));
+                     }
+                  }
+
+                  mcap.writeMessage(tfChannelId, timestamp, timestamp, buildTfMessage(timestamp, tfEntries));
                }
 
                // Write one CDR message per registry channel.
@@ -377,46 +427,56 @@ public class McapLogConverter extends YoVariableLogReader
 
    // ── Message builders ─────────────────────────────────────────────────────────
 
-   private static byte[] buildTfMessage(long timestampNs, String parentFrame, String childFrame,
-                                         double tx, double ty, double tz,
-                                         double rx, double ry, double rz, double rw)
+   private static byte[] buildTfMessage(long timestampNs, List<TfEntry> entries)
    {
-      byte[] parentBytes = parentFrame.getBytes(StandardCharsets.UTF_8);
-      byte[] childBytes  = childFrame.getBytes(StandardCharsets.UTF_8);
-      ByteBuffer buf = ByteBuffer.allocate(256 + parentBytes.length + childBytes.length).order(ByteOrder.LITTLE_ENDIAN);
+      int maxSize = 16;
+      for (TfEntry entry : entries)
+         maxSize += 96 + entry.parentFrame().length() + entry.childFrame().length();
+      ByteBuffer buf = ByteBuffer.allocate(maxSize).order(ByteOrder.LITTLE_ENDIAN);
       buf.put((byte) 0x00); buf.put((byte) 0x01); buf.put((byte) 0x00); buf.put((byte) 0x00);
 
-      buf.putInt(1); // sequence: one TransformStamped
+      buf.putInt(entries.size()); // sequence: one TransformStamped per entry
 
-      // header.stamp
-      buf.putInt((int) (timestampNs / 1_000_000_000L));
-      buf.putInt((int) (timestampNs % 1_000_000_000L));
+      for (TfEntry entry : entries)
+      {
+         byte[] parentBytes = entry.parentFrame().getBytes(StandardCharsets.UTF_8);
+         byte[] childBytes  = entry.childFrame().getBytes(StandardCharsets.UTF_8);
 
-      // header.frame_id
-      cdrAlign(buf, 4);
-      buf.putInt(parentBytes.length + 1);
-      buf.put(parentBytes);
-      buf.put((byte) 0);
+         // header.stamp
+         cdrAlign(buf, 4);
+         buf.putInt((int) (timestampNs / 1_000_000_000L));
+         buf.putInt((int) (timestampNs % 1_000_000_000L));
 
-      // child_frame_id
-      cdrAlign(buf, 4);
-      buf.putInt(childBytes.length + 1);
-      buf.put(childBytes);
-      buf.put((byte) 0);
+         // header.frame_id
+         cdrAlign(buf, 4);
+         buf.putInt(parentBytes.length + 1);
+         buf.put(parentBytes);
+         buf.put((byte) 0);
 
-      // transform.translation
-      cdrAlign(buf, 8);
-      buf.putDouble(tx);
-      buf.putDouble(ty);
-      buf.putDouble(tz);
+         // child_frame_id
+         cdrAlign(buf, 4);
+         buf.putInt(childBytes.length + 1);
+         buf.put(childBytes);
+         buf.put((byte) 0);
 
-      // transform.rotation (x,y,z,w)
-      buf.putDouble(rx);
-      buf.putDouble(ry);
-      buf.putDouble(rz);
-      buf.putDouble(rw);
+         // transform.translation
+         cdrAlign(buf, 8);
+         buf.putDouble(entry.tx());
+         buf.putDouble(entry.ty());
+         buf.putDouble(entry.tz());
+
+         // transform.rotation (x,y,z,w)
+         buf.putDouble(entry.rx());
+         buf.putDouble(entry.ry());
+         buf.putDouble(entry.rz());
+         buf.putDouble(entry.rw());
+      }
 
       return Arrays.copyOf(buf.array(), buf.position());
+   }
+
+   private record TfEntry(String parentFrame, String childFrame, double tx, double ty, double tz, double rx, double ry, double rz, double rw)
+   {
    }
 
    private static byte[] buildRobotDescriptionMessage(String urdf)
@@ -548,6 +608,67 @@ public class McapLogConverter extends YoVariableLogReader
       while (m.find()) children.add(m.group(1));
       links.removeAll(children);
       return links.isEmpty() ? null : links.iterator().next();
+   }
+
+   /**
+    * Loads {@code urdfContent} into a plain mecano kinematic tree (no simulation engine needed) so that every
+    * joint's parent-link -> child-link transform can be computed per tick from just the joint angle, instead of
+    * only publishing the floating-base pose. Joints are matched to the log's {@link OneDoFState}s by name.
+    */
+   private static MecanoKinematics buildMecanoKinematics(String urdfContent, String urdfRootLink, List<JointState> oneDoFJoints)
+   {
+      try
+      {
+         URDFModel urdfModel = URDFTools.loadURDFModel(new ByteArrayInputStream(urdfContent.getBytes(StandardCharsets.UTF_8)),
+                                                        Collections.emptyList(),
+                                                        McapLogConverter.class.getClassLoader());
+         // Disable kinematics simplification: it merges fixed joints (e.g. IMU/camera mounts) into their parent
+         // body by default, which would drop them from the /tf tree entirely.
+         URDFTools.URDFParserProperties parserProperties = new URDFTools.URDFParserProperties();
+         parserProperties.setSimplifyKinematics(false);
+         RobotDefinition robotDefinition = URDFTools.toRobotDefinition(urdfModel, parserProperties);
+         RigidBodyBasics elevator = robotDefinition.newInstance(ReferenceFrame.getWorldFrame());
+         JointBasics[] allJoints = MultiBodySystemTools.collectSubtreeJoints(elevator);
+
+         Map<String, OneDoFJointBasics> mecanoOneDoFByName = new HashMap<>();
+         List<JointBasics> jointsToPublish = new ArrayList<>();
+         for (JointBasics joint : allJoints)
+         {
+            // The floating pelvis joint is published separately, directly from the log's raw SixDoFState data.
+            if (joint.getSuccessor().getName().equals(urdfRootLink))
+               continue;
+            jointsToPublish.add(joint);
+            if (joint instanceof OneDoFJointBasics oneDoFJoint)
+               mecanoOneDoFByName.put(joint.getName(), oneDoFJoint);
+         }
+
+         OneDoFJointBasics[] mecanoOneDoFJoints = new OneDoFJointBasics[oneDoFJoints.size()];
+         for (int i = 0; i < oneDoFJoints.size(); i++)
+         {
+            String name = oneDoFJoints.get(i).getName();
+            OneDoFJointBasics match = mecanoOneDoFByName.get(name);
+            if (match == null)
+               System.err.println("Warning: no matching URDF joint found for logged joint '" + name + "'; its /tf transform will stay at the default pose.");
+            mecanoOneDoFJoints[i] = match;
+         }
+
+         return new MecanoKinematics(elevator, jointsToPublish.toArray(new JointBasics[0]), mecanoOneDoFJoints);
+      }
+      catch (Exception e)
+      {
+         System.err.println("Warning: could not build a kinematic tree from the URDF for per-joint /tf publishing; "
+                             + "only the pelvis transform will be published. Cause: " + e.getMessage());
+         return null;
+      }
+   }
+
+   /**
+    * @param elevator             the root of the mecano tree, used to refresh all frames each tick via {@link RigidBodyBasics#updateFramesRecursively()}.
+    * @param jointsToPublish      every joint except the floating pelvis joint (which is handled separately).
+    * @param mecanoOneDoFJoints   parallel to the caller's {@code oneDoFJoints} list; {@code null} entries mean no URDF joint matched by name.
+    */
+   private record MecanoKinematics(RigidBodyBasics elevator, JointBasics[] jointsToPublish, OneDoFJointBasics[] mecanoOneDoFJoints)
+   {
    }
 
    private static String stripNonUrdfExtensions(String urdf)
