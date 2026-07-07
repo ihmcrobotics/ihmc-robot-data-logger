@@ -181,6 +181,17 @@ public class McapLogConverter extends YoVariableLogReader
             mcap.addChannel(tfChannelId, tfChannelId, "/tf", "cdr", Collections.emptyMap());
          }
 
+         // Register /odom channel (nav_msgs/Odometry) with the floating-base pelvis's exact pose AND twist -
+         // unlike /tf, this is a standard message type that carries velocity, so consumers don't have to
+         // approximate it (e.g. by finite-differencing /tf poses).
+         int odomChannelId = -1;
+         if (sixDoFJoint != null && urdfRootLink != null)
+         {
+            odomChannelId = nextId++;
+            mcap.addSchema(odomChannelId, "nav_msgs/msg/Odometry", "ros2msg", ODOMETRY_SCHEMA.getBytes(StandardCharsets.UTF_8));
+            mcap.addChannel(odomChannelId, odomChannelId, "/odom", "cdr", Collections.emptyMap());
+         }
+
          // Register one schema + channel per registry.
          Map<YoRegistry, Integer> registryChannelIds = new LinkedHashMap<>();
          for (Map.Entry<YoRegistry, List<Integer>> entry : registryToVarIndices.entrySet())
@@ -299,6 +310,31 @@ public class McapLogConverter extends YoVariableLogReader
                   mcap.writeMessage(tfChannelId, timestamp, timestamp, buildTfMessage(timestamp, tfEntries));
                }
 
+               // Write /odom: the same pelvis pose as /tf, plus its exact twist (offsets 7-12, unused by any
+               // other channel) - so consumers get real velocity instead of having to approximate one.
+               if (odomChannelId >= 0)
+               {
+                  double tx = Double.longBitsToDouble(jointValues[sixDoFOffset + 4]);
+                  double ty = Double.longBitsToDouble(jointValues[sixDoFOffset + 5]);
+                  double tz = Double.longBitsToDouble(jointValues[sixDoFOffset + 6]);
+                  double rx = Double.longBitsToDouble(jointValues[sixDoFOffset + 1]);
+                  double ry = Double.longBitsToDouble(jointValues[sixDoFOffset + 2]);
+                  double rz = Double.longBitsToDouble(jointValues[sixDoFOffset + 3]);
+                  double rw = Double.longBitsToDouble(jointValues[sixDoFOffset + 0]); // qs = w
+                  double angularX = Double.longBitsToDouble(jointValues[sixDoFOffset + 7]);
+                  double angularY = Double.longBitsToDouble(jointValues[sixDoFOffset + 8]);
+                  double angularZ = Double.longBitsToDouble(jointValues[sixDoFOffset + 9]);
+                  double linearX = Double.longBitsToDouble(jointValues[sixDoFOffset + 10]);
+                  double linearY = Double.longBitsToDouble(jointValues[sixDoFOffset + 11]);
+                  double linearZ = Double.longBitsToDouble(jointValues[sixDoFOffset + 12]);
+
+                  mcap.writeMessage(odomChannelId,
+                                    timestamp,
+                                    timestamp,
+                                    buildOdometryMessage(timestamp, "map", urdfRootLink, tx, ty, tz, rx, ry, rz, rw, angularX, angularY, angularZ, linearX,
+                                                         linearY, linearZ));
+               }
+
                // Write one CDR message per registry channel.
                for (Map.Entry<YoRegistry, List<Integer>> entry : registryToVarIndices.entrySet())
                {
@@ -370,6 +406,52 @@ public class McapLogConverter extends YoVariableLogReader
          "MSG: builtin_interfaces/Time\n" +
          "int32 sec\n" +
          "uint32 nanosec\n";
+
+   private static final String ODOMETRY_SCHEMA =
+         "std_msgs/Header header\n" +
+         "string child_frame_id\n" +
+         "geometry_msgs/PoseWithCovariance pose\n" +
+         "geometry_msgs/TwistWithCovariance twist\n" +
+         "\n================================================================================\n" +
+         "MSG: std_msgs/Header\n" +
+         "builtin_interfaces/Time stamp\n" +
+         "string frame_id\n" +
+         "\n================================================================================\n" +
+         "MSG: builtin_interfaces/Time\n" +
+         "int32 sec\n" +
+         "uint32 nanosec\n" +
+         "\n================================================================================\n" +
+         "MSG: geometry_msgs/PoseWithCovariance\n" +
+         "geometry_msgs/Pose pose\n" +
+         "float64[36] covariance\n" +
+         "\n================================================================================\n" +
+         "MSG: geometry_msgs/Pose\n" +
+         "geometry_msgs/Point position\n" +
+         "geometry_msgs/Quaternion orientation\n" +
+         "\n================================================================================\n" +
+         "MSG: geometry_msgs/Point\n" +
+         "float64 x\n" +
+         "float64 y\n" +
+         "float64 z\n" +
+         "\n================================================================================\n" +
+         "MSG: geometry_msgs/Quaternion\n" +
+         "float64 x\n" +
+         "float64 y\n" +
+         "float64 z\n" +
+         "float64 w\n" +
+         "\n================================================================================\n" +
+         "MSG: geometry_msgs/TwistWithCovariance\n" +
+         "geometry_msgs/Twist twist\n" +
+         "float64[36] covariance\n" +
+         "\n================================================================================\n" +
+         "MSG: geometry_msgs/Twist\n" +
+         "geometry_msgs/Vector3 linear\n" +
+         "geometry_msgs/Vector3 angular\n" +
+         "\n================================================================================\n" +
+         "MSG: geometry_msgs/Vector3\n" +
+         "float64 x\n" +
+         "float64 y\n" +
+         "float64 z\n";
 
    // ── Schema builders ──────────────────────────────────────────────────────────
 
@@ -477,6 +559,71 @@ public class McapLogConverter extends YoVariableLogReader
 
    private record TfEntry(String parentFrame, String childFrame, double tx, double ty, double tz, double rx, double ry, double rz, double rw)
    {
+   }
+
+   /**
+    * Builds a {@code nav_msgs/Odometry} message carrying the floating-base's exact pose (same values as the
+    * corresponding {@code /tf} entry) and its exact twist - unlike {@code /tf}, this standard message type has a
+    * velocity field, so consumers don't need to approximate one (e.g. by finite-differencing consecutive poses).
+    * The {@code covariance} fields are unused by any known consumer and are left zero-filled.
+    */
+   private static byte[] buildOdometryMessage(long timestampNs, String parentFrame, String childFrame, double tx, double ty, double tz, double rx,
+                                              double ry, double rz, double rw, double angularX, double angularY, double angularZ, double linearX,
+                                              double linearY, double linearZ)
+   {
+      byte[] parentBytes = parentFrame.getBytes(StandardCharsets.UTF_8);
+      byte[] childBytes  = childFrame.getBytes(StandardCharsets.UTF_8);
+      int    maxSize     = 256 + parentBytes.length + childBytes.length + 2 * 36 * Double.BYTES;
+      ByteBuffer buf = ByteBuffer.allocate(maxSize).order(ByteOrder.LITTLE_ENDIAN);
+      buf.put((byte) 0x00); buf.put((byte) 0x01); buf.put((byte) 0x00); buf.put((byte) 0x00);
+
+      // header.stamp
+      buf.putInt((int) (timestampNs / 1_000_000_000L));
+      buf.putInt((int) (timestampNs % 1_000_000_000L));
+
+      // header.frame_id
+      cdrAlign(buf, 4);
+      buf.putInt(parentBytes.length + 1);
+      buf.put(parentBytes);
+      buf.put((byte) 0);
+
+      // child_frame_id
+      cdrAlign(buf, 4);
+      buf.putInt(childBytes.length + 1);
+      buf.put(childBytes);
+      buf.put((byte) 0);
+
+      // pose.pose.position
+      cdrAlign(buf, 8);
+      buf.putDouble(tx);
+      buf.putDouble(ty);
+      buf.putDouble(tz);
+
+      // pose.pose.orientation (x,y,z,w)
+      buf.putDouble(rx);
+      buf.putDouble(ry);
+      buf.putDouble(rz);
+      buf.putDouble(rw);
+
+      // pose.covariance[36]
+      for (int i = 0; i < 36; i++)
+         buf.putDouble(0.0);
+
+      // twist.twist.linear
+      buf.putDouble(linearX);
+      buf.putDouble(linearY);
+      buf.putDouble(linearZ);
+
+      // twist.twist.angular
+      buf.putDouble(angularX);
+      buf.putDouble(angularY);
+      buf.putDouble(angularZ);
+
+      // twist.covariance[36]
+      for (int i = 0; i < 36; i++)
+         buf.putDouble(0.0);
+
+      return Arrays.copyOf(buf.array(), buf.position());
    }
 
    private static byte[] buildRobotDescriptionMessage(String urdf)
