@@ -148,7 +148,9 @@ public abstract class ROS2AbstractSerializer<T extends ROS2Message<T>>
 
       if (addTypeAsRootNode)
       {
-         node = root.putObject(messageName);
+         // Keep the pre-jros2 IDL root key so SCS2 / Alex built against logger 0.38
+         // can still open newly written handshake YAML.
+         node = root.putObject(legacyIdlRootName(messageClass));
       }
       else
       {
@@ -313,7 +315,7 @@ public abstract class ROS2AbstractSerializer<T extends ROS2Message<T>>
       return null;
    }
 
-   private static String legacyIdlRootName(Class<?> messageClass)
+   static String legacyIdlRootName(Class<?> messageClass)
    {
       return "us::ihmc::robotDataLogger::" + messageClass.getSimpleName();
    }

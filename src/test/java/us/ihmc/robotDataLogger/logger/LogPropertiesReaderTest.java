@@ -1,6 +1,7 @@
 package us.ihmc.robotDataLogger.logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import logger_msgs.HandshakeFileType;
 import org.junit.jupiter.api.Test;
@@ -74,5 +75,27 @@ public class LogPropertiesReaderTest
       assertEquals(2, properties.getModel().getResourceDirectoriesList().size());
       assertEquals("us.ihmc.models", properties.getModel().getResourceDirectoriesList().getAsString(0));
       assertEquals("us.ihmc.resources", properties.getModel().getResourceDirectoriesList().getAsString(1));
+   }
+
+   @Test
+   void writesLegacyCompatibleProperties(@TempDir File tempDir) throws IOException
+   {
+      File propertiesFile = new File(tempDir, "robotData.log");
+      LogPropertiesWriter writer = new LogPropertiesWriter(propertiesFile);
+      writer.setName("testLog");
+      writer.getVariables().setHandshakeFileType(HandshakeFileType.IDL_YAML);
+      writer.getVariables().setHandshake("handshake.yaml");
+      writer.getVariables().setData("robotData.bsz");
+      writer.getVariables().setIndex("robotData.dat");
+      writer.store();
+
+      String contents = Files.readString(propertiesFile.toPath());
+      assertTrue(contents.contains("variables.handshakeFileType=IDL_YAML"));
+      assertTrue(!contents.contains("AsString"));
+      assertTrue(!contents.contains("variables.handshakeFileType=1"));
+
+      LogPropertiesReader properties = new LogPropertiesReader(propertiesFile);
+      assertEquals(HandshakeFileType.IDL_YAML, properties.getVariables().getHandshakeFileType());
+      assertEquals("handshake.yaml", properties.getVariables().getHandshakeAsString());
    }
 }
