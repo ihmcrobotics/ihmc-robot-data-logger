@@ -80,6 +80,9 @@ public class IDLYoVariableHandshakeParserYamlTest
       ROS2YAMLSerializer<Handshake> serializer = new ROS2YAMLSerializer<>(Handshake.class);
       String yaml = serializer.serializeToString(handshake);
 
+      assertTrue(yaml.startsWith("---\nus::ihmc::robotDataLogger::Handshake:") || yaml.contains("us::ihmc::robotDataLogger::Handshake:"));
+      assertTrue(!yaml.contains("logger_msgs::msg::dds_::Handshake_"));
+      assertTrue(!yaml.contains("AsString"));
       assertNotNull(serializer.deserialize(yaml));
    }
 

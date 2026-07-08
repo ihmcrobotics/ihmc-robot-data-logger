@@ -108,10 +108,11 @@ class CDRInterchangeSerializer
             if (methodName.startsWith("get") && !methodName.equals("getClass") && method.getParameterCount() == 0)
             {
                // Skip methods ending with "AsString" to avoid duplicate serialization
-//               if (methodName.endsWith("AsString"))
-//               {
-//                  continue;
-//               }
+               // (pre-jros2 logs only have the base field names; e.g. name, not nameAsString).
+               if (methodName.endsWith("AsString"))
+               {
+                  continue;
+               }
 
                String fieldName = toFieldName(methodName.substring(3));
                Object value = method.invoke(message);
@@ -518,6 +519,27 @@ class CDRInterchangeSerializer
          return;
       }
 
+      // JointDefinition.type is a raw uint8 in jros2, but pre-jros2 IDL wrote enum names.
+      if (name.equals("type") && value instanceof Byte && message instanceof logger_msgs.JointDefinition)
+      {
+         node.put(name, convertJointTypeToString((Byte) value));
+         return;
+      }
+
+      // Variables.handshakeFileType is a raw uint8; pre-jros2 wrote IDL_YAML / IDL_CDR.
+      if (name.equals("handshakeFileType") && value instanceof Byte && message instanceof logger_msgs.Variables)
+      {
+         node.put(name, convertHandshakeFileTypeToString((Byte) value));
+         return;
+      }
+
+      // CameraConfiguration.type is a raw uint8; pre-jros2 wrote CameraType enum names.
+      if (name.equals("type") && value instanceof Byte && message instanceof logger_msgs.CameraConfiguration)
+      {
+         node.put(name, convertCameraTypeToString((Byte) value));
+         return;
+      }
+
       // Default serialization
       serializeField(name, value);
    }
@@ -532,6 +554,36 @@ class CDRInterchangeSerializer
          case 3: return "LongYoVariable";
          case 4: return "EnumYoVariable";
          default: return "DoubleYoVariable";
+      }
+   }
+
+   private String convertJointTypeToString(byte type)
+   {
+      switch (type)
+      {
+         case logger_msgs.JointType.SIXDOFJOINT: return "SiXDoFJoint";
+         case logger_msgs.JointType.ONEDOFJOINT: return "OneDoFJoint";
+         default: return "SiXDoFJoint";
+      }
+   }
+
+   private String convertHandshakeFileTypeToString(byte type)
+   {
+      switch (type)
+      {
+         case logger_msgs.HandshakeFileType.IDL_YAML: return "IDL_YAML";
+         case logger_msgs.HandshakeFileType.IDL_CDR: return "IDL_CDR";
+         default: return "IDL_YAML";
+      }
+   }
+
+   private String convertCameraTypeToString(byte type)
+   {
+      switch (type)
+      {
+         case logger_msgs.CameraType.CAPTURE_CARD_MAGEWELL: return "CAPTURE_CARD_MAGEWELL";
+         case logger_msgs.CameraType.CAPTURE_CARD: return "CAPTURE_CARD";
+         default: return "CAPTURE_CARD_MAGEWELL";
       }
    }
 
