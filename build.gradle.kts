@@ -63,6 +63,7 @@ mainDependencies {
    api("org.bytedeco:ffmpeg:$ffmpegVersion")
    api("org.bytedeco:ffmpeg:$ffmpegVersion:linux-arm64")
    api("org.bytedeco:ffmpeg:$ffmpegVersion:linux-x86_64")
+   api("org.bytedeco:ffmpeg:$ffmpegVersion:macosx-arm64")
    api("org.bytedeco:ffmpeg:$ffmpegVersion:windows-x86_64")
 
    // ZED SDK for logging remote ZED data streams
