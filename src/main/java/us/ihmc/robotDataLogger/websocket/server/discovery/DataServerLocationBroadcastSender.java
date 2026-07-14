@@ -32,6 +32,7 @@ public class DataServerLocationBroadcastSender extends DataServerLocationBroadca
       }
 
       internalThread = new Thread(this::run, getClass().getSimpleName());
+      internalThread.setDaemon(true);
    }
 
    public void start()
