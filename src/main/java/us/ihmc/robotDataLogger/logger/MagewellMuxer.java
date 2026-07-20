@@ -13,7 +13,7 @@ public class MagewellMuxer
    private final FFmpegFrameRecorder recorder;
    private boolean closed = false;
 
-   public MagewellMuxer(File videoCaptureFile, int captureWidth, int captureHeight)
+   public MagewellMuxer(File videoCaptureFile, int captureWidth, int captureHeight, double frameRate)
    {
       recorder = new FFmpegFrameRecorder(videoCaptureFile, captureWidth, captureHeight);
 
@@ -23,15 +23,16 @@ public class MagewellMuxer
       // For information about these settings visit https://trac.ffmpeg.org/wiki/Encode/H.264
       recorder.setVideoOption("preset", "ultrafast");
       recorder.setVideoOption("crf", "27");
-      // GOP size: keyframe every ~1 second at 60 fps. The demuxer must use frame-accurate seeking
+      // GOP size: keyframe every ~1 second. The demuxer must use frame-accurate seeking
       // (FFmpegFrameGrabber.setVideoTimestamp) to land on a non-keyframe.
-      recorder.setVideoOption("g", "60");
+      recorder.setVideoOption("g", String.valueOf(Math.max(1, Math.round(frameRate))));
       recorder.setVideoBitrate(60000000); // 6000 kb/s
 
       recorder.setVideoCodec(avcodec.AV_CODEC_ID_H264);
       recorder.setPixelFormat(avutil.AV_PIX_FMT_YUV420P);
-      // Frame rate of video recordings
-      recorder.setFrameRate(60);
+      // Frame rate of video recordings - this must match the rate frames are actually delivered at,
+      // not just the rate we asked the capture card for, otherwise playback speed will be wrong.
+      recorder.setFrameRate(frameRate);
    }
 
    public void start() throws Exception
