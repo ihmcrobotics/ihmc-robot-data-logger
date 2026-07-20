@@ -20,6 +20,10 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
    private FileWriter timestampWriter;
    private MagewellMuxer magewellMuxer;
 
+   private File videoCaptureFile;
+   private int captureWidth;
+   private int captureHeight;
+
    private int framesReceivedFromCameraCounter;
    private int timeStampFromControllerCounter;
    private final int deviceNumber;
@@ -38,11 +42,11 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
    private void createCaptureInterface()
    {
       File timestampFile = new File(timestampData);
-      File videoCaptureFile = new File(videoFile);
+      videoCaptureFile = new File(videoFile);
 
       // This is the resolution of the video, overrides camera
-      int captureWidth = 1280;
-      int captureHeight = 720;
+      captureWidth = 1280;
+      captureHeight = 720;
 
       switch (options.getVideoCodec())
       {
@@ -51,9 +55,13 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
             grabber = new OpenCVFrameGrabber(deviceNumber);
             grabber.setImageWidth(captureWidth);
             grabber.setImageHeight(captureHeight);
+            // This is the frame rate we ask the capture card for; the card may not be able to honor it
+            // (e.g. the actual HDMI/SDI source is only running at 30fps), so we can't assume this is what
+            // we'll actually get. See startCapture(), where we check grabber.getFrameRate() after start()
+            // to find out what we actually got, and use that for the recorder instead of this requested value.
             grabber.setFrameRate(60);
 
-            magewellMuxer = new MagewellMuxer(videoCaptureFile, captureWidth, captureHeight);
+            // magewellMuxer is created in startCapture(), once we know the frame rate we actually got
          }
          default -> throw new RuntimeException();
       }
@@ -99,10 +107,26 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
    public void startCapture() throws Exception
    {
       grabber.start();
+
+      // Now that the capture card is actually running, ask it what frame rate it settled on -
+      // this can be lower than what we requested in createCaptureInterface() if the card can't
+      // honor it (e.g. the source signal is only 30fps even though we asked for 60).
+      double actualFrameRate = grabber.getFrameRate();
+      if (actualFrameRate <= 0)
+      {
+         LogTools.warn("Device {} did not report a frame rate, falling back to 60fps", deviceNumber);
+         actualFrameRate = 60;
+      }
+      else
+      {
+         LogTools.info("Device {} is actually capturing at {}fps", deviceNumber, actualFrameRate);
+      }
+
+      magewellMuxer = new MagewellMuxer(videoCaptureFile, captureWidth, captureHeight, actualFrameRate);
       magewellMuxer.start();
 
       timestampWriter.write(1 + "\n");
-      timestampWriter.write(60 + "\n");
+      timestampWriter.write(Math.round(actualFrameRate) + "\n");
 
       long startTime = System.currentTimeMillis();
       Frame capturedFrame;
@@ -209,6 +233,6 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
    @Override
    public long getLastFrameReceivedTimestamp()
    {
-      return magewellMuxer.getTimeStamp();
+      return magewellMuxer == null ? 0 : magewellMuxer.getTimeStamp();
    }
 }

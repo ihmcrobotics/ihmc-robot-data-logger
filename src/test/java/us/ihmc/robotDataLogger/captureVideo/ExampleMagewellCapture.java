@@ -59,9 +59,12 @@ public class ExampleMagewellCapture
          grabber.setFrameRate(FRAME_RATE);
          grabber.start();
 
+         double actualFrameRate = grabber.getFrameRate();
+         LogTools.info("Requested {}fps, capture card is actually delivering {}fps", FRAME_RATE, actualFrameRate);
+
          setupTimestampWriter();
 
-         magewellMuxer = new MagewellMuxer(videoFile, captureWidth, captureHeight);
+         magewellMuxer = new MagewellMuxer(videoFile, captureWidth, captureHeight, actualFrameRate);
          magewellMuxer.start();
 
          // A really nice hardware accelerated component for our preview...
