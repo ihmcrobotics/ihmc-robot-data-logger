@@ -24,6 +24,8 @@ import logger_msgs.LogProperties;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.fastddsjava.cdr.CDRBuffer;
+import us.ihmc.fastddsjava.cdr.CDRSerializable;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
@@ -202,7 +204,7 @@ public class McapLogConverter extends YoVariableLogReader
             String           topic      = registryTopic(registry);
             byte[]           schema     = buildRegistrySchemaRos2(varIndices, variables);
 
-            mcap.addSchema(channelId, topic, "ros2msg", schema);
+            mcap.addSchema(channelId, schemaResourceName(topic), "ros2msg", schema);
             mcap.addChannel(channelId, channelId, topic, "cdr", Collections.emptyMap());
             registryChannelIds.put(registry, channelId);
          }
@@ -215,7 +217,7 @@ public class McapLogConverter extends YoVariableLogReader
             String topic     = "/joints/" + joint.getName();
             byte[] schema    = buildJointSchemaRos2(joint);
 
-            mcap.addSchema(channelId, topic, "ros2msg", schema);
+            mcap.addSchema(channelId, schemaResourceName(topic), "ros2msg", schema);
             mcap.addChannel(channelId, channelId, topic, "cdr", Collections.emptyMap());
             jointChannelIds.put(joint, channelId);
          }
@@ -509,52 +511,55 @@ public class McapLogConverter extends YoVariableLogReader
 
    // ── Message builders ─────────────────────────────────────────────────────────
 
+   /**
+    * Serializes a jros2-generated {@link us.ihmc.jros2.ROS2Message} (CDR encoding) the same way
+    * {@link us.ihmc.jros2.ROS2Publisher} does internally, so the standard message types below get correct,
+    * generator-maintained (de)serialization instead of hand-rolled {@link ByteBuffer} packing.
+    * <p>
+    * {@code calculateSizeBytes} is used only to presize the buffer (as {@code ROS2Publisher} does) - it is not
+    * trusted for the final trim. For an {@code IDLObjectSequence} of variable-size structs (e.g. the
+    * {@code TransformStamped[]} in {@code tf2_msgs/TFMessage}), {@code IDLSequence#calculateSizeBytes} passes each
+    * element's total byte size as if it were an alignment boundary, which can overestimate the required size.
+    * Trimming to the buffer's actual post-serialize position (as the old hand-rolled CDR code always did) avoids
+    * shipping that overestimate as trailing garbage bytes in the MCAP message payload.
+    */
+   private static byte[] serializeRos2Message(CDRSerializable message)
+   {
+      CDRBuffer buffer = new CDRBuffer();
+      int estimatedSizeBytes = CDRBuffer.PAYLOAD_HEADER.length + message.calculateSizeBytes(0);
+      buffer.ensureRemainingCapacity(estimatedSizeBytes);
+      buffer.writePayloadHeader();
+      message.serialize(buffer);
+      return Arrays.copyOf(buffer.getBufferUnsafe().array(), buffer.getBufferUnsafe().position());
+   }
+
    private static byte[] buildTfMessage(long timestampNs, List<TfEntry> entries)
    {
-      int maxSize = 16;
-      for (TfEntry entry : entries)
-         maxSize += 96 + entry.parentFrame().length() + entry.childFrame().length();
-      ByteBuffer buf = ByteBuffer.allocate(maxSize).order(ByteOrder.LITTLE_ENDIAN);
-      buf.put((byte) 0x00); buf.put((byte) 0x01); buf.put((byte) 0x00); buf.put((byte) 0x00);
-
-      buf.putInt(entries.size()); // sequence: one TransformStamped per entry
+      tf2_msgs.TFMessage message = new tf2_msgs.TFMessage();
+      int sec     = (int) (timestampNs / 1_000_000_000L);
+      int nanosec = (int) (timestampNs % 1_000_000_000L);
 
       for (TfEntry entry : entries)
       {
-         byte[] parentBytes = entry.parentFrame().getBytes(StandardCharsets.UTF_8);
-         byte[] childBytes  = entry.childFrame().getBytes(StandardCharsets.UTF_8);
+         geometry_msgs.TransformStamped transformStamped = message.getTransforms().add();
+         transformStamped.getHeader().getStamp().setSec(sec);
+         transformStamped.getHeader().getStamp().setNanosec(nanosec);
+         transformStamped.getHeader().setFrameId(entry.parentFrame());
+         transformStamped.setChildFrameId(entry.childFrame());
 
-         // header.stamp
-         cdrAlign(buf, 4);
-         buf.putInt((int) (timestampNs / 1_000_000_000L));
-         buf.putInt((int) (timestampNs % 1_000_000_000L));
+         geometry_msgs.Vector3 translation = transformStamped.getTransform().getTranslation();
+         translation.setX(entry.tx());
+         translation.setY(entry.ty());
+         translation.setZ(entry.tz());
 
-         // header.frame_id
-         cdrAlign(buf, 4);
-         buf.putInt(parentBytes.length + 1);
-         buf.put(parentBytes);
-         buf.put((byte) 0);
-
-         // child_frame_id
-         cdrAlign(buf, 4);
-         buf.putInt(childBytes.length + 1);
-         buf.put(childBytes);
-         buf.put((byte) 0);
-
-         // transform.translation
-         cdrAlign(buf, 8);
-         buf.putDouble(entry.tx());
-         buf.putDouble(entry.ty());
-         buf.putDouble(entry.tz());
-
-         // transform.rotation (x,y,z,w)
-         buf.putDouble(entry.rx());
-         buf.putDouble(entry.ry());
-         buf.putDouble(entry.rz());
-         buf.putDouble(entry.rw());
+         geometry_msgs.Quaternion rotation = transformStamped.getTransform().getRotation();
+         rotation.setX(entry.rx());
+         rotation.setY(entry.ry());
+         rotation.setZ(entry.rz());
+         rotation.setW(entry.rw());
       }
 
-      return Arrays.copyOf(buf.array(), buf.position());
+      return serializeRos2Message(message);
    }
 
    private record TfEntry(String parentFrame, String childFrame, double tx, double ty, double tz, double rx, double ry, double rz, double rw)
@@ -571,117 +576,62 @@ public class McapLogConverter extends YoVariableLogReader
                                               double ry, double rz, double rw, double angularX, double angularY, double angularZ, double linearX,
                                               double linearY, double linearZ)
    {
-      byte[] parentBytes = parentFrame.getBytes(StandardCharsets.UTF_8);
-      byte[] childBytes  = childFrame.getBytes(StandardCharsets.UTF_8);
-      int    maxSize     = 256 + parentBytes.length + childBytes.length + 2 * 36 * Double.BYTES;
-      ByteBuffer buf = ByteBuffer.allocate(maxSize).order(ByteOrder.LITTLE_ENDIAN);
-      buf.put((byte) 0x00); buf.put((byte) 0x01); buf.put((byte) 0x00); buf.put((byte) 0x00);
+      nav_msgs.Odometry message = new nav_msgs.Odometry();
+      message.getHeader().getStamp().setSec((int) (timestampNs / 1_000_000_000L));
+      message.getHeader().getStamp().setNanosec((int) (timestampNs % 1_000_000_000L));
+      message.getHeader().setFrameId(parentFrame);
+      message.setChildFrameId(childFrame);
 
-      // header.stamp
-      buf.putInt((int) (timestampNs / 1_000_000_000L));
-      buf.putInt((int) (timestampNs % 1_000_000_000L));
+      geometry_msgs.Point position = message.getPose().getPose().getPosition();
+      position.setX(tx);
+      position.setY(ty);
+      position.setZ(tz);
 
-      // header.frame_id
-      cdrAlign(buf, 4);
-      buf.putInt(parentBytes.length + 1);
-      buf.put(parentBytes);
-      buf.put((byte) 0);
+      geometry_msgs.Quaternion orientation = message.getPose().getPose().getOrientation();
+      orientation.setX(rx);
+      orientation.setY(ry);
+      orientation.setZ(rz);
+      orientation.setW(rw);
+      // pose.covariance[36] left zero-filled (unused by any known consumer), matching the previous message.
 
-      // child_frame_id
-      cdrAlign(buf, 4);
-      buf.putInt(childBytes.length + 1);
-      buf.put(childBytes);
-      buf.put((byte) 0);
+      geometry_msgs.Vector3 linear = message.getTwist().getTwist().getLinear();
+      linear.setX(linearX);
+      linear.setY(linearY);
+      linear.setZ(linearZ);
 
-      // pose.pose.position
-      cdrAlign(buf, 8);
-      buf.putDouble(tx);
-      buf.putDouble(ty);
-      buf.putDouble(tz);
+      geometry_msgs.Vector3 angular = message.getTwist().getTwist().getAngular();
+      angular.setX(angularX);
+      angular.setY(angularY);
+      angular.setZ(angularZ);
+      // twist.covariance[36] left zero-filled (unused by any known consumer), matching the previous message.
 
-      // pose.pose.orientation (x,y,z,w)
-      buf.putDouble(rx);
-      buf.putDouble(ry);
-      buf.putDouble(rz);
-      buf.putDouble(rw);
-
-      // pose.covariance[36]
-      for (int i = 0; i < 36; i++)
-         buf.putDouble(0.0);
-
-      // twist.twist.linear
-      buf.putDouble(linearX);
-      buf.putDouble(linearY);
-      buf.putDouble(linearZ);
-
-      // twist.twist.angular
-      buf.putDouble(angularX);
-      buf.putDouble(angularY);
-      buf.putDouble(angularZ);
-
-      // twist.covariance[36]
-      for (int i = 0; i < 36; i++)
-         buf.putDouble(0.0);
-
-      return Arrays.copyOf(buf.array(), buf.position());
+      return serializeRos2Message(message);
    }
 
    private static byte[] buildRobotDescriptionMessage(String urdf)
    {
-      byte[] strBytes = urdf.getBytes(StandardCharsets.UTF_8);
-      ByteBuffer buf = ByteBuffer.allocate(4 + 4 + strBytes.length + 1).order(ByteOrder.LITTLE_ENDIAN);
-      buf.put((byte) 0x00); buf.put((byte) 0x01); buf.put((byte) 0x00); buf.put((byte) 0x00);
-      buf.putInt(strBytes.length + 1);
-      buf.put(strBytes);
-      buf.put((byte) 0);
-      return buf.array();
+      std_msgs.String_ message = new std_msgs.String_();
+      message.setData(urdf);
+      return serializeRos2Message(message);
    }
 
    private static byte[] buildJointStateCdrMessage(List<byte[]> nameBytes, int[] offsets, long[] jointValues, long timestampNs)
    {
+      sensor_msgs.JointState message = new sensor_msgs.JointState();
+      message.getHeader().getStamp().setSec((int) (timestampNs / 1_000_000_000L));
+      message.getHeader().getStamp().setNanosec((int) (timestampNs % 1_000_000_000L));
+      // header.frame_id left empty, matching the previous message.
+
       int numJoints = nameBytes.size();
-      int maxSize = 64 + numJoints * 64 + numJoints * 8 * 2; // generous upper bound
-      ByteBuffer buf = ByteBuffer.allocate(maxSize).order(ByteOrder.LITTLE_ENDIAN);
-      buf.put((byte) 0x00); buf.put((byte) 0x01); buf.put((byte) 0x00); buf.put((byte) 0x00);
-
-      // header.stamp
-      buf.putInt((int) (timestampNs / 1_000_000_000L)); // sec
-      buf.putInt((int) (timestampNs % 1_000_000_000L)); // nanosec
-
-      // header.frame_id: empty string
-      buf.putInt(1);
-      buf.put((byte) 0);
-
-      // name[]
-      cdrAlign(buf, 4);
-      buf.putInt(numJoints);
       for (byte[] nb : nameBytes)
-      {
-         cdrAlign(buf, 4);
-         buf.putInt(nb.length + 1);
-         buf.put(nb);
-         buf.put((byte) 0);
-      }
-
-      // position[]
-      cdrAlign(buf, 4);
-      buf.putInt(numJoints);
-      cdrAlign(buf, 8);
+         message.getName().add(new String(nb, StandardCharsets.UTF_8));
       for (int i = 0; i < numJoints; i++)
-         buf.putDouble(Double.longBitsToDouble(jointValues[offsets[i]]));
-
-      // velocity[]
-      cdrAlign(buf, 4);
-      buf.putInt(numJoints);
-      cdrAlign(buf, 8);
+         message.getPosition().add(Double.longBitsToDouble(jointValues[offsets[i]]));
       for (int i = 0; i < numJoints; i++)
-         buf.putDouble(Double.longBitsToDouble(jointValues[offsets[i] + 1]));
+         message.getVelocity().add(Double.longBitsToDouble(jointValues[offsets[i] + 1]));
+      // effort[] left empty, matching the previous message.
 
-      // effort[]: empty
-      cdrAlign(buf, 4);
-      buf.putInt(0);
-
-      return Arrays.copyOf(buf.array(), buf.position());
+      return serializeRos2Message(message);
    }
 
    private static byte[] buildRegistryCdrMessage(List<Integer> varIndices, List<YoVariable> variables)
@@ -916,10 +866,21 @@ public class McapLogConverter extends YoVariableLogReader
       return "/" + String.join("/", parts);
    }
 
+   /**
+    * Derives a valid ROS2 "package/Resource" schema name (see {@code InterfaceTools.checkAndParsePackageResourceName}
+    * in jros2-parser) from a leading-slash channel topic, e.g. "/main/AlexMPCMultiThreadControlProcess" &rarr;
+    * "main/AlexMPCMultiThreadControlProcess". Passing the topic itself as the schema name leaves a leading slash,
+    * which splits into an empty leading package segment and is rejected as invalid by strict ros2msg schema parsers.
+    */
+   private static String schemaResourceName(String topic)
+   {
+      return topic.startsWith("/") ? topic.substring(1) : topic;
+   }
+
    // ── Entry point ───────────────────────────────────────────────────────────────
 
    // Set this to the log directory you want to convert, then run main().
-   private static final String LOG_DIRECTORY = "/home/tomatoes/workspaces/logger2/repository-group/20260626_104940_Alex002_AutomaticEstopFromFortRobotics/";
+   private static final String LOG_DIRECTORY = "/Users/wayne/workspaces/logger/20260529_152027_WalkingAttemptTwoStepsFailure";
 
    public static void main(String[] args) throws IOException
    {
