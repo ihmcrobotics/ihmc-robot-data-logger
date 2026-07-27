@@ -149,10 +149,14 @@ class WebsocketDataServerFrameHandler extends SimpleChannelInboundHandler<WebSoc
          }
          else if (frame instanceof BinaryWebSocketFrame)
          {
+            int readableBytes = frame.content().readableBytes();
             requestBuffer.getBufferUnsafe().clear();
-            requestBuffer.ensureRemainingCapacity(frame.content().readableBytes());
-            frame.content().readBytes(requestBuffer.getBufferUnsafe());
-            requestBuffer.getBufferUnsafe().flip();
+            requestBuffer.ensureRemainingCapacity(readableBytes);
+            ByteBuffer requestByteBuffer = requestBuffer.getBufferUnsafe();
+            requestByteBuffer.clear();
+            requestByteBuffer.limit(readableBytes);
+            frame.content().readBytes(requestByteBuffer);
+            requestByteBuffer.flip();
             request.deserialize(requestBuffer);
             variableChangedListener.changeVariable(request.getVariableID(), request.getRequestedValue());
          }
