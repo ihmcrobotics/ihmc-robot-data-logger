@@ -89,10 +89,10 @@ public class WebsocketDataProducer implements DataProducer
             }
 
             if (bossGroup != null)
-               bossGroup.shutdownGracefully();
+               bossGroup.shutdownGracefully().syncUninterruptibly();
 
             if (workerGroup != null)
-               workerGroup.shutdownGracefully();
+               workerGroup.shutdownGracefully().syncUninterruptibly();
          }
          catch (InterruptedException e)
          {

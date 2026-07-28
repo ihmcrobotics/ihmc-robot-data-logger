@@ -139,6 +139,7 @@ class WebsocketDataBroadcaster implements ChannelFutureListener
       private TimestampPublishingThread()
       {
          super(TimestampPublishingThread.class.getSimpleName());
+         setDaemon(true);
       }
 
       @Override
