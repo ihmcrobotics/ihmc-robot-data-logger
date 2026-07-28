@@ -44,6 +44,8 @@ public class YoVariableLogger
          YoVariableLogRotator.rotate(logDirectory, options.getNumberOfLogsToKeep());
       }
 
+      YoVariableLogDiskSpaceCleaner.deleteOldestLogsWhileLowOnSpace(logDirectory);
+
       Announcement request = connection.getAnnouncement();
 
       DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
