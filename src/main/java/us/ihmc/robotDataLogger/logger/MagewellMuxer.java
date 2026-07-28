@@ -11,7 +11,7 @@ import java.io.File;
 public class MagewellMuxer
 {
    private final FFmpegFrameRecorder recorder;
-   private boolean closed = false;
+   private volatile boolean closed = false;
 
    public MagewellMuxer(File videoCaptureFile, int captureWidth, int captureHeight)
    {
@@ -78,7 +78,25 @@ public class MagewellMuxer
       return recorder.getTimestamp();
    }
 
+   /**
+    * Signals that recording should stop. Safe to call from any thread - only sets a flag that the
+    * capture loop in {@link MagewellVideoDataLogger#startCapture()} checks. Does not touch the
+    * native recorder itself; see {@link #stopRecording()}.
+    */
    public void close()
+   {
+      closed = true;
+   }
+
+   /**
+    * Actually stops and releases the native recorder. {@code recorder}'s methods are not all
+    * consistently synchronized against each other (e.g. {@code getTimestamp()}/{@code
+    * setTimestamp()} aren't, even though {@code record()} is), so this must only ever be called
+    * from the same thread that calls {@link #start()} and {@link #recordFrame} - i.e. the capture
+    * thread, once its loop has exited - never concurrently from another thread such as one calling
+    * {@link #close()}.
+    */
+   public void stopRecording()
    {
       closed = true;
       try
