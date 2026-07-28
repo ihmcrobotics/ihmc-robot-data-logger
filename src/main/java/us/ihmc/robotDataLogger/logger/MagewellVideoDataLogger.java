@@ -66,16 +66,17 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
          timestampWriter = new FileWriter(timestampFile);
 
          captureThread = ThreadTools.startAThread(() ->
-         {
-            try
-            {
-               startCapture();
-            }
-            catch (Exception e)
-            {
-               LogTools.error("Last frame is bad for {} but who cares, shutting down gracefully because of threading", deviceNumber);
-            }
-         }, "MagewellCapture");
+                                                  {
+                                                     try
+                                                     {
+                                                        startCapture();
+                                                     }
+                                                     catch (Exception e)
+                                                     {
+                                                        LogTools.error("Last frame is bad for {} but who cares, shutting down gracefully because of threading",
+                                                                       deviceNumber);
+                                                     }
+                                                  }, "MagewellCapture");
       }
       catch (IOException e)
       {
@@ -120,7 +121,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
       }
       finally
       {
-         // Stopping these from another thread (e.g. close()) while this thread might still be inside
+         // This exists to stop this threading bug: stopping these from another thread (e.g. close()) while this thread might still be inside
          // a native call using the same resources is a use-after-free race in the native layer.
          try
          {
@@ -198,9 +199,9 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
 
             if (captureThread.isAlive())
             {
-               LogTools.error("MagewellCapture thread for device {} did not stop within {}ms, it is likely stuck in a native call and its resources are leaking",
-                               deviceNumber,
-                               CAPTURE_THREAD_SHUTDOWN_TIMEOUT);
+               LogTools.error("MagewellCapture thread for device {} did not stop within {}ms, it is likely stuck, buckets",
+                              deviceNumber,
+                              CAPTURE_THREAD_SHUTDOWN_TIMEOUT);
             }
 
             captureThread = null;
