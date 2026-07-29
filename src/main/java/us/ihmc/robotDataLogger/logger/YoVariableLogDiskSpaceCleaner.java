@@ -21,7 +21,7 @@ import us.ihmc.log.LogTools;
 public class YoVariableLogDiskSpaceCleaner
 {
    private static final long BYTES_PER_GIGABYTE = 1024L * 1024L * 1024L;
-   private static final double MINIMUM_FREE_SPACE_GIGABYTES = 500.0;
+   private static final double MINIMUM_FREE_SPACE_GIGABYTES = 250.0;
 
    // A "." log directory is actively being written to by a live session. Only treat one as an abandoned crash
    // leftover - and safe to delete as a last resort - once it hasn't been touched for this long.
