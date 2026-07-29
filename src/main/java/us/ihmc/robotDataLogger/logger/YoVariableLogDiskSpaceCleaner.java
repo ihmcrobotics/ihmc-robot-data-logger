@@ -20,12 +20,24 @@ import us.ihmc.log.LogTools;
  */
 public class YoVariableLogDiskSpaceCleaner
 {
+   @FunctionalInterface
+   interface TotalSpaceProvider
+   {
+      long getTotalSpaceInBytes(Path root) throws IOException;
+   }
+
    private static final long BYTES_PER_GIGABYTE = 1024L * 1024L * 1024L;
    private static final double MINIMUM_FREE_SPACE_GIGABYTES = 250.0;
 
    // A "." log directory is actively being written to by a live session. Only treat one as an abandoned crash
    // leftover - and safe to delete as a last resort - once it hasn't been touched for this long.
    private static final Duration STALE_IN_PROGRESS_LOG_AGE = Duration.ofMinutes(15);
+
+   public static long getTotalSpaceInBytes(Path root) throws IOException
+   {
+      FileStore store = Files.getFileStore(root);
+      return store.getTotalSpace();
+   }
 
    public static long getUsableSpaceInBytes(Path root) throws IOException
    {
@@ -35,16 +47,25 @@ public class YoVariableLogDiskSpaceCleaner
 
    public static void deleteOldestLogsWhileLowOnSpace(Path root) throws IOException
    {
-      deleteOldestLogsWhileLowOnSpace(root, YoVariableLogDiskSpaceCleaner::getUsableSpaceInBytes);
+      deleteOldestLogsWhileLowOnSpace(root, YoVariableLogDiskSpaceCleaner::getUsableSpaceInBytes, YoVariableLogDiskSpaceCleaner::getTotalSpaceInBytes);
    }
 
    /**
     * Same as {@link #deleteOldestLogsWhileLowOnSpace(Path)}, but takes a {@link UsableSpaceProvider} instead of always querying the real filesystem.
     * Lets tests simulate a full disk without needing to actually fill one.
     */
-   static void deleteOldestLogsWhileLowOnSpace(Path root, UsableSpaceProvider usableSpaceProvider) throws IOException
+   static void deleteOldestLogsWhileLowOnSpace(Path root, UsableSpaceProvider usableSpaceProvider, TotalSpaceProvider totalSpaceProvider) throws IOException
    {
       long minFreeSpaceBytes = (long) (MINIMUM_FREE_SPACE_GIGABYTES * BYTES_PER_GIGABYTE);
+
+      long totalSpace = totalSpaceProvider.getTotalSpaceInBytes(root);
+      if (totalSpace < minFreeSpaceBytes)
+      {
+         LogTools.info("Disk space check ignored for " + root + ". Drive capacity is only " + toGigabytes(totalSpace)
+                       + " GB, which is smaller than the configured minimum free space threshold of " + MINIMUM_FREE_SPACE_GIGABYTES + " GB.");
+         return;
+      }
+
       long usableSpace = usableSpaceProvider.getUsableSpaceInBytes(root);
       if (usableSpace >= minFreeSpaceBytes)
       {
