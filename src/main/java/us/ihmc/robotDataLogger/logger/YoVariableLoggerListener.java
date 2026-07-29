@@ -75,13 +75,13 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private FileChannel dataChannel;
    private FileChannel indexChannel;
 
-   // Background compression thread — owns these exclusively (never touched by RT thread)
+   // Background compression thread, owns these exclusively (never touched by RT thread)
    private final ByteBuffer indexBuffer = ByteBuffer.allocate(16);
    private ByteBuffer compressedBuffer;
    private Thread compressionThread;
    private volatile boolean compressionThreadRunning = false;
 
-   // Batch state — written by RT thread, consumed by compression thread via batchRing
+   // Batch state, written by RT thread, consumed by compression thread via batchRing
    private ConcurrentRingBuffer<ByteBuffer> batchRingBuffer;
    private ByteBuffer currentBatchBuffer = null;
    private int batchTickCount = 0;

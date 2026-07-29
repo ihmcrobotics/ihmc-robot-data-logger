@@ -4,86 +4,31 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
-
-import org.apache.commons.io.FileUtils;
+import java.util.stream.Stream;
 
 import us.ihmc.log.LogTools;
 
 /**
  * Class to rotate logs to avoid infinite accumulation
- * 
+ *
  * @author jesper
  */
 public class YoVariableLogRotator
 {
-   private static final DateTimeFormatter timestampFormat = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
-
    public static void rotate(Path root, int logsToKeep) throws IOException
    {
       LogTools.info("Rotating logs in " + root + ". Keeping " + logsToKeep + " logs");
-      Files.walk(root).filter((p) -> Files.exists(p.resolve(YoVariableLoggerListener.propertyFile))).map((p) -> new LogAndTimestamp(p))
-           .sorted(Comparator.reverseOrder()).skip(logsToKeep).forEach((t) -> t.delete());
-
-   }
-
-   private static class LogAndTimestamp implements Comparable<LogAndTimestamp>
-   {
-      private final Path directory;
-      private final LocalDateTime timestamp;
-
-      public LogAndTimestamp(Path directory)
+      // Find every finished log directory (skip in-progress "." dirs), sort newest first, and delete everything past the keep count
+      try (Stream<Path> paths = Files.walk(root))
       {
-
-         this.directory = directory;
-
-         LocalDateTime timestamp = LocalDateTime.MIN;
-         try
-         {
-            LogPropertiesReader reader = new LogPropertiesReader(directory.resolve(YoVariableLoggerListener.propertyFile).toFile());
-            if (reader.getTimestampAsString().trim().isEmpty())
-            {
-               LogTools.warn("Empty timestamp for log in " + directory + ", assuming LocalDateTime.MIN");
-            }
-            else
-            {
-               timestamp = LocalDateTime.parse(reader.getTimestampAsString(), timestampFormat);
-            }
-         }
-         catch (Exception e)
-         {
-            LogTools.warn("Could not parse timestamp for log in " + directory + ", assuming LocalDateTime.MIN");
-         }
-         this.timestamp = timestamp;
+         paths.filter((p) -> !p.getFileName().toString().startsWith("."))
+              .filter((p) -> Files.exists(p.resolve(YoVariableLoggerListener.propertyFile)))
+              .map(LogAndTimestamp::new)
+              .sorted(Comparator.reverseOrder())
+              .skip(logsToKeep)
+              .forEach(LogAndTimestamp::delete);
       }
-
-      public void delete()
-      {
-         LogTools.info("Deleting " + this);
-         try
-         {
-            FileUtils.deleteDirectory(directory.toFile());
-         }
-         catch (IOException e)
-         {
-            System.err.println("Cannot delete " + directory);
-         }
-      }
-
-      @Override
-      public int compareTo(LogAndTimestamp o)
-      {
-         return timestamp.compareTo(o.timestamp);
-      }
-
-      @Override
-      public String toString()
-      {
-         return timestamp + ": " + directory.toString();
-      }
-
    }
 
    public static void main(String[] args) throws IOException
