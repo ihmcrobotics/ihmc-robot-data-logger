@@ -3,7 +3,7 @@ import us.ihmc.jros2.generator.jros2GenTask
 plugins {
    id("us.ihmc.ihmc-build")
    id("us.ihmc.log-tools-plugin") version "0.6.4"
-   id("us.ihmc.jros2.generator") version "1.4.0"
+   id("us.ihmc.jros2.generator") version "1.5.0"
 }
 
 ihmc {
