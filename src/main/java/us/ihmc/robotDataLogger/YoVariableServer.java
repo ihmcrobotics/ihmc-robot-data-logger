@@ -16,7 +16,7 @@ import us.ihmc.robotDataLogger.listeners.VariableChangedListener;
 import us.ihmc.robotDataLogger.logger.DataServerSettings;
 import us.ihmc.robotDataLogger.websocket.server.DataServerServerContent;
 import us.ihmc.robotDataLogger.websocket.server.WebsocketDataProducer;
-import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
+import us.ihmc.robotDataLogger.yoGraphics.YoGraphicsData;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -300,7 +300,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    }
 
    @Override
-   public void addRegistry(YoRegistry registry, YoGraphicGroupDefinition scs2YoGraphics)
+   public void addRegistry(YoRegistry registry, YoGraphicsData scs2YoGraphics)
    {
       if (mainRegistry == null)
       {
@@ -311,7 +311,7 @@ public class YoVariableServer implements RobotVisualizer, VariableChangedListene
    }
 
    @Override
-   public void setMainRegistry(YoRegistry registry, List<? extends JointBasics> jointsToPublish, YoGraphicGroupDefinition scs2YoGraphics)
+   public void setMainRegistry(YoRegistry registry, List<? extends JointBasics> jointsToPublish, YoGraphicsData scs2YoGraphics)
    {
       if (mainRegistry != null)
       {

@@ -17,10 +17,9 @@ import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.dataBuffers.RegistrySendBufferBuilder;
 import us.ihmc.robotDataLogger.jointState.JointHolder;
-import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
-import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition.YoGraphicFieldInfo;
-import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition.YoGraphicFieldsSummary;
-import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
+import us.ihmc.robotDataLogger.yoGraphics.YoGraphicFieldData;
+import us.ihmc.robotDataLogger.yoGraphics.YoGraphicFieldsData;
+import us.ihmc.robotDataLogger.yoGraphics.YoGraphicsData;
 import us.ihmc.yoVariables.parameters.ParameterLoadStatus;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoEnum;
@@ -51,17 +50,15 @@ public class YoVariableHandShakeBuilder
 
    }
 
-   private void addSCS2YoGraphicDefinition(YoGraphicGroupDefinition rootDefinition)
+   private void addYoGraphicsData(YoGraphicsData yoGraphicsData)
    {
-      if (rootDefinition == null)
+      if (yoGraphicsData == null)
          return;
 
-      List<YoGraphicFieldsSummary> treeFieldValueInfo = YoGraphicDefinition.exportSubtreeYoGraphicFieldsSummaryList(rootDefinition);
-
-      for (YoGraphicFieldsSummary yoGraphicFieldsValuesInfo : treeFieldValueInfo)
+      for (YoGraphicFieldsData yoGraphicFields : yoGraphicsData.getYoGraphicFieldsDataList())
       {
          SCS2YoGraphicDefinitionMessage msg = handshake.getScs2YoGraphicDefinitions().add();
-         for (YoGraphicFieldInfo entry : yoGraphicFieldsValuesInfo)
+         for (YoGraphicFieldData entry : yoGraphicFields)
          {
             msg.getFieldNames().add().append(entry.getFieldName());
             msg.getFieldValues().add().append(entry.getFieldValue());
@@ -103,7 +100,7 @@ public class YoVariableHandShakeBuilder
       YoRegistry registry = builder.getYoRegistry();
 
       int registryID = addRegistry(0, registry, builder.getVariables(), registry);
-      addSCS2YoGraphicDefinition(builder.getSCS2YoGraphics());
+      addYoGraphicsData(builder.getSCS2YoGraphics());
 
       builder.build(registryID);
       List<JointHolder> jointHolders = builder.getJointHolders();
