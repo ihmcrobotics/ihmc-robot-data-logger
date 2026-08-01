@@ -8,6 +8,7 @@ import logger_msgs.Handshake;
 import logger_msgs.HandshakeFileType;
 import us.ihmc.commons.Conversions;
 import us.ihmc.commons.MathTools;
+import us.ihmc.fastddsjava.cdr.CDRBuffer;
 import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.CameraSettingsLoader;
@@ -55,8 +56,15 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    public static final long STATUS_PACKET_RATE = Conversions.secondsToNanoseconds(5.0);
    private static final long VIDEO_RECORDING_TIMEOUT = Conversions.secondsToNanoseconds(1.0);
 
+   /**
+    * Format the handshake file is written/read in. Switching this back to {@link HandshakeFileType#IDL_YAML} is
+    * sufficient on its own: the handshake filename and the write logic in {@link #logHandshake} both key off this
+    * constant, so nothing else needs to change.
+    */
+   private static final byte HANDSHAKE_FILE_TYPE = HandshakeFileType.IDL_CDR;
+
    public static final String propertyFile = propertyFileNameBuilder(0);
-   private static final String handshakeFilename = "handshake.yaml";
+   private static final String handshakeFilename = HANDSHAKE_FILE_TYPE == HandshakeFileType.IDL_CDR ? "handshake.cdr" : "handshake.yaml";
    private static final String dataFilename = "robotData.bsz";
    private static final String modelFilename = "model.sdf";
    private static final String modelResourceBundle = "resources.zip";
@@ -161,7 +169,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       logProperties.getVariables().setCompressionBatchSize(COMPRESSION_BATCH_SIZE);
       logProperties.getVariables().setCompressionType("zstd");
       logProperties.getVariables().setIndex(indexFilename);
-      logProperties.getVariables().setHandshakeFileType(HandshakeFileType.IDL_YAML);
+      logProperties.getVariables().setHandshakeFileType(HANDSHAKE_FILE_TYPE);
 
       logProperties.setName(request.getNameAsString());
       logProperties.setTimestamp(timestamp);
@@ -210,8 +218,26 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       File handshakeFile = new File(tempDirectory, handshakeFilename);
       try
       {
-         ROS2YAMLSerializer<Handshake> serializer = new ROS2YAMLSerializer<>(Handshake.class);
-         serializer.serialize(handshakeFile, handshake.getHandshake());
+         if (HANDSHAKE_FILE_TYPE == HandshakeFileType.IDL_CDR)
+         {
+            Handshake handshakeMessage = handshake.getHandshake();
+            CDRBuffer cdrBuffer = new CDRBuffer();
+            cdrBuffer.ensureRemainingCapacity(handshakeMessage.calculateSizeBytes(0) + 1024);
+            cdrBuffer.writePayloadHeader();
+            handshakeMessage.serialize(cdrBuffer);
+
+            ByteBuffer serializedBuffer = cdrBuffer.getBufferUnsafe();
+            serializedBuffer.flip();
+            try (FileChannel handshakeChannel = new FileOutputStream(handshakeFile).getChannel())
+            {
+               handshakeChannel.write(serializedBuffer);
+            }
+         }
+         else
+         {
+            ROS2YAMLSerializer<Handshake> serializer = new ROS2YAMLSerializer<>(Handshake.class);
+            serializer.serialize(handshakeFile, handshake.getHandshake());
+         }
       }
       catch (IOException e)
       {
