@@ -65,6 +65,8 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
    public static final String propertyFile = propertyFileNameBuilder(0);
    private static final String handshakeFilename = HANDSHAKE_FILE_TYPE == HandshakeFileType.IDL_CDR ? "handshake.cdr" : "handshake.yaml";
+   /** Human-readable copy of the handshake, written alongside {@link #handshakeFilename} when that file is binary. */
+   private static final String handshakeYamlFilename = "handshake.yaml";
    private static final String dataFilename = "robotData.bsz";
    private static final String modelFilename = "model.sdf";
    private static final String modelResourceBundle = "resources.zip";
@@ -232,6 +234,10 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
             {
                handshakeChannel.write(serializedBuffer);
             }
+
+            // Also drop a human-readable copy next to the binary handshake used for fast log loading.
+            ROS2YAMLSerializer<Handshake> yamlSerializer = new ROS2YAMLSerializer<>(Handshake.class);
+            yamlSerializer.serialize(new File(tempDirectory, handshakeYamlFilename), handshakeMessage);
          }
          else
          {
@@ -523,6 +529,13 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          {
             LogTools.info("Deleting handshake file");
             handshakeFile.delete();
+         }
+
+         File handshakeYamlFile = new File(tempDirectory, handshakeYamlFilename);
+         if (handshakeYamlFile.exists())
+         {
+            LogTools.info("Deleting handshake yaml file");
+            handshakeYamlFile.delete();
          }
 
          File properties = new File(tempDirectory, propertyFile);
