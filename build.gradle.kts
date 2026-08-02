@@ -82,6 +82,19 @@ testDependencies {
    api("us.ihmc:ihmc-commons-testing:0.35.1")
 }
 
+subprojects {
+   tasks.withType<Test>().configureEach {
+      // Gradle forks the test JVM without passing -D through, so benchmark selection properties have to be
+      // forwarded explicitly. See RegistryDecompressorTest, which uses this to measure one type profile per JVM -
+      // the only way to get an unpolluted inline cache for the call site it benchmarks.
+      for ((key, value) in System.getProperties())
+      {
+         if (key.toString().startsWith("registrydecompressor."))
+            systemProperty(key.toString(), value.toString())
+      }
+   }
+}
+
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher", listOf(
    "-XX:+UseZGC",
    "-XX:+AlwaysPreTouch",
