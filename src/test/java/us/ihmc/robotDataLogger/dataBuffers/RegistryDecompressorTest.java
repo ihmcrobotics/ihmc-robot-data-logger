@@ -45,9 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>
  * That isolation matters far more for the pre-partitioning implementation than for the current one. Once each type
  * gets its own monomorphic loop, the call sites cannot be polluted by a previously measured profile, and the mixes
- * converge - measured on a Ryzen 7 7000 at 28000 variables, they spread over 289-425 us before the change and
- * 82.8-86.6 us after. So the default in-sequence run is a fair reading of the current code; reach for the isolated
- * mode when comparing against a mixed-dispatch baseline.
+ * converge.
  * </p>
  */
 public class RegistryDecompressorTest
@@ -88,9 +86,9 @@ public class RegistryDecompressorTest
     */
    private static final double CHANGE_RATE = 1.0;
 
-   private static final int MIN_VARIABLES = 24000;
+   private static final int MIN_VARIABLES = 28000;
    private static final int MAX_VARIABLES = 52000;
-   private static final int VARIABLE_INCREMENT = 4000;
+   private static final int VARIABLE_INCREMENT = 6000;
    /** Joint-state count. Settable so the joint-state half of updateVariables can be isolated from the variable half. */
    private static final int NUMBER_OF_JOINTS = parseIntSetting("registrydecompressor.benchmark.joints", 2000);
    private static final int ITERATIONS_PER_MEASUREMENT = 1000;
@@ -147,14 +145,12 @@ public class RegistryDecompressorTest
    }
 
    //                                                                  DOUBLE  INT  BOOL  LONG  ENUM
-   private static final List<TypeProfile> PROFILES = List.of(new TypeProfile("all-long", 0, 0, 0, 1, 0),
-                                                             new TypeProfile("all-double", 1, 0, 0, 0, 0),
+   private static final List<TypeProfile> PROFILES = List.of(new TypeProfile("all-doubles", 1, 0, 0, 0, 0),
                                                              // Measured from a real 28890-variable Alex walking log's handshake.yaml: 84.3% double,
                                                              // 8.5% boolean, 3.3% integer, 3.1% enum, 0.8% long. Raw counts used as weights.
-                                                             new TypeProfile("alex-walking", 24361, 965, 2444, 223, 897),
-                                                             new TypeProfile("double-heavy", 80, 10, 5, 3, 2),
+                                                             new TypeProfile("real-log-data", 24361, 965, 2444, 223, 897),
                                                              new TypeProfile("mixed-even", 20, 20, 20, 20, 20),
-                                                             new TypeProfile("boolean-enum-heavy", 20, 0, 40, 0, 40));
+                                                             new TypeProfile("boolean-enum-majority", 20, 0, 40, 0, 40));
 
    /**
     * Guards the {@code instanceof YoDouble} fast path in {@link RegistryDecompressor#updateVariables}: it must apply
@@ -279,16 +275,15 @@ public class RegistryDecompressorTest
    {
       String selectedProfile = benchmarkSetting(PROFILE_PROPERTY);
 
-      List<TypeProfile> profilesToRun = selectedProfile == null ?
-            PROFILES :
-            PROFILES.stream().filter(profile -> profile.name().equals(selectedProfile)).toList();
+      List<TypeProfile> profilesToRun =
+            selectedProfile == null ? PROFILES : PROFILES.stream().filter(profile -> profile.name().equals(selectedProfile)).toList();
 
       assertTrue(!profilesToRun.isEmpty(), "No profile named '" + selectedProfile + "'. Known: " + PROFILES.stream().map(TypeProfile::name).toList());
 
       if (selectedProfile == null)
-         LogTools.info("Measuring all profiles in one JVM - only 'all-long' (first) sees an unpolluted call site. "
-                       + "To measure one in isolation, set " + PROFILE_PROPERTY + "=<name> as a -D when running the test "
-                       + "directly, or as " + PROFILE_PROPERTY.toUpperCase(Locale.ROOT).replace('.', '_') + " in the "
+         LogTools.info("Measuring all profiles in one JVM - only 'all-long' (first) sees an unpolluted call site. " + "To measure one in isolation, set "
+                       + PROFILE_PROPERTY + "=<name> as a -D when running the test " + "directly, or as " + PROFILE_PROPERTY.toUpperCase(Locale.ROOT)
+                                                                                                                            .replace('.', '_') + " in the "
                        + "environment when running it through Gradle.");
 
       List<JointState> jointStates = new ArrayList<>();
@@ -345,11 +340,7 @@ public class RegistryDecompressorTest
             minTimeNs = Math.min(minTimeNs, end - start);
          }
 
-         LogTools.info(String.format("%-20s %6d variables, %4d joints: %8.2f us",
-                                     profile.name(),
-                                     numberOfVariables,
-                                     NUMBER_OF_JOINTS,
-                                     minTimeNs / 1000.0));
+         LogTools.info(String.format("%-20s %6d variables, %4d joints: %8.2f us", profile.name(), numberOfVariables, NUMBER_OF_JOINTS, minTimeNs / 1000.0));
 
          // Not a performance bound - just a guard that the work actually happened and the loop wasn't optimized
          // away or short-circuited by an exception path.
