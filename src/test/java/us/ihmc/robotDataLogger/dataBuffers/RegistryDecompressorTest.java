@@ -16,6 +16,7 @@ import java.nio.LongBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,13 +39,46 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * same run. So the sequence below does <i>not</i> give a clean monomorphic-vs-megamorphic comparison - only the
  * first profile measured gets an unpolluted call site. Use it to compare mixes under the steady-state megamorphic
  * dispatch that production actually sees. To measure one profile in isolation, run a single profile per JVM via
- * {@code -Dregistrydecompressor.benchmark.profile=<name>}, which is the poor-man's substitute for JMH forking.
+ * {@code registrydecompressor.benchmark.profile=<name>} (see {@link #benchmarkSetting}), which is the poor-man's
+ * substitute for JMH forking.
+ * </p>
+ * <p>
+ * That isolation matters far more for the pre-partitioning implementation than for the current one. Once each type
+ * gets its own monomorphic loop, the call sites cannot be polluted by a previously measured profile, and the mixes
+ * converge - measured on a Ryzen 7 7000 at 28000 variables, they spread over 289-425 us before the change and
+ * 82.8-86.6 us after. So the default in-sequence run is a fair reading of the current code; reach for the isolated
+ * mode when comparing against a mixed-dispatch baseline.
  * </p>
  */
 public class RegistryDecompressorTest
 {
    /** Selects a single profile to measure, for running one per JVM. Unset measures all of them in sequence. */
    private static final String PROFILE_PROPERTY = "registrydecompressor.benchmark.profile";
+
+   /**
+    * Reads a benchmark knob from a system property, falling back to the equivalent environment variable
+    * ({@code registrydecompressor.benchmark.profile} becomes {@code REGISTRYDECOMPRESSOR_BENCHMARK_PROFILE}).
+    * <p>
+    * Both exist because neither works everywhere. Gradle forks the test JVM without passing {@code -D} through, so
+    * under {@code gradlew test} the system property silently does nothing and the environment variable is the one
+    * that lands. Running the test directly - from an IDE, or any plain JUnit launcher - is the reverse: {@code -D}
+    * works as usual. Note that Gradle hands the test JVM the <i>daemon's</i> environment, so a variable exported
+    * after the daemon started will not be seen; pass {@code --no-daemon} when setting one.
+    * </p>
+    */
+   private static String benchmarkSetting(String key)
+   {
+      String property = System.getProperty(key);
+      if (property != null)
+         return property;
+      return System.getenv(key.toUpperCase(Locale.ROOT).replace('.', '_'));
+   }
+
+   private static int parseIntSetting(String key, int defaultValue)
+   {
+      String value = benchmarkSetting(key);
+      return value == null ? defaultValue : Integer.parseInt(value);
+   }
 
    /**
     * Fraction of values that differ from the previous tick. 1.0 reproduces the original benchmark, where every
@@ -58,7 +92,7 @@ public class RegistryDecompressorTest
    private static final int MAX_VARIABLES = 52000;
    private static final int VARIABLE_INCREMENT = 4000;
    /** Joint-state count. Settable so the joint-state half of updateVariables can be isolated from the variable half. */
-   private static final int NUMBER_OF_JOINTS = Integer.getInteger("registrydecompressor.benchmark.joints", 2000);
+   private static final int NUMBER_OF_JOINTS = parseIntSetting("registrydecompressor.benchmark.joints", 2000);
    private static final int ITERATIONS_PER_MEASUREMENT = 1000;
 
    /** Stand-in for a typical logged enum - small, which is the common case. */
@@ -243,7 +277,7 @@ public class RegistryDecompressorTest
    @Test
    public void testUpdateVariablesPerformance()
    {
-      String selectedProfile = System.getProperty(PROFILE_PROPERTY);
+      String selectedProfile = benchmarkSetting(PROFILE_PROPERTY);
 
       List<TypeProfile> profilesToRun = selectedProfile == null ?
             PROFILES :
@@ -253,7 +287,9 @@ public class RegistryDecompressorTest
 
       if (selectedProfile == null)
          LogTools.info("Measuring all profiles in one JVM - only 'all-long' (first) sees an unpolluted call site. "
-                       + "Use -D" + PROFILE_PROPERTY + "=<name> to measure one in isolation.");
+                       + "To measure one in isolation, set " + PROFILE_PROPERTY + "=<name> as a -D when running the test "
+                       + "directly, or as " + PROFILE_PROPERTY.toUpperCase(Locale.ROOT).replace('.', '_') + " in the "
+                       + "environment when running it through Gradle.");
 
       List<JointState> jointStates = new ArrayList<>();
       for (int i = 0; i < NUMBER_OF_JOINTS; i++)
