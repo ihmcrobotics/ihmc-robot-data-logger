@@ -22,6 +22,7 @@ import logger_msgs.YoVariableDefinition;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.fastddsjava.cdr.CDRBuffer;
 import us.ihmc.fastddsjava.cdr.idl.IDLObjectSequence;
 import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
 import us.ihmc.robotDataLogger.jointState.JointState;
@@ -57,6 +58,7 @@ import java.util.List;
  */
 public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
 {
+   private final byte handshakeFileType;
    private final ROS2YAMLSerializer<Handshake> serializer;
 
    private TIntIntHashMap variableOffsets = new TIntIntHashMap();
@@ -64,7 +66,8 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
    public IDLYoVariableHandshakeParser(HandshakeFileType type)
    {
       super();
-      switch (type.getType())
+      handshakeFileType = type.getType();
+      switch (handshakeFileType)
       {
          case HandshakeFileType.IDL_YAML:
             serializer = new ROS2YAMLSerializer<>(Handshake.class);
@@ -90,15 +93,32 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
    @Override
    public void parseFrom(byte[] data) throws IOException
    {
-      if (serializer == null)
+      Handshake handshake;
+
+      if (handshakeFileType == HandshakeFileType.IDL_CDR)
       {
-         throw new RuntimeException();
+         CDRBuffer cdrBuffer = new CDRBuffer();
+         cdrBuffer.ensureRemainingCapacity(data.length);
+         cdrBuffer.getBufferUnsafe().put(data);
+         cdrBuffer.rewind();
+         cdrBuffer.readPayloadHeader();
+
+         handshake = new Handshake();
+         handshake.deserialize(cdrBuffer);
       }
-      Handshake handshake = serializer.deserialize(data);
-      if (handshake == null)
+      else
       {
-         throw new IOException("Failed to deserialize handshake YAML");
+         if (serializer == null)
+         {
+            throw new RuntimeException();
+         }
+         handshake = serializer.deserialize(data);
+         if (handshake == null)
+         {
+            throw new IOException("Failed to deserialize handshake YAML");
+         }
       }
+
       parseFrom(handshake);
    }
 
