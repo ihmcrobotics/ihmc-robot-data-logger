@@ -56,7 +56,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    public static final long STATUS_PACKET_RATE = Conversions.secondsToNanoseconds(5.0);
    private static final long VIDEO_RECORDING_TIMEOUT = Conversions.secondsToNanoseconds(1.0);
 
-   private static final byte HANDSHAKE_FILE_TYPE = HandshakeFileType.IDL_CDR;
+   private static final byte HANDSHAKE_FILE_TYPE = HandshakeFileType.IDL_YAML;
 
    public static final String propertyFile = propertyFileNameBuilder(0);
    private static final String handshakeFilename = HANDSHAKE_FILE_TYPE == HandshakeFileType.IDL_CDR ? "handshake.cdr" : "handshake.yaml";
