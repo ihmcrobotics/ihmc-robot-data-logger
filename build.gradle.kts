@@ -23,7 +23,7 @@ mainDependencies {
    api("org.jcommander:jcommander:3.0")
    api("com.google.guava:guava:18.0")
    api("org.xerial.snappy:snappy-java:1.1.10.8")
-   api("net.jpountz.lz4:lz4:1.3.0")
+   api("at.yawk.lz4:lz4-java:1.11.1")
    api("com.github.luben:zstd-jni:1.5.6-3")
    api("io.netty:netty-all:4.1.77.Final")
    api("org.openjdk.jol:jol-core:0.9")
