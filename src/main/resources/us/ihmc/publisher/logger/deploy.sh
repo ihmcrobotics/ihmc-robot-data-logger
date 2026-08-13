@@ -13,6 +13,11 @@ sudo  rm -rf /opt/ihmc/logger
 # Moving new distribution in place
 sudo  mv /opt/ihmc/${DIST_NAME} /opt/ihmc/logger
 
+# The logger service runs as ${USER}, but everything above ran as root, so hand
+# the install back to the runtime user regardless of what permissions the
+# packaged files arrived with.
+sudo chown -R ${USER}:${USER} /opt/ihmc/logger
+
 # Marking logger start scripts executable
 sudo /bin/chmod a+x /opt/ihmc/logger/bin
 
