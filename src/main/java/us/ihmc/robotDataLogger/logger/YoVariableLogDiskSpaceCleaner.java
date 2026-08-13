@@ -27,7 +27,8 @@ public class YoVariableLogDiskSpaceCleaner
    }
 
    private static final long BYTES_PER_GIGABYTE = 1024L * 1024L * 1024L;
-   private static final double MINIMUM_FREE_SPACE_GIGABYTES = 250.0;
+   // Round up to 520 so anything that is 512 or smaller gets captured in the check
+   private static final double MINIMUM_FREE_SPACE_GIGABYTES = 520.0;
 
    // A "." log directory is actively being written to by a live session. Only treat one as an abandoned crash
    // leftover - and safe to delete as a last resort - once it hasn't been touched for this long.
