@@ -39,7 +39,7 @@ public class YoVariableLogDiskSpaceCleanerTest
       Path newest = createFakeLog(root, "20241201_000000_newest", "20241201_000000");
 
       // Below threshold, then still below after freeing the oldest log, then above threshold after freeing the middle log
-      Deque<Long> usableSpaceSequence = new ArrayDeque<>(java.util.List.of(100 * GB, 200 * GB, 300 * GB));
+      Deque<Long> usableSpaceSequence = new ArrayDeque<>(java.util.List.of(100 * GB, 200 * GB, 600 * GB));
       YoVariableLogDiskSpaceCleaner.deleteOldestLogsWhileLowOnSpace(root, (p) -> usableSpaceSequence.removeFirst(), (p) -> LARGE_DRIVE_SIZE);
 
       assertFalse(Files.exists(oldest), "Oldest log should have been deleted first");
