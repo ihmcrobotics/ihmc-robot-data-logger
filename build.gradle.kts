@@ -91,6 +91,12 @@ app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDis
 app.entrypoint("IHMCLoggerDebug5005", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher", listOf(
    "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005",
 ))
+app.entrypoint("OneMinuteLogger", "us.ihmc.robotDataLogger.logger.OneMinuteLogger", listOf(
+   "-XX:+UseZGC",
+   "-XX:+AlwaysPreTouch",
+   "-Xms1g",
+   "-Xmx1g",
+))
 app.entrypoint("BlackMagicCapture", "us.ihmc.javadecklink.Capture")
 
 tasks.register<JavaExec>("deploy") {

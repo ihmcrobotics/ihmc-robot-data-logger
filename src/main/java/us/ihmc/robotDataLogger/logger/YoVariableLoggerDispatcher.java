@@ -65,6 +65,15 @@ public class YoVariableLoggerDispatcher implements DataServerDiscoveryListener
 
       LogTools.info("Client started, waiting for data server sessions");
 
+      waitForShutdown();
+   }
+
+   /**
+    * Blocks until this dispatcher should shut down. Runs forever by default; overridden by
+    * {@link OneMinuteLogger} to shut down after a fixed duration instead.
+    */
+   protected void waitForShutdown()
+   {
       ThreadTools.sleepForever();
    }
 
