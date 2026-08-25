@@ -119,8 +119,11 @@ public class YoVariableLogger
    {
       try
       {
-         double usableSpaceGigabytes = YoVariableLogDiskSpaceCleaner.getUsableSpaceInBytes(logDirectory) / (1024.0 * 1024.0 * 1024.0);
-         LogTools.info("Critical disk space check: " + usableSpaceGigabytes + " GB available in " + logDirectory);
+         long usableSpaceBytes = YoVariableLogDiskSpaceCleaner.getUsableSpaceInBytes(logDirectory);
+         long totalSpaceBytes = YoVariableLogDiskSpaceCleaner.getTotalSpaceInBytes(logDirectory);
+         double usableSpaceGigabytes = Math.round(usableSpaceBytes / (1024.0 * 1024.0 * 1024.0) * 2) / 2.0;
+         double usableSpacePercentage = Math.round(100.0 * usableSpaceBytes / totalSpaceBytes * 2) / 2.0;
+         LogTools.info("Critical disk space check: " + usableSpaceGigabytes + " GB (" + usableSpacePercentage + "%) available in " + logDirectory);
 
          YoVariableLogDiskSpaceCleaner.deleteOldestLogsWhileCriticallyLowOnSpace(logDirectory);
       }
