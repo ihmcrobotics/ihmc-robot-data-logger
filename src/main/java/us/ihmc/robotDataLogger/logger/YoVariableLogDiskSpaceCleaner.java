@@ -32,7 +32,9 @@ public class YoVariableLogDiskSpaceCleaner
 
    // Backstop for a single long-running session that slowly eats through the initial free-space margin.
    // 1.0 represents 1% and 100.0 represents 100%
-   private static final double MINIMUM_FREE_SPACE_PERCENTAGE = 1.0;
+   // Package-private (not private) so tests can compute expected values directly off this constant instead
+   // of hardcoding numbers that would silently drift out of sync if this threshold ever changes.
+   static final double MINIMUM_FREE_SPACE_PERCENTAGE = 1.0;
 
    // A "." log directory is actively being written to by a live session. Only treat one as an abandoned crash
    // leftover - and safe to delete as a last resort - once it hasn't been touched for this long.

@@ -120,8 +120,12 @@ public class YoVariableLogDiskSpaceCleanerTest
       Path middle = createFakeLog(root, "20240601_000000_middle", "20240601_000000");
       Path newest = createFakeLog(root, "20241201_000000_newest", "20241201_000000");
 
-      // 0.5% and 0.8% of a 1000 GB drive are both below the 1% threshold, then 5% after the middle log is freed too
-      Deque<Long> usableSpaceSequence = new ArrayDeque<>(java.util.List.of(5 * GB, 8 * GB, 50 * GB));
+      // Expressed as multiples of the real threshold (not hardcoded GB numbers) so this test keeps testing
+      // the right thing - and doesn't just silently pass or fail for the wrong reason - if
+      // MINIMUM_FREE_SPACE_PERCENTAGE is ever changed.
+      Deque<Long> usableSpaceSequence = new ArrayDeque<>(java.util.List.of(percentageThresholdInBytes(0.5),
+                                                                           percentageThresholdInBytes(0.8),
+                                                                           percentageThresholdInBytes(5.0)));
       YoVariableLogDiskSpaceCleaner.deleteOldestLogsWhileCriticallyLowOnSpace(root, (p) -> usableSpaceSequence.removeFirst(), (p) -> LARGE_DRIVE_SIZE);
 
       assertFalse(Files.exists(oldest), "Oldest log should have been deleted first");
@@ -148,24 +152,27 @@ public class YoVariableLogDiskSpaceCleanerTest
          for (int i = 0; i < logCount; i++)
          {
             futures.add(executor.submit(() ->
-            {
-               YoVariableLogDiskSpaceCleaner.deleteOldestLogsWhileLowOnSpace(root, (p) -> 100 * GB, (p) -> LARGE_DRIVE_SIZE);
-               return null;
-            }));
+                                        {
+                                           YoVariableLogDiskSpaceCleaner.deleteOldestLogsWhileLowOnSpace(root, (p) -> 100 * GB, (p) -> LARGE_DRIVE_SIZE);
+                                           return null;
+                                        }));
             futures.add(executor.submit(() ->
-            {
-               YoVariableLogDiskSpaceCleaner.deleteOldestLogsWhileCriticallyLowOnSpace(root, (p) -> 5 * GB, (p) -> LARGE_DRIVE_SIZE);
-               return null;
-            }));
+                                        {
+                                           // Half the real threshold - always below it, however MINIMUM_FREE_SPACE_PERCENTAGE is configured.
+                                           YoVariableLogDiskSpaceCleaner.deleteOldestLogsWhileCriticallyLowOnSpace(root,
+                                                                                                                   (p) -> percentageThresholdInBytes(0.5),
+                                                                                                                   (p) -> LARGE_DRIVE_SIZE);
+                                           return null;
+                                        }));
          }
 
          assertDoesNotThrow(() ->
-         {
-            for (Future<?> future : futures)
-            {
-               future.get(30, TimeUnit.SECONDS);
-            }
-         }, "Running both checks concurrently on the same log directory should never throw");
+                            {
+                               for (Future<?> future : futures)
+                               {
+                                  future.get(30, TimeUnit.SECONDS);
+                               }
+                            }, "Running both checks concurrently on the same log directory should never throw");
       }
       finally
       {
@@ -184,6 +191,18 @@ public class YoVariableLogDiskSpaceCleanerTest
 
       assertFalse(Files.exists(oldest), "Oldest log should still be deleted once");
       assertTrue(Files.exists(newest), "Newest log should be left alone once the safety valve trips after no progress is made");
+   }
+
+   /**
+    * Computes a fake usable-space value as a multiple of the real {@code MINIMUM_FREE_SPACE_PERCENTAGE}
+    * threshold (of a {@link #LARGE_DRIVE_SIZE} drive), e.g. {@code fractionOfThreshold} of 0.5 is always
+    * below the threshold and 5.0 is always above it - regardless of what that threshold is currently set
+    * to. Keeps percentage-based tests tied to the real constant instead of hardcoded GB numbers that would
+    * silently stop meaning what the test claims if the threshold is ever changed.
+    */
+   private static long percentageThresholdInBytes(double fractionOfThreshold)
+   {
+      return (long) (LARGE_DRIVE_SIZE * (YoVariableLogDiskSpaceCleaner.MINIMUM_FREE_SPACE_PERCENTAGE / 100.0) * fractionOfThreshold);
    }
 
    private static Path createFakeLog(Path root, String directoryName, String timestamp) throws IOException
