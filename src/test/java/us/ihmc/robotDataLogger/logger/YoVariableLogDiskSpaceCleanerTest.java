@@ -1,5 +1,6 @@
 package us.ihmc.robotDataLogger.logger;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -13,7 +14,13 @@ import java.nio.file.attribute.FileTime;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 public class YoVariableLogDiskSpaceCleanerTest
@@ -79,6 +86,91 @@ public class YoVariableLogDiskSpaceCleanerTest
       YoVariableLogDiskSpaceCleaner.deleteOldestLogsWhileLowOnSpace(root, (p) -> 100 * GB, (p) -> LARGE_DRIVE_SIZE);
 
       assertFalse(Files.exists(staleInProgressLog), "A stale in-progress log should be deleted as a last resort once no finished logs remain");
+   }
+
+   @Test
+   void criticalCheckDeletesOldestLogWhenBelowPercentageThreshold(@TempDir Path root) throws IOException
+   {
+      Path oldest = createFakeLog(root, "20240101_000000_oldest", "20240101_000000");
+      Path newest = createFakeLog(root, "20241201_000000_newest", "20241201_000000");
+
+      // 0.5% usable out of a 1000 GB drive is below the 1% threshold, then 5% after the oldest log is freed
+      Deque<Long> usableSpaceSequence = new ArrayDeque<>(java.util.List.of(5 * GB, 50 * GB));
+      YoVariableLogDiskSpaceCleaner.deleteOldestLogsWhileCriticallyLowOnSpace(root, (p) -> usableSpaceSequence.removeFirst(), (p) -> LARGE_DRIVE_SIZE);
+
+      assertFalse(Files.exists(oldest), "Oldest log should be deleted once usable space drops below 1% of total capacity");
+      assertTrue(Files.exists(newest), "Newest log should be left alone once usable space is back above the percentage threshold");
+   }
+
+   @Test
+   void criticalCheckDoesNothingWhenAlreadyAbovePercentageThreshold(@TempDir Path root) throws IOException
+   {
+      Path onlyLog = createFakeLog(root, "20240101_000000_log", "20240101_000000");
+
+      // 50% usable is well above the 1% threshold
+      YoVariableLogDiskSpaceCleaner.deleteOldestLogsWhileCriticallyLowOnSpace(root, (p) -> 500 * GB, (p) -> LARGE_DRIVE_SIZE);
+
+      assertTrue(Files.exists(onlyLog), "No log should be deleted when usable space is already above the percentage threshold");
+   }
+
+   @Test
+   void criticalCheckDeletesOldestLogsUntilPercentageThresholdIsMet(@TempDir Path root) throws IOException
+   {
+      Path oldest = createFakeLog(root, "20240101_000000_oldest", "20240101_000000");
+      Path middle = createFakeLog(root, "20240601_000000_middle", "20240601_000000");
+      Path newest = createFakeLog(root, "20241201_000000_newest", "20241201_000000");
+
+      // 0.5% and 0.8% of a 1000 GB drive are both below the 1% threshold, then 5% after the middle log is freed too
+      Deque<Long> usableSpaceSequence = new ArrayDeque<>(java.util.List.of(5 * GB, 8 * GB, 50 * GB));
+      YoVariableLogDiskSpaceCleaner.deleteOldestLogsWhileCriticallyLowOnSpace(root, (p) -> usableSpaceSequence.removeFirst(), (p) -> LARGE_DRIVE_SIZE);
+
+      assertFalse(Files.exists(oldest), "Oldest log should have been deleted first");
+      assertFalse(Files.exists(middle), "Middle log should have been deleted second");
+      assertTrue(Files.exists(newest), "Newest log should be left alone once the percentage threshold is met");
+   }
+
+   @Test
+   void runningBothChecksConcurrentlyDoesNotThrow(@TempDir Path root) throws Exception
+   {
+      int logCount = 50;
+      for (int i = 0; i < logCount; i++)
+      {
+         String timestamp = String.format("202401%02d_%02d0000", (i % 28) + 1, i % 24);
+         createFakeLog(root, timestamp + "_log" + i, timestamp);
+      }
+
+      // Both checks always see usable space below their own threshold, so every invocation races to find
+      // and delete the oldest remaining log - exactly the scenario the shared lock needs to serialize.
+      ExecutorService executor = Executors.newFixedThreadPool(8);
+      try
+      {
+         List<Future<?>> futures = new ArrayList<>();
+         for (int i = 0; i < logCount; i++)
+         {
+            futures.add(executor.submit(() ->
+            {
+               YoVariableLogDiskSpaceCleaner.deleteOldestLogsWhileLowOnSpace(root, (p) -> 100 * GB, (p) -> LARGE_DRIVE_SIZE);
+               return null;
+            }));
+            futures.add(executor.submit(() ->
+            {
+               YoVariableLogDiskSpaceCleaner.deleteOldestLogsWhileCriticallyLowOnSpace(root, (p) -> 5 * GB, (p) -> LARGE_DRIVE_SIZE);
+               return null;
+            }));
+         }
+
+         assertDoesNotThrow(() ->
+         {
+            for (Future<?> future : futures)
+            {
+               future.get(30, TimeUnit.SECONDS);
+            }
+         }, "Running both checks concurrently on the same log directory should never throw");
+      }
+      finally
+      {
+         executor.shutdownNow();
+      }
    }
 
    @Test
