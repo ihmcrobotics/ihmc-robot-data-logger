@@ -31,6 +31,7 @@ public class YoVariableLogDiskSpaceCleaner
    private static final double MINIMUM_FREE_SPACE_GIGABYTES = 520.0;
 
    // Backstop for a single long-running session that slowly eats through the initial free-space margin.
+   // 1.0 represents 1% and 100.0 represents 100%
    private static final double MINIMUM_FREE_SPACE_PERCENTAGE = 1.0;
 
    // A "." log directory is actively being written to by a live session. Only treat one as an abandoned crash
