@@ -30,9 +30,20 @@ public class YoVariableLogDiskSpaceCleaner
    // Round up to 520 so anything that is 512 or smaller gets captured in the check
    private static final double MINIMUM_FREE_SPACE_GIGABYTES = 520.0;
 
+   // Backstop for a single long-running session that slowly eats through the initial free-space margin.
+   // 1.0 represents 1% and 100.0 represents 100%
+   // Package-private (not private) so tests can compute expected values directly off this constant instead
+   // of hardcoding numbers that would silently drift out of sync if this threshold ever changes.
+   static final double MINIMUM_FREE_SPACE_PERCENTAGE = 1.0;
+
    // A "." log directory is actively being written to by a live session. Only treat one as an abandoned crash
    // leftover - and safe to delete as a last resort - once it hasn't been touched for this long.
    private static final Duration STALE_IN_PROGRESS_LOG_AGE = Duration.ofMinutes(15);
+
+   // Multiple controller sessions share the same log directory, and each has both a one-time check at
+   // connection and a periodic check while it logs. Without this, two of those checks running at once
+   // could both pick the same "oldest log" and race to delete it. Deletion runs one at a time process-wide.
+   private static final Object DELETE_LOCK = new Object();
 
    public static long getTotalSpaceInBytes(Path root) throws IOException
    {
@@ -67,50 +78,88 @@ public class YoVariableLogDiskSpaceCleaner
          return;
       }
 
-      long usableSpace = usableSpaceProvider.getUsableSpaceInBytes(root);
-      if (usableSpace >= minFreeSpaceBytes)
+      deleteOldestLogsWhileBelowThreshold(root, minFreeSpaceBytes, MINIMUM_FREE_SPACE_GIGABYTES + " GB", usableSpaceProvider);
+   }
+
+   /**
+    * Backstop check meant to be run periodically (e.g. on a timer) rather than only once when a
+    * controller connects. A session that logs for long enough can fill the disk well after the
+    * {@link #deleteOldestLogsWhileLowOnSpace(Path)} check at session start already passed.
+    */
+   public static void deleteOldestLogsWhileCriticallyLowOnSpace(Path root) throws IOException
+   {
+      deleteOldestLogsWhileCriticallyLowOnSpace(root,
+                                                YoVariableLogDiskSpaceCleaner::getUsableSpaceInBytes,
+                                                YoVariableLogDiskSpaceCleaner::getTotalSpaceInBytes);
+   }
+
+   static void deleteOldestLogsWhileCriticallyLowOnSpace(Path root, UsableSpaceProvider usableSpaceProvider, TotalSpaceProvider totalSpaceProvider)
+         throws IOException
+   {
+      long totalSpace = totalSpaceProvider.getTotalSpaceInBytes(root);
+      long minFreeSpaceBytes = (long) (totalSpace * (MINIMUM_FREE_SPACE_PERCENTAGE / 100.0));
+
+      deleteOldestLogsWhileBelowThreshold(root,
+                                          minFreeSpaceBytes,
+                                          MINIMUM_FREE_SPACE_PERCENTAGE + "% of " + toGigabytes(totalSpace) + " GB",
+                                          usableSpaceProvider);
+   }
+
+   private static void deleteOldestLogsWhileBelowThreshold(Path root,
+                                                           long minFreeSpaceBytes,
+                                                           String thresholdDescription,
+                                                           UsableSpaceProvider usableSpaceProvider) throws IOException
+   {
+      synchronized (DELETE_LOCK)
       {
-         return;
-      }
-
-      LogTools.warn("Usable disk space in " + root + " is " + toGigabytes(usableSpace) + " GB, below threshold of " + MINIMUM_FREE_SPACE_GIGABYTES
-                    + " GB. Deleting oldest logs to free space.");
-
-      while (usableSpace < minFreeSpaceBytes)
-      {
-         Optional<LogAndTimestamp> oldestFinishedLog = findOldestFinishedLog(root);
-         String deletedLogDescription;
-
-         if (oldestFinishedLog.isPresent())
+         long usableSpace = usableSpaceProvider.getUsableSpaceInBytes(root);
+         if (usableSpace >= minFreeSpaceBytes)
          {
-            deletedLogDescription = oldestFinishedLog.get().toString();
-            oldestFinishedLog.get().delete();
+            // Another thread may have already freed enough space while we were waiting for the lock.
+            return;
          }
-         else
+
+         LogTools.warn("Usable disk space in " + root + " is " + toGigabytes(usableSpace) + " GB, below threshold of " + thresholdDescription
+                       + ". Deleting oldest logs to free space.");
+
+         while (usableSpace < minFreeSpaceBytes)
          {
-            Optional<Path> oldestStaleInProgressLog = findOldestStaleInProgressLog(root);
-            if (oldestStaleInProgressLog.isEmpty())
+            Optional<LogAndTimestamp> oldestFinishedLog = findOldestFinishedLog(root);
+            String deletedLogDescription;
+
+            if (oldestFinishedLog.isPresent())
             {
-               LogTools.warn("Usable disk space in " + root + " is still " + toGigabytes(usableSpace)
-                             + " GB, but there are no more logs left to delete. Proceeding anyway.");
-               break;
+               deletedLogDescription = oldestFinishedLog.get().toString();
+               oldestFinishedLog.get().delete();
+            }
+            else
+            {
+               Optional<Path> oldestStaleInProgressLog = findOldestStaleInProgressLog(root);
+               if (oldestStaleInProgressLog.isEmpty())
+               {
+                  LogTools.warn("Usable disk space in " + root + " is still " + toGigabytes(usableSpace)
+                                + " GB, but there are no more logs left to delete. Proceeding anyway.");
+                  break;
+               }
+
+               deletedLogDescription = oldestStaleInProgressLog.get().toString();
+               LogTools.warn("No finished logs left to delete. Deleting " + deletedLogDescription + ", an in-progress log untouched for over "
+                             + STALE_IN_PROGRESS_LOG_AGE.toMinutes() + " minutes and assumed abandoned after a crash.");
+               deleteDirectory(oldestStaleInProgressLog.get());
             }
 
-            deletedLogDescription = oldestStaleInProgressLog.get().toString();
-            LogTools.warn("No finished logs left to delete. Deleting " + deletedLogDescription + ", an in-progress log untouched for over "
-                          + STALE_IN_PROGRESS_LOG_AGE.toMinutes() + " minutes and assumed abandoned after a crash.");
-            deleteDirectory(oldestStaleInProgressLog.get());
+            long previousUsableSpace = usableSpace;
+            usableSpace = usableSpaceProvider.getUsableSpaceInBytes(root);
+
+            if (usableSpace <= previousUsableSpace)
+            {
+               LogTools.warn("Deleting " + deletedLogDescription + " did not free disk space (still " + toGigabytes(usableSpace)
+                             + " GB). Aborting further deletion attempts.");
+               break;
+            }
          }
 
-         long previousUsableSpace = usableSpace;
-         usableSpace = usableSpaceProvider.getUsableSpaceInBytes(root);
-
-         if (usableSpace <= previousUsableSpace)
-         {
-            LogTools.warn("Deleting " + deletedLogDescription + " did not free disk space (still " + toGigabytes(usableSpace)
-                          + " GB). Aborting further deletion attempts.");
-            break;
-         }
+         LogTools.info("Free space after deleting is: " + toGigabytes(usableSpace) + " GB");
       }
    }
 
