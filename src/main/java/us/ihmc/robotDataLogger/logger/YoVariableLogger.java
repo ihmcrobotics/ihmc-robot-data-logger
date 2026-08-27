@@ -13,13 +13,30 @@ import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class YoVariableLogger
 {
    // changed to a 10s timeout for camp lejeune demo
    public static final int timeout = 25000; // 2500;
+
+   // Backstop for this session logging for long enough to fill the disk well after the check at
+   // session start (below) already passed. Only runs while this controller session is logging.
+   private static final long CRITICAL_DISK_SPACE_CHECK_PERIOD_MINUTES = 1;
+
    private final YoVariableLoggerOptions options;
+
+   private final ScheduledExecutorService criticalDiskSpaceCheckExecutor = Executors.newSingleThreadScheduledExecutor(runnable ->
+                                                                                                                      {
+                                                                                                                         Thread thread = new Thread(runnable,
+                                                                                                                                                    getClass().getName()
+                                                                                                                                                    + "-CriticalDiskSpaceCheck");
+                                                                                                                         thread.setDaemon(true);
+                                                                                                                         return thread;
+                                                                                                                      });
 
    private ZEDSVOLoggerManager zedSVOLoggerManager;
 
@@ -89,12 +106,37 @@ public class YoVariableLogger
          throw e;
       }
 
+      criticalDiskSpaceCheckExecutor.scheduleAtFixedRate(() -> checkCriticalDiskSpace(logDirectory),
+                                                         CRITICAL_DISK_SPACE_CHECK_PERIOD_MINUTES,
+                                                         CRITICAL_DISK_SPACE_CHECK_PERIOD_MINUTES,
+                                                         TimeUnit.MINUTES);
+
       if (!options.getDisableZEDLogging())
          zedSVOLoggerManager = new ZEDSVOLoggerManager(tempDirectory, finalDirectory);
    }
 
+   private static void checkCriticalDiskSpace(Path logDirectory)
+   {
+      try
+      {
+         long usableSpaceBytes = YoVariableLogDiskSpaceCleaner.getUsableSpaceInBytes(logDirectory);
+         long totalSpaceBytes = YoVariableLogDiskSpaceCleaner.getTotalSpaceInBytes(logDirectory);
+         double usableSpaceGigabytes = Math.round(usableSpaceBytes / (1024.0 * 1024.0 * 1024.0) * 2) / 2.0;
+         double usableSpacePercentage = Math.round(100.0 * usableSpaceBytes / totalSpaceBytes * 2) / 2.0;
+         LogTools.info("Critical disk space check: " + usableSpaceGigabytes + " GB (" + usableSpacePercentage + "%) available in " + logDirectory);
+
+         YoVariableLogDiskSpaceCleaner.deleteOldestLogsWhileCriticallyLowOnSpace(logDirectory);
+      }
+      catch (IOException e)
+      {
+         LogTools.error("Failed to check/clean up critically low disk space in " + logDirectory + ": " + e.getMessage());
+      }
+   }
+
    public void destroy()
    {
+      criticalDiskSpaceCheckExecutor.shutdownNow();
+
       if (!options.getDisableZEDLogging())
          zedSVOLoggerManager.destroy();
    }
