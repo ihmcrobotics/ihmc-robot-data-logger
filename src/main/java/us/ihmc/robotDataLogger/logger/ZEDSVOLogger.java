@@ -23,6 +23,9 @@ import java.io.IOException;
  */
 public class ZEDSVOLogger
 {
+   private static final long STATUS_PRINT_INTERVAL_MILLIS = 12_000;
+   private static final int MAX_CONSECUTIVE_GRAB_FAILURES = 4;
+
    private static final boolean TRANSCODE = false;
    private static final BytePointer ENCRYPTION_KEY = new BytePointer("");
 
@@ -39,11 +42,15 @@ public class ZEDSVOLogger
 
    private volatile boolean closed;
 
+   private long previousTimeInMillis = 0;
+   private int consecutiveFailedGrabs = 0;
+
    public void connect(String svoFile, String datFile, String address, int port, int fps, int bitrate, long sensorTimestamp, long controllerTimestamp)
    {
       closed = false;
 
-      try {
+      try
+      {
          String[] parts = svoFile.split("[/\\\\]");
          svoPrefix = parts[parts.length - 1].substring(0, "yyyyMMdd_HHmmss".length());
          timestampWriter = ExceptionTools.handle(() -> new FileWriter(datFile, true), DefaultExceptionHandler.RUNTIME_EXCEPTION);
@@ -72,7 +79,14 @@ public class ZEDSVOLogger
       if (returnCode != SL_ERROR_CODE_SUCCESS)
          LogTools.error("Could not connect to ZED SDK stream: " + ZEDTools.errorMessage(returnCode));
 
-      returnCode = sl_enable_recording(cameraID, svoFile, SL_SVO_COMPRESSION_MODE_H264, bitrate, fps, TRANSCODE, ENCRYPTION_KEY, SL_SVO_ENCODING_PRESET_DEFAULT);
+      returnCode = sl_enable_recording(cameraID,
+                                       svoFile,
+                                       SL_SVO_COMPRESSION_MODE_H264,
+                                       bitrate,
+                                       fps,
+                                       TRANSCODE,
+                                       ENCRYPTION_KEY,
+                                       SL_SVO_ENCODING_PRESET_DEFAULT);
       if (returnCode != SL_ERROR_CODE_SUCCESS)
          LogTools.error("Could not enable SVO recording: " + ZEDTools.errorMessage(returnCode));
 
@@ -90,7 +104,12 @@ public class ZEDSVOLogger
       {
          closed = true;
 
-         grabThread.blockingKill();
+         // Calling kill() from the grab thread itself so it shuts down properly,
+         // can't call blocking kill as it would joint the current thread and deadlock
+         if (Thread.currentThread() == grabThread)
+            grabThread.kill();
+         else
+            grabThread.blockingKill();
 
          sl_close_camera(cameraID);
          sl_unload_instance(cameraID);
@@ -127,10 +146,32 @@ public class ZEDSVOLogger
 
          if (returnCode != SL_ERROR_CODE_SUCCESS)
          {
+            ++consecutiveFailedGrabs;
+
+            if (consecutiveFailedGrabs >= MAX_CONSECUTIVE_GRAB_FAILURES)
+            {
+               // Stop retrying forever and set is closed so the manager can clean this up when needed
+               LogTools.error("ZED failed to grab " + MAX_CONSECUTIVE_GRAB_FAILURES + " times in a row, assuming it is disconnected. Closing SVO logger.");
+               close();
+               return;
+            }
+
             // Wait some time before trying to grab again
             ThreadTools.park(5.0);
 
             LogTools.info("Could not grab image from ZED, trying again in a few seconds...");
+         }
+         else
+         {
+            consecutiveFailedGrabs = 0;
+
+            long currentTimeInMillis = System.currentTimeMillis();
+            if ((currentTimeInMillis - previousTimeInMillis) >= STATUS_PRINT_INTERVAL_MILLIS)
+            {
+               previousTimeInMillis = currentTimeInMillis;
+
+               LogTools.info("ZED: " + cameraID + ", is connected and logging");
+            }
          }
       }
    }
