@@ -169,7 +169,7 @@ public class ZEDSVOLogger
             if ((currentTimeInMillis - previousTimeInMillis) >= STATUS_PRINT_INTERVAL_MILLIS)
             {
                previousTimeInMillis = currentTimeInMillis;
-               LogTools.info("...ZED " + cameraID + " is connected and logging....");
+               LogTools.info("... ZED " + cameraID + " is connected and logging ...");
             }
          }
       }
