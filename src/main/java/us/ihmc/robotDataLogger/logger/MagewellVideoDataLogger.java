@@ -161,10 +161,10 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
          // Update the latest timestamp from the controller
          // Note: we don't always get the timestamps on time, because of networking and such, we need to account for that when saving the frame
          this.latestTimeStampFromController = latestTimeStampFromController;
-         if (timeStampFromControllerCounter == 10000) // This only prints once every 10000 timestamps to not blow up the terminal
+         if (timeStampFromControllerCounter == 20_000) // This only prints once every 10000 timestamps to not blow up the terminal
          {
             timeStampFromControllerCounter = 0;
-            LogTools.warn("For Device: {} From Controller (latestTimeStampFromController)={}", this.deviceNumber, this.latestTimeStampFromController);
+            LogTools.warn("For camera: {}, from controller (latestTimeStampFromController)={}", this.deviceNumber, this.latestTimeStampFromController);
          }
 
          timeStampFromControllerCounter++;
@@ -230,10 +230,10 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
       // TODO check for duplicate timestamps from the controller, and interpolate to a reasonable guess of what the controller time might be
       // Could check the last values from controller and see on average how much time goes in between them, and then add that to get the expected
       // that we want to record with.
-      if (framesReceivedFromCameraCounter % 600 == 0) // This only prints once every 600 frames to not blow up the terminal
+      if (framesReceivedFromCameraCounter % 1200 == 0) // This only prints once every 1200 frames to not blow up the terminal
       {
-         LogTools.info("----- Saving the current frame at the current controller timestamp -----");
-         LogTools.info("Camera Device Number: {}, at Frame: {},", deviceNumber, framesReceivedFromCameraCounter);
+         LogTools.info("--- Saving the current frame at the current controller timestamp ---");
+         LogTools.info("Camera Number: {}, at Frame: {},", deviceNumber, framesReceivedFromCameraCounter);
          LogTools.info("latestTimeStampFromController={}, recorderTimeStamp={}", latestTimeStampFromController, recorderTimeStamp);
       }
 

@@ -23,7 +23,7 @@ import java.io.IOException;
  */
 public class ZEDSVOLogger
 {
-   private static final long STATUS_PRINT_INTERVAL_MILLIS = 10_000;
+   private static final long STATUS_PRINT_INTERVAL_MILLIS = 12_000;
    private static final int MAX_CONSECUTIVE_GRAB_FAILURES = 4;
 
    private static final boolean TRANSCODE = false;
@@ -169,7 +169,8 @@ public class ZEDSVOLogger
             if ((currentTimeInMillis - previousTimeInMillis) >= STATUS_PRINT_INTERVAL_MILLIS)
             {
                previousTimeInMillis = currentTimeInMillis;
-               LogTools.info("... ZED " + cameraID + " is connected and logging ...");
+
+               LogTools.info("ZED: " + cameraID + ", is connected and logging");
             }
          }
       }
