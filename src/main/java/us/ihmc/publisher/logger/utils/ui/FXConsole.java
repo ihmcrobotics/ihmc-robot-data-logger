@@ -26,62 +26,57 @@ import us.ihmc.publisher.logger.utils.DeployConsoleInterface;
 public class FXConsole implements DeployConsoleInterface
 {
    private final Stage dialog = new Stage();
-   
+
    private final ObservableList<String> outputValues = FXCollections.observableArrayList();
    private final ListView<String> output = new ListView<>(outputValues);
-   
+
    private final FileChooser fileChooser = new FileChooser();
-   
+
    private final Button close = new Button("Close");
    private final CheckBox closeWhenFinished = new CheckBox("Close when finished");
 
-   
    private int clients = 0;
-   
 
    public FXConsole(Stage parent)
    {
       dialog.initOwner(parent);
       dialog.initModality(Modality.APPLICATION_MODAL);
-
       dialog.setTitle("Status");
 
-      
+      closeWhenFinished.setSelected(true);
+
       // Stop the user from closing this window while clients are still active
       dialog.setOnCloseRequest(e ->
-      {
-         if(clients > 0)
-         {
-            e.consume();
-         }
-      });
-      
-      
+                               {
+                                  if (clients > 0)
+                                  {
+                                     e.consume();
+                                  }
+                               });
+
       Button exportOutput = new Button("Export output");
       exportOutput.setOnAction(e -> exportOutput());
-      
+
       close.setOnAction(e -> tryClose());
       HBox hbox = new HBox(10, exportOutput, close);
-      
+
       VBox vbox = new VBox(10, output, closeWhenFinished, hbox);
-      
+
       VBox.setVgrow(output, Priority.ALWAYS);
       vbox.setPadding(new Insets(10));
-      
+
       Scene scene = new Scene(vbox, 800, 600);
       dialog.setScene(scene);
-            
 
       fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-
    }
-   
+
    private void exportOutput()
    {
       LogTools.info("Exporting output");
-      
+
       File target = fileChooser.showSaveDialog(dialog);
-      
+
       if(target != null)
       {
          try
@@ -102,10 +97,10 @@ public class FXConsole implements DeployConsoleInterface
          }
 
       }
-      
-      
+
+
    }
-   
+
    @Override
    public void replaceln(String line)
    {
@@ -125,7 +120,7 @@ public class FXConsole implements DeployConsoleInterface
 
       });
    }
-   
+
    private void tryClose()
    {
       if(clients <= 0)
@@ -133,7 +128,7 @@ public class FXConsole implements DeployConsoleInterface
          dialog.close();
       }
    }
-   
+
    private void closePlatform()
    {
       clients--;
@@ -153,15 +148,15 @@ public class FXConsole implements DeployConsoleInterface
    {
       Platform.runLater(() -> closePlatform());
    }
-   
+
    @Override
    public void closeWithMessage(String message)
    {
       Platform.runLater(() ->
       {
-         
+
          println(message);
-         
+
          Alert alert = new Alert(AlertType.INFORMATION);
          alert.setTitle("Success");
          alert.setHeaderText(message);
@@ -178,23 +173,23 @@ public class FXConsole implements DeployConsoleInterface
    {
       Platform.runLater(() ->
       {
-         
+
          if(errorMessage != null)
          {
             println("[Exception] " + errorMessage);
          }
-         
+
          if(e != null)
          {
             println("[Exception] " + e.getMessage());
             for(StackTraceElement el : e.getStackTrace())
             {
                println("[Exception] " + el.toString());
-            }            
+            }
          }
-         
-         
-         
+
+
+
          Alert alert = new Alert(AlertType.ERROR);
          alert.setTitle("Error");
          alert.setHeaderText(e.getMessage());
@@ -216,7 +211,7 @@ public class FXConsole implements DeployConsoleInterface
    @Override
    public void open()
    {
-      Platform.runLater(() -> 
+      Platform.runLater(() ->
       {
          clients++;
          close.setDisable(true);
