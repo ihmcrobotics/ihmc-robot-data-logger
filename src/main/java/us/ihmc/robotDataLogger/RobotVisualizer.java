@@ -5,7 +5,7 @@ import java.util.List;
 
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
-import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
+import us.ihmc.robotDataLogger.yoGraphics.YoGraphicsData;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 public interface RobotVisualizer
@@ -19,7 +19,7 @@ public interface RobotVisualizer
       setMainRegistry(registry, Collections.emptyList(), null);
    }
 
-   default void setMainRegistry(YoRegistry registry, YoGraphicGroupDefinition scs2YoGraphics)
+   default void setMainRegistry(YoRegistry registry, YoGraphicsData scs2YoGraphics)
    {
       setMainRegistry(registry, Collections.emptyList(), scs2YoGraphics);
    }
@@ -29,7 +29,7 @@ public interface RobotVisualizer
       setMainRegistry(registry, collectJoints(rootBody), null);
    }
 
-   default void setMainRegistry(YoRegistry registry, RigidBodyBasics rootBody, YoGraphicGroupDefinition scs2YoGraphics)
+   default void setMainRegistry(YoRegistry registry, RigidBodyBasics rootBody, YoGraphicsData scs2YoGraphics)
    {
       setMainRegistry(registry, collectJoints(rootBody), scs2YoGraphics);
    }
@@ -41,14 +41,14 @@ public interface RobotVisualizer
 
    void setMainRegistry(YoRegistry registry,
                         List<? extends JointBasics> jointsToPublish,
-                        YoGraphicGroupDefinition scs2YoGraphics);
+                        YoGraphicsData scs2YoGraphics);
 
    default void addRegistry(YoRegistry registry)
    {
       addRegistry(registry,null);
    }
 
-   void addRegistry(YoRegistry registry, YoGraphicGroupDefinition scs2YoGraphics);
+   void addRegistry(YoRegistry registry, YoGraphicsData scs2YoGraphics);
 
    void close();
 

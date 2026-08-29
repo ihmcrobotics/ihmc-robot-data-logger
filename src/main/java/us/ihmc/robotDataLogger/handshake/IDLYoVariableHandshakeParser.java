@@ -26,10 +26,7 @@ import us.ihmc.fastddsjava.cdr.CDRBuffer;
 import us.ihmc.fastddsjava.cdr.idl.IDLObjectSequence;
 import us.ihmc.idl.serializers.extra.ROS2YAMLSerializer;
 import us.ihmc.robotDataLogger.jointState.JointState;
-import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
-import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition.YoGraphicFieldInfo;
-import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition.YoGraphicFieldsSummary;
-import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
+import us.ihmc.robotDataLogger.yoGraphics.YoGraphicFieldsData;
 import us.ihmc.yoVariables.euclid.referenceFrame.interfaces.FrameIndexMap;
 import us.ihmc.yoVariables.parameters.BooleanParameter;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
@@ -312,24 +309,24 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
       }
    }
 
-   private static List<YoGraphicGroupDefinition> parseSCS2YoGraphics(Handshake handshake)
+   private static List<YoGraphicFieldsData> parseSCS2YoGraphics(Handshake handshake)
    {
-      List<YoGraphicFieldsSummary> yoGraphicFieldsSummaryList = new ArrayList<>();
+      List<YoGraphicFieldsData> yoGraphicFieldsDataList = new ArrayList<>();
       IDLObjectSequence<SCS2YoGraphicDefinitionMessage> msgList = handshake.getScs2YoGraphicDefinitions();
 
       for (int i = 0; i < msgList.size(); i++)
       {
          SCS2YoGraphicDefinitionMessage msg = msgList.get(i);
          int fields = msg.getFieldNames().size();
-         YoGraphicFieldsSummary summary = new YoGraphicFieldsSummary();
+         YoGraphicFieldsData fieldsData = new YoGraphicFieldsData();
          for (int j = 0; j < fields; j++)
          {
-            summary.add(new YoGraphicFieldInfo(msg.getFieldNames().get(j).toString(), msg.getFieldValues().get(j).toString()));
+            fieldsData.addField(msg.getFieldNames().get(j).toString(), msg.getFieldValues().get(j).toString());
          }
-         yoGraphicFieldsSummaryList.add(summary);
+         yoGraphicFieldsDataList.add(fieldsData);
       }
 
-      return YoGraphicDefinition.parseTreeYoGraphicFieldsSummary(yoGraphicFieldsSummaryList);
+      return yoGraphicFieldsDataList;
    }
 
    private static FrameIndexMap parseReferenceFrames(Handshake handshake)
