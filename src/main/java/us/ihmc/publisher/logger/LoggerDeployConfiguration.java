@@ -65,8 +65,7 @@ public class LoggerDeployConfiguration
       URL crontab = loader.getResource("ihmc-logger-cron");
       
       deploy.addBinaryFile("DIST", dist, "/tmp/logger.tar", false);
-      if (logger_service)
-         deploy.addTextFile("LOGGER_SERVICE", "ihmc-logger.service", loggerService, "/etc/systemd/system/ihmc-logger.service", true);
+      deploy.addTextFile("LOGGER_SERVICE", "ihmc-logger.service", loggerService, "/etc/systemd/system/ihmc-logger.service", true);
       deploy.addTextFile("CRON_ENTRY", "ihmc-logger-cron", crontab, "/tmp/ihmc-logger-cron", true);
       
       deploy.addVariable("NIGHTLY_RESTART", restartNightly ? "true" : "false");
