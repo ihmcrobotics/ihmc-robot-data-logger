@@ -38,6 +38,9 @@ public class YoVariableLoggerOptions
    @Parameter(names = {"-m", "--allowManyInstances"}, description = "Allow more than one instance of the logger at once")
    private boolean allowManyInstances = false;
 
+   @Parameter(names = {"--mcap"}, description = "Write log data directly as MCAP instead of the default bsz/dat format")
+   private boolean mcapLogging = false;
+
    // Derived fields
    private boolean rotateLogs = false;
    private int numberOfLogsToKeep = Integer.MAX_VALUE;
@@ -116,6 +119,11 @@ public class YoVariableLoggerOptions
    public boolean isAllowManyInstances()
    {
       return allowManyInstances;
+   }
+
+   public boolean isMcapLogging()
+   {
+      return mcapLogging;
    }
 
    public CodecID getVideoCodec()
