@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+    <name>perception_msgs</name>
+    <version>0.0.0</version>
+    <description>
+        HeightScanMessage and its dependencies (Vector2, PackedElementField). This is the canonical
+        definition - the controller side (HeightScanTerm, in ihmc-closed-source-control) and
+        PerceptionAPI (in ihmc-communication) both depend on ihmc-robot-data-logger and reference
+        this package directly, rather than a separate copy living in ihmc-open-robotics-software.
+    </description>
+    <maintainer email="danderson@ihmc.org">danderson</maintainer>
+    <license>Apache-2.0</license>
+
+    <buildtool_depend>ament_cmake</buildtool_depend>
+
+    <build_depend>geometry_msgs</build_depend>
+    <exec_depend>geometry_msgs</exec_depend>
+
+    <test_depend>ament_lint_auto</test_depend>
+    <test_depend>ament_lint_common</test_depend>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+</package>

@@ -111,6 +111,8 @@ tasks.register<jros2GenTask>("generateMessages") {
 
    packagePaths = listOf(
       projectDir.resolve("logger_msgs").absolutePath,
+      projectDir.resolve("geometry_msgs").absolutePath,
+      projectDir.resolve("perception_msgs").absolutePath,
    )
 
    outputDir = projectDir.resolve("src/main/java-generated").absolutePath

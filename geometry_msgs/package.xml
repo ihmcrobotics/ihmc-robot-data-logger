@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+    <name>geometry_msgs</name>
+    <version>0.0.0</version>
+    <description>Standard ROS 2 geometry message definitions needed locally by the logger, generated here to keep the logger free of a dependency on ihmc-open-robotics-software.</description>
+    <maintainer email="danderson@ihmc.org">danderson</maintainer>
+    <license>Apache-2.0</license>
+
+    <buildtool_depend>ament_cmake</buildtool_depend>
+
+    <test_depend>ament_lint_auto</test_depend>
+    <test_depend>ament_lint_common</test_depend>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+</package>
