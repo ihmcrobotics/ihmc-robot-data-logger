@@ -9,7 +9,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.robotDataLogger.RobotVisualizer;
 import us.ihmc.robotDataLogger.jointState.JointHolder;
 import us.ihmc.robotDataLogger.jointState.JointHolderFactory;
-import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
+import us.ihmc.robotDataLogger.yoGraphics.YoGraphicsData;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -23,7 +23,7 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
 
    private final LoggerDebugRegistry loggerDebugRegistry;
 
-   private final YoGraphicGroupDefinition scs2Graphics;
+   private final YoGraphicsData scs2Graphics;
 
    private int registryID = -1;
 
@@ -32,7 +32,7 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
       this(registry, Collections.emptyList());
    }
 
-   public RegistrySendBufferBuilder(YoRegistry registry, YoGraphicGroupDefinition scs2Graphics)
+   public RegistrySendBufferBuilder(YoRegistry registry, YoGraphicsData scs2Graphics)
    {
       this(registry, Collections.emptyList(), scs2Graphics);
    }
@@ -42,7 +42,7 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
       this(registry, RobotVisualizer.collectJoints(rootBody));
    }
 
-   public RegistrySendBufferBuilder(YoRegistry registry, RigidBodyBasics rootBody,  YoGraphicGroupDefinition scs2Graphics)
+   public RegistrySendBufferBuilder(YoRegistry registry, RigidBodyBasics rootBody,  YoGraphicsData scs2Graphics)
    {
       this(registry, RobotVisualizer.collectJoints(rootBody), scs2Graphics);
    }
@@ -54,7 +54,7 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
 
    public RegistrySendBufferBuilder(YoRegistry registry,
                                     List<? extends JointBasics> jointsToPublish,
-                                    YoGraphicGroupDefinition scs2Graphics)
+                                    YoGraphicsData scs2Graphics)
    {
       this.registry = registry;
       this.jointsToPublish = jointsToPublish;
@@ -92,7 +92,7 @@ public class RegistrySendBufferBuilder implements us.ihmc.concurrent.Builder<Reg
       return jointHolders;
    }
 
-   public YoGraphicGroupDefinition getSCS2YoGraphics()
+   public YoGraphicsData getSCS2YoGraphics()
    {
       return scs2Graphics;
    }

@@ -1,11 +1,11 @@
 package us.ihmc.robotDataLogger.logger;
 
+import logger_msgs.Camera;
+import logger_msgs.LogProperties;
+import us.ihmc.log.LogTools;
+
 import java.io.File;
 import java.io.IOException;
-
-import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.Camera;
-import us.ihmc.robotDataLogger.LogProperties;
 
 public abstract class VideoDataLoggerInterface
 {

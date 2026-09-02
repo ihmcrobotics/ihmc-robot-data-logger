@@ -1,8 +1,10 @@
 package us.ihmc.robotDataLogger.websocket.client.discovery;
 
+import io.netty.channel.EventLoopGroup;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.interfaces.DataServerDiscoveryListener;
 import us.ihmc.robotDataLogger.util.DaemonThreadFactory;
+import us.ihmc.robotDataLogger.util.NettyUtils;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection.HTTPDataServerConnectionListener;
 
 import java.io.IOException;
@@ -34,6 +36,13 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
 
    private final ScheduledExecutorService connectionExecutor = Executors.newSingleThreadScheduledExecutor(daemonThreadFactory);
    private final Executor listenerExecutor = Executors.newSingleThreadExecutor(daemonThreadFactory);
+
+   /**
+    * Shared across every connection attempt so that reconnecting to a persistent host repeatedly
+    * (e.g. every second while a host is down) doesn't spin up and tear down a fresh pool of Netty
+    * threads on every single retry.
+    */
+   private final EventLoopGroup connectionEventLoopGroup = NettyUtils.createEventGroundLoop();
 
    private final HashMap<HTTPDataServerDescription, HTTPDataServerDescription> hosts = new HashMap<>();
 
@@ -133,6 +142,8 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
          if (broadcastReceiver != null)
             broadcastReceiver.stop();
       }
+
+      connectionEventLoopGroup.shutdownGracefully();
    }
 
    private void tryConnection(HTTPDataServerDescription target)
@@ -140,7 +151,7 @@ public class DataServerDiscoveryClient implements DataServerLocationBroadcastRec
       LogTools.debug("Connecting to {}.", target);
       try
       {
-         new HTTPDataServerConnection(target, new ConnectionListener());
+         new HTTPDataServerConnection(target, new ConnectionListener(), connectionEventLoopGroup);
       }
       catch (Exception e)
       {

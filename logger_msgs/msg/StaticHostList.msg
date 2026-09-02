@@ -1,0 +1,2 @@
+bool disableAutoDiscovery
+Host[] hosts

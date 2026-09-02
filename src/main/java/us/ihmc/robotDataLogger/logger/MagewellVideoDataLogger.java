@@ -1,23 +1,27 @@
 package us.ihmc.robotDataLogger.logger;
 
+import logger_msgs.LogProperties;
+import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.OpenCVFrameGrabber;
+import us.ihmc.commons.thread.ThreadTools;
+import us.ihmc.javadecklink.CaptureHandler;
+import us.ihmc.log.LogTools;
+import us.ihmc.tools.CaptureTimeTools;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import us.ihmc.commons.thread.ThreadTools;
-import us.ihmc.javadecklink.CaptureHandler;
-import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.LogProperties;
-import org.bytedeco.javacv.*;
-import us.ihmc.tools.CaptureTimeTools;
-
 public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
 {
+   private static final long CAPTURE_THREAD_SHUTDOWN_TIMEOUT = 2000;
+
    private final YoVariableLoggerOptions options;
 
    private OpenCVFrameGrabber grabber;
    private FileWriter timestampWriter;
    private MagewellMuxer magewellMuxer;
+   private Thread captureThread;
 
    private int framesReceivedFromCameraCounter;
    private int timeStampFromControllerCounter;
@@ -61,17 +65,18 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
       {
          timestampWriter = new FileWriter(timestampFile);
 
-         ThreadTools.startAThread(() ->
-                                  {
-                                     try
-                                     {
-                                        startCapture();
-                                     }
-                                     catch (Exception e)
-                                     {
-                                        LogTools.error("Last frame is bad for {} but who cares, shutting down gracefully because of threading", deviceNumber);
-                                     }
-                                  }, "MagewellCapture");
+         captureThread = ThreadTools.startAThread(() ->
+                                                  {
+                                                     try
+                                                     {
+                                                        startCapture();
+                                                     }
+                                                     catch (Exception e)
+                                                     {
+                                                        LogTools.error("Last frame is bad for {} but who cares, shutting down gracefully because of threading",
+                                                                       deviceNumber);
+                                                     }
+                                                  }, "MagewellCapture");
       }
       catch (IOException e)
       {
@@ -97,22 +102,36 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
 
    public void startCapture() throws Exception
    {
-      grabber.start();
-      magewellMuxer.start();
-
-      timestampWriter.write(1 + "\n");
-      timestampWriter.write(60 + "\n");
-
-      long startTime = System.currentTimeMillis();
-      Frame capturedFrame;
-      while (!magewellMuxer.isClosed() && ((capturedFrame = grabber.grabAtFrameRate()) != null))
+      try
       {
-         long videoTimestamp = CaptureTimeTools.timeSinceStartedCaptureInMicroseconds(System.currentTimeMillis(), startTime);
-         magewellMuxer.recordFrame(capturedFrame, videoTimestamp);
-         receivedFrameAtTime(System.nanoTime(), magewellMuxer.getTimeStamp(), 1, 60000);
-      }
+         grabber.start();
+         magewellMuxer.start();
 
-      ThreadTools.join();
+         timestampWriter.write(1 + "\n");
+         timestampWriter.write(60 + "\n");
+
+         long startTime = System.currentTimeMillis();
+         Frame capturedFrame;
+         while (!magewellMuxer.isClosed() && ((capturedFrame = grabber.grabAtFrameRate()) != null))
+         {
+            long videoTimestamp = CaptureTimeTools.timeSinceStartedCaptureInMicroseconds(System.currentTimeMillis(), startTime);
+            magewellMuxer.recordFrame(capturedFrame, videoTimestamp);
+            receivedFrameAtTime(System.nanoTime(), magewellMuxer.getTimeStamp(), 1, 60000);
+         }
+      }
+      finally
+      {
+         // This exists to stop this threading bug: stopping these from another thread (e.g. close()) while this thread might still be inside
+         // a native call using the same resources is a use-after-free race in the native layer.
+         try
+         {
+            grabber.stop();
+         }
+         finally
+         {
+            magewellMuxer.stopRecording();
+         }
+      }
    }
 
    /*
@@ -162,12 +181,34 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
       LogTools.info("Attempting to Stop video...");
       if (magewellMuxer != null)
       {
+         LogTools.info("Stopping capture for {}, closing output stream of recorder, closing timestamp file... (Don't panic)", deviceNumber);
+
+         // Signals startCapture()'s loop to exit.
+         magewellMuxer.close();
+
+         if (captureThread != null)
+         {
+            try
+            {
+               captureThread.join(CAPTURE_THREAD_SHUTDOWN_TIMEOUT);
+            }
+            catch (InterruptedException e)
+            {
+               Thread.currentThread().interrupt();
+            }
+
+            if (captureThread.isAlive())
+            {
+               LogTools.error("MagewellCapture thread for device {} did not stop within {}ms, it is likely stuck, buckets",
+                              deviceNumber,
+                              CAPTURE_THREAD_SHUTDOWN_TIMEOUT);
+            }
+
+            captureThread = null;
+         }
+
          try
          {
-            LogTools.info("Stopping capture for {}, closing output stream of recorder, closing timestamp file... (Don't panic)", deviceNumber);
-            magewellMuxer.close();
-            grabber.stop();
-
             timestampWriter.close();
             System.out.println("Whew we did it! Done");
          }
@@ -175,6 +216,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
          {
             e.printStackTrace();
          }
+
          magewellMuxer = null;
          timestampWriter = null;
       }

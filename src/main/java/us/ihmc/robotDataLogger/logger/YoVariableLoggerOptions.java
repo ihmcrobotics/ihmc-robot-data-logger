@@ -12,21 +12,13 @@ public class YoVariableLoggerOptions
 {
    public static final String defaultLogDirectory = System.getProperty("user.home") + "/robotLogs";
    public static final CodecID defaultCodec = CodecID.AV_CODEC_ID_H264;
-   public static final double defaultVideoQuality = 0.85;
-   public static final int defaultCRF = 23;
    private CodecID videoCodecID;
 
    @Parameter(names = {"-d", "--directory"}, description = "Directory where to save log files")
    private String logDirectory = defaultLogDirectory;
 
-   @Parameter(names = {"-q", "--quality"}, description = "Video quality for MJPEG")
-   private double videoQuality = defaultVideoQuality;
-
    @Parameter(names = {"-c", "--codec"}, description = "Desired video codec. AV_CODEC_ID_H264 or AV_CODEC_ID_MJPEG")
    private String videoCodec = defaultCodec.name(); // stored as string for parsing later
-
-   @Parameter(names = {"-r", "--crf"}, description = "CRF (Constant rate factor) for H264. 0-51, 0 is lossless. Sane values are 18-28")
-   private int crf = defaultCRF;
 
    @Parameter(names = {"-n", "--noVideo"}, description = "Disable video recording")
    private boolean disableVideo = false;
@@ -94,11 +86,6 @@ public class YoVariableLoggerOptions
       return logDirectory;
    }
 
-   public double getVideoQuality()
-   {
-      return videoQuality;
-   }
-
    public boolean getDisableVideo()
    {
       return disableVideo;
@@ -137,11 +124,6 @@ public class YoVariableLoggerOptions
    public boolean isMcapLogging()
    {
       return mcapLogging;
-   }
-
-   public int getCrf()
-   {
-      return crf;
    }
 
    public CodecID getVideoCodec()

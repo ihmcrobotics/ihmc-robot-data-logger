@@ -1,9 +1,10 @@
 package us.ihmc.robotDataLogger.handshake;
 
-import us.ihmc.robotDataLogger.Handshake;
-import us.ihmc.robotDataLogger.HandshakeFileType;
+import logger_msgs.Handshake;
+import logger_msgs.HandshakeFileType;
+import logger_msgs.MessageTypes;
 import us.ihmc.robotDataLogger.jointState.JointState;
-import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
+import us.ihmc.robotDataLogger.yoGraphics.YoGraphicFieldsData;
 import us.ihmc.yoVariables.euclid.referenceFrame.interfaces.FrameIndexMap;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -21,17 +22,20 @@ public abstract class YoVariableHandshakeParser
    {
       if (type == null)
       {
-         System.err.println("Handshake file type is null. Defaulting to PROTOBUFFER");
-         type = HandshakeFileType.PROTOBUFFER;
+         System.err.println("Handshake file type is null. Defaulting to IDL_YAML");
+         type = MessageTypes.IDL_YAML;
       }
 
-      switch (type)
+      return create(type.getType());
+   }
+
+   public static YoVariableHandshakeParser create(byte handshakeFileType)
+   {
+      switch (handshakeFileType)
       {
-         case IDL_CDR:
-         case IDL_YAML:
-            return new IDLYoVariableHandshakeParser(type);
-         case PROTOBUFFER:
-            return new ProtoBufferYoVariableHandshakeParser();
+         case HandshakeFileType.IDL_CDR:
+         case HandshakeFileType.IDL_YAML:
+            return new IDLYoVariableHandshakeParser(MessageTypes.handshakeFileType(handshakeFileType));
          default:
             throw new RuntimeException("Not implemented");
       }
@@ -39,12 +43,17 @@ public abstract class YoVariableHandshakeParser
 
    public static int getNumberOfStateVariables(HandshakeFileType type, byte[] data) throws IOException
    {
-      YoVariableHandshakeParser parser = create(type);
+      return getNumberOfStateVariables(type.getType(), data);
+   }
+
+   public static int getNumberOfStateVariables(byte handshakeFileType, byte[] data) throws IOException
+   {
+      YoVariableHandshakeParser parser = create(handshakeFileType);
       parser.parseFrom(data);
       return parser.getNumberOfStates();
    }
 
-   protected List<YoGraphicGroupDefinition> scs2YoGraphics;
+   protected List<YoGraphicFieldsData> scs2YoGraphics;
    protected final ArrayList<JointState> jointStates = new ArrayList<>();
    protected double dt;
    protected int stateVariables;
@@ -87,7 +96,7 @@ public abstract class YoVariableHandshakeParser
       return Collections.unmodifiableList(variables);
    }
 
-   public List<YoGraphicGroupDefinition> getSCS2YoGraphics()
+   public List<YoGraphicFieldsData> getSCS2YoGraphics()
    {
       return scs2YoGraphics;
    }

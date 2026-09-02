@@ -1,6 +1,6 @@
 package us.ihmc.robotDataLogger.jointState;
 
-import us.ihmc.robotDataLogger.JointType;
+import logger_msgs.JointType;
 
 public interface JointHolder
 {

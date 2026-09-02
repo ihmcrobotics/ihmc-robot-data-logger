@@ -1,24 +1,18 @@
-import us.ihmc.idl.generator.IDLGenerator
-
-buildscript {
-   dependencies {
-      classpath("us.ihmc:ihmc-pub-sub-generator:1.2.1")
-   }
-}
+import us.ihmc.jros2.generator.jros2GenTask
 
 plugins {
    id("us.ihmc.ihmc-build")
    id("us.ihmc.log-tools-plugin") version "0.6.4"
+   id("us.ihmc.jros2.generator") version "1.5.1"
 }
 
 ihmc {
    group = "us.ihmc"
-   version = "0.37.3"
+   version = "0.39.5"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-robot-data-logger"
    openSource = true
 
    configureDependencyResolution()
-   resourceDirectory("main", "idl")
    javaDirectory("main", "java-generated")
    configurePublications()
 }
@@ -29,7 +23,7 @@ mainDependencies {
    api("org.jcommander:jcommander:3.0")
    api("com.google.guava:guava:18.0")
    api("org.xerial.snappy:snappy-java:1.1.10.8")
-   api("net.jpountz.lz4:lz4:1.3.0")
+   api("at.yawk.lz4:lz4-java:1.11.1")
    api("com.github.luben:zstd-jni:1.5.6-3")
    api("io.netty:netty-all:4.1.77.Final")
    api("org.openjdk.jol:jol-core:0.9")
@@ -39,10 +33,9 @@ mainDependencies {
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-realtime:1.7.1")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
-   api("us.ihmc:ros2-library:1.2.1")
+   api("us.ihmc:jros2:1.5.1")
    api("us.ihmc:ihmc-commons:0.35.1")
    api("us.ihmc:ihmc-yovariables:0.13.7")
-   api("us.ihmc:scs2-definition:17-0.32.0")
    api("us.ihmc:mecano:17-0.19.3")
 
    api("com.fasterxml.jackson.core:jackson-databind:2.18.1")
@@ -57,7 +50,7 @@ mainDependencies {
    api("org.bytedeco:openblas:$openblasVersion:linux-x86_64")
    api("org.bytedeco:openblas:$openblasVersion:linux-arm64")
    api("org.bytedeco:openblas:$openblasVersion:windows-x86_64")
-   val opencvVersion = "4.10.0-1.5.11-20260107-ihmc" // Hosted on https://robotlabfiles.ihmc.us/repository
+   val opencvVersion = "4.10.0-1.5.11-20260819-ihmc" // Hosted on https://robotlabfiles.ihmc.us/repository
    api("us.ihmc:opencv:$opencvVersion")
    api("us.ihmc:opencv:$opencvVersion:linux-arm64")
    api("us.ihmc:opencv:$opencvVersion:linux-arm64-gpu") // Pretty much NVIDIA Orin specific
@@ -69,10 +62,11 @@ mainDependencies {
    api("org.bytedeco:ffmpeg:$ffmpegVersion")
    api("org.bytedeco:ffmpeg:$ffmpegVersion:linux-arm64")
    api("org.bytedeco:ffmpeg:$ffmpegVersion:linux-x86_64")
+   api("org.bytedeco:ffmpeg:$ffmpegVersion:macosx-arm64")
    api("org.bytedeco:ffmpeg:$ffmpegVersion:windows-x86_64")
 
    // ZED SDK for logging remote ZED data streams
-   api("us.ihmc:zed-java-api:5.1.0")
+   api("us.ihmc:zed-java-api:5.4.0")
 
    api("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
 
@@ -111,20 +105,13 @@ tasks.register<JavaExec>("deploy") {
    args("--logger-dist ", p.toString())
 }
 
-tasks.register("generateMessages") {
-   doLast {
-      generateMessages()
-   }
-}
+tasks.register<jros2GenTask>("generateMessages") {
+   description = "Generate logger ROS 2 interfaces using jros2"
+   group = "build"
 
-fun generateMessages()
-{
-   val idlFiles = fileTree("src/main/idl")
-   val targetDirectory = file("src/main/java-generated")
-   val packagePrefix = ""
+   packagePaths = listOf(
+      projectDir.resolve("logger_msgs").absolutePath,
+   )
 
-   for (idl in idlFiles)
-   {
-      IDLGenerator.execute(idl, packagePrefix, targetDirectory, listOf(file(".")))
-   }
+   outputDir = projectDir.resolve("src/main/java-generated").absolutePath
 }

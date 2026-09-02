@@ -1,7 +1,5 @@
 package us.ihmc.robotDataLogger.websocket.client;
 
-import java.net.SocketException;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -19,13 +17,15 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.CharsetUtil;
+import us.ihmc.fastddsjava.cdr.CDRBuffer;
 import us.ihmc.log.LogTools;
-import us.ihmc.pubsub.common.SerializedPayload;
 import us.ihmc.robotDataLogger.YoVariableClientImplementation;
 import us.ihmc.robotDataLogger.dataBuffers.CustomLogDataSubscriberType;
 import us.ihmc.robotDataLogger.dataBuffers.RegistryConsumer;
 import us.ihmc.robotDataLogger.dataBuffers.RegistryReceiveBuffer;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
+
+import java.nio.ByteBuffer;
 
 public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandler<Object>
 {
@@ -34,7 +34,7 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
    private final YoVariableClientImplementation yoVariableClient;
 
    private final CustomLogDataSubscriberType type;
-   private final SerializedPayload payload;
+   private final CDRBuffer payload;
 
    private final int timestampPort;
 
@@ -55,8 +55,7 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
       this.consumer = consumer;
       this.type = type;
       this.timestampPort = timestampPort;
-
-      payload = new SerializedPayload(type.getTypeSize());
+      payload = new CDRBuffer();
    }
 
    public ChannelFuture handshakeFuture()
@@ -113,11 +112,17 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
       {
          RegistryReceiveBuffer buffer = consumer.acquire();
          buffer.setReceivedTimestamp(System.nanoTime());
-         payload.getData().clear();
-         payload.getData().limit(frame.content().readableBytes());
-         frame.content().readBytes(payload.getData());
-         payload.getData().flip();
+
+         int readableBytes = frame.content().readableBytes();
+         payload.ensureRemainingCapacity(readableBytes);
+         ByteBuffer payloadBuffer = payload.getBufferUnsafe();
+         payloadBuffer.clear();
+         payloadBuffer.limit(readableBytes);
+         frame.content().readBytes(payloadBuffer);
+         payloadBuffer.flip();
+
          type.deserialize(payload, buffer);
+
          consumer.onNewDataMessage(buffer);
 
          if (!sendConfiguration)
@@ -165,7 +170,7 @@ public class WebSocketDataServerClientHandler extends SimpleChannelInboundHandle
    @Override
    public void exceptionCaught(ChannelHandlerContext context, Throwable cause)
    {
-      LogTools.warn("Connection closed: " + cause.getMessage());
+      LogTools.warn("Connection closed: {} ({})", cause.getClass().getSimpleName(), cause.getMessage(), cause);
       if (!handshakeFuture.isDone())
       {
          handshakeFuture.setFailure(cause);

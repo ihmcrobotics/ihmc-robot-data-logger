@@ -1,11 +1,14 @@
 package us.ihmc.robotDataLogger.logger;
 
+import static us.ihmc.zed.global.zed.*;
+
+import logger_msgs.ZEDSDKAnnounce;
+import org.bytedeco.javacpp.BytePointer;
 import us.ihmc.commons.exception.DefaultExceptionHandler;
 import us.ihmc.commons.exception.ExceptionTools;
 import us.ihmc.commons.thread.RepeatingTaskThread;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.ZEDSDKAnnounce;
 import us.ihmc.zed.SL_InitParameters;
 import us.ihmc.zed.SL_RuntimeParameters;
 import us.ihmc.zed.ZEDTools;
@@ -14,8 +17,6 @@ import us.ihmc.zed.global.zed;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import static us.ihmc.zed.global.zed.*;
-
 /**
  * Connects to a remote ZED SDK and logs an SVO file.
  * Manages an internal frame grab thread.
@@ -23,6 +24,7 @@ import static us.ihmc.zed.global.zed.*;
 public class ZEDSVOLogger
 {
    private static final boolean TRANSCODE = false;
+   private static final BytePointer ENCRYPTION_KEY = new BytePointer("");
 
    private static int nextCameraId = 0;
 
@@ -66,11 +68,11 @@ public class ZEDSVOLogger
       if (sl_is_opened(cameraID))
          sl_close_camera(cameraID);
 
-      int returnCode = sl_open_camera(cameraID, initParameters, 0, "", address, port, "", "", "");
+      int returnCode = sl_open_camera(cameraID, initParameters, 0, "", address, port, -1, "", "", "");
       if (returnCode != SL_ERROR_CODE_SUCCESS)
          LogTools.error("Could not connect to ZED SDK stream: " + ZEDTools.errorMessage(returnCode));
 
-      returnCode = sl_enable_recording(cameraID, svoFile, SL_SVO_COMPRESSION_MODE_H264, bitrate, fps, TRANSCODE);
+      returnCode = sl_enable_recording(cameraID, svoFile, SL_SVO_COMPRESSION_MODE_H264, bitrate, fps, TRANSCODE, ENCRYPTION_KEY, SL_SVO_ENCODING_PRESET_DEFAULT);
       if (returnCode != SL_ERROR_CODE_SUCCESS)
          LogTools.error("Could not enable SVO recording: " + ZEDTools.errorMessage(returnCode));
 

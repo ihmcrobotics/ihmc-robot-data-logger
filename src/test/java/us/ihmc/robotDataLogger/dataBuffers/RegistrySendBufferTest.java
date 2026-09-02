@@ -13,12 +13,12 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.commons.Conversions;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.fastddsjava.cdr.CDRBuffer;
 import us.ihmc.log.LogTools;
 import us.ihmc.mecano.multiBodySystem.RevoluteJoint;
 import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
-import us.ihmc.pubsub.common.SerializedPayload;
 import us.ihmc.robotDataLogger.jointState.JointHolder;
 import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.robotDataLogger.jointState.OneDoFJointHolder;
@@ -134,7 +134,8 @@ public class RegistrySendBufferTest
 
          // Transmit data
          CustomLogDataPublisherType publisherType = new CustomLogDataPublisherType(numberOfVariables, numberOfJointStates);
-         SerializedPayload payload = new SerializedPayload(publisherType.getMaximumTypeSize());
+         CDRBuffer payload = new CDRBuffer();
+         payload.ensureRemainingCapacity(publisherType.getMaximumTypeSize() + 4);
 
          long timestamp = random.nextLong();
          long uid = random.nextLong();
@@ -164,7 +165,9 @@ public class RegistrySendBufferTest
          RegistrySendBuffer sendBuffer = new RegistrySendBuffer(1, sendRegistry.collectSubtreeVariables(), sendJointHolders);
          RegistryReceiveBuffer receiveBuffer = new RegistryReceiveBuffer(sendBuffer.getTimestamp());
 
-         payload.getData().clear();
+         payload.getBufferUnsafe().clear();
+         payload.getBufferUnsafe().limit(publisherType.getMaximumTypeSize() + 4);
+         payload.rewind();
 
          // This will calculate the time taken to update the buffer with the new values for the variables
          long start;
@@ -180,6 +183,9 @@ public class RegistrySendBufferTest
          LogTools.info("Time taken to update when variables and joint states total to: " + (numberOfVariables + numberOfJointStates) + " : Time: "
                             + Conversions.nanosecondsToMicroseconds(minTime));
 
+         payload.rewind();
+         payload.getBufferUnsafe().limit(publisherType.getMaximumTypeSize() + 4);
+         payload.writePayloadHeader();
          publisherType.serialize(sendBuffer, payload);
          subscriberType.deserialize(payload, receiveBuffer);
 

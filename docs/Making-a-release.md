@@ -6,6 +6,6 @@
    1. `git push`
    2. `git push origin <version>`
 5. Setup Publishing according to [Confluence](https://ihmcrobotics.atlassian.net/wiki/spaces/PUBLIC/pages/14844236/Publishing+Maven+Artifacts).
-6. Publish using `gradle compositePublish -PpublishUrl=robotlabfiles`
+6. Publish using `gradle publish -PpublishUrl=robotlabfiles`
 7. Create a release on GitHub documenting the changes (following the format of existing releases)
 8. Announce the release to whoever may be interested

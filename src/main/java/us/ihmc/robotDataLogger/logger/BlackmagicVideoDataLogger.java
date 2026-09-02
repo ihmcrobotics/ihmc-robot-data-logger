@@ -1,16 +1,16 @@
 package us.ihmc.robotDataLogger.logger;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
+import logger_msgs.LogProperties;
 import us.ihmc.commons.Conversions;
 import us.ihmc.javadecklink.Capture;
 import us.ihmc.javadecklink.Capture.CodecID;
 import us.ihmc.javadecklink.CaptureHandler;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.LogProperties;
 import us.ihmc.tools.maps.CircularLongMap;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
 {
@@ -18,6 +18,10 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
    /**
     * Make sure to set a progressive mode, otherwise the timestamps will be all wrong!
     */
+
+   // Hardcoded values for the Blackmagic video logger
+   private static final double MJPEG_QUALITY = 0.85;
+   private static final int H264_CRF = 23;
 
    private final int decklink;
    private final YoVariableLoggerOptions options;
@@ -49,13 +53,13 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
          case AV_CODEC_ID_H264:
             capture = new Capture(this, CodecID.AV_CODEC_ID_H264);
             capture.setOption("g", "1");
-            capture.setOption("crf", String.valueOf(options.getCrf()));
+            capture.setOption("crf", String.valueOf(H264_CRF));
             capture.setOption("profile", "high");
             capture.setOption("coder", "vlc");
             break;
          case AV_CODEC_ID_MJPEG:
             capture = new Capture(this, CodecID.AV_CODEC_ID_MJPEG);
-            capture.setMJPEGQuality(options.getVideoQuality());
+            capture.setMJPEGQuality(MJPEG_QUALITY);
             break;
          default:
             throw new RuntimeException();

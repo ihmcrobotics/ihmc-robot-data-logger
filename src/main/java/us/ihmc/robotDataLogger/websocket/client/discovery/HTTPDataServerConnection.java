@@ -1,10 +1,5 @@
 package us.ihmc.robotDataLogger.websocket.client.discovery;
 
-import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-import java.util.function.Consumer;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -31,17 +26,22 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.CharsetUtil;
-import us.ihmc.idl.serializers.extra.JSONSerializer;
-import us.ihmc.robotDataLogger.Announcement;
-import us.ihmc.robotDataLogger.AnnouncementPubSubType;
+import logger_msgs.Announcement;
+import us.ihmc.idl.serializers.extra.ROS2JSONSerializer;
 import us.ihmc.robotDataLogger.util.NettyUtils;
 import us.ihmc.robotDataLogger.websocket.HTTPDataServerPaths;
+
+import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 public class HTTPDataServerConnection
 {
    private static final int TIMEOUT_MS = 1000;
 
-   private final EventLoopGroup group = NettyUtils.createEventGroundLoop();
+   private final EventLoopGroup group;
+   private final boolean ownsGroup;
    private final HTTPDataServerDescription target;
    private final HTTPDataServerConnectionListener listener;
    private final Announcement announcement = new Announcement();
@@ -156,14 +156,41 @@ public class HTTPDataServerConnection
    /**
     * Setup a new connection If you want a blocking connect call, use the static {@link #connect}
     * function
+    * <p>
+    * This creates and owns its own {@link EventLoopGroup}, which is shut down once the connection
+    * fails or closes. For a connection that is retried repeatedly (e.g. by
+    * {@link DataServerDiscoveryClient}), prefer
+    * {@link #HTTPDataServerConnection(HTTPDataServerDescription, HTTPDataServerConnectionListener, EventLoopGroup)}
+    * with a shared, long-lived group so that every retry doesn't spin up and tear down a fresh
+    * pool of threads.
     *
     * @param target
     * @param listener
     */
    public HTTPDataServerConnection(HTTPDataServerDescription target, HTTPDataServerConnectionListener listener)
    {
+      this(target, listener, NettyUtils.createEventGroundLoop(), true);
+   }
+
+   /**
+    * Setup a new connection using a caller-provided, shared {@link EventLoopGroup}. The group is
+    * assumed to be owned and shut down by the caller, and will not be touched by this connection.
+    *
+    * @param target
+    * @param listener
+    * @param group   a shared event loop group, owned by the caller
+    */
+   public HTTPDataServerConnection(HTTPDataServerDescription target, HTTPDataServerConnectionListener listener, EventLoopGroup group)
+   {
+      this(target, listener, group, false);
+   }
+
+   private HTTPDataServerConnection(HTTPDataServerDescription target, HTTPDataServerConnectionListener listener, EventLoopGroup group, boolean ownsGroup)
+   {
       this.target = target;
       this.listener = listener;
+      this.group = group;
+      this.ownsGroup = ownsGroup;
 
       Bootstrap b = new Bootstrap();
       b.group(group).channel(NettyUtils.getSocketChannelClass()).handler(new HttpSnoopClientInitializer());
@@ -178,13 +205,26 @@ public class HTTPDataServerConnection
          }
          else
          {
-            group.shutdownGracefully().addListener(e ->
-            {
-               listener.connectionRefused(target);
-            });
-
+            shutdownGroupIfOwnedThen(() -> listener.connectionRefused(target));
          }
       });
+   }
+
+   /**
+    * Shuts down {@link #group} if it is owned by this connection, then runs {@code onComplete} once
+    * that shutdown finishes. If the group is shared (not owned), it is left running and
+    * {@code onComplete} runs immediately.
+    */
+   private void shutdownGroupIfOwnedThen(Runnable onComplete)
+   {
+      if (ownsGroup)
+      {
+         group.shutdownGracefully().addListener(e -> onComplete.run());
+      }
+      else
+      {
+         onComplete.run();
+      }
    }
 
    private void connected(Channel channel)
@@ -207,7 +247,7 @@ public class HTTPDataServerConnection
 
    private void receivedAnnouncement(ByteBuf buf)
    {
-      JSONSerializer<Announcement> serializer = new JSONSerializer<>(new AnnouncementPubSubType());
+      ROS2JSONSerializer<Announcement> serializer = new ROS2JSONSerializer<>(Announcement.class);
       try
       {
          announcement.set(serializer.deserialize(buf.toString(CharsetUtil.UTF_8)));
@@ -380,9 +420,9 @@ public class HTTPDataServerConnection
          if (!taken)
          {
             listener.disconnected(HTTPDataServerConnection.this);
-            group.shutdownGracefully().addListener((e) -> listener.closed(HTTPDataServerConnection.this));
+            shutdownGroupIfOwnedThen(() -> listener.closed(HTTPDataServerConnection.this));
          }
-         else
+         else if (ownsGroup)
          {
             group.shutdownGracefully();
          }
