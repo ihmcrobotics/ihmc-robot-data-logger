@@ -3,7 +3,7 @@ package us.ihmc.robotDataLogger.logger;
 import logger_msgs.Announcement;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.YoVariableClient;
-import us.ihmc.robotDataLogger.logger.converters.HeightScanMcapLogger;
+import us.ihmc.robotDataLogger.logger.converters.PerceptionMcapLogger;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 
 import java.io.File;
@@ -40,7 +40,7 @@ public class YoVariableLogger
                                                                                                                       });
 
    private ZEDSVOLoggerManager zedSVOLoggerManager;
-   private HeightScanMcapLogger heightScanMcapLogger;
+   private PerceptionMcapLogger perceptionMcapLogger;
 
    public YoVariableLogger(HTTPDataServerConnection connection, YoVariableLoggerOptions options, Consumer<Announcement> doneListener) throws IOException
    {
@@ -117,8 +117,9 @@ public class YoVariableLogger
          zedSVOLoggerManager = new ZEDSVOLoggerManager(tempDirectory, finalDirectory);
 
       // Independent of options.isMcapLogging(), which only controls the main robot data log's format
-      // (classic bsz/dat vs mcap) - height scan data always logs to its own mcap file.
-      heightScanMcapLogger = new HeightScanMcapLogger(tempDirectory, finalDirectory);
+      // (classic bsz/dat vs mcap) - perception data (height scan, and in the future e.g. voxel maps) always
+      // logs to its own shared perception.mcap file.
+      perceptionMcapLogger = new PerceptionMcapLogger(tempDirectory, finalDirectory);
    }
 
    private static void checkCriticalDiskSpace(Path logDirectory)
@@ -146,6 +147,6 @@ public class YoVariableLogger
       if (!options.getDisableZEDLogging())
          zedSVOLoggerManager.destroy();
 
-      heightScanMcapLogger.destroy();
+      perceptionMcapLogger.destroy();
    }
 }
