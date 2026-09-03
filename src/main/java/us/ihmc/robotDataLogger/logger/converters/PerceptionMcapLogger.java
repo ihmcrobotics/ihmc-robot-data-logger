@@ -6,6 +6,7 @@ import us.ihmc.jros2.ROS2Message;
 import us.ihmc.jros2.ROS2Node;
 import us.ihmc.jros2.ROS2Topic;
 import us.ihmc.log.LogTools;
+import us.ihmc.robotDataLogger.handshake.LoggingROS2API;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -33,28 +34,12 @@ import java.util.function.ToLongFunction;
  * {@code perception_msgs.HeightScanMessage} (and its {@code Vector2}/{@code PackedElementField}
  * dependencies, plus the {@code geometry_msgs} types {@code pose} needs) are generated in THIS repo
  * ({@code perception_msgs/msg/}, {@code geometry_msgs/msg/}) - this is the canonical definition, not
- * a copy. {@code PerceptionAPI} (in ihmc-communication) and {@code HeightScanTerm} (in
- * ihmc-closed-source-control) both reference this same package directly, since ihmc-communication
- * already depends on ihmc-robot-data-logger - no new dependency edge needed on their side. This repo
- * deliberately does NOT depend on ihmc-interfaces-jros2 or ihmc-communication: the former would be
- * redundant now that the message lives here, and the latter would be circular (it already depends on
- * ihmc-robot-data-logger).
- * <p>
- * One consequence: {@link #HEIGHT_SCAN_TOPIC} can't reference {@code PerceptionAPI.STEPPING_HEIGHT_SCAN}
- * directly (still in ihmc-communication, still undependable-on from here), so its name is a literal
- * copy read from {@code PerceptionAPI.STEPPING_HEIGHT_SCAN.getName()} at the time this was written -
- * it is NOT rebuilt using {@code HumanoidROS2Topic}-style prefix/module/suffix/type-name assembly,
- * since the plain {@link ROS2Topic} used here composes names differently. If {@code STEPPING_HEIGHT_SCAN}
- * is ever renamed, this literal must be updated to match. The scs2-side reader keeps its own copy of this same
- * topic name literal (see {@code HeightMapMcapScrubber} in scs2) to pick this channel back out of
- * {@code perception.mcap} - both literals must stay in sync.
+ * a copy. See {@link LoggingROS2API} for the canonical topic definition this class subscribes to, and
+ * why it lives there rather than as a literal copy here.
  */
 public class PerceptionMcapLogger
 {
    private static final String MCAP_FILENAME = "perception.mcap";
-
-   public static final ROS2Topic<HeightScanMessage> HEIGHT_SCAN_TOPIC =
-         new ROS2Topic<>("/stepping_camera/realsense/height_scan/height_scan_message", HeightScanMessage.class);
 
    // Concatenated ros2msg schema text (primary message, then one MSG: block per referenced type).
    // Must be kept in sync with perception_msgs/msg/HeightScanMessage.msg and its dependencies.
@@ -123,7 +108,7 @@ public class PerceptionMcapLogger
       LogTools.info("Creating a ROS2Node for logging perception data to " + mcapFile);
       ros2Node = new ROS2Node(finalDirectory.getName() + "_perception_logger_node");
 
-      addChannel(HEIGHT_SCAN_TOPIC, "perception_msgs/HeightScanMessage", HEIGHT_SCAN_SCHEMA, HeightScanMessage::getControllerTimestamp);
+      addChannel(LoggingROS2API.STEPPING_HEIGHT_SCAN, "perception_msgs/HeightScanMessage", HEIGHT_SCAN_SCHEMA, HeightScanMessage::getControllerTimestamp);
       // A future voxel map source is one more addChannel(...) call here, e.g.:
       // addChannel(VOXEL_MAP_TOPIC, "perception_msgs/VoxelMapMessage", VOXEL_MAP_SCHEMA, VoxelMapMessage::getControllerTimestamp);
       // It gets its own channel id and CDR buffer, multiplexed into this same perception.mcap alongside this one.
