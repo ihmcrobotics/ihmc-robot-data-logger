@@ -99,13 +99,6 @@ public class PerceptionMCAPLogger
       addChannel(LoggingROS2API.HEIGHT_SCAN, "perception_msgs/HeightScanMessage", HEIGHT_SCAN_SCHEMA, HeightScanMessage::getControllerTimestamp);
    }
 
-   /**
-    * Subscribes to {@code topic} and writes every message it receives to its own channel within the shared
-    * {@code perception.mcap}, keyed by {@code timestampExtractor} (expected to be that message type's
-    * controllerTimestamp field, so playback can sync this channel against the rest of the log the same way every
-    * other channel does). A negative timestamp (e.g. {@code HeightScanTerm}'s {@code -1} sentinel for "no
-    * RobotConfigurationData received yet") is treated as "not yet valid" and skipped, rather than logged.
-    */
    private <T extends ROS2Message<T>> void addChannel(ROS2Topic<T> topic, String schemaName, String schemaText, ToLongFunction<T> timestampExtractor)
          throws IOException
    {
