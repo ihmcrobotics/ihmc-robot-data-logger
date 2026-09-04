@@ -4,7 +4,7 @@ import perception_msgs.HeightScanMessage;
 import us.ihmc.jros2.ROS2Topic;
 
 /**
- * Canonical ROS2 topic definitions for subscribers in this repo (e.g. {@code PerceptionMcapLogger}, and
+ * Canonical ROS2 topic definitions for subscribers in this repo (e.g. {@code PerceptionMCAPLogger}, and
  * scs2's live-session height-map feed). {@code perception_msgs.HeightScanMessage} (and its
  * {@code Vector2}/{@code PackedElementField}/{@code geometry_msgs} dependencies) are generated in THIS
  * repo ({@code perception_msgs/msg/}, {@code geometry_msgs/msg/}) - this is the canonical message

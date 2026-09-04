@@ -25,7 +25,7 @@ import java.util.function.ToLongFunction;
  * writes whatever arrives on its topic, whenever it arrives.
  * <p>
  */
-public class PerceptionMcapLogger
+public class PerceptionMCAPLogger
 {
    private static final String MCAP_FILENAME = "perception.mcap";
 
@@ -88,7 +88,7 @@ public class PerceptionMcapLogger
    /** Assigned sequentially as channels are registered in the constructor; never reused. */
    private int nextChannelId = 1;
 
-   public PerceptionMcapLogger(File tempDirectory, File finalDirectory) throws IOException
+   public PerceptionMCAPLogger(File tempDirectory, File finalDirectory) throws IOException
    {
       File mcapFile = new File(tempDirectory, MCAP_FILENAME);
       mcapWriter = new McapWriter(new FileOutputStream(mcapFile, false));
