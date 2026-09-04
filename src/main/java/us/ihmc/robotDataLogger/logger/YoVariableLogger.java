@@ -116,9 +116,6 @@ public class YoVariableLogger
       if (!options.getDisableZEDLogging())
          zedSVOLoggerManager = new ZEDSVOLoggerManager(tempDirectory, finalDirectory);
 
-      // Independent of options.isMcapLogging(), which only controls the main robot data log's format
-      // (classic bsz/dat vs mcap) - perception data (height scan, and in the future e.g. voxel maps) always
-      // logs to its own shared perception.mcap file.
       perceptionMcapLogger = new PerceptionMcapLogger(tempDirectory, finalDirectory);
    }
 

@@ -17,25 +17,13 @@ import java.util.Collections;
 import java.util.function.ToLongFunction;
 
 /**
- * Subscribes to one or more perception ROS2 topics - today just the height scan, in the future e.g. one or more
- * voxel map topics too - and writes each one's messages, on its own MCAP channel, into a single shared
- * {@code perception.mcap} file for the duration of a logging session, so playback can sync any of them against the
- * rest of the log. Replaces the old one-file-per-message-type {@code HeightScanMcapLogger}: {@link McapWriter}
- * already supports any number of interleaved schemas/channels in one file (see {@link #addChannel}), so there is
- * no need for a dedicated file/{@code ROS2Node}/scrubber per source - this class just registers one more channel
- * per source.
- * <p>
+ * Subscribes to one or more perception ROS2 topics
  * Channels are independent of each other and of the rest of the logging session's lifecycle: a topic can start
  * publishing late, stop early, or have gaps mid-session (e.g. its upstream publisher process restarts) without
  * affecting any other channel or requiring anything special here - this class is constructed once and
  * {@link #destroy() destroyed} once per logging session (see {@code YoVariableLogger}), so each channel just
  * writes whatever arrives on its topic, whenever it arrives.
  * <p>
- * {@code perception_msgs.HeightScanMessage} (and its {@code Vector2}/{@code PackedElementField}
- * dependencies, plus the {@code geometry_msgs} types {@code pose} needs) are generated in THIS repo
- * ({@code perception_msgs/msg/}, {@code geometry_msgs/msg/}) - this is the canonical definition, not
- * a copy. See {@link LoggingROS2API} for the canonical topic definition this class subscribes to, and
- * why it lives there rather than as a literal copy here.
  */
 public class PerceptionMcapLogger
 {
@@ -109,9 +97,6 @@ public class PerceptionMcapLogger
       ros2Node = new ROS2Node(finalDirectory.getName() + "_perception_logger_node");
 
       addChannel(LoggingROS2API.STEPPING_HEIGHT_SCAN, "perception_msgs/HeightScanMessage", HEIGHT_SCAN_SCHEMA, HeightScanMessage::getControllerTimestamp);
-      // A future voxel map source is one more addChannel(...) call here, e.g.:
-      // addChannel(VOXEL_MAP_TOPIC, "perception_msgs/VoxelMapMessage", VOXEL_MAP_SCHEMA, VoxelMapMessage::getControllerTimestamp);
-      // It gets its own channel id and CDR buffer, multiplexed into this same perception.mcap alongside this one.
    }
 
    /**
