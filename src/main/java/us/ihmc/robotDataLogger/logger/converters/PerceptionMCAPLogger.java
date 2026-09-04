@@ -31,7 +31,7 @@ public class PerceptionMCAPLogger
 
    // Concatenated ros2msg schema text (primary message, then one MSG: block per referenced type).
    // Must be kept in sync with perception_msgs/msg/HeightScanMessage.msg and its dependencies.
-   private static final String HEIGHT_SCAN_SCHEMA = """
+   static final String HEIGHT_SCAN_SCHEMA = """
          uint64 sequence_id
          int64 controllerTimestamp
          string frame_id
