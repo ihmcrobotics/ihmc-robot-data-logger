@@ -96,7 +96,7 @@ public class PerceptionMCAPLogger
       LogTools.info("Creating a ROS2Node for logging perception data to " + mcapFile);
       ros2Node = new ROS2Node(finalDirectory.getName() + "_perception_logger_node");
 
-      addChannel(LoggingROS2API.STEPPING_HEIGHT_SCAN, "perception_msgs/HeightScanMessage", HEIGHT_SCAN_SCHEMA, HeightScanMessage::getControllerTimestamp);
+      addChannel(LoggingROS2API.HEIGHT_SCAN, "perception_msgs/HeightScanMessage", HEIGHT_SCAN_SCHEMA, HeightScanMessage::getControllerTimestamp);
    }
 
    /**
