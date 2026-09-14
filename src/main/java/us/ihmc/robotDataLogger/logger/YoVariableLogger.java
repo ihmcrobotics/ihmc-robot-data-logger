@@ -3,6 +3,7 @@ package us.ihmc.robotDataLogger.logger;
 import logger_msgs.Announcement;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.YoVariableClient;
+import us.ihmc.robotDataLogger.logger.converters.PerceptionMCAPLogger;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 
 import java.io.File;
@@ -39,6 +40,7 @@ public class YoVariableLogger
                                                                                                                       });
 
    private ZEDSVOLoggerManager zedSVOLoggerManager;
+   private final PerceptionMCAPLogger perceptionMCAPLogger;
 
    public YoVariableLogger(HTTPDataServerConnection connection, YoVariableLoggerOptions options, Consumer<Announcement> doneListener) throws IOException
    {
@@ -113,6 +115,8 @@ public class YoVariableLogger
 
       if (!options.getDisableZEDLogging())
          zedSVOLoggerManager = new ZEDSVOLoggerManager(tempDirectory, finalDirectory);
+
+      perceptionMCAPLogger = new PerceptionMCAPLogger(tempDirectory, finalDirectory);
    }
 
    private static void checkCriticalDiskSpace(Path logDirectory)
@@ -139,5 +143,7 @@ public class YoVariableLogger
 
       if (!options.getDisableZEDLogging())
          zedSVOLoggerManager.destroy();
+
+      perceptionMCAPLogger.destroy();
    }
 }

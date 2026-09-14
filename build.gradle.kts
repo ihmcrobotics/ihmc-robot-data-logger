@@ -79,6 +79,7 @@ mainDependencies {
 
 testDependencies {
    api("us.ihmc:ihmc-commons-testing:0.35.1")
+   api("us.ihmc:jros2-parser:1.5.1")
 }
 
 app.entrypoint("IHMCLogger", "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher", listOf(
@@ -111,6 +112,8 @@ tasks.register<jros2GenTask>("generateMessages") {
 
    packagePaths = listOf(
       projectDir.resolve("logger_msgs").absolutePath,
+      projectDir.resolve("geometry_msgs").absolutePath,
+      projectDir.resolve("perception_msgs").absolutePath,
    )
 
    outputDir = projectDir.resolve("src/main/java-generated").absolutePath
