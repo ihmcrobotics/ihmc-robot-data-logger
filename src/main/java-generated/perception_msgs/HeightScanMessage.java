@@ -15,7 +15,7 @@ import us.ihmc.jros2.ROS2Message;
 uint64 sequence_id
 
 # Controller timestamp to sync playback in the log, nanoseconds.
-int64 controllerTimestamp
+int64 controller_timestamp
 
 # Frame of reference
 string frame_id
@@ -54,7 +54,7 @@ public class HeightScanMessage implements ROS2Message<HeightScanMessage>
    /**
       Controller timestamp to sync playback in the log, nanoseconds.
    */
-   private long controllerTimestamp_;
+   private long controller_timestamp_;
    /**
       Frame of reference
    */
@@ -111,7 +111,7 @@ public class HeightScanMessage implements ROS2Message<HeightScanMessage>
       int initialAlignment = currentAlignment;
 
       currentAlignment += 8 + CDRBuffer.alignment(currentAlignment, 8); // sequence_id_
-      currentAlignment += 8 + CDRBuffer.alignment(currentAlignment, 8); // controllerTimestamp_
+      currentAlignment += 8 + CDRBuffer.alignment(currentAlignment, 8); // controller_timestamp_
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4) + (1 * frame_id_.length()) + 1; // frame_id_
       currentAlignment += pose_.calculateSizeBytes(currentAlignment);
       currentAlignment += 4 + CDRBuffer.alignment(currentAlignment, 4); // column_count_
@@ -128,7 +128,7 @@ public class HeightScanMessage implements ROS2Message<HeightScanMessage>
    public void serialize(CDRBuffer buffer)
    {
       buffer.writeLong(sequence_id_);
-      buffer.writeLong(controllerTimestamp_);
+      buffer.writeLong(controller_timestamp_);
       buffer.writeString(frame_id_);
       pose_.serialize(buffer);
       buffer.writeInt(column_count_);
@@ -144,7 +144,7 @@ public class HeightScanMessage implements ROS2Message<HeightScanMessage>
    public void deserialize(CDRBuffer buffer)
    {
       sequence_id_ = buffer.readLong();
-      controllerTimestamp_ = buffer.readLong();
+      controller_timestamp_ = buffer.readLong();
       buffer.readString(frame_id_);
       pose_.deserialize(buffer);
       column_count_ = buffer.readInt();
@@ -160,7 +160,7 @@ public class HeightScanMessage implements ROS2Message<HeightScanMessage>
    public void set(HeightScanMessage from)
    {
       sequence_id_ = from.sequence_id_;
-      controllerTimestamp_ = from.controllerTimestamp_;
+      controller_timestamp_ = from.controller_timestamp_;
       frame_id_.delete(0, frame_id_.length());
       frame_id_.insert(0, from.frame_id_);
       pose_.set(from.pose_);
@@ -185,12 +185,12 @@ public class HeightScanMessage implements ROS2Message<HeightScanMessage>
 
    public long getControllerTimestamp()
    {
-      return controllerTimestamp_;
+      return controller_timestamp_;
    }
 
-   public void setControllerTimestamp(long controllerTimestamp_)
+   public void setControllerTimestamp(long controller_timestamp_)
    {
-      this.controllerTimestamp_ = controllerTimestamp_;
+      this.controller_timestamp_ = controller_timestamp_;
    }
 
    public StringBuilder getFrameId()
@@ -266,8 +266,8 @@ public class HeightScanMessage implements ROS2Message<HeightScanMessage>
       builder.append("HeightScanMessage {");
       builder.append("sequence_id_=");
       builder.append(sequence_id_);
-      builder.append("controllerTimestamp_=");
-      builder.append(controllerTimestamp_);
+      builder.append("controller_timestamp_=");
+      builder.append(controller_timestamp_);
       builder.append("frame_id_=");
       builder.append(frame_id_.toString());
       builder.append("pose_=");

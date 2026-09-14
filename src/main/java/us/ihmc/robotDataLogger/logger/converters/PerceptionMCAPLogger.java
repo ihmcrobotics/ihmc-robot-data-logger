@@ -33,7 +33,7 @@ public class PerceptionMCAPLogger
    // Must be kept in sync with perception_msgs/msg/HeightScanMessage.msg and its dependencies.
    static final String HEIGHT_SCAN_SCHEMA = """
          uint64 sequence_id
-         int64 controllerTimestamp
+         int64 controller_timestamp
          string frame_id
          geometry_msgs/Pose pose
          uint32 column_count

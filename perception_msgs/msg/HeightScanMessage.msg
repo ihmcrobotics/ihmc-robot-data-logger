@@ -2,7 +2,7 @@
 uint64 sequence_id
 
 # Controller timestamp to sync playback in the log, nanoseconds.
-int64 controllerTimestamp
+int64 controller_timestamp
 
 # Frame of reference
 string frame_id
