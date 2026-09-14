@@ -21,6 +21,7 @@ import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 import com.github.luben.zstd.Zstd;
+import us.ihmc.robotDataLogger.logger.converters.McapLiveWriter;
 import com.github.luben.zstd.ZstdException;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -79,6 +80,8 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private final YoVariableLoggerOptions options;
    private FileChannel dataChannel;
    private FileChannel indexChannel;
+   private McapLiveWriter mcapLiveWriter = null;
+   private final boolean mcapLogging;
 
    // Background compression thread, owns these exclusively (never touched by RT thread)
    private final ByteBuffer indexBuffer = ByteBuffer.allocate(16);
@@ -157,15 +160,24 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          this.disableVideo = options.getDisableVideo();
          this.flushAggressivelyToDisk = options.isFlushAggressivelyToDisk();
       }
+      this.mcapLogging = options != null && options.isMcapLogging();
 
       logProperties = new LogPropertiesWriter(new File(tempDirectory, propertyFile));
       logProperties.getVariables().setHandshake(handshakeFilename);
-      logProperties.getVariables().setData(dataFilename);
-      logProperties.getVariables().setCompressed(true);
-      logProperties.getVariables().setTimestamped(true);
-      logProperties.getVariables().setCompressionBatchSize(COMPRESSION_BATCH_SIZE);
-      logProperties.getVariables().setCompressionType("zstd");
-      logProperties.getVariables().setIndex(indexFilename);
+
+      if (mcapLogging)
+      {
+         logProperties.getVariables().setData(McapLiveWriter.MCAP_FILENAME);
+      }
+      else
+      {
+         logProperties.getVariables().setData(dataFilename);
+         logProperties.getVariables().setCompressed(true);
+         logProperties.getVariables().setTimestamped(true);
+         logProperties.getVariables().setCompressionBatchSize(COMPRESSION_BATCH_SIZE);
+         logProperties.getVariables().setCompressionType("zstd");
+         logProperties.getVariables().setIndex(indexFilename);
+      }
       logProperties.getVariables().setHandshakeFileType(HANDSHAKE_FILE_TYPE);
 
       logProperties.setName(request.getNameAsString());
@@ -284,6 +296,11 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       }
    }
 
+   private boolean isOutputReady()
+   {
+      return mcapLogging ? (mcapLiveWriter != null) : (dataChannel != null && dataChannel.isOpen());
+   }
+
    @Override
    public void receivedTimestampAndData(long timestamp)
    {
@@ -295,7 +312,7 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       synchronized (synchronizer)
       {
-         if (!clearingLog && dataChannel != null && dataChannel.isOpen())
+         if (!clearingLog && isOutputReady())
          {
             if (yoVariableSummarizer != null)
                yoVariableSummarizer.setBuffer(buffer);
@@ -357,55 +374,77 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       ByteBuffer batch;
       while ((batch = batchRingBuffer.read()) != null)
       {
-         long batchTimestamp = batch.getLong(0);
-         batch.rewind();
-         compressedBuffer.clear();
-
-         int compressedSize;
-         try
+         if (mcapLogging)
          {
-            compressedSize = (int) Zstd.compressByteArray(compressedBuffer.array(), 0, compressedBuffer.capacity(),
-                                                          batch.array(), batch.position(), batch.remaining(),
-                                                          ZSTD_COMPRESSION_LEVEL);
-         }
-         catch (ZstdException e)
-         {
-            LogTools.error("Zstd compression failed, skipping batch: " + e.getMessage());
-            continue;
-         }
-
-         if (Zstd.isError(compressedSize))
-         {
-            LogTools.error("Zstd compression failed, skipping batch: " + Zstd.getErrorName(compressedSize));
-            continue;
-         }
-
-         compressedBuffer.limit(compressedSize);
-         compressedBuffer.position(0);
-
-         synchronized (synchronizer)
-         {
-            if (!clearingLog && dataChannel != null && dataChannel.isOpen())
+            batch.rewind();
+            // Check flag under lock (fast), then write outside — McapWriter is only touched
+            // by this thread, and clearLog() waits for this thread to stop before resetting.
+            boolean shouldWrite;
+            synchronized (synchronizer) { shouldWrite = !clearingLog && mcapLiveWriter != null; }
+            if (shouldWrite)
             {
                try
                {
-                  indexBuffer.clear();
-                  indexBuffer.putLong(batchTimestamp);
-                  indexBuffer.putLong(dataChannel.position());
-                  indexBuffer.flip();
-
-                  indexChannel.write(indexBuffer);
-                  dataChannel.write(compressedBuffer);
-
-                  if (flushAggressivelyToDisk && ++currentIndex % FLUSH_EVERY_N_PACKETS == 0)
-                  {
-                     indexChannel.force(false);
-                     dataChannel.force(false);
-                  }
+                  mcapLiveWriter.writeBatch(batch);
                }
                catch (IOException e)
                {
                   throw new RuntimeException(e);
+               }
+            }
+         }
+         else
+         {
+            long batchTimestamp = batch.getLong(0);
+            batch.rewind();
+            compressedBuffer.clear();
+
+            int compressedSize;
+            try
+            {
+               compressedSize = (int) Zstd.compressByteArray(compressedBuffer.array(), 0, compressedBuffer.capacity(),
+                                                             batch.array(), batch.position(), batch.remaining(),
+                                                             ZSTD_COMPRESSION_LEVEL);
+            }
+            catch (ZstdException e)
+            {
+               LogTools.error("Zstd compression failed, skipping batch: " + e.getMessage());
+               continue;
+            }
+
+            if (Zstd.isError(compressedSize))
+            {
+               LogTools.error("Zstd compression failed, skipping batch: " + Zstd.getErrorName(compressedSize));
+               continue;
+            }
+
+            compressedBuffer.limit(compressedSize);
+            compressedBuffer.position(0);
+
+            synchronized (synchronizer)
+            {
+               if (!clearingLog && dataChannel != null && dataChannel.isOpen())
+               {
+                  try
+                  {
+                     indexBuffer.clear();
+                     indexBuffer.putLong(batchTimestamp);
+                     indexBuffer.putLong(dataChannel.position());
+                     indexBuffer.flip();
+
+                     indexChannel.write(indexBuffer);
+                     dataChannel.write(compressedBuffer);
+
+                     if (flushAggressivelyToDisk && ++currentIndex % FLUSH_EVERY_N_PACKETS == 0)
+                     {
+                        indexChannel.force(false);
+                        dataChannel.force(false);
+                     }
+                  }
+                  catch (IOException e)
+                  {
+                     throw new RuntimeException(e);
+                  }
                }
             }
          }
@@ -498,8 +537,13 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       try
       {
-         dataChannel.close();
-         indexChannel.close();
+         if (mcapLogging)
+            mcapLiveWriter.close();
+         else
+         {
+            dataChannel.close();
+            indexChannel.close();
+         }
       }
       catch (IOException e)
       {
@@ -553,18 +597,30 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
             resources.delete();
          }
 
-         File dataFile = new File(tempDirectory, dataFilename);
-         if (dataFile.exists())
+         if (mcapLogging)
          {
-            LogTools.info("Deleting data file");
-            dataFile.delete();
+            File mcapFile = mcapLiveWriter.getLogFile();
+            if (mcapFile.exists())
+            {
+               LogTools.info("Deleting mcap file");
+               mcapFile.delete();
+            }
          }
-
-         File indexFile = new File(tempDirectory, indexFilename);
-         if (indexFile.exists())
+         else
          {
-            LogTools.info("Deleting index file");
-            indexFile.delete();
+            File dataFile = new File(tempDirectory, dataFilename);
+            if (dataFile.exists())
+            {
+               LogTools.info("Deleting data file");
+               dataFile.delete();
+            }
+
+            File indexFile = new File(tempDirectory, indexFilename);
+            if (indexFile.exists())
+            {
+               LogTools.info("Deleting index file");
+               indexFile.delete();
+            }
          }
 
          if (tempDirectory.exists())
@@ -644,7 +700,8 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       logHandshake(handshake, handshakeParser);
 
       int bufferSize = handshakeParser.getBufferSize();
-      compressedBuffer = ByteBuffer.allocate((int) Zstd.compressBound(bufferSize * COMPRESSION_BATCH_SIZE));
+      if (!mcapLogging)
+         compressedBuffer = ByteBuffer.allocate((int) Zstd.compressBound(bufferSize * COMPRESSION_BATCH_SIZE));
       batchRingBuffer = new ConcurrentRingBuffer<>(() -> ByteBuffer.allocate(bufferSize * COMPRESSION_BATCH_SIZE), BATCH_RING_BUFFER_SIZE);
 
       compressionThreadRunning = true;
@@ -662,17 +719,23 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       // We can do this because once we connect to a server we don't expect the number of YoVariables to change while we are running
       dataAsLong = new long[variables.length];
 
-      File dataFile = new File(tempDirectory, dataFilename);
-      File indexFile = new File(tempDirectory, indexFilename);
-
       synchronized (synchronizer)
       {
          try
          {
-            dataChannel = new FileOutputStream(dataFile, false).getChannel();
-            indexChannel = new FileOutputStream(indexFile, false).getChannel();
+            if (mcapLogging)
+            {
+               mcapLiveWriter = new McapLiveWriter(tempDirectory, handshakeParser);
+            }
+            else
+            {
+               File dataFile = new File(tempDirectory, dataFilename);
+               File indexFile = new File(tempDirectory, indexFilename);
+               dataChannel = new FileOutputStream(dataFile, false).getChannel();
+               indexChannel = new FileOutputStream(indexFile, false).getChannel();
+            }
          }
-         catch (FileNotFoundException e)
+         catch (IOException e)
          {
             throw new RuntimeException(e);
          }
@@ -711,13 +774,14 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
             }
          }
 
-         // Write data to file, force it to exist
          try
          {
             logProperties.store();
-
-            dataChannel.force(true);
-            indexChannel.force(true);
+            if (!mcapLogging)
+            {
+               dataChannel.force(true);
+               indexChannel.force(true);
+            }
          }
          catch (IOException e)
          {
@@ -791,8 +855,13 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       try
       {
          LogTools.info("Clearing log.");
-         dataChannel.truncate(0);
-         indexChannel.truncate(0);
+         if (mcapLogging)
+            mcapLiveWriter.reset();
+         else
+         {
+            dataChannel.truncate(0);
+            indexChannel.truncate(0);
+         }
          for (VideoDataLoggerInterface videoDataLogger : videoDataLoggers)
          {
             videoDataLogger.restart();
