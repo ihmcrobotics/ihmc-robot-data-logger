@@ -30,7 +30,7 @@ class PerceptionMCAPLoggerHeightScanSchemaTest
 {
    private static final String ROOT_PACKAGE_RESOURCE_NAME = "perception_msgs/HeightScanMessage";
    /** Directories under the module root that {@code generateMessages} (see build.gradle.kts) also scans for .msg files. */
-   private static final List<String> PACKAGE_ROOTS = List.of("perception_msgs", "geometry_msgs", "logger_msgs");
+   private static final List<String> PACKAGE_ROOTS = List.of("msgs/perception_msgs", "msgs/geometry_msgs", "msgs/logger_msgs");
 
    @Test
    void heightScanSchemaMatchesMsgSources() throws IOException, InterfaceFieldParsingException
@@ -82,8 +82,9 @@ class PerceptionMCAPLoggerHeightScanSchemaTest
 
    /**
     * ihmc-build runs this test's task from {@code ihmc-robot-data-logger/src/test}, not the module root where
-    * {@code perception_msgs/}, {@code geometry_msgs/} etc. actually live - so walk upward from the working directory
-    * to find the first ancestor that has them, rather than hardcoding a relative depth that ihmc-build could change.
+    * {@code msgs/perception_msgs/}, {@code msgs/geometry_msgs/} etc. actually live - so walk upward from the working
+    * directory to find the first ancestor that has them, rather than hardcoding a relative depth that ihmc-build
+    * could change.
     */
    private static Path findMsgFile(String typeName) throws IOException
    {
