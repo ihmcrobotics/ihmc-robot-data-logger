@@ -1,7 +1,7 @@
 package us.ihmc.robotDataLogger.captureVideo;
 
 import org.bytedeco.javacv.Frame;
-import us.ihmc.robotDataLogger.logger.MagewellDemuxer;
+import us.ihmc.robotDataLogger.logger.FFmpegDemuxer;
 
 import java.io.File;
 
@@ -9,7 +9,7 @@ import java.io.File;
  * This class allows the user to specify a file and see if when requesting a specific frame we are able to receive that frame or if the value is noll
  * The file for the video will be wrong so make sure to update it with the location of the video you want to test
  */
-public class MagewellDemuxerFrameExistsTest
+public class FFmpegDemuxerFrameExistsTest
 {
    public static void main(String[] args)
    {
@@ -18,7 +18,7 @@ public class MagewellDemuxerFrameExistsTest
       try
       {
          File videoFile = new File(videoFolder, "PoleCamera_Video.mov");
-         MagewellDemuxer demuxer = new MagewellDemuxer(videoFile);
+         FFmpegDemuxer demuxer = new FFmpegDemuxer(videoFile);
          demuxer.seekToPTS(89350000); // Seek to start
          Frame frame = demuxer.getNextFrame();
 

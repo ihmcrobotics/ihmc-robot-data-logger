@@ -8,14 +8,16 @@ import us.ihmc.log.LogTools;
 import java.io.File;
 
 /**
- * This class takes a video file and returns given information about its frames when requested
+ * Generic FFmpeg-backed demuxer: takes a video file and returns given information about its frames
+ * when requested. Not specific to any particular capture card - used for both Magewell and
+ * BlackMagic recordings, which both end up as plain MP4/MOV files.
  */
-public class MagewellDemuxer
+public class FFmpegDemuxer
 {
-    private static final String MAGEWELL_DEMUXER = "MageWell Demuxer";
+    private static final String FFMPEG_DEMUXER = "FFmpeg Demuxer";
     private final FFmpegFrameGrabber grabber;
 
-    public MagewellDemuxer(File videoFile)
+    public FFmpegDemuxer(File videoFile)
     {
         try
         {
@@ -30,7 +32,7 @@ public class MagewellDemuxer
 
     public String getName()
     {
-        return MAGEWELL_DEMUXER;
+        return FFMPEG_DEMUXER;
     }
 
     public int getImageHeight()

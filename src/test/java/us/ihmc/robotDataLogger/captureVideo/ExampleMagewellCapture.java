@@ -3,7 +3,7 @@ package us.ihmc.robotDataLogger.captureVideo;
 import org.bytedeco.javacv.*;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotDataLogger.logger.MagewellMuxer;
+import us.ihmc.robotDataLogger.logger.FFmpegMuxer;
 import us.ihmc.tools.CaptureTimeTools;
 
 import java.io.File;
@@ -28,7 +28,7 @@ public class ExampleMagewellCapture
    public static String timestampPath;
    private static FileWriter timestampWriter;
 
-   private static MagewellMuxer magewellMuxer;
+   private static FFmpegMuxer magewellMuxer;
 
    public static File videoFile;
    public static File timestampFile;
@@ -61,7 +61,7 @@ public class ExampleMagewellCapture
 
          setupTimestampWriter();
 
-         magewellMuxer = new MagewellMuxer(videoFile, captureWidth, captureHeight);
+         magewellMuxer = new FFmpegMuxer(videoFile, captureWidth, captureHeight);
          magewellMuxer.start();
 
          // A really nice hardware accelerated component for our preview...

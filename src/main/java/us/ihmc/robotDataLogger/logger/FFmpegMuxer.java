@@ -8,12 +8,16 @@ import org.bytedeco.javacv.Frame;
 
 import java.io.File;
 
-public class MagewellMuxer
+/**
+ * Generic FFmpeg-backed muxer: encodes captured frames to an MP4/MOV file. Not specific to any
+ * particular capture card - used for both Magewell and BlackMagic recordings.
+ */
+public class FFmpegMuxer
 {
    private final FFmpegFrameRecorder recorder;
    private volatile boolean closed = false;
 
-   public MagewellMuxer(File videoCaptureFile, int captureWidth, int captureHeight)
+   public FFmpegMuxer(File videoCaptureFile, int captureWidth, int captureHeight)
    {
       recorder = new FFmpegFrameRecorder(videoCaptureFile, captureWidth, captureHeight);
 
