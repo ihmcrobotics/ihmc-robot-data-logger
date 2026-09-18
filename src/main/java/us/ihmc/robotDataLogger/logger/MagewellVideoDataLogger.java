@@ -20,7 +20,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
 
    private OpenCVFrameGrabber grabber;
    private FileWriter timestampWriter;
-   private MagewellMuxer magewellMuxer;
+   private FFmpegMuxer magewellMuxer;
    private Thread captureThread;
 
    private int framesReceivedFromCameraCounter;
@@ -56,7 +56,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
             grabber.setImageHeight(captureHeight);
             grabber.setFrameRate(60);
 
-            magewellMuxer = new MagewellMuxer(videoCaptureFile, captureWidth, captureHeight);
+            magewellMuxer = new FFmpegMuxer(videoCaptureFile, captureWidth, captureHeight);
          }
          default -> throw new RuntimeException();
       }
