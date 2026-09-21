@@ -14,10 +14,22 @@ import java.io.File;
  */
 public class FFmpegMuxer
 {
+   private static final double DEFAULT_FRAME_RATE = 60.0;
+
    private final FFmpegFrameRecorder recorder;
    private volatile boolean closed = false;
 
    public FFmpegMuxer(File videoCaptureFile, int captureWidth, int captureHeight)
+   {
+      this(videoCaptureFile, captureWidth, captureHeight, DEFAULT_FRAME_RATE);
+   }
+
+   /**
+    * @param frameRate frame rate of the recorded video. The container derives the video's reported (average) frame rate from it, so when re-encoding an
+    *                  existing video, e.g. when cropping, pass the source's frame rate. Otherwise, short clips report a rate that is slightly off, which
+    *                  breaks readers that convert frame numbers to timestamps using that rate.
+    */
+   public FFmpegMuxer(File videoCaptureFile, int captureWidth, int captureHeight, double frameRate)
    {
       recorder = new FFmpegFrameRecorder(videoCaptureFile, captureWidth, captureHeight);
 
@@ -35,7 +47,7 @@ public class FFmpegMuxer
       recorder.setVideoCodec(avcodec.AV_CODEC_ID_H264);
       recorder.setPixelFormat(avutil.AV_PIX_FMT_YUV420P);
       // Frame rate of video recordings
-      recorder.setFrameRate(60);
+      recorder.setFrameRate(frameRate > 0.0 ? frameRate : DEFAULT_FRAME_RATE);
    }
 
    public void start() throws Exception
@@ -44,7 +56,7 @@ public class FFmpegMuxer
    }
 
    /**
-    * This method only works if {@link MagewellMuxer#start()} has been called first
+    * This method only works if {@link FFmpegMuxer#start()} has been called first
     *
     * @param capturedFrame  the frame we want to save to the video
     * @param videoTimestamp is the timestamp in which to set the frame at
