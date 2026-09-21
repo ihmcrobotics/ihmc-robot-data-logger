@@ -29,7 +29,7 @@ public class ExampleMagewellVideoDataPlayer
    private long[] robotTimestamps;
    private long[] videoTimestamps;
 
-   private final FFmpegDemuxer magewellDemuxer;
+   private final FFmpegDemuxer ffmpegDemuxer;
    private final HideableMediaFrame viewer;
    private final YUVPictureConverter converter = new YUVPictureConverter();
 
@@ -55,17 +55,17 @@ public class ExampleMagewellVideoDataPlayer
 
       parseTimestampData(timestampFile);
 
-      magewellDemuxer = new FFmpegDemuxer(videoFile);
+      ffmpegDemuxer = new FFmpegDemuxer(videoFile);
 
-      viewer = new HideableMediaFrame(camera.getNameAsString(), magewellDemuxer.getImageWidth(), magewellDemuxer.getImageHeight());
+      viewer = new HideableMediaFrame(camera.getNameAsString(), ffmpegDemuxer.getImageWidth(), ffmpegDemuxer.getImageHeight());
    }
 
    public synchronized void showVideoFrame(long timestamp)
    {
       long videoTimestamp = getVideoTimestampFromRobotTimestamp(timestamp);
 
-      magewellDemuxer.seekToPTS(videoTimestamp);
-      Frame nextFrame = magewellDemuxer.getNextFrame();
+      ffmpegDemuxer.seekToPTS(videoTimestamp);
+      Frame nextFrame = ffmpegDemuxer.getNextFrame();
       if (nextFrame != null)
       {
          viewer.update(convertFrameToYUVPicture(nextFrame));

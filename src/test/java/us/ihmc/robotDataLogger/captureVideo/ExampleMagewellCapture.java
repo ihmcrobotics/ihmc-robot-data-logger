@@ -28,7 +28,7 @@ public class ExampleMagewellCapture
    public static String timestampPath;
    private static FileWriter timestampWriter;
 
-   private static FFmpegMuxer magewellMuxer;
+   private static FFmpegMuxer ffmpegMuxer;
 
    public static File videoFile;
    public static File timestampFile;
@@ -61,8 +61,8 @@ public class ExampleMagewellCapture
 
          setupTimestampWriter();
 
-         magewellMuxer = new FFmpegMuxer(videoFile, captureWidth, captureHeight);
-         magewellMuxer.start();
+         ffmpegMuxer = new FFmpegMuxer(videoFile, captureWidth, captureHeight);
+         ffmpegMuxer.start();
 
          // A really nice hardware accelerated component for our preview...
          final CanvasFrame cFrame = new CanvasFrame("Capture Preview", CanvasFrame.getDefaultGamma() / grabber.getGamma());
@@ -74,10 +74,10 @@ public class ExampleMagewellCapture
 
          // Loop to capture a video, will stop after iterations have been completed
          LogTools.info("Starting capture");
-         while (!magewellMuxer.isClosed() && ((capturedFrame = grabber.grabAtFrameRate()) != null))
+         while (!ffmpegMuxer.isClosed() && ((capturedFrame = grabber.grabAtFrameRate()) != null))
          {
             long videoTimestamp = CaptureTimeTools.timeSinceStartedCaptureInMicroseconds(System.currentTimeMillis(), startTime);
-            magewellMuxer.recordFrame(capturedFrame, videoTimestamp);
+            ffmpegMuxer.recordFrame(capturedFrame, videoTimestamp);
 
             // Shows the captured frame its currently recording
             if (cFrame.isVisible())
@@ -86,7 +86,7 @@ public class ExampleMagewellCapture
             }
 
             // System.nanoTime() represents the controllerTimestamp in this example since its fake
-            writeTimestampToFile(System.nanoTime(), magewellMuxer.getTimeStamp());
+            writeTimestampToFile(System.nanoTime(), ffmpegMuxer.getTimeStamp());
          }
 
          LogTools.info("Stopping Capture");
@@ -124,7 +124,7 @@ public class ExampleMagewellCapture
       // This allows the capture to run for a set amount of time, meaning after 10 seconds at 60 fps we should expect around 600 timestamps
       // to be in the file. This is a good check that the speed is fast enough
       ThreadTools.sleepSeconds(CAPTURE_TIME_DURATION);
-      magewellMuxer.close();
+      ffmpegMuxer.close();
    }
 
    /**
