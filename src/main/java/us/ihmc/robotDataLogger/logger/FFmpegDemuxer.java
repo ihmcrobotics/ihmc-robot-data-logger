@@ -9,8 +9,7 @@ import java.io.File;
 
 /**
  * Generic FFmpeg-backed demuxer: takes a video file and returns given information about its frames
- * when requested. Not specific to any particular capture card - used for both Magewell and
- * BlackMagic recordings, which both end up as plain MP4/MOV files.
+ * when requested.
  */
 public class FFmpegDemuxer
 {
