@@ -20,7 +20,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
 
    private OpenCVFrameGrabber grabber;
    private FileWriter timestampWriter;
-   private MagewellMuxer magewellMuxer;
+   private FFmpegMuxer ffmpegMuxer;
    private Thread captureThread;
 
    private int framesReceivedFromCameraCounter;
@@ -56,7 +56,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
             grabber.setImageHeight(captureHeight);
             grabber.setFrameRate(60);
 
-            magewellMuxer = new MagewellMuxer(videoCaptureFile, captureWidth, captureHeight);
+            ffmpegMuxer = new FFmpegMuxer(videoCaptureFile, captureWidth, captureHeight);
          }
          default -> throw new RuntimeException();
       }
@@ -80,7 +80,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
       }
       catch (IOException e)
       {
-         magewellMuxer = null;
+         ffmpegMuxer = null;
 
          if (timestampWriter != null)
          {
@@ -105,18 +105,18 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
       try
       {
          grabber.start();
-         magewellMuxer.start();
+         ffmpegMuxer.start();
 
          timestampWriter.write(1 + "\n");
          timestampWriter.write(60 + "\n");
 
          long startTime = System.currentTimeMillis();
          Frame capturedFrame;
-         while (!magewellMuxer.isClosed() && ((capturedFrame = grabber.grabAtFrameRate()) != null))
+         while (!ffmpegMuxer.isClosed() && ((capturedFrame = grabber.grabAtFrameRate()) != null))
          {
             long videoTimestamp = CaptureTimeTools.timeSinceStartedCaptureInMicroseconds(System.currentTimeMillis(), startTime);
-            magewellMuxer.recordFrame(capturedFrame, videoTimestamp);
-            receivedFrameAtTime(System.nanoTime(), magewellMuxer.getTimeStamp(), 1, 60000);
+            ffmpegMuxer.recordFrame(capturedFrame, videoTimestamp);
+            receivedFrameAtTime(System.nanoTime(), ffmpegMuxer.getTimeStamp(), 1, 60000);
          }
       }
       finally
@@ -129,7 +129,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
          }
          finally
          {
-            magewellMuxer.stopRecording();
+            ffmpegMuxer.stopRecording();
          }
       }
    }
@@ -156,7 +156,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
    @Override
    public void timestampChanged(long latestTimeStampFromController)
    {
-      if (magewellMuxer != null)
+      if (ffmpegMuxer != null)
       {
          // Update the latest timestamp from the controller
          // Note: we don't always get the timestamps on time, because of networking and such, we need to account for that when saving the frame
@@ -179,12 +179,12 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
    public void close()
    {
       LogTools.info("Attempting to Stop video...");
-      if (magewellMuxer != null)
+      if (ffmpegMuxer != null)
       {
          LogTools.info("Stopping capture for {}, closing output stream of recorder, closing timestamp file... (Don't panic)", deviceNumber);
 
          // Signals startCapture()'s loop to exit.
-         magewellMuxer.close();
+         ffmpegMuxer.close();
 
          if (captureThread != null)
          {
@@ -217,7 +217,7 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
             e.printStackTrace();
          }
 
-         magewellMuxer = null;
+         ffmpegMuxer = null;
          timestampWriter = null;
       }
    }
@@ -250,6 +250,6 @@ public class MagewellVideoDataLogger extends VideoDataLoggerInterface implements
    @Override
    public long getLastFrameReceivedTimestamp()
    {
-      return magewellMuxer.getTimeStamp();
+      return ffmpegMuxer.getTimeStamp();
    }
 }

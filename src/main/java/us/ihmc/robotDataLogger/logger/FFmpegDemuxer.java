@@ -8,14 +8,15 @@ import us.ihmc.log.LogTools;
 import java.io.File;
 
 /**
- * This class takes a video file and returns given information about its frames when requested
+ * Generic FFmpeg-backed demuxer: takes a video file and returns given information about its frames
+ * when requested.
  */
-public class MagewellDemuxer
+public class FFmpegDemuxer
 {
-    private static final String MAGEWELL_DEMUXER = "MageWell Demuxer";
+    private static final String FFMPEG_DEMUXER = "FFmpeg Demuxer";
     private final FFmpegFrameGrabber grabber;
 
-    public MagewellDemuxer(File videoFile)
+    public FFmpegDemuxer(File videoFile)
     {
         try
         {
@@ -30,7 +31,7 @@ public class MagewellDemuxer
 
     public String getName()
     {
-        return MAGEWELL_DEMUXER;
+        return FFMPEG_DEMUXER;
     }
 
     public int getImageHeight()
@@ -71,7 +72,10 @@ public class MagewellDemuxer
     {
         try
         {
-            return grabber.grabFrame();
+            // grabImage() (not the generic grabFrame()) so the grabber itself skips over interleaved
+            // audio/timecode packets at the native av_read_frame level - with no arbitrary retry cap -
+            // instead of ever handing callers a non-video packet to skip themselves.
+            return grabber.grabImage();
         }
         catch (FrameGrabber.Exception e)
         {

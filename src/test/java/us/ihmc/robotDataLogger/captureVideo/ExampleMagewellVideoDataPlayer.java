@@ -7,7 +7,7 @@ import org.bytedeco.javacv.Java2DFrameConverter;
 import us.ihmc.codecs.generated.YUVPicture;
 import us.ihmc.codecs.generated.YUVPicture.YUVSubsamplingType;
 import us.ihmc.codecs.yuv.YUVPictureConverter;
-import us.ihmc.robotDataLogger.logger.MagewellDemuxer;
+import us.ihmc.robotDataLogger.logger.FFmpegDemuxer;
 
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
@@ -29,7 +29,7 @@ public class ExampleMagewellVideoDataPlayer
    private long[] robotTimestamps;
    private long[] videoTimestamps;
 
-   private final MagewellDemuxer magewellDemuxer;
+   private final FFmpegDemuxer ffmpegDemuxer;
    private final HideableMediaFrame viewer;
    private final YUVPictureConverter converter = new YUVPictureConverter();
 
@@ -55,17 +55,17 @@ public class ExampleMagewellVideoDataPlayer
 
       parseTimestampData(timestampFile);
 
-      magewellDemuxer = new MagewellDemuxer(videoFile);
+      ffmpegDemuxer = new FFmpegDemuxer(videoFile);
 
-      viewer = new HideableMediaFrame(camera.getNameAsString(), magewellDemuxer.getImageWidth(), magewellDemuxer.getImageHeight());
+      viewer = new HideableMediaFrame(camera.getNameAsString(), ffmpegDemuxer.getImageWidth(), ffmpegDemuxer.getImageHeight());
    }
 
    public synchronized void showVideoFrame(long timestamp)
    {
       long videoTimestamp = getVideoTimestampFromRobotTimestamp(timestamp);
 
-      magewellDemuxer.seekToPTS(videoTimestamp);
-      Frame nextFrame = magewellDemuxer.getNextFrame();
+      ffmpegDemuxer.seekToPTS(videoTimestamp);
+      Frame nextFrame = ffmpegDemuxer.getNextFrame();
       if (nextFrame != null)
       {
          viewer.update(convertFrameToYUVPicture(nextFrame));
