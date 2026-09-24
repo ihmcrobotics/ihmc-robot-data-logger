@@ -4,12 +4,10 @@ import gnu.trove.list.array.TLongArrayList;
 import logger_msgs.Camera;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
-import us.ihmc.codecs.generated.YUVPicture;
-import us.ihmc.codecs.generated.YUVPicture.YUVSubsamplingType;
-import us.ihmc.codecs.yuv.YUVPictureConverter;
 import us.ihmc.robotDataLogger.logger.FFmpegDemuxer;
 
 import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
@@ -31,7 +29,7 @@ public class ExampleMagewellVideoDataPlayer
 
    private final FFmpegDemuxer ffmpegDemuxer;
    private final HideableMediaFrame viewer;
-   private final YUVPictureConverter converter = new YUVPictureConverter();
+   private final Java2DFrameConverter frameConverter = new Java2DFrameConverter();
 
    /**
     * This class plays back a video recorded with Magewell, this is helpful for debugging information about the video.
@@ -68,23 +66,25 @@ public class ExampleMagewellVideoDataPlayer
       Frame nextFrame = ffmpegDemuxer.getNextFrame();
       if (nextFrame != null)
       {
-         viewer.update(convertFrameToYUVPicture(nextFrame));
+         viewer.update(convertFrameToBufferedImage(nextFrame));
       }
    }
 
-   private YUVPictureConverter convertedYUVPicture;
-   private Java2DFrameConverter frameConverter;
-
-   public YUVPicture convertFrameToYUVPicture(Frame frame)
+   /**
+    * Converts the frame to a new BufferedImage. The converter reuses its internal image between calls, so a copy is made before it is
+    * handed off to the Swing thread.
+    */
+   public BufferedImage convertFrameToBufferedImage(Frame frame)
    {
-      if (convertedYUVPicture == null)
-      {
-         convertedYUVPicture = new YUVPictureConverter();
-         frameConverter = new Java2DFrameConverter();
-      }
+      BufferedImage source = frameConverter.getBufferedImage(frame);
+      if (source == null)
+         return null;
 
-      BufferedImage bufferedImage = frameConverter.getBufferedImage(frame);
-      return convertedYUVPicture.fromBufferedImage(bufferedImage, YUVSubsamplingType.YUV420);
+      BufferedImage copy = new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_RGB);
+      Graphics2D graphics = copy.createGraphics();
+      graphics.drawImage(source, 0, 0, null);
+      graphics.dispose();
+      return copy;
    }
 
    public void setVisible(boolean visible)
@@ -179,7 +179,6 @@ public class ExampleMagewellVideoDataPlayer
       @Serial
       private static final long serialVersionUID = -3494797002318746347L;
       final JLabel label = new JLabel();
-      private BufferedImage img;
       private int width, height;
 
       public HideableMediaFrame(String name, int width, int height)
@@ -192,14 +191,12 @@ public class ExampleMagewellVideoDataPlayer
          pack();
       }
 
-      public void update(final YUVPicture nextFrame)
+      public void update(final BufferedImage img)
       {
          SwingUtilities.invokeLater(() ->
                                     {
-                                       if (nextFrame == null)
+                                       if (img == null)
                                           return;
-                                       img = converter.toBufferedImage(nextFrame, img);
-                                       nextFrame.delete();
                                        ImageIcon icon = new ImageIcon(img);
                                        label.setIcon(icon);
 
