@@ -30,7 +30,6 @@ mainDependencies {
    api("org.apache.commons:commons-text:1.9")
 
    api("us.ihmc:euclid:0.22.5")
-   api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-realtime:1.7.1")
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
    api("us.ihmc:jros2:1.5.1")
