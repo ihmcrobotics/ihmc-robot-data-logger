@@ -35,7 +35,7 @@ mainDependencies {
    api("us.ihmc:ihmc-java-decklink-capture:0.4.0")
    api("us.ihmc:jros2:1.5.1")
    api("us.ihmc:ihmc-commons:0.35.1")
-   api("us.ihmc:ihmc-yovariables:0.13.7")
+   api("us.ihmc:ihmc-yovariables:0.13.8")
    api("us.ihmc:mecano:17-0.19.3")
 
    api("com.fasterxml.jackson.core:jackson-databind:2.18.1")
