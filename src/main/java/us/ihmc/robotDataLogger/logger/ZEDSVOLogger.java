@@ -264,7 +264,7 @@ public class ZEDSVOLogger
          // Skip the first one, there's no interval to report on yet
          if (lastStatusPrintTimeMillis > 0)
          {
-            LogTools.info("%s: current frame: %d".formatted(name, framesSinceLastStatusPrint, currentFrameNumber));
+            LogTools.info("%s: current timestamp: %d".formatted(name, currentFrameNumber));
          }
 
          lastStatusPrintTimeMillis = currentTimeMillis;
