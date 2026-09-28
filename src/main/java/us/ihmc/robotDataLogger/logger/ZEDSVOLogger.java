@@ -14,6 +14,7 @@ import us.ihmc.zed.SL_RuntimeParameters;
 import us.ihmc.zed.ZEDTools;
 import us.ihmc.zed.global.zed;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,6 +32,7 @@ public class ZEDSVOLogger
    private static final double GRAB_RETRY_DELAY_SECONDS = 5.0;
    private static final int MAX_CONSECUTIVE_GRAB_FAILURES = 3;
    private static final long GRAB_THREAD_JOIN_TIMEOUT_MILLIS = 3000;
+   private static final long STATUS_PRINT_INTERVAL_MILLIS = 5000;
 
    // The ZED SDK only has MAX_CAMERA_PLUGIN camera instances, so IDs have to be handed back when a logger closes
    private static final boolean[] CAMERA_IDS_IN_USE = new boolean[MAX_CAMERA_PLUGIN];
@@ -45,6 +47,10 @@ public class ZEDSVOLogger
    private long controllerZeroInSensorFrame;
    private FileWriter timestampWriter;
    private int consecutiveFailedGrabs = 0;
+   private String svoFileName = "";
+   private long lastStatusPrintTimeMillis = 0;
+   private long framesSinceLastStatusPrint = 0;
+   private long currentFrameNumber = 0;
 
    private final AtomicBoolean closed = new AtomicBoolean(false);
    // Guarded by this. True while sl_open_camera is running, closing the camera during that isn't safe
@@ -63,6 +69,7 @@ public class ZEDSVOLogger
    public void connect(String svoFile, String datFile, String address, int port, int fps, int bitrate, long sensorTimestamp, long controllerTimestamp)
    {
       name = "ZED " + cameraID + " (" + address + ":" + port + ")";
+      svoFileName = new File(svoFile).getName();
 
       synchronized (this)
       {
@@ -113,7 +120,7 @@ public class ZEDSVOLogger
 
          if (opened && !closed.get())
          {
-            LogTools.info("Connected to ZED SDK stream on: " + address + ":" + port);
+            LogTools.info("Connected to ZED SDK stream on: " + address + ":" + port + ", recording to " + svoFileName);
 
             grabThread.startRepeating();
             return;
@@ -224,6 +231,7 @@ public class ZEDSVOLogger
          }
 
          consecutiveFailedGrabs = 0;
+         printStatusPeriodically();
 
          if (timestampWriter == null)
             return;
@@ -241,6 +249,26 @@ public class ZEDSVOLogger
          catch (IOException ignored)
          {
          }
+      }
+   }
+
+   private void printStatusPeriodically()
+   {
+      ++framesSinceLastStatusPrint;
+      ++currentFrameNumber;
+
+      long currentTimeMillis = System.currentTimeMillis();
+      long millisSinceLastPrint = currentTimeMillis - lastStatusPrintTimeMillis;
+      if (millisSinceLastPrint >= STATUS_PRINT_INTERVAL_MILLIS)
+      {
+         // Skip the first one, there's no interval to report on yet
+         if (lastStatusPrintTimeMillis > 0)
+         {
+            LogTools.info("%s: current frame: %d".formatted(name, framesSinceLastStatusPrint, currentFrameNumber));
+         }
+
+         lastStatusPrintTimeMillis = currentTimeMillis;
+         framesSinceLastStatusPrint = 0;
       }
    }
 
