@@ -29,8 +29,8 @@ public class ZEDSVOLogger
 
    private static final float OPEN_TIMEOUT_SECONDS = 5.0f;
    private static final double GRAB_RETRY_DELAY_SECONDS = 5.0;
-   private static final int MAX_CONSECUTIVE_GRAB_FAILURES = 4;
-   private static final long GRAB_THREAD_JOIN_TIMEOUT_MILLIS = 7000;
+   private static final int MAX_CONSECUTIVE_GRAB_FAILURES = 3;
+   private static final long GRAB_THREAD_JOIN_TIMEOUT_MILLIS = 3000;
 
    // The ZED SDK only has MAX_CAMERA_PLUGIN camera instances, so IDs have to be handed back when a logger closes
    private static final boolean[] CAMERA_IDS_IN_USE = new boolean[MAX_CAMERA_PLUGIN];
