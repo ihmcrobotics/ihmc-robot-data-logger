@@ -29,7 +29,7 @@ public class ZEDSVOLogger
    private static final BytePointer ENCRYPTION_KEY = new BytePointer("");
 
    private static final float OPEN_TIMEOUT_SECONDS = 5.0f;
-   private static final double GRAB_RETRY_DELAY_SECONDS = 5.0;
+   private static final double GRAB_RETRY_DELAY_SECONDS = 3.0;
    private static final int MAX_CONSECUTIVE_GRAB_FAILURES = 3;
    private static final long GRAB_THREAD_JOIN_TIMEOUT_MILLIS = 3000;
    private static final long STATUS_PRINT_INTERVAL_MILLIS = 5000;
