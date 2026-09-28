@@ -41,8 +41,10 @@ public class ZEDSVOLoggerManager
 
    private final ROS2Node ros2Node;
    private final Map<ZEDSDKAnnounceHash, ZEDSVOLogger> zedLoggers = new ConcurrentHashMap<>();
-   private final Object lock = new Object();
-   private boolean destroyed = false;
+   // Connecting can block inside the ZED SDK, so each ZED connects on its own thread
+   private final ExecutorService connectExecutor = Executors.newCachedThreadPool(ThreadTools.createNamedDaemonThreadFactory(getClass().getSimpleName()
+                                                                                                                           + "Connect"));
+   private volatile boolean destroyed = false;
 
    public ZEDSVOLoggerManager(File tempDirectory, File finalDirectory)
    {
@@ -59,16 +61,9 @@ public class ZEDSVOLoggerManager
 
    private void onZEDSDKAnnounceMessage(ZEDSDKAnnounce message)
    {
-      // Hold the lock for the whole message so a new logger can't be created while destroy() is closing them
-      synchronized (lock)
-      {
-         if (!destroyed)
-            handleZEDSDKAnnounceMessage(message);
-      }
-   }
+      if (destroyed)
+         return;
 
-   private void handleZEDSDKAnnounceMessage(ZEDSDKAnnounce message)
-   {
       // TODO: Make a proper fix here
       /*
        * This is a temp hacky fix to prevent log sessions from logging SVO's from different robots.
@@ -126,16 +121,20 @@ public class ZEDSVOLoggerManager
             return;
          }
 
-         zedSVOLogger.connect(svoFile,
-                              datFile,
-                              message.getAddressAsString(),
-                              message.getPort(),
-                              message.getFps(),
-                              message.getBitrate(),
-                              message.getSensorTimestamp(),
-                              message.getControllerTimestamp());
-
+         // Put it in the map before connecting so destroy() always sees it, even while it's stuck connecting
          zedLoggers.put(announceHash, zedSVOLogger);
+
+         String address = message.getAddressAsString();
+         int port = message.getPort();
+         int fps = message.getFps();
+         int bitrate = message.getBitrate();
+         long sensorTimestamp = message.getSensorTimestamp();
+         long controllerTimestamp = message.getControllerTimestamp();
+         connectExecutor.execute(() -> zedSVOLogger.connect(svoFile, datFile, address, port, fps, bitrate, sensorTimestamp, controllerTimestamp));
+
+         // destroy() may have run between the check at the top and the put, in which case it didn't see this logger
+         if (destroyed)
+            zedSVOLogger.close();
       }
    }
 
@@ -145,13 +144,10 @@ public class ZEDSVOLoggerManager
     */
    public void destroy()
    {
-      List<ZEDSVOLogger> loggersToClose;
-      synchronized (lock)
-      {
-         destroyed = true;
-         loggersToClose = new ArrayList<>(zedLoggers.values());
-         zedLoggers.clear();
-      }
+      // Nothing in here waits on a lock, a ZED stuck in the ZED SDK must not be able to block this
+      destroyed = true;
+      List<ZEDSVOLogger> loggersToClose = new ArrayList<>(zedLoggers.values());
+      zedLoggers.clear();
 
       // Can't use LogTools in here, we might be shutting down...
       System.out.println("Closing " + loggersToClose.size() + " ZED SVO logger(s)");
@@ -172,6 +168,7 @@ public class ZEDSVOLoggerManager
       waitForClose(ros2NodeCloseFuture, deadline, "ZED SDK announce ROS2Node");
 
       closeExecutor.shutdownNow();
+      connectExecutor.shutdownNow();
    }
 
    private static void waitForClose(Future<?> closeFuture, long deadline, String name)

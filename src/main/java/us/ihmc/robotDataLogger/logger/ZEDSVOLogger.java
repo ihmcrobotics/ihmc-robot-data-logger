@@ -47,6 +47,8 @@ public class ZEDSVOLogger
    private int consecutiveFailedGrabs = 0;
 
    private final AtomicBoolean closed = new AtomicBoolean(false);
+   // Guarded by this. True while sl_open_camera is running, closing the camera during that isn't safe
+   private boolean connecting = false;
 
    public ZEDSVOLogger()
    {
@@ -54,9 +56,20 @@ public class ZEDSVOLogger
       grabThread.setDaemon(true);
    }
 
+   /**
+    * Opens the ZED SDK stream and starts recording. This can block for a long time inside the ZED SDK if the stream
+    * isn't publishing, so it should not be called from a thread that anything else depends on.
+    */
    public void connect(String svoFile, String datFile, String address, int port, int fps, int bitrate, long sensorTimestamp, long controllerTimestamp)
    {
       name = "ZED " + cameraID + " (" + address + ":" + port + ")";
+
+      synchronized (this)
+      {
+         if (closed.get())
+            return;
+         connecting = true;
+      }
 
       try {
          String[] parts = svoFile.split("[/\\\\]");
@@ -92,17 +105,31 @@ public class ZEDSVOLogger
       if (returnCode != SL_ERROR_CODE_SUCCESS)
          LogTools.error("Could not enable SVO recording: " + ZEDTools.errorMessage(returnCode));
 
-      if (sl_is_opened(cameraID))
-      {
-         LogTools.info("Connected to ZED SDK stream on: " + address + ":" + port);
+      boolean opened = sl_is_opened(cameraID);
 
-         grabThread.startRepeating();
-      }
-      else
+      synchronized (this)
       {
-         // Close so the manager drops this logger and tries again on the next announce
-         close();
+         connecting = false;
+
+         if (opened && !closed.get())
+         {
+            LogTools.info("Connected to ZED SDK stream on: " + address + ":" + port);
+
+            grabThread.startRepeating();
+            return;
+         }
+
+         if (!opened)
+            LogTools.error(name + " did not open, will try again on the next announce");
+         else
+            System.out.println(name + " was closed while it was connecting");
+
+         // Mark it closed so the manager drops this logger and tries again on the next announce
+         closed.set(true);
       }
+
+      // close() either wasn't called or skipped the native cleanup because we were connecting, so do it here
+      closeNative();
    }
 
    /**
@@ -111,8 +138,18 @@ public class ZEDSVOLogger
     */
    public void close()
    {
-      if (!closed.compareAndSet(false, true))
-         return;
+      synchronized (this)
+      {
+         if (!closed.compareAndSet(false, true))
+            return;
+
+         if (connecting)
+         {
+            // connect() cleans up once sl_open_camera returns
+            System.out.println(name + " is still connecting, it will close when the connection attempt returns");
+            return;
+         }
+      }
 
       // Can't use LogTools in here, we might be shutting down...
       System.out.println("Closing " + name);
@@ -135,14 +172,21 @@ public class ZEDSVOLogger
          }
       }
 
+      closeNative();
+   }
+
+   private void closeNative()
+   {
       System.out.println(name + ": disabling recording");
       sl_disable_recording(cameraID);
       System.out.println(name + ": closing camera");
       sl_close_camera(cameraID);
       sl_unload_instance(cameraID);
 
-      initParameters.close();
-      runtimeParameters.close();
+      if (initParameters != null)
+         initParameters.close();
+      if (runtimeParameters != null)
+         runtimeParameters.close();
 
       if (timestampWriter != null)
          ExceptionTools.handle(timestampWriter::close, DefaultExceptionHandler.PRINT_MESSAGE);
