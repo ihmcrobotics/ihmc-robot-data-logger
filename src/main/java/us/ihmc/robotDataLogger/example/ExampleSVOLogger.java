@@ -17,6 +17,8 @@ public class ExampleSVOLogger
 {
    private static final String ADDRESS = "127.0.0.1";
    private static final int PORT = 30000;
+   // ZEDSVOLogger hands out camera IDs from 0, so use the last one for the local sensor to avoid them sharing an ID
+   private static final int USB_CAMERA_ID = MAX_CAMERA_PLUGIN - 1;
 
    private static final ZEDSVOLogger SVO_LOGGER = new ZEDSVOLogger();
 
@@ -71,7 +73,7 @@ public class ExampleSVOLogger
       /*
          All we need to do to stop the USB ZED sensor is call sl_close_camera
        */
-      sl_close_camera(0);
+      sl_close_camera(USB_CAMERA_ID);
    }
 
    private static void startLocalUSBSensor()
@@ -79,14 +81,14 @@ public class ExampleSVOLogger
       /*
          Set up the USB ZED
        */
-      sl_create_camera(0);
+      sl_create_camera(USB_CAMERA_ID);
       SL_InitParameters initParameters = new SL_InitParameters();
       initParameters.camera_fps(30);
       initParameters.resolution(SL_RESOLUTION_HD720);
       initParameters.input_type(SL_INPUT_TYPE_USB);
-      initParameters.camera_device_id(0);
-      int state = sl_open_camera(0, initParameters, 0, "", "", 0, -1, "", "", "");
-      sl_enable_streaming(0, SL_STREAMING_CODEC_H264, 8000, (short) PORT, -1, 0, 16084, 30);
+      initParameters.camera_device_id(0); // The USB device index, not the camera instance ID
+      int state = sl_open_camera(USB_CAMERA_ID, initParameters, 0, "", "", 0, -1, "", "", "");
+      sl_enable_streaming(USB_CAMERA_ID, SL_STREAMING_CODEC_H264, 8000, (short) PORT, -1, 0, 16084, 30);
       if (state != 0)
          throw new RuntimeException("Could not initialize ZED");
 
@@ -102,7 +104,7 @@ public class ExampleSVOLogger
             /*
                Grab the image and do nothing with it
              */
-            sl_grab(0, runtimeParameters);
+            sl_grab(USB_CAMERA_ID, runtimeParameters);
          }
       }, "ImageGrabThread");
       imageGrabThread.start();
